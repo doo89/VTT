@@ -15,10 +15,17 @@ const getEnvKey = () => {
 const supabaseUrl = getEnvUrl() as string;
 const supabaseAnonKey = getEnvKey() as string;
 
+let sbClient = null;
+try {
+  if (supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http')) {
+    sbClient = createClient(supabaseUrl, supabaseAnonKey);
+  }
+} catch (error) {
+  console.error("Invalid Supabase configuration", error);
+}
+
 // Prevent crashing if the env vars are missing (useful for local dev without connection)
-export const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+export const supabase = sbClient;
 
 // Realtime Channel Type Defs
 export type SyncStatePayload = {
