@@ -636,7 +636,7 @@ export const EditingModal: React.FC = () => {
                                   const currentList = tag.childTagIds || [];
                                   const newList = e.target.checked
                                     ? [...currentList, otherTag.id]
-                                    : currentList.filter(id => id !== otherTag.id);
+                                    : currentList.filter((id: string) => id !== otherTag.id);
                                   updateTagModel(tag.id, { childTagIds: newList });
                                 }}
                                 className="rounded border-border w-4 h-4"
@@ -691,7 +691,7 @@ export const EditingModal: React.FC = () => {
                                   const currentList = tag.childTagIds || [];
                                   const newList = e.target.checked
                                     ? [...currentList, otherTag.id]
-                                    : currentList.filter(id => id !== otherTag.id);
+                                    : currentList.filter((id: string) => id !== otherTag.id);
                                   updateTagModel(tag.id, { childTagIds: newList });
                                 }}
                                 className="rounded border-border w-4 h-4"
@@ -1212,7 +1212,7 @@ export const EditingModal: React.FC = () => {
                                   const currentList = tag.childTagIds || [];
                                   const newList = e.target.checked
                                     ? [...currentList, otherTag.id]
-                                    : currentList.filter(id => id !== otherTag.id);
+                                    : currentList.filter((id: string) => id !== otherTag.id);
                                   updateTagInstance({ childTagIds: newList });
                                 }}
                                 className="rounded border-border w-4 h-4"
@@ -1267,7 +1267,7 @@ export const EditingModal: React.FC = () => {
                                   const currentList = tag.childTagIds || [];
                                   const newList = e.target.checked
                                     ? [...currentList, otherTag.id]
-                                    : currentList.filter(id => id !== otherTag.id);
+                                    : currentList.filter((id: string) => id !== otherTag.id);
                                   updateTagInstance({ childTagIds: newList });
                                 }}
                                 className="rounded border-border w-4 h-4"
