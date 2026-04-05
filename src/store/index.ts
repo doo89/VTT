@@ -178,6 +178,7 @@ const initialState = {
     showRoleImage: true,
     imagePriority: 'player' as const,
     playerNamePosition: 'bottom' as const,
+    showTagName: false,
     playerBadges: {
       topLeft: { type: 'team' as const, bgColor: '#000000', textColor: '#ffffff' },
       topRight: { type: 'lives' as const, bgColor: '#ef4444', textColor: '#ffffff' },

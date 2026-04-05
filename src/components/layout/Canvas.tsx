@@ -40,6 +40,11 @@ export const Canvas: React.FC = () => {
   }, []);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, type: 'player' | 'marker' | 'canvas' | 'group', entityId: string | null } | null>(null);
   const [mergeConfirm, setMergeConfirm] = useState<{ marker: Marker, hitPlayer: Player, canvasX: number, canvasY: number } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ 
+    title: string, 
+    message: string, 
+    onConfirm: () => void 
+  } | null>(null);
 
   const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);
   const urlRef = useRef<HTMLInputElement>(null);
@@ -992,9 +997,11 @@ export const Canvas: React.FC = () => {
               </div>
 
               {/* Tag Name Label */}
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap border border-border pointer-events-none text-center">
-                <span>{marker.tag.name}</span>
-              </div>
+              {displaySettings.showTagName && (
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap border border-border pointer-events-none text-center">
+                  <span>{marker.tag.name}</span>
+                </div>
+              )}
 
               {/* Tooltip */}
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-7 w-max max-w-[200px] bg-popover text-popover-foreground text-xs p-2 rounded shadow-xl border border-border opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
@@ -1045,6 +1052,45 @@ export const Canvas: React.FC = () => {
                 <Settings size={14} />
                 Éditer
               </button>
+
+              {/* Utiliser Tag uses */}
+              {(() => {
+                const p = players.find(p => p.id === contextMenu.entityId);
+                if (!p) return null;
+                const tagsWithUses = p.tags.filter(t => t.uses !== null);
+                if (tagsWithUses.length === 0) return null;
+
+                return (
+                  <div className="relative group/util">
+                    <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
+                       <span className="flex items-center gap-2"><FastForward size={14} /> Utiliser</span>
+                       <ChevronRight size={14} />
+                    </button>
+                    <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover/util:block z-[101]">
+                      {tagsWithUses.map(tag => (
+                        <button
+                          key={tag.instanceId}
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            const newTags = p.tags.map(t => {
+                              if (t.instanceId === tag.instanceId && t.uses !== null) {
+                                return { ...t, uses: Math.max(0, t.uses - 1) };
+                              }
+                              return t;
+                            });
+                            updatePlayer(p.id, { tags: newTags });
+                            closeContextMenu();
+                          }}
+                        >
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: tag.color }} />
+                          {tag.name} ({tag.uses})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="relative group">
                 <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
@@ -1108,19 +1154,26 @@ export const Canvas: React.FC = () => {
                               e.stopPropagation();
                               const player = players.find(p => p.id === contextMenu.entityId);
                               if (player) {
-                                // Cascade delete: if we remove a container, we remove its children too.
-                                const tagsToRemove = new Set([tag.instanceId]);
-                                player.tags.forEach(t => {
-                                  if (t.parentTagInstanceId === tag.instanceId) {
-                                    tagsToRemove.add(t.instanceId);
+                                setDeleteConfirm({
+                                  title: "Supprimer le tag",
+                                  message: `Êtes-vous sûr de vouloir supprimer le tag "${tag.name}" de ${player.name} ?`,
+                                  onConfirm: () => {
+                                    // Cascade delete: if we remove a container, we remove its children too.
+                                    const tagsToRemove = new Set([tag.instanceId]);
+                                    player.tags.forEach(t => {
+                                      if (t.parentTagInstanceId === tag.instanceId) {
+                                        tagsToRemove.add(t.instanceId);
+                                      }
+                                    });
+
+                                    updatePlayer(player.id, {
+                                      tags: player.tags.filter(t => !tagsToRemove.has(t.instanceId))
+                                    });
+                                    setDeleteConfirm(null);
+                                    // Keep menu open unless there are no more tags
+                                    if (player.tags.length <= tagsToRemove.size) closeContextMenu();
                                   }
                                 });
-
-                                updatePlayer(player.id, {
-                                  tags: player.tags.filter(t => !tagsToRemove.has(t.instanceId))
-                                });
-                                // Keep menu open unless there are no more tags
-                                if (player.tags.length <= tagsToRemove.size) closeContextMenu();
                               }
                             }}
                           >
@@ -1138,7 +1191,17 @@ export const Canvas: React.FC = () => {
                 className="w-full text-left px-4 py-2 text-sm hover:bg-destructive/10 text-destructive flex items-center gap-2"
                 onMouseDown={(e) => {
                   e.stopPropagation();
-                  if (contextMenu.entityId) deletePlayer(contextMenu.entityId);
+                  if (contextMenu.entityId) {
+                    const player = players.find(p => p.id === contextMenu.entityId);
+                    setDeleteConfirm({
+                      title: "Supprimer le joueur",
+                      message: `Êtes-vous sûr de vouloir supprimer le joueur "${player?.name || 'Inconnu'}" ?`,
+                      onConfirm: () => {
+                        deletePlayer(contextMenu.entityId!);
+                        setDeleteConfirm(null);
+                      }
+                    });
+                  }
                   closeContextMenu();
                 }}
               >
@@ -1190,7 +1253,17 @@ export const Canvas: React.FC = () => {
                 className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive hover:text-destructive-foreground flex items-center gap-2"
                 onMouseDown={(e) => {
                   e.stopPropagation();
-                  if (contextMenu.entityId) deleteMarker(contextMenu.entityId);
+                  if (contextMenu.entityId) {
+                    const marker = markers.find(m => m.id === contextMenu.entityId);
+                    setDeleteConfirm({
+                      title: "Supprimer le tag",
+                      message: `Êtes-vous sûr de vouloir supprimer le tag "${marker?.tag.name || 'Inconnu'}" du plateau ?`,
+                      onConfirm: () => {
+                        deleteMarker(contextMenu.entityId!);
+                        setDeleteConfirm(null);
+                      }
+                    });
+                  }
                   closeContextMenu();
                 }}
               >
@@ -1378,9 +1451,14 @@ export const Canvas: React.FC = () => {
                     className="w-full text-left px-4 py-2 text-sm hover:bg-destructive text-destructive hover:text-destructive-foreground flex items-center gap-2"
                     onMouseDown={(e) => {
                       e.stopPropagation();
-                      if (window.confirm("Êtes-vous sûr de vouloir supprimer tous les joueurs du plateau ?")) {
-                        clearPlayers();
-                      }
+                      setDeleteConfirm({
+                        title: "Supprimer tous les joueurs",
+                        message: "Êtes-vous sûr de vouloir supprimer tous les joueurs du plateau ?",
+                        onConfirm: () => {
+                          clearPlayers();
+                          setDeleteConfirm(null);
+                        }
+                      });
                       closeContextMenu();
                     }}
                   >
@@ -1390,9 +1468,14 @@ export const Canvas: React.FC = () => {
                     className="w-full text-left px-4 py-2 text-sm hover:bg-destructive text-destructive hover:text-destructive-foreground flex items-center gap-2"
                     onMouseDown={(e) => {
                       e.stopPropagation();
-                      if (window.confirm("Êtes-vous sûr de vouloir supprimer tous les tags (marqueurs) du plateau ?")) {
-                        clearMarkers();
-                      }
+                      setDeleteConfirm({
+                        title: "Supprimer tous les tags",
+                        message: "Êtes-vous sûr de vouloir supprimer tous les tags (marqueurs) du plateau ?",
+                        onConfirm: () => {
+                          clearMarkers();
+                          setDeleteConfirm(null);
+                        }
+                      });
                       closeContextMenu();
                     }}
                   >
@@ -1497,15 +1580,25 @@ export const Canvas: React.FC = () => {
                 className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive hover:text-destructive-foreground flex items-center gap-2"
                 onMouseDown={(e) => {
                   e.stopPropagation();
-                  selectedEntityIds.forEach(id => {
-                    const player = players.find(p => p.id === id);
-                    if (player) deletePlayer(id);
-                    else {
-                      const marker = markers.find(m => m.id === id);
-                      if (marker) deleteMarker(id);
+                  const pCount = players.filter(p => selectedEntityIds.includes(p.id)).length;
+                  const mCount = markers.filter(m => selectedEntityIds.includes(m.id)).length;
+
+                  setDeleteConfirm({
+                    title: "Supprimer la sélection",
+                    message: `Êtes-vous sûr de vouloir supprimer les ${selectedEntityIds.length} éléments sélectionnés (${pCount} joueurs, ${mCount} tags) ?`,
+                    onConfirm: () => {
+                      selectedEntityIds.forEach(id => {
+                        const player = players.find(p => p.id === id);
+                        if (player) deletePlayer(id);
+                        else {
+                          const marker = markers.find(m => m.id === id);
+                          if (marker) deleteMarker(id);
+                        }
+                      });
+                      clearSelection();
+                      setDeleteConfirm(null);
                     }
                   });
-                  clearSelection();
                   closeContextMenu();
                 }}
               >
@@ -1603,6 +1696,38 @@ export const Canvas: React.FC = () => {
                 className="px-8 py-2 text-sm bg-[#3a5a40] hover:bg-[#344e3a] ring-2 ring-offset-2 ring-offset-background ring-[#3a5a40] text-white rounded-full font-bold transition-all shadow-md"
               >
                 OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-background rounded-xl shadow-xl outline-1 border border-border w-96 max-w-md overflow-hidden text-foreground">
+            <div className="p-4 bg-destructive/10 border-b border-border">
+              <h3 className="font-bold text-lg flex items-center gap-2 text-destructive">
+                <Trash2 size={20} />
+                {deleteConfirm.title}
+              </h3>
+            </div>
+            <div className="p-6">
+              <p className="text-sm">
+                {deleteConfirm.message}
+              </p>
+            </div>
+            <div className="p-4 bg-muted/50 border-t border-border flex justify-end gap-3">
+              <button 
+                onClick={() => setDeleteConfirm(null)} 
+                className="px-6 py-2 text-sm hover:bg-accent rounded-full font-semibold transition-colors"
+              >
+                Annuler
+              </button>
+              <button 
+                onClick={() => deleteConfirm.onConfirm()} 
+                className="px-8 py-2 text-sm bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full font-bold transition-all shadow-md"
+              >
+                Supprimer
               </button>
             </div>
           </div>

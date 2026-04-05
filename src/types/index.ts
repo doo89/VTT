@@ -187,6 +187,7 @@ export interface GameState {
     showRoleImage: boolean;
     imagePriority: 'player' | 'role';
     playerNamePosition: 'inside' | 'bottom';
+    showTagName: boolean;
     playerBadges: {
       topLeft: BadgeConfig;
       topRight: BadgeConfig;

@@ -213,6 +213,16 @@ export const RightPanel: React.FC = () => {
               Afficher le centre de la salle
             </label>
 
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={displaySettings.showTagName}
+                onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
+                className="rounded border-border"
+              />
+              Afficher le nom des tags
+            </label>
+
             {cycleMode !== 'none' && (
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input
