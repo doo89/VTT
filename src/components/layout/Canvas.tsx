@@ -1279,12 +1279,9 @@ export const Canvas: React.FC = () => {
                         }
                         
                         addMarker({
-                          id: uuidv4(),
-                          type: 'image', // default
                           x: canvasX,
                           y: canvasY,
-                          tag: { ...tagModel, instanceId: uuidv4() },
-                          isLocked: false
+                          tag: { ...tagModel, instanceId: uuidv4() }
                         });
                         closeContextMenu();
                       };
