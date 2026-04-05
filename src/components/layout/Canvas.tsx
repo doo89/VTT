@@ -1251,44 +1251,123 @@ export const Canvas: React.FC = () => {
                   <span className="flex items-center gap-2"><Tag size={14} /> Ajouter un Tag</span>
                   <ChevronRight size={14} />
                 </button>
-                <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101] max-h-64 overflow-y-auto custom-scrollbar">
+                <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[200px] hidden group-hover:block z-[101] max-h-64 overflow-visible">
                   {useVttStore.getState().tags.length === 0 ? (
                     <div className="px-4 py-2 text-xs text-muted-foreground italic">Aucun modèle de tag</div>
                   ) : (
-                    useVttStore.getState().tags.map(tagModel => {
-                      const IconComponent = icons[tagModel.icon as keyof typeof icons] || Tag;
+                    (() => {
+                      const state = useVttStore.getState();
+                      const tagsByCategory = { 'no-category': [] } as Record<string, typeof state.tags>;
+                      state.tagCategories.forEach(cat => tagsByCategory[cat.id] = []);
+                      state.tags.forEach(tag => {
+                        if (tag.categoryId && tagsByCategory[tag.categoryId]) {
+                          tagsByCategory[tag.categoryId].push(tag);
+                        } else {
+                          tagsByCategory['no-category'].push(tag);
+                        }
+                      });
+
+                      const handleTagClick = (e: React.MouseEvent, tagModel: any) => {
+                        e.stopPropagation();
+                        // Close any deepest parent menu manually?
+                        const coords = getCanvasCoordinates(e as unknown as React.MouseEvent);
+                        let canvasX = coords.x;
+                        let canvasY = coords.y;
+                        if (state.grid.enabled) {
+                          canvasX = snapToGrid(canvasX, state.grid.sizeX);
+                          canvasY = snapToGrid(canvasY, state.grid.sizeY);
+                        }
+                        
+                        addMarker({
+                          id: uuidv4(),
+                          type: 'image', // default
+                          x: canvasX,
+                          y: canvasY,
+                          tag: { ...tagModel, instanceId: uuidv4() },
+                          isLocked: false
+                        });
+                        closeContextMenu();
+                      };
+
                       return (
-                        <button
-                          key={tagModel.id}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                            const coords = getCanvasCoordinates(e as unknown as React.MouseEvent);
-                            let canvasX = coords.x;
-                            let canvasY = coords.y;
-                            if (grid.enabled) {
-                              canvasX = snapToGrid(canvasX, grid.sizeX);
-                              canvasY = snapToGrid(canvasY, grid.sizeY);
-                            }
-                            addMarker({
-                              x: canvasX,
-                              y: canvasY,
-                              tag: { ...tagModel, instanceId: uuidv4() }
-                            });
-                            closeContextMenu();
-                          }}
-                        >
-                          <div className="flex items-center justify-center w-4 h-4 rounded-sm border border-border overflow-hidden" style={{ backgroundColor: `${tagModel.color}20`, borderColor: tagModel.color }}>
-                            {tagModel.imageUrl ? (
-                              <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <IconComponent size={10} style={{ color: tagModel.color }} />
-                            )}
-                          </div>
-                          {tagModel.name}
-                        </button>
+                        <>
+                          {state.tagCategories.map(cat => {
+                            const catTags = tagsByCategory[cat.id];
+                            if (!catTags || catTags.length === 0) return null;
+                            const CatIcon = icons[cat.icon as keyof typeof icons] || icons.Folder;
+                            return (
+                              <div key={cat.id} className="relative group/cat">
+                                <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
+                                  <span className="flex items-center gap-2">
+                                    <div className="p-1 rounded bg-background shadow-sm" style={{ color: cat.color }}>
+                                      <CatIcon size={12} />
+                                    </div>
+                                    <span style={{ color: cat.color, fontWeight: 600 }}>{cat.name}</span>
+                                  </span>
+                                  <ChevronRight size={14} />
+                                </button>
+                                <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[200px] hidden group-hover/cat:block z-[102] max-h-64 overflow-y-auto custom-scrollbar">
+                                  {catTags.map(tagModel => {
+                                    const IconComponent = icons[tagModel.icon as keyof typeof icons] || Tag;
+                                    return (
+                                      <button
+                                        key={tagModel.id}
+                                        className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                                        onMouseDown={(e) => handleTagClick(e, tagModel)}
+                                      >
+                                        <div className="flex items-center justify-center w-4 h-4 rounded-sm border border-border overflow-hidden" style={{ backgroundColor: `${tagModel.color}20`, borderColor: tagModel.color }}>
+                                          {tagModel.imageUrl ? (
+                                            <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
+                                          ) : (
+                                            <IconComponent size={10} style={{ color: tagModel.color }} />
+                                          )}
+                                        </div>
+                                        {tagModel.name}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {tagsByCategory['no-category'] && tagsByCategory['no-category'].length > 0 && (
+                            <div className="relative group/nocat">
+                              <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
+                                <span className="flex items-center gap-2">
+                                  <div className="p-1 rounded bg-background shadow-sm text-muted-foreground">
+                                    <icons.Folder size={12} />
+                                  </div>
+                                  <span className="italic text-muted-foreground">Sans catégorie</span>
+                                </span>
+                                <ChevronRight size={14} />
+                              </button>
+                              <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[200px] hidden group-hover/nocat:block z-[102] max-h-64 overflow-y-auto custom-scrollbar">
+                                {tagsByCategory['no-category'].map(tagModel => {
+                                  const IconComponent = icons[tagModel.icon as keyof typeof icons] || Tag;
+                                  return (
+                                    <button
+                                      key={tagModel.id}
+                                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                                      onMouseDown={(e) => handleTagClick(e, tagModel)}
+                                    >
+                                      <div className="flex items-center justify-center w-4 h-4 rounded-sm border border-border overflow-hidden" style={{ backgroundColor: `${tagModel.color}20`, borderColor: tagModel.color }}>
+                                        {tagModel.imageUrl ? (
+                                          <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                          <IconComponent size={10} style={{ color: tagModel.color }} />
+                                        )}
+                                      </div>
+                                      {tagModel.name}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </>
                       );
-                    })
+                    })()
                   )}
                 </div>
               </div>
