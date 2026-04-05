@@ -939,6 +939,12 @@ export const EditingModal: React.FC = () => {
           >
             Champ
           </button>
+          <button
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'container' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+            onClick={() => setActiveTagTab('container')}
+          >
+            Container
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -1156,6 +1162,129 @@ export const EditingModal: React.FC = () => {
                 <p className="text-xs text-muted-foreground mt-1">
                   L'image de cette aide s'affichera dans une galerie sur le smartphone du joueur possédant ce tag.
                 </p>
+              </div>
+            </div>
+          )}
+
+          {activeTagTab === 'container' && (
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-muted-foreground mb-2">
+                Ce tag peut servir de "Container". Lorsqu'il est appliqué à un joueur, tous les tags sélectionnés ici seront appliqués en même temps avec lui.
+              </p>
+              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2 pb-2">
+                {tagCategories.map(cat => {
+                  const catTags = tagsByCategory[cat.id]?.filter(t => t.id !== tag.id);
+                  if (!catTags || catTags.length === 0) return null;
+                  
+                  const CatIcon = icons[cat.icon as keyof typeof icons] || icons.Folder;
+                  const isExpanded = expandedContainerCategories[cat.id] ?? true;
+
+                  const handleToggleCat = () => {
+                    setExpandedContainerCategories(prev => ({ ...prev, [cat.id]: !isExpanded }));
+                  };
+
+                  return (
+                    <div key={cat.id} className="flex flex-col bg-card border border-border rounded-md overflow-hidden">
+                      <button 
+                        onClick={handleToggleCat}
+                        className="flex items-center justify-between bg-muted/50 hover:bg-muted p-2 transition-colors w-full text-left"
+                      >
+                        <div className="flex items-center gap-2 flex-1">
+                          <div className="p-1 rounded bg-background shadow-sm" style={{ color: cat.color }}>
+                            <CatIcon size={14} />
+                          </div>
+                          <span className="font-semibold text-sm flex-1">{cat.name}</span>
+                          <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">
+                            {catTags.length}
+                          </span>
+                        </div>
+                        {isExpanded ? <icons.ChevronDown size={14} className="text-muted-foreground" /> : <icons.ChevronRight size={14} className="text-muted-foreground" />}
+                      </button>
+
+                      {isExpanded && (
+                        <div className="flex flex-col gap-1 p-2 bg-background/50 border-t border-border">
+                          {catTags.map(otherTag => (
+                            <label key={otherTag.id} className="flex items-center gap-3 p-2 hover:bg-accent hover:text-accent-foreground rounded-md cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={tag.childTagIds?.includes(otherTag.id) || false}
+                                onChange={(e) => {
+                                  const currentList = tag.childTagIds || [];
+                                  const newList = e.target.checked
+                                    ? [...currentList, otherTag.id]
+                                    : currentList.filter(id => id !== otherTag.id);
+                                  updateTagInstance({ childTagIds: newList });
+                                }}
+                                className="rounded border-border w-4 h-4"
+                              />
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: otherTag.color }} />
+                              <span className="text-sm font-medium flex-1">{otherTag.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Uncategorized Tags */}
+                {(() => {
+                  const noCatTags = tagsByCategory['no-category']?.filter(t => t.id !== tag.id);
+                  if (!noCatTags || noCatTags.length === 0) return null;
+                  
+                  const isExpanded = expandedContainerCategories['no-category'] ?? true;
+
+                  const handleToggleCat = () => {
+                    setExpandedContainerCategories(prev => ({ ...prev, ['no-category']: !isExpanded }));
+                  };
+
+                  return (
+                    <div className="flex flex-col bg-card border border-border rounded-md overflow-hidden">
+                      <button 
+                        onClick={handleToggleCat}
+                        className="flex items-center justify-between bg-muted/50 hover:bg-muted p-2 transition-colors w-full text-left"
+                      >
+                        <div className="flex items-center gap-2 flex-1">
+                          <div className="p-1 rounded bg-background shadow-sm text-muted-foreground">
+                            <icons.Folder size={14} />
+                          </div>
+                          <span className="font-semibold text-sm flex-1 text-muted-foreground italic">Sans catégorie</span>
+                          <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">
+                            {noCatTags.length}
+                          </span>
+                        </div>
+                        {isExpanded ? <icons.ChevronDown size={14} className="text-muted-foreground" /> : <icons.ChevronRight size={14} className="text-muted-foreground" />}
+                      </button>
+                      
+                      {isExpanded && (
+                        <div className="flex flex-col gap-1 p-2 bg-background/50 border-t border-border">
+                          {noCatTags.map(otherTag => (
+                            <label key={otherTag.id} className="flex items-center gap-3 p-2 hover:bg-accent hover:text-accent-foreground rounded-md cursor-pointer transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={tag.childTagIds?.includes(otherTag.id) || false}
+                                onChange={(e) => {
+                                  const currentList = tag.childTagIds || [];
+                                  const newList = e.target.checked
+                                    ? [...currentList, otherTag.id]
+                                    : currentList.filter(id => id !== otherTag.id);
+                                  updateTagInstance({ childTagIds: newList });
+                                }}
+                                className="rounded border-border w-4 h-4"
+                              />
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: otherTag.color }} />
+                              <span className="text-sm font-medium flex-1">{otherTag.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {tags.filter(t => t.id !== tag.id).length === 0 && (
+                  <div className="text-sm text-muted-foreground text-center py-4">Aucun autre tag disponible</div>
+                )}
               </div>
             </div>
           )}
