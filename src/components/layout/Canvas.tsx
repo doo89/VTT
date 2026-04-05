@@ -45,6 +45,7 @@ export const Canvas: React.FC = () => {
     message: string, 
     onConfirm: () => void 
   } | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);
   const urlRef = useRef<HTMLInputElement>(null);
@@ -807,8 +808,10 @@ export const Canvas: React.FC = () => {
                 top: player.y,
                 transform: 'translate(-50%, -50%)',
                 cursor: 'grab',
-                zIndex: displaySettings.foregroundElement === 'players' ? 20 : 10
+                zIndex: hoveredId === player.id ? 100 : (displaySettings.foregroundElement === 'players' ? 20 : 10)
               }}
+              onMouseEnter={() => setHoveredId(player.id)}
+              onMouseLeave={() => setHoveredId(null)}
               draggable
               onDragStart={(e) => {
                 e.stopPropagation();
@@ -963,8 +966,10 @@ export const Canvas: React.FC = () => {
               top: marker.y,
               transform: 'translate(-50%, -50%)',
               cursor: 'grab',
-              zIndex: displaySettings.foregroundElement === 'markers' ? 20 : 10
+              zIndex: hoveredId === marker.id ? 100 : (displaySettings.foregroundElement === 'markers' ? 20 : 10)
             }}
+            onMouseEnter={() => setHoveredId(marker.id)}
+            onMouseLeave={() => setHoveredId(null)}
             draggable
             onDragStart={(e) => {
               e.stopPropagation();
