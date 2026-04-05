@@ -67,8 +67,8 @@ export const PlayersTab: React.FC = () => {
 
   const handleValidateMassImport = () => {
     const N = massImportNames.length;
-    const cx = room.width / 2;
-    const cy = room.height / 2;
+    const cx = 0;
+    const cy = 0;
     // Calculate radius to fit nicely inside the room
     const R = Math.min(room.width, room.height) * 0.35;
 
