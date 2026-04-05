@@ -10,7 +10,7 @@ const TEAM_ICONS = [
 ];
 
 export const PlayersTab: React.FC = () => {
-  const { playerTemplates, teams, setEditingEntity, addPlayerTemplate, deletePlayerTemplate, addTeam, deleteTeam } = useVttStore();
+  const { playerTemplates, teams, setEditingEntity, addPlayerTemplate, deletePlayerTemplate, addTeam, deleteTeam, room, addPlayer } = useVttStore();
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerColor, setNewPlayerColor] = useState('#ef4444');
 
@@ -65,14 +65,38 @@ export const PlayersTab: React.FC = () => {
   };
 
   const handleValidateMassImport = () => {
+    const N = massImportNames.length;
+    const cx = room.width / 2;
+    const cy = room.height / 2;
+    // Calculate radius to fit nicely inside the room
+    const R = Math.min(room.width, room.height) * 0.35;
+
     massImportNames.forEach((name, i) => {
       const finalName = name.trim() || `Joueur ${i + 1}`;
+      const color = getRandomColor();
+      
       addPlayerTemplate({
         name: finalName,
-        color: getRandomColor(),
+        color: color,
         roleId: null,
         teamId: null,
         size: 40,
+      });
+
+      const angle = (i * 2 * Math.PI) / N;
+      const x = cx + R * Math.cos(angle);
+      const y = cy + R * Math.sin(angle);
+
+      addPlayer({
+        name: finalName,
+        color: color,
+        roleId: null,
+        teamId: null,
+        size: 40,
+        x: x,
+        y: y,
+        isDead: false,
+        tags: []
       });
     });
     setShowMassImportModal(false);
