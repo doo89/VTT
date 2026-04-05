@@ -21,6 +21,7 @@ export const PlayersTab: React.FC = () => {
   // Collapse states
   const [openSections, setOpenSections] = useState({
     createPlayer: true,
+    playersList: true,
     massImport: false,
     createTeam: false,
   });
@@ -140,61 +141,70 @@ export const PlayersTab: React.FC = () => {
         )}
       </section>
 
-      {/* List Players Section (Always Visible) */}
+      {/* List Players Section */}
       <section className="flex flex-col gap-3 pt-2 border-t border-border">
-        <h3 className="font-semibold text-sm border-b border-border pb-1">Joueurs</h3>
-        <div className="flex flex-col gap-2">
-          {playerTemplates.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Aucun joueur créé.</p>
-          ) : (
-            playerTemplates.map((player) => {
-              const team = teams.find(t => t.id === player.teamId);
-              return (
-              <div
-                key={player.id}
-                className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group"
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData('application/json', JSON.stringify({ type: 'new_player', data: player }));
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div
-                      className="w-6 h-6 rounded-full border border-border"
-                      style={{ backgroundColor: player.color }}
-                    />
-                    {team && (
-                      <div
-                        className="absolute -top-1 -left-1 w-2.5 h-2.5 rounded-full border border-background"
-                        style={{ backgroundColor: team.color }}
-                        title={`Équipe: ${team.name}`}
-                      />
-                    )}
-                  </div>
-                  <span className="text-sm font-medium">{player.name}</span>
-                </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => setEditingEntity({ type: 'playerTemplate', id: player.id })}
-                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
-                    title="Modifier"
-                  >
-                    <Edit2 size={14} />
-                  </button>
-                  <button
-                    onClick={() => deletePlayerTemplate(player.id)}
-                    className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md"
-                    title="Supprimer"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-            );
-          })
-          )}
+        <div 
+          className="flex items-center justify-between bg-accent/30 hover:bg-accent/50 p-2 rounded cursor-pointer transition-colors"
+          onClick={() => toggleSection('playersList')}
+        >
+          <h3 className="font-semibold text-sm">Joueurs</h3>
+          {openSections.playersList ? <ChevronDown size={16} className="text-blue-500" /> : <ChevronRight size={16} className="text-blue-500" />}
         </div>
+        
+        {openSections.playersList && (
+          <div className="flex flex-col gap-2">
+            {playerTemplates.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">Aucun joueur créé.</p>
+            ) : (
+              playerTemplates.map((player) => {
+                const team = teams.find(t => t.id === player.teamId);
+                return (
+                <div
+                  key={player.id}
+                  className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group"
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('application/json', JSON.stringify({ type: 'new_player', data: player }));
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div
+                        className="w-6 h-6 rounded-full border border-border"
+                        style={{ backgroundColor: player.color }}
+                      />
+                      {team && (
+                        <div
+                          className="absolute -top-1 -left-1 w-2.5 h-2.5 rounded-full border border-background"
+                          style={{ backgroundColor: team.color }}
+                          title={`Équipe: ${team.name}`}
+                        />
+                      )}
+                    </div>
+                    <span className="text-sm font-medium">{player.name}</span>
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => setEditingEntity({ type: 'playerTemplate', id: player.id })}
+                      className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
+                      title="Modifier"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      onClick={() => deletePlayerTemplate(player.id)}
+                      className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md"
+                      title="Supprimer"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+            )}
+          </div>
+        )}
       </section>
 
       {/* Mass Import Section */}
