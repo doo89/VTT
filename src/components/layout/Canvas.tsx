@@ -39,6 +39,7 @@ export const Canvas: React.FC = () => {
     return () => observer.disconnect();
   }, []);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, type: 'player' | 'marker' | 'canvas' | 'group', entityId: string | null } | null>(null);
+  const [mergeConfirm, setMergeConfirm] = useState<{ marker: Marker, hitPlayer: Player, canvasX: number, canvasY: number } | null>(null);
 
   const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);
   const urlRef = useRef<HTMLInputElement>(null);
@@ -171,12 +172,8 @@ export const Canvas: React.FC = () => {
         });
 
         if (hitPlayer) {
-          if (window.confirm(`Voulez-vous fusionner le tag "${marker.tag.name}" avec le joueur "${hitPlayer.name}" ?`)) {
-            // Merge tag into player
-            applyTagToPlayer(hitPlayer, marker.tag);
-            deleteMarker(marker.id);
-            return;
-          }
+          setMergeConfirm({ marker, hitPlayer, canvasX, canvasY });
+          return;
         }
 
         // If not merged, just update position
@@ -1570,6 +1567,42 @@ export const Canvas: React.FC = () => {
               </button>
               <button onClick={saveSupabaseConfig} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded font-bold">
                 Sauvegarder & Recharger
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mergeConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-background rounded-xl shadow-xl outline-1 border border-border w-96 max-w-md overflow-hidden text-foreground">
+            <div className="p-4 bg-muted/30 border-b border-border">
+              <h3 className="font-bold text-lg">Fusionner le Tag</h3>
+            </div>
+            <div className="p-6">
+              <p className="text-sm">
+                Voulez-vous fusionner le tag <strong>"{mergeConfirm.marker.tag.name}"</strong> avec le joueur <strong>"{mergeConfirm.hitPlayer.name}"</strong> ?
+              </p>
+            </div>
+            <div className="p-4 bg-muted/50 border-t border-border flex justify-end gap-3">
+              <button 
+                onClick={() => {
+                  updateMarker(mergeConfirm.marker.id, { x: mergeConfirm.canvasX, y: mergeConfirm.canvasY });
+                  setMergeConfirm(null);
+                }} 
+                className="px-6 py-2 text-sm text-green-900 bg-green-200 hover:bg-green-300 rounded-full font-semibold transition-colors shadow-sm"
+              >
+                Annuler
+              </button>
+              <button 
+                onClick={() => {
+                  applyTagToPlayer(mergeConfirm.hitPlayer, mergeConfirm.marker.tag);
+                  deleteMarker(mergeConfirm.marker.id);
+                  setMergeConfirm(null);
+                }} 
+                className="px-8 py-2 text-sm bg-[#3a5a40] hover:bg-[#344e3a] ring-2 ring-offset-2 ring-offset-background ring-[#3a5a40] text-white rounded-full font-bold transition-all shadow-md"
+              >
+                OK
               </button>
             </div>
           </div>
