@@ -41,14 +41,16 @@ export const Canvas: React.FC = () => {
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, type: 'player' | 'marker' | 'canvas' | 'group', entityId: string | null } | null>(null);
 
   const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);
-  const [tempUrl, setTempUrl] = useState(localStorage.getItem('VTT_SUPABASE_URL') || '');
-  const [tempKey, setTempKey] = useState(localStorage.getItem('VTT_SUPABASE_ANON_KEY') || '');
+  const urlRef = useRef<HTMLInputElement>(null);
+  const keyRef = useRef<HTMLInputElement>(null);
 
   const saveSupabaseConfig = () => {
-    localStorage.setItem('VTT_SUPABASE_URL', tempUrl);
-    localStorage.setItem('VTT_SUPABASE_ANON_KEY', tempKey);
-    setShowSupabaseSettings(false);
-    window.location.reload();
+    if (urlRef.current && keyRef.current) {
+      localStorage.setItem('VTT_SUPABASE_URL', urlRef.current.value);
+      localStorage.setItem('VTT_SUPABASE_ANON_KEY', keyRef.current.value);
+      setShowSupabaseSettings(false);
+      window.location.reload();
+    }
   };
 
   const handleContextMenu = (e: React.MouseEvent, type: 'player' | 'marker' | 'canvas' | 'group', entityId: string | null = null) => {
@@ -1445,7 +1447,12 @@ export const Canvas: React.FC = () => {
 
       {/* Supabase Settings Modal */}
       {showSupabaseSettings && (
-        <div className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div 
+          className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm"
+          onMouseDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="bg-popover text-popover-foreground rounded-lg shadow-2xl w-full max-w-md overflow-hidden border border-border">
             <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50">
               <h2 className="text-lg font-bold flex items-center gap-2">
@@ -1464,8 +1471,8 @@ export const Canvas: React.FC = () => {
                 <label className="text-sm font-semibold">URL Supabase</label>
                 <input
                   type="text"
-                  value={tempUrl}
-                  onChange={(e) => setTempUrl(e.target.value)}
+                  defaultValue={localStorage.getItem('VTT_SUPABASE_URL') || ''}
+                  ref={urlRef}
                   className="w-full bg-background border border-border rounded p-2 text-sm focus:outline-none focus:border-blue-500"
                   placeholder="https://xxxxxx.supabase.co"
                 />
@@ -1474,8 +1481,8 @@ export const Canvas: React.FC = () => {
                 <label className="text-sm font-semibold">Clé Anonyme (Anon Key)</label>
                 <input
                   type="password"
-                  value={tempKey}
-                  onChange={(e) => setTempKey(e.target.value)}
+                  defaultValue={localStorage.getItem('VTT_SUPABASE_ANON_KEY') || ''}
+                  ref={keyRef}
                   className="w-full bg-background border border-border rounded p-2 text-sm focus:outline-none focus:border-blue-500"
                   placeholder="eyJhbGciOiJIUzI1NiIsInR..."
                 />
