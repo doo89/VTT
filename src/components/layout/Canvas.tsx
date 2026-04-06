@@ -1486,6 +1486,23 @@ export const Canvas: React.FC = () => {
                     >
                       Tous les tags
                     </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-destructive text-destructive hover:text-destructive-foreground flex items-center gap-2"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        setDeleteConfirm({
+                          title: "Supprimer tous les tags des joueurs",
+                          message: "Êtes-vous sûr de vouloir supprimer tous les tags fusionnés avec les joueurs (pas ceux des rôles) ?",
+                          onConfirm: () => {
+                            players.forEach(p => updatePlayer(p.id, { tags: [] }));
+                            setDeleteConfirm(null);
+                          }
+                        });
+                        closeContextMenu();
+                      }}
+                    >
+                      Tous les tags des joueurs
+                    </button>
                   </div>
                 </div>
               </>
