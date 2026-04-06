@@ -1071,7 +1071,7 @@ export const Canvas: React.FC = () => {
                         <span className="flex items-center gap-2"><FastForward size={14} /> Utiliser</span>
                         <ChevronRight size={14} />
                       </button>
-                      <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover/util:block z-[101]">
+                      <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover/util:block z-[101]">
                         {tagsWithUses.map(tag => (
                           <button
                             key={tag.instanceId}
@@ -1102,7 +1102,7 @@ export const Canvas: React.FC = () => {
                     <span className="flex items-center gap-2"><FileText size={14} /> Notes</span>
                     <ChevronRight size={14} />
                   </button>
-                  <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101]">
+                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101]">
                     <button
                       className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
                       onMouseDown={(e) => {
@@ -1135,7 +1135,7 @@ export const Canvas: React.FC = () => {
                       <span className="flex items-center gap-2"><Tag size={14} /> Éditer les tags</span>
                       <ChevronRight size={14} />
                     </button>
-                    <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101]">
+                    <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101]">
                       {players.find(p => p.id === contextMenu.entityId)!.tags.map(tag => (
                         <div key={tag.instanceId} className="flex items-center justify-between px-2 py-1 hover:bg-accent hover:text-accent-foreground">
                           <span className="text-sm truncate flex-1 flex items-center gap-2" title={tag.name}>
@@ -1284,7 +1284,7 @@ export const Canvas: React.FC = () => {
                     <span className="flex items-center gap-2"><Users size={14} /> Ajouter un Joueur</span>
                     <ChevronRight size={14} />
                   </button>
-                  <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101] max-h-64 overflow-y-auto custom-scrollbar">
+                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101] max-h-64 overflow-y-auto custom-scrollbar">
                     {useVttStore.getState().playerTemplates.length === 0 ? (
                       <div className="px-4 py-2 text-xs text-muted-foreground italic">Aucun modèle de joueur</div>
                     ) : (
@@ -1326,7 +1326,7 @@ export const Canvas: React.FC = () => {
                     <span className="flex items-center gap-2"><Tag size={14} /> Ajouter un Tag</span>
                     <ChevronRight size={14} />
                   </button>
-                  <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[200px] hidden group-hover:block z-[101] max-h-64 overflow-visible">
+                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[200px] hidden group-hover:block z-[101] max-h-64 overflow-visible">
                     {useVttStore.getState().tags.length === 0 ? (
                       <div className="px-4 py-2 text-xs text-muted-foreground italic">Aucun modèle de tag</div>
                     ) : (
@@ -1378,7 +1378,7 @@ export const Canvas: React.FC = () => {
                                     </span>
                                     <ChevronRight size={14} />
                                   </button>
-                                  <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[200px] hidden group-hover/cat:block z-[102] max-h-64 overflow-y-auto custom-scrollbar">
+                                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[200px] hidden group-hover/cat:block z-[102] max-h-64 overflow-y-auto custom-scrollbar">
                                     {catTags.map(tagModel => {
                                       const IconComponent = icons[tagModel.icon as keyof typeof icons] || Tag;
                                       return (
@@ -1414,7 +1414,7 @@ export const Canvas: React.FC = () => {
                                   </span>
                                   <ChevronRight size={14} />
                                 </button>
-                                <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[200px] hidden group-hover/nocat:block z-[102] max-h-64 overflow-y-auto custom-scrollbar">
+                                <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[200px] hidden group-hover/nocat:block z-[102] max-h-64 overflow-y-auto custom-scrollbar">
                                   {tagsByCategory['no-category'].map(tagModel => {
                                     const IconComponent = icons[tagModel.icon as keyof typeof icons] || Tag;
                                     return (
@@ -1451,7 +1451,7 @@ export const Canvas: React.FC = () => {
                     <span className="flex items-center gap-2"><Trash2 size={14} /> Supprimer</span>
                     <ChevronRight size={14} />
                   </button>
-                  <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101]">
+                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101]">
                     <button
                       className="w-full text-left px-4 py-2 text-sm hover:bg-destructive text-destructive hover:text-destructive-foreground flex items-center gap-2"
                       onMouseDown={(e) => {
@@ -1520,7 +1520,7 @@ export const Canvas: React.FC = () => {
                     <span className="flex items-center gap-2">Équipe</span>
                     <ChevronRight size={14} />
                   </button>
-                  <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101]">
+                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101]">
                     <button
                       className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground italic"
                       onMouseDown={(e) => {
@@ -1560,7 +1560,7 @@ export const Canvas: React.FC = () => {
                     <span className="flex items-center gap-2"><Tag size={14} /> Ajouter Tag</span>
                     <ChevronRight size={14} />
                   </button>
-                  <div className="absolute left-full top-0 ml-1 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101] max-h-64 overflow-y-auto custom-scrollbar">
+                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101] max-h-64 overflow-y-auto custom-scrollbar">
                     {useVttStore.getState().tags.length === 0 ? (
                       <div className="px-4 py-2 text-xs text-muted-foreground italic">Aucun modèle de tag</div>
                     ) : (
