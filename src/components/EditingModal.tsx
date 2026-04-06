@@ -1230,6 +1230,47 @@ export const EditingModal: React.FC = () => {
                   L'image de cette aide s'affichera dans une galerie sur le smartphone du joueur possédant ce tag.
                 </p>
               </div>
+
+              <div className="flex flex-col gap-3 mt-4 p-3 bg-muted/30 rounded-lg border border-border/50">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <icons.Smartphone size={16} className="text-blue-400" />
+                  Interface Smartphone
+                </h4>
+
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={tag.isMultiPlayerSelector || false}
+                    onChange={(e) => updateTagInstance({ isMultiPlayerSelector: e.target.checked })}
+                    className="rounded border-border w-4 h-4"
+                  />
+                  Sélecteur multi-joueurs (le joueur choisit des joueurs depuis son téléphone)
+                </label>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-muted-foreground">Texte du bouton d'action</label>
+                  <input
+                    type="text"
+                    value={tag.smartphoneButtonText || ''}
+                    onChange={(e) => updateTagInstance({ smartphoneButtonText: e.target.value })}
+                    placeholder="Ex: Utiliser la potion…"
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                  <p className="text-[10px] text-muted-foreground leading-tight">Si rempli, un bouton apparaît sur le smartphone du joueur possédant ce tag.</p>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-muted-foreground">Message retour au MJ (popup)</label>
+                  <input
+                    type="text"
+                    value={tag.smartphoneButtonFeedback || ''}
+                    onChange={(e) => updateTagInstance({ smartphoneButtonFeedback: e.target.value })}
+                    placeholder="Ex: La sorcière utilise sa potion de vie"
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                  <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup chez le MJ quand le joueur appuie sur le bouton.</p>
+                </div>
+              </div>
             </div>
           )}
 

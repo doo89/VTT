@@ -60,6 +60,13 @@ export const initHostRealtime = (roomCode: string) => {
       // Direct request from a player client to get current state (useful for late joiners)
       forceBroadcastState();
     })
+    .on('broadcast', { event: 'smartphone_action' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      state.setSmartphoneActionMessage({
+        playerName: payload.playerName,
+        message: payload.feedbackMessage,
+      });
+    })
     .on('presence', { event: 'sync' }, () => {
       const state = useVttStore.getState();
       const newState = currentChannel?.presenceState() || {};

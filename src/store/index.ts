@@ -106,6 +106,10 @@ interface VttStore extends GameState {
 
   // Colors
   addRecentColor: (color: string) => void;
+
+  // Smartphone Action Popups for GM
+  smartphoneActionMessage: { playerName: string, message: string } | null;
+  setSmartphoneActionMessage: (message: { playerName: string, message: string } | null) => void;
 }
 
 const initialState = {
@@ -148,6 +152,7 @@ const initialState = {
   },
   activeLeftTab: 'players' as const,
   editingEntity: null,
+  smartphoneActionMessage: null,
   canvas: {
     panX: 0,
     panY: 0,

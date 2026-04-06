@@ -19,6 +19,8 @@ export const PlayerView: React.FC = () => {
   const [isNoticeBoardOpen, setIsNoticeBoardOpen] = useState(false);
   const [expandedNoticeId, setExpandedNoticeId] = useState<string | null>(null);
   const [handoutImages, setHandoutImages] = useState<{ id: string; url: string; name: string }[]>([]);
+  const [roomPlayers, setRoomPlayers] = useState<Player[]>([]);
+  const [selectedPlayersByTag, setSelectedPlayersByTag] = useState<Record<string, string[]>>({});
 
   // Track the actual player ID once found, so if GM renames them, they stay connected
   // Use a ref so changes don't cause the useEffect to tear down the WebSocket channel
@@ -32,6 +34,45 @@ export const PlayerView: React.FC = () => {
       event: 'update_player_state',
       payload: { id: localPlayer.id, updates: { publicNotesSendToPlayer: false } }
     }).catch(console.error);
+  };
+
+  const handleSmartphoneAction = (tagInstanceId: string, buttonFeedback: string, isMultiSelector: boolean) => {
+    if (!localPlayer || !channelRef.current) return;
+    
+    let feedbackAddon = '';
+    if (isMultiSelector) {
+      const selectedIds = selectedPlayersByTag[tagInstanceId] || [];
+      const selectedNames = selectedIds.length > 0 
+        ? selectedIds.map(id => roomPlayers.find(p => p.id === id)?.name || id).join(', ')
+        : 'Aucun joueur sélectionné';
+      feedbackAddon = `\nChoix : ${selectedNames}`;
+    }
+
+    channelRef.current.send({
+      type: 'broadcast',
+      event: 'smartphone_action',
+      payload: { 
+        playerName: localPlayer.name,
+        feedbackMessage: buttonFeedback + feedbackAddon
+      }
+    }).catch(console.error);
+
+    alert("Action envoyée au MJ.");
+    
+    if (isMultiSelector) {
+      setSelectedPlayersByTag(prev => ({ ...prev, [tagInstanceId]: [] }));
+    }
+  };
+
+  const togglePlayerSelection = (tagInstanceId: string, targetPlayerId: string) => {
+    setSelectedPlayersByTag(prev => {
+      const current = prev[tagInstanceId] || [];
+      if (current.includes(targetPlayerId)) {
+        return { ...prev, [tagInstanceId]: current.filter(id => id !== targetPlayerId) };
+      } else {
+        return { ...prev, [tagInstanceId]: [...current, targetPlayerId] };
+      }
+    });
   };
 
   useEffect(() => {
@@ -63,6 +104,9 @@ export const PlayerView: React.FC = () => {
             channel.track({ playerId: found.id, name: found.name }).catch(console.error);
           }
         }
+
+        // Store all players for the selector
+        setRoomPlayers(data.players || []);
 
         // Update notice board players
         const noticeBoard = data.players.filter(p => p.publicNotes && p.publicNotesNoticeBoard);
@@ -279,6 +323,38 @@ export const PlayerView: React.FC = () => {
                     </div>
                     {tag.description && (
                       <p className="text-xs text-zinc-500 italic mt-1 leading-relaxed">{tag.description}</p>
+                    )}
+
+                    {(tag.isMultiPlayerSelector || tag.smartphoneButtonText) && (
+                      <div className="mt-3 pt-3 border-t border-zinc-800/80 flex flex-col gap-3">
+                        {tag.isMultiPlayerSelector && (
+                           <div className="flex flex-col gap-2">
+                             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Sélectionner des joueurs</span>
+                             <div className="flex flex-col gap-1 max-h-32 overflow-y-auto custom-scrollbar pr-1 bg-zinc-950/30 p-2 rounded-lg border border-zinc-800/50">
+                                {roomPlayers.filter(p => !p.isDead).map(p => (
+                                  <label key={p.id} className="flex items-center gap-2 p-1.5 hover:bg-zinc-800/50 rounded cursor-pointer transition-colors">
+                                    <input 
+                                      type="checkbox"
+                                      checked={(selectedPlayersByTag[tag.instanceId] || []).includes(p.id)}
+                                      onChange={() => togglePlayerSelection(tag.instanceId, p.id)}
+                                      className="rounded bg-zinc-900 border-zinc-700 w-3.5 h-3.5"
+                                    />
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
+                                    <span className="text-xs text-zinc-300 truncate">{p.name}</span>
+                                  </label>
+                                ))}
+                             </div>
+                           </div>
+                        )}
+                        {tag.smartphoneButtonText && (
+                          <button
+                            onClick={() => handleSmartphoneAction(tag.instanceId, tag.smartphoneButtonFeedback || '', !!tag.isMultiPlayerSelector)}
+                            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors w-full uppercase tracking-wider shadow-lg shadow-blue-900/20 active:scale-95"
+                          >
+                            {tag.smartphoneButtonText}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}
