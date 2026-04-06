@@ -1078,13 +1078,19 @@ export const Canvas: React.FC = () => {
                             className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
                             onMouseDown={(e) => {
                               e.stopPropagation();
-                              const newTags = p.tags.map(t => {
+                              const nextTags = p.tags.map(t => {
                                 if (t.instanceId === tag.instanceId && t.uses !== null) {
                                   return { ...t, uses: Math.max(0, t.uses - 1) };
                                 }
                                 return t;
                               });
-                              updatePlayer(p.id, { tags: newTags });
+
+                              // Filtrer pour supprimer les tags qui tombent à 0 avec l'option autoDeleteOnZeroUses
+                              const finalTags = nextTags.filter(t => 
+                                !(t.instanceId === tag.instanceId && t.uses === 0 && t.autoDeleteOnZeroUses)
+                              );
+
+                              updatePlayer(p.id, { tags: finalTags });
                               closeContextMenu();
                             }}
                           >
