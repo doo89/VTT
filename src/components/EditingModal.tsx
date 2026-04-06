@@ -150,6 +150,13 @@ export const EditingModal: React.FC = () => {
               }}
               className="text-xs file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
             />
+            <input
+              type="text"
+              value={template.imageUrl || ''}
+              onChange={(e) => updatePlayerTemplate(template.id, { imageUrl: e.target.value })}
+              placeholder="Ou URL de l'image..."
+              className="bg-input border border-border rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring flex-1"
+            />
             {template.imageUrl && (
               <button
                 onClick={() => updatePlayerTemplate(template.id, { imageUrl: undefined })}
@@ -231,6 +238,13 @@ export const EditingModal: React.FC = () => {
                 }
               }}
               className="text-xs file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+            />
+            <input
+              type="text"
+              value={player.imageUrl || ''}
+              onChange={(e) => updatePlayer(player.id, { imageUrl: e.target.value })}
+              placeholder="Ou URL de l'image..."
+              className="bg-input border border-border rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring flex-1"
             />
             {player.imageUrl && (
               <button
@@ -344,6 +358,13 @@ export const EditingModal: React.FC = () => {
                   }
                 }}
                 className="text-sm flex-1 text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+              />
+              <input
+                type="text"
+                value={role.imageUrl || ''}
+                onChange={(e) => updateRole(role.id, { imageUrl: e.target.value })}
+                placeholder="Ou URL de l'image..."
+                className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring flex-1"
               />
               {role.imageUrl && (
                 <button
@@ -755,6 +776,13 @@ export const EditingModal: React.FC = () => {
                       }
                     }}
                     className="text-sm flex-1 text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                  />
+                  <input
+                    type="text"
+                    value={tag.imageUrl || ''}
+                    onChange={(e) => updateTagModel(tag.id, { imageUrl: e.target.value })}
+                    placeholder="Ou URL de l'image..."
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring flex-1"
                   />
                   {tag.imageUrl && (
                     <button
