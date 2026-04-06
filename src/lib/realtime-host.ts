@@ -73,7 +73,7 @@ export const initHostRealtime = (roomCode: string) => {
         if (player) {
           const newTags = player.tags.map(t =>
             t.instanceId === payload.tagInstanceId
-              ? { ...t, isMultiPlayerSelector: false, smartphoneButtonText: undefined, smartphoneButtonFeedback: undefined }
+              ? { ...t, isMultiPlayerSelector: false, smartphoneButtonText: '', smartphoneButtonFeedback: '' }
               : t
           );
           state.updatePlayer(player.id, { tags: newTags });
