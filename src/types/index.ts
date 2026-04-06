@@ -56,6 +56,9 @@ export interface MarkerParameter {
   showInTooltip?: boolean;
   showInGameTab?: boolean;
   showOnSmartphone?: boolean;
+  isMultiPlayerSelector?: boolean;
+  smartphoneButtonText?: string;
+  smartphoneButtonFeedback?: string;
 }
 
 export interface Marker {

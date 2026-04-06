@@ -912,6 +912,45 @@ export const EditingModal: React.FC = () => {
                   L'image de cette aide s'affichera dans une galerie sur le smartphone du joueur possédant ce tag.
                 </p>
               </div>
+
+              <div className="flex flex-col gap-3 mt-4 p-3 bg-muted/30 rounded-lg border border-border/50">
+                <h4 className="text-sm font-semibold flex items-center gap-2">
+                  <icons.Smartphone size={16} className="text-blue-400" />
+                  Interface Smartphone
+                </h4>
+
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={tag.isMultiPlayerSelector || false}
+                    onChange={(e) => updateTagModel(tag.id, { isMultiPlayerSelector: e.target.checked })}
+                    className="rounded border-border w-4 h-4"
+                  />
+                  Selecteur multi-joueurs (le joueur choisit des joueurs depuis son telephone)
+                </label>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-muted-foreground">Texte du bouton</label>
+                  <input
+                    type="text"
+                    value={tag.smartphoneButtonText || ''}
+                    onChange={(e) => updateTagModel(tag.id, { smartphoneButtonText: e.target.value })}
+                    placeholder="Ex: Utiliser la potion"
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-muted-foreground">Retour au MJ (popup)</label>
+                  <input
+                    type="text"
+                    value={tag.smartphoneButtonFeedback || ''}
+                    onChange={(e) => updateTagModel(tag.id, { smartphoneButtonFeedback: e.target.value })}
+                    placeholder="Ex: La sorciere utilise sa potion de vie"
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>

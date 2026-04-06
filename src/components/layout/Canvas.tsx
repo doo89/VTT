@@ -1085,10 +1085,14 @@ export const Canvas: React.FC = () => {
                                 return t;
                               });
 
-                              // Filtrer pour supprimer les tags qui tombent à 0 avec l'option autoDeleteOnZeroUses
-                              const finalTags = nextTags.filter(t => 
-                                !(t.instanceId === tag.instanceId && t.uses === 0 && t.autoDeleteOnZeroUses)
-                              );
+                              // Supprimer le tag parent ET ses enfants si autoDeleteOnZeroUses déclenche
+                              const tagToAutoDelete = nextTags.find(t => t.instanceId === tag.instanceId && t.uses === 0 && t.autoDeleteOnZeroUses);
+                              const finalTags = tagToAutoDelete
+                                ? nextTags.filter(t =>
+                                    t.instanceId !== tagToAutoDelete.instanceId &&
+                                    t.parentTagInstanceId !== tagToAutoDelete.instanceId
+                                  )
+                                : nextTags;
 
                               updatePlayer(p.id, { tags: finalTags });
                               closeContextMenu();
