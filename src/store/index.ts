@@ -397,6 +397,9 @@ export const useVttStore = create<VttStore>()(
             return { recentColors: [uppercaseColor, ...state.recentColors].slice(0, 16) };
           }
         }),
+
+        // Smartphone action message
+        setSmartphoneActionMessage: (message) => set({ smartphoneActionMessage: message }),
       }),
       {
         partialize: (state) => ({
