@@ -66,6 +66,19 @@ export const initHostRealtime = (roomCode: string) => {
         playerName: payload.playerName,
         message: payload.feedbackMessage,
       });
+
+      // Handle auto-delete of UI for this tag
+      if (payload.autoDeleteSmartphoneUI && payload.playerId && payload.tagInstanceId) {
+        const player = state.players.find(p => p.id === payload.playerId);
+        if (player) {
+          const newTags = player.tags.map(t =>
+            t.instanceId === payload.tagInstanceId
+              ? { ...t, isMultiPlayerSelector: false, smartphoneButtonText: undefined, smartphoneButtonFeedback: undefined }
+              : t
+          );
+          state.updatePlayer(player.id, { tags: newTags });
+        }
+      }
     })
     .on('presence', { event: 'sync' }, () => {
       const state = useVttStore.getState();

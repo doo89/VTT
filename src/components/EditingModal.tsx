@@ -950,6 +950,16 @@ export const EditingModal: React.FC = () => {
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   />
                 </div>
+
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
+                  <input
+                    type="checkbox"
+                    checked={tag.smartphoneAutoDelete || false}
+                    onChange={(e) => updateTagModel(tag.id, { smartphoneAutoDelete: e.target.checked })}
+                    className="rounded border-border w-4 h-4"
+                  />
+                  Suppression automatique (efface le sélecteur et le bouton côté smartphone après clic)
+                </label>
               </div>
             </div>
           )}
@@ -1270,6 +1280,16 @@ export const EditingModal: React.FC = () => {
                   />
                   <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup chez le MJ quand le joueur appuie sur le bouton.</p>
                 </div>
+
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
+                  <input
+                    type="checkbox"
+                    checked={tag.smartphoneAutoDelete || false}
+                    onChange={(e) => updateTagInstance({ smartphoneAutoDelete: e.target.checked })}
+                    className="rounded border-border w-4 h-4"
+                  />
+                  Suppression automatique (efface le sélecteur et le bouton côté smartphone après clic)
+                </label>
               </div>
             </div>
           )}

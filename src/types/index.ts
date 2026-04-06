@@ -59,6 +59,7 @@ export interface MarkerParameter {
   isMultiPlayerSelector?: boolean;
   smartphoneButtonText?: string;
   smartphoneButtonFeedback?: string;
+  smartphoneAutoDelete?: boolean;
 }
 
 export interface Marker {

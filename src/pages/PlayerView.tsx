@@ -36,7 +36,7 @@ export const PlayerView: React.FC = () => {
     }).catch(console.error);
   };
 
-  const handleSmartphoneAction = (tagInstanceId: string, buttonFeedback: string, isMultiSelector: boolean) => {
+  const handleSmartphoneAction = (tagInstanceId: string, buttonFeedback: string, isMultiSelector: boolean, autoDelete: boolean) => {
     if (!localPlayer || !channelRef.current) return;
     
     let feedbackAddon = '';
@@ -53,7 +53,10 @@ export const PlayerView: React.FC = () => {
       event: 'smartphone_action',
       payload: { 
         playerName: localPlayer.name,
-        feedbackMessage: buttonFeedback + feedbackAddon
+        playerId: localPlayer.id,
+        tagInstanceId: tagInstanceId,
+        feedbackMessage: buttonFeedback + feedbackAddon,
+        autoDeleteSmartphoneUI: autoDelete
       }
     }).catch(console.error);
 
@@ -331,16 +334,17 @@ export const PlayerView: React.FC = () => {
                            <div className="flex flex-col gap-2">
                              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Sélectionner des joueurs</span>
                              <div className="flex flex-col gap-1 max-h-32 overflow-y-auto custom-scrollbar pr-1 bg-zinc-950/30 p-2 rounded-lg border border-zinc-800/50">
-                                {roomPlayers.filter(p => !p.isDead).map(p => (
-                                  <label key={p.id} className="flex items-center gap-2 p-1.5 hover:bg-zinc-800/50 rounded cursor-pointer transition-colors">
+                                {roomPlayers.map(p => (
+                                  <label key={p.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-colors ${p.isDead ? 'hover:bg-transparent opacity-50' : 'hover:bg-zinc-800/50'}`}>
                                     <input 
                                       type="checkbox"
+                                      disabled={p.isDead}
                                       checked={(selectedPlayersByTag[tag.instanceId] || []).includes(p.id)}
                                       onChange={() => togglePlayerSelection(tag.instanceId, p.id)}
                                       className="rounded bg-zinc-900 border-zinc-700 w-3.5 h-3.5"
                                     />
                                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
-                                    <span className="text-xs text-zinc-300 truncate">{p.name}</span>
+                                    <span className={`text-xs text-zinc-300 truncate ${p.isDead ? 'line-through text-zinc-500' : ''}`}>{p.name}</span>
                                   </label>
                                 ))}
                              </div>
@@ -348,7 +352,7 @@ export const PlayerView: React.FC = () => {
                         )}
                         {tag.smartphoneButtonText && (
                           <button
-                            onClick={() => handleSmartphoneAction(tag.instanceId, tag.smartphoneButtonFeedback || '', !!tag.isMultiPlayerSelector)}
+                            onClick={() => handleSmartphoneAction(tag.instanceId, tag.smartphoneButtonFeedback || '', !!tag.isMultiPlayerSelector, !!tag.smartphoneAutoDelete)}
                             className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors w-full uppercase tracking-wider shadow-lg shadow-blue-900/20 active:scale-95"
                           >
                             {tag.smartphoneButtonText}

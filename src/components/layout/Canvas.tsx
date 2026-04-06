@@ -808,7 +808,7 @@ export const Canvas: React.FC = () => {
                   top: player.y,
                   transform: 'translate(-50%, -50%)',
                   cursor: 'grab',
-                  zIndex: hoveredId === player.id ? 100 : (displaySettings.foregroundElement === 'players' ? 20 : 10)
+                  zIndex: hoveredId === player.id ? (displaySettings.foregroundElement === 'players' ? 110 : 15) : (displaySettings.foregroundElement === 'players' ? 20 : 10)
                 }}
                 onMouseEnter={() => setHoveredId(player.id)}
                 onMouseLeave={() => setHoveredId(null)}
@@ -966,7 +966,7 @@ export const Canvas: React.FC = () => {
                   top: marker.y,
                   transform: 'translate(-50%, -50%)',
                   cursor: 'grab',
-                  zIndex: hoveredId === marker.id ? 100 : (displaySettings.foregroundElement === 'markers' ? 20 : 10)
+                  zIndex: hoveredId === marker.id ? (displaySettings.foregroundElement === 'markers' ? 110 : 15) : (displaySettings.foregroundElement === 'markers' ? 20 : 10)
                 }}
                 onMouseEnter={() => setHoveredId(marker.id)}
                 onMouseLeave={() => setHoveredId(null)}
@@ -1354,8 +1354,8 @@ export const Canvas: React.FC = () => {
 
                         const handleTagClick = (e: React.MouseEvent, tagModel: any) => {
                           e.stopPropagation();
-                          // Close any deepest parent menu manually?
-                          const coords = getCanvasCoordinates(e as unknown as React.MouseEvent);
+                          if (!contextMenu) return;
+                          const coords = getCanvasCoordinates({ clientX: contextMenu.x, clientY: contextMenu.y } as unknown as React.MouseEvent);
                           let canvasX = coords.x;
                           let canvasY = coords.y;
                           if (state.grid.enabled) {
