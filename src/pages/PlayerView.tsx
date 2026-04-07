@@ -26,6 +26,7 @@ export const PlayerView: React.FC = () => {
   // Use a ref so changes don't cause the useEffect to tear down the WebSocket channel
   const matchedPlayerIdRef = useRef<string | null>(null);
   const channelRef = useRef<any>(null);
+  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
 
   const dismissNote = () => {
     if (!localPlayer || !channelRef.current) return;
@@ -36,7 +37,7 @@ export const PlayerView: React.FC = () => {
     }).catch(console.error);
   };
 
-  const handleSmartphoneAction = (tagInstanceId: string, buttonFeedback: string, isMultiSelector: boolean, autoDelete: boolean) => {
+  const handleSmartphoneAction = (tagInstanceId: string, buttonFeedback: string, isMultiSelector: boolean, autoDelete: boolean, playerFeedback?: string) => {
     if (!localPlayer || !channelRef.current) return;
     
     let feedbackAddon = '';
@@ -60,7 +61,8 @@ export const PlayerView: React.FC = () => {
       }
     }).catch(console.error);
 
-    alert("Action envoyée au MJ.");
+    setSubmitMessage(playerFeedback || 'Action envoyée au MJ.');
+    setTimeout(() => setSubmitMessage(null), 3500);
     
     if (isMultiSelector) {
       setSelectedPlayersByTag(prev => ({ ...prev, [tagInstanceId]: [] }));
@@ -450,6 +452,18 @@ export const PlayerView: React.FC = () => {
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] rounded-full blur-[120px] opacity-10 pointer-events-none"
           style={{ backgroundColor: localRole.color }}
         />
+      )}
+
+      {/* Submit Message Popup */}
+      {submitMessage && (
+        <div className="absolute top-0 inset-x-0 mx-auto w-full max-w-sm mt-16 p-4 z-50 animate-in fade-in slide-in-from-top-4">
+          <div className="bg-emerald-900 border border-emerald-600 text-emerald-100 rounded-xl p-4 shadow-xl flex items-center justify-between">
+            <span className="font-medium text-sm flex-1">{submitMessage}</span>
+            <button title="Fermer" onClick={() => setSubmitMessage(null)} className="opacity-70 hover:opacity-100 p-1">
+              <X size={16} />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

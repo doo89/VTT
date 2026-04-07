@@ -949,6 +949,19 @@ export const EditingModal: React.FC = () => {
                     placeholder="Ex: La sorciere utilise sa potion de vie"
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   />
+                  <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup chez le MJ quand le joueur appuie sur le bouton.</p>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-muted-foreground">Retour au smartphone (popup)</label>
+                  <input
+                    type="text"
+                    value={tag.smartphonePlayerFeedback || ''}
+                    onChange={(e) => updateTagModel(tag.id, { smartphonePlayerFeedback: e.target.value })}
+                    placeholder="Ex: Action envoyée au MJ."
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                  <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup sur le smartphone du joueur quand il appuie sur le bouton.</p>
                 </div>
 
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
@@ -958,7 +971,7 @@ export const EditingModal: React.FC = () => {
                     onChange={(e) => updateTagModel(tag.id, { smartphoneAutoDelete: e.target.checked })}
                     className="rounded border-border w-4 h-4"
                   />
-                  Suppression automatique (efface le sélecteur et le bouton côté smartphone après clic)
+                  Suppression automatique (efface le tag après clic)
                 </label>
               </div>
             </div>
@@ -1281,6 +1294,18 @@ export const EditingModal: React.FC = () => {
                   <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup chez le MJ quand le joueur appuie sur le bouton.</p>
                 </div>
 
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-medium text-muted-foreground">Message retour au smartphone (popup)</label>
+                  <input
+                    type="text"
+                    value={tag.smartphonePlayerFeedback || ''}
+                    onChange={(e) => updateTagInstance({ smartphonePlayerFeedback: e.target.value })}
+                    placeholder="Ex: Action envoyée au MJ."
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                  <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup sur le smartphone du joueur quand il appuie sur le bouton.</p>
+                </div>
+
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
                   <input
                     type="checkbox"
@@ -1288,7 +1313,7 @@ export const EditingModal: React.FC = () => {
                     onChange={(e) => updateTagInstance({ smartphoneAutoDelete: e.target.checked })}
                     className="rounded border-border w-4 h-4"
                   />
-                  Suppression automatique (efface le sélecteur et le bouton côté smartphone après clic)
+                  Suppression automatique (efface le tag après clic)
                 </label>
               </div>
             </div>

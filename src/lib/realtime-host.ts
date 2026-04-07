@@ -71,11 +71,15 @@ export const initHostRealtime = (roomCode: string) => {
       if (payload.autoDeleteSmartphoneUI && payload.playerId && payload.tagInstanceId) {
         const player = state.players.find(p => p.id === payload.playerId);
         if (player) {
-          const newTags = player.tags.map(t =>
-            t.instanceId === payload.tagInstanceId
-              ? { ...t, isMultiPlayerSelector: false, smartphoneButtonText: '', smartphoneButtonFeedback: '' }
-              : t
-          );
+          const tagsToRemove = new Set([payload.tagInstanceId]);
+          // Include any children tags if it was a container
+          player.tags.forEach(t => {
+            if (t.parentTagInstanceId === payload.tagInstanceId) {
+              tagsToRemove.add(t.instanceId);
+            }
+          });
+
+          const newTags = player.tags.filter(t => !tagsToRemove.has(t.instanceId));
           state.updatePlayer(player.id, { tags: newTags });
         }
       }
