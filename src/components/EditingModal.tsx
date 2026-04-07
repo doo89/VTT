@@ -18,7 +18,7 @@ const TAG_ICONS = [
 
 export const EditingModal: React.FC = () => {
   const { editingEntity, setEditingEntity, players, playerTemplates, roles, teams, tags, tagCategories, markers, soundboard, handouts, updatePlayer, updatePlayerTemplate, updateRole, updateTeam, updateTagModel, updateTagCategory, updateMarker, updateSoundButton, removeSoundButton } = useVttStore();
-  const [activeTagTab, setActiveTagTab] = React.useState<'general' | 'appearance' | 'fields' | 'container'>('general');
+  const [activeTagTab, setActiveTagTab] = React.useState<'general' | 'appearance' | 'fields' | 'container' | 'smartphone'>('general');
   const [expandedContainerCategories, setExpandedContainerCategories] = React.useState<Record<string, boolean>>({});
 
   const tagsByCategory = React.useMemo(() => {
@@ -895,7 +895,11 @@ export const EditingModal: React.FC = () => {
                   placeholder="Saisissez un texte libre ici..."
                 />
               </div>
+            </div>
+          )}
 
+          {activeTagTab === 'smartphone' && (
+            <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1 mt-4">
                 <label className="text-sm font-medium text-muted-foreground">Associer une Aide de Jeu</label>
                 <select
@@ -913,7 +917,7 @@ export const EditingModal: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 mt-4 p-3 bg-muted/30 rounded-lg border border-border/50">
+              <div className="flex flex-col gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
                 <h4 className="text-sm font-semibold flex items-center gap-2">
                   <icons.Smartphone size={16} className="text-blue-400" />
                   Interface Smartphone
@@ -1236,7 +1240,11 @@ export const EditingModal: React.FC = () => {
                   placeholder="Saisissez un texte libre ici..."
                 />
               </div>
+            </div>
+          )}
 
+          {activeTagTab === 'smartphone' && (
+            <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1 mt-4">
                 <label className="text-sm font-medium text-muted-foreground">Associer une Aide de Jeu</label>
                 <select
@@ -1254,7 +1262,7 @@ export const EditingModal: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 mt-4 p-3 bg-muted/30 rounded-lg border border-border/50">
+              <div className="flex flex-col gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
                 <h4 className="text-sm font-semibold flex items-center gap-2">
                   <icons.Smartphone size={16} className="text-blue-400" />
                   Interface Smartphone

@@ -62,10 +62,12 @@ export const initHostRealtime = (roomCode: string) => {
     })
     .on('broadcast', { event: 'smartphone_action' }, ({ payload }) => {
       const state = useVttStore.getState();
-      state.setSmartphoneActionMessage({
-        playerName: payload.playerName,
-        message: payload.feedbackMessage,
-      });
+      if (payload.feedbackMessage && payload.feedbackMessage.trim() !== '') {
+        state.setSmartphoneActionMessage({
+          playerName: payload.playerName,
+          message: payload.feedbackMessage,
+        });
+      }
 
       // Handle auto-delete of UI for this tag
       if (payload.autoDeleteSmartphoneUI && payload.playerId && payload.tagInstanceId) {

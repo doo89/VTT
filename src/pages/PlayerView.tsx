@@ -61,8 +61,10 @@ export const PlayerView: React.FC = () => {
       }
     }).catch(console.error);
 
-    setSubmitMessage(playerFeedback || 'Action envoyée au MJ.');
-    setTimeout(() => setSubmitMessage(null), 3500);
+    if (playerFeedback && playerFeedback.trim() !== '') {
+      setSubmitMessage(playerFeedback);
+      setTimeout(() => setSubmitMessage(null), 3500);
+    }
     
     if (isMultiSelector) {
       setSelectedPlayersByTag(prev => ({ ...prev, [tagInstanceId]: [] }));
