@@ -883,6 +883,25 @@ export const Canvas: React.FC = () => {
                   {renderBadge('topRight')}
                   {renderBadge('bottomLeft')}
                   {renderBadge('bottomRight')}
+
+                  {/* Selection Pastilles (from smartphone actions) */}
+                  {player.selectionPastilles && player.selectionPastilles.length > 0 && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1 z-30">
+                      {player.selectionPastilles.map((p, idx) => {
+                        const PIcon = icons[p.icon as keyof typeof icons] || Tag;
+                        return (
+                          <div
+                            key={`${p.id}-${idx}`}
+                            className="w-5 h-5 rounded-full border-2 border-background shadow-sm flex items-center justify-center bg-card animate-in zoom-in-50 duration-300"
+                            style={{ borderColor: p.color }}
+                            title="Sélectionné par smartphone"
+                          >
+                            <PIcon size={10} style={{ color: p.color }} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Tooltip */}
@@ -1545,6 +1564,16 @@ export const Canvas: React.FC = () => {
                       }}
                     >
                       Tous les tags des joueurs
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-destructive text-destructive hover:text-destructive-foreground flex items-center gap-2"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        useVttStore.getState().clearAllSelectionPastilles();
+                        closeContextMenu();
+                      }}
+                    >
+                      Les pastilles tags
                     </button>
                   </div>
                 </div>

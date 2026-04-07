@@ -61,6 +61,7 @@ interface VttStore extends GameState {
   updatePlayers: (updatesArray: { id: EntityId; updates: Partial<Player> }[]) => void;
   deletePlayer: (id: EntityId) => void;
   clearPlayers: () => void;
+  clearAllSelectionPastilles: () => void;
 
   // Roles
   addRole: (roleData: Omit<Role, 'id'>) => void;
@@ -295,6 +296,9 @@ export const useVttStore = create<VttStore>()(
     players: state.players.filter(p => p.id !== id)
   })),
   clearPlayers: () => set({ players: [] }),
+  clearAllSelectionPastilles: () => set((state) => ({
+    players: state.players.map(p => ({ ...p, selectionPastilles: [] }))
+  })),
 
   // Roles
   addRole: (roleData) => set((state) => ({

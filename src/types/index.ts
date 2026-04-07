@@ -17,6 +17,7 @@ export interface Player {
   publicNotesSendToPlayer?: boolean;
   publicNotesNoticeBoard?: boolean;
   publicNotesTimestamp?: number;
+  selectionPastilles?: { id: string, icon: string, color: string }[];
 }
 
 export interface Role {

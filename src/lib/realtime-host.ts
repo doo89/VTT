@@ -69,6 +69,51 @@ export const initHostRealtime = (roomCode: string) => {
         });
       }
 
+      // Handle selection pastilles if targeted players are present
+      if (payload.selectedPlayerIds && Array.isArray(payload.selectedPlayerIds) && payload.selectedPlayerIds.length > 0) {
+        // Find the tag info
+        let tagInfo: { icon: string, color: string } | null = null;
+        
+        // Search in all players and their tags
+        for (const p of state.players) {
+          const t = p.tags.find(tag => tag.instanceId === payload.tagInstanceId);
+          if (t) {
+            tagInfo = { icon: t.icon, color: t.color };
+            break;
+          }
+        }
+        
+        // If not found in players, search in markers
+        if (!tagInfo) {
+          const m = state.markers.find(m => m.tag.instanceId === payload.tagInstanceId);
+          if (m) {
+            tagInfo = { icon: m.tag.icon, color: m.tag.color };
+          }
+        }
+
+        if (tagInfo) {
+          const pastilleId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+          const icon = tagInfo.icon;
+          const color = tagInfo.color;
+          
+          const playerUpdates = payload.selectedPlayerIds.map((pid: string) => {
+            const target = state.players.find(p => p.id === pid);
+            if (target) {
+              const currentPastilles = target.selectionPastilles || [];
+              return {
+                id: pid,
+                updates: { selectionPastilles: [...currentPastilles, { id: pastilleId, icon, color }] }
+              };
+            }
+            return null;
+          }).filter(Boolean) as { id: string, updates: Partial<any> }[];
+          
+          if (playerUpdates.length > 0) {
+            state.updatePlayers(playerUpdates as any);
+          }
+        }
+      }
+
       // Handle auto-delete of UI for this tag
       if (payload.autoDeleteSmartphoneUI && payload.playerId && payload.tagInstanceId) {
         const player = state.players.find(p => p.id === payload.playerId);

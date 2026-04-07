@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { SyncStatePayload } from '../lib/supabase';
 import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock } from 'lucide-react';
+import * as icons from 'lucide-react';
 import type { Player, Role, Team } from '../types';
 
 export const PlayerView: React.FC = () => {
@@ -57,7 +58,8 @@ export const PlayerView: React.FC = () => {
         playerId: localPlayer.id,
         tagInstanceId: tagInstanceId,
         feedbackMessage: buttonFeedback + feedbackAddon,
-        autoDeleteSmartphoneUI: autoDelete
+        autoDeleteSmartphoneUI: autoDelete,
+        selectedPlayerIds: isMultiSelector ? (selectedPlayersByTag[tagInstanceId] || []) : []
       }
     }).catch(console.error);
 
@@ -319,7 +321,14 @@ export const PlayerView: React.FC = () => {
                   <div key={tag.instanceId} className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 font-bold text-white">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }} />
+                        {(() => {
+                           const IconComponent = tag.icon ? (icons as any)[tag.icon] : null;
+                           return IconComponent ? (
+                             <IconComponent size={14} style={{ color: tag.color }} />
+                           ) : (
+                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }} />
+                           );
+                        })()}
                         {tag.name}
                       </div>
                       {tag.uses !== null && (
