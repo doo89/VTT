@@ -1454,6 +1454,40 @@ export const Canvas: React.FC = () => {
                   </div>
                 </div>
 
+                <button
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    if (!containerRef.current || players.length === 0) {
+                      closeContextMenu();
+                      return;
+                    }
+                    
+                    const rect = containerRef.current.getBoundingClientRect();
+                    const centerX = -canvas.panX / canvas.zoom + (rect.width / 2) / canvas.zoom;
+                    const centerY = -canvas.panY / canvas.zoom + (rect.height / 2) / canvas.zoom;
+                    
+                    const radius = Math.max(150, players.length * 30);
+                    const angleStep = (2 * Math.PI) / players.length;
+                    
+                    players.forEach((player, index) => {
+                        let finalX = centerX + radius * Math.cos(index * angleStep - Math.PI / 2);
+                        let finalY = centerY + radius * Math.sin(index * angleStep - Math.PI / 2);
+                        
+                        if (grid.enabled) {
+                            finalX = snapToGrid(finalX, grid.sizeX);
+                            finalY = snapToGrid(finalY, grid.sizeY);
+                        }
+                        
+                        updatePlayer(player.id, { x: finalX, y: finalY });
+                    });
+                    
+                    closeContextMenu();
+                  }}
+                >
+                  <icons.CircleDashed size={14} /> Réorganiser en cercle
+                </button>
+
                 <div className="h-px bg-border my-1" />
 
                 <div className="relative group">
