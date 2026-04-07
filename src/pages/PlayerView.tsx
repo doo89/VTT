@@ -225,14 +225,14 @@ export const PlayerView: React.FC = () => {
 
           {/* Status Banner */}
           {localPlayer.isDead && (
-            <div className="bg-red-950/50 border border-red-900 text-red-200 p-4 rounded-xl flex items-center justify-center gap-3 shadow-lg">
+            <div className="shrink-0 bg-red-950/50 border border-red-900 text-red-200 p-4 rounded-xl flex items-center justify-center gap-3 shadow-lg">
               <ShieldAlert size={24} className="text-red-500" />
               <span className="font-bold text-lg">Vous êtes mort.</span>
             </div>
           )}
 
           {/* Role Card */}
-          <div className={`relative flex flex-col items-center border rounded-2xl p-6 shadow-2xl overflow-hidden mt-4 transition-colors duration-1000 ${(isNight && cycleMode === 'dayNight') ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-800 border-zinc-700'}`}>
+          <div className={`relative shrink-0 flex flex-col items-center border rounded-2xl p-6 shadow-2xl overflow-hidden mt-4 transition-colors duration-1000 ${(isNight && cycleMode === 'dayNight') ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-800 border-zinc-700'}`}>
             {localTeam && (
                <div
                   className="absolute top-0 left-0 w-full h-1.5"
@@ -261,7 +261,7 @@ export const PlayerView: React.FC = () => {
                 className={`text-3xl font-black tracking-tight mt-1 ${localPlayer.isDead ? 'text-zinc-600' : 'text-white'}`}
                 style={{ color: localPlayer.isDead ? undefined : (localRole?.color || '#fff') }}
               >
-                {localRole ? localRole.name : "Villageois"}
+                {localRole ? localRole.name : "Pas de rôle"}
               </h3>
 
               {localTeam && (
@@ -285,7 +285,7 @@ export const PlayerView: React.FC = () => {
 
           {/* GM Message / Public Notes targeting this player */}
           {localPlayer.publicNotes && localPlayer.publicNotesSendToPlayer && (
-            <div className="bg-blue-900/30 border border-blue-500/50 rounded-2xl overflow-hidden mt-4 relative">
+            <div className="shrink-0 bg-blue-900/30 border border-blue-500/50 rounded-2xl overflow-hidden mt-4 relative">
               <div className="bg-blue-500/20 px-4 py-2 border-b border-blue-500/30 flex items-center justify-between">
                 <h4 className="text-xs font-bold text-blue-300 uppercase tracking-widest flex items-center gap-2">
                   <MessageSquareWarning size={14} /> Message du MJ
@@ -308,7 +308,7 @@ export const PlayerView: React.FC = () => {
 
           {/* Tags / Status Effects */}
           {localPlayer.tags.filter(t => t.showOnSmartphone).length > 0 && (
-            <div className="flex flex-col gap-3 mt-4">
+            <div className="shrink-0 flex flex-col gap-3 mt-4">
               <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                 <TagIcon size={14} /> Effets Actifs
               </h4>
@@ -370,7 +370,7 @@ export const PlayerView: React.FC = () => {
 
           {/* Public Notice Board */}
           {noticeBoardPlayers.length > 0 && (
-            <div className="mt-8 border border-zinc-700/50 rounded-2xl overflow-hidden bg-zinc-900/50 backdrop-blur-sm shadow-xl">
+            <div className="shrink-0 mt-8 border border-zinc-700/50 rounded-2xl overflow-hidden bg-zinc-900/50 backdrop-blur-sm shadow-xl">
               <button
                 onClick={() => setIsNoticeBoardOpen(!isNoticeBoardOpen)}
                 className="w-full flex items-center justify-between p-4 bg-zinc-800/80 hover:bg-zinc-800 transition-colors"
@@ -425,7 +425,7 @@ export const PlayerView: React.FC = () => {
 
           {/* Gallery for Tag Handout References */}
           {handoutImages.length > 0 && (
-            <div className="mt-8">
+            <div className="shrink-0 mt-8">
               <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 text-center">Aides de Jeu (Références)</h4>
               <div className="flex flex-wrap gap-4 justify-center">
                 {handoutImages.map((handout) => (
