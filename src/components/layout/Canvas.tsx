@@ -1463,9 +1463,8 @@ export const Canvas: React.FC = () => {
                       return;
                     }
                     
-                    const rect = containerRef.current.getBoundingClientRect();
-                    const centerX = -canvas.panX / canvas.zoom + (rect.width / 2) / canvas.zoom;
-                    const centerY = -canvas.panY / canvas.zoom + (rect.height / 2) / canvas.zoom;
+                    const centerX = -canvas.panX / canvas.zoom;
+                    const centerY = -canvas.panY / canvas.zoom;
                     
                     const radius = Math.max(150, players.length * 30);
                     const angleStep = (2 * Math.PI) / players.length;
