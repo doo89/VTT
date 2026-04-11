@@ -323,6 +323,37 @@ export const EditingModal: React.FC = () => {
             {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
         </div>
+
+        {/* Persistent Stats */}
+        <div className="grid grid-cols-3 gap-3 border-t border-border pt-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-muted-foreground uppercase">Vies Actuelles</label>
+            <input
+              type="number"
+              value={player.lives ?? roles.find(r => r.id === player.roleId)?.lives ?? 0}
+              onChange={(e) => updatePlayer(player.id, { lives: parseInt(e.target.value) || 0 })}
+              className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-muted-foreground uppercase">Points</label>
+            <input
+              type="number"
+              value={player.points || 0}
+              onChange={(e) => updatePlayer(player.id, { points: parseInt(e.target.value) || 0 })}
+              className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-muted-foreground uppercase">Votes</label>
+            <input
+              type="number"
+              value={player.votes || 0}
+              onChange={(e) => updatePlayer(player.id, { votes: parseInt(e.target.value) || 0 })}
+              className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+          </div>
+        </div>
         <div className="flex items-center gap-2 mt-2">
             <input
               type="checkbox"
@@ -896,19 +927,21 @@ export const EditingModal: React.FC = () => {
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium" title="Ordre d'Appel Jour">Appel Jour</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.callOrderDay ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { callOrderDay: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagModel(tag.id, { callOrderDay: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring text-center"
+                    placeholder="ex: 5 ou +2"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium" title="Ordre d'Appel Nuit">Appel Nuit</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.callOrderNight ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { callOrderNight: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagModel(tag.id, { callOrderNight: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring text-center"
+                    placeholder="ex: 5 ou +2"
                   />
                 </div>
               </div>
@@ -917,37 +950,41 @@ export const EditingModal: React.FC = () => {
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-muted-foreground">Ajout Vie</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.lives ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { lives: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagModel(tag.id, { lives: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="ex: 1 ou +1"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-muted-foreground">Votes</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.votes ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { votes: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagModel(tag.id, { votes: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="ex: 10 ou -2"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-muted-foreground">Points</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.points ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { points: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagModel(tag.id, { points: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="ex: 100 ou +50"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-muted-foreground">Uses</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.uses ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { uses: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagModel(tag.id, { uses: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="ex: 3"
                   />
                   <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer mt-2">
                     <input
@@ -1247,19 +1284,21 @@ export const EditingModal: React.FC = () => {
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium" title="Ordre d'Appel Jour">Appel Jour</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.callOrderDay ?? ''}
-                    onChange={(e) => updateTagInstance({ callOrderDay: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagInstance({ callOrderDay: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring text-center"
+                    placeholder="ex: 5 ou +2"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium" title="Ordre d'Appel Nuit">Appel Nuit</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.callOrderNight ?? ''}
-                    onChange={(e) => updateTagInstance({ callOrderNight: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagInstance({ callOrderNight: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring text-center"
+                    placeholder="ex: 5 ou +2"
                   />
                 </div>
               </div>
@@ -1268,37 +1307,41 @@ export const EditingModal: React.FC = () => {
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-muted-foreground">Ajout Vie</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.lives ?? ''}
-                    onChange={(e) => updateTagInstance({ lives: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagInstance({ lives: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="ex: 1 ou +1"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-muted-foreground">Votes</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.votes ?? ''}
-                    onChange={(e) => updateTagInstance({ votes: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagInstance({ votes: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="ex: 10 ou -2"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-muted-foreground">Points</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.points ?? ''}
-                    onChange={(e) => updateTagInstance({ points: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagInstance({ points: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="ex: 100 ou +50"
                   />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-sm font-medium text-muted-foreground">Uses</label>
                   <input
-                    type="number"
+                    type="text"
                     value={tag.uses ?? ''}
-                    onChange={(e) => updateTagInstance({ uses: e.target.value === '' ? null : parseInt(e.target.value) })}
+                    onChange={(e) => updateTagInstance({ uses: e.target.value })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    placeholder="ex: 3"
                   />
                   <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer mt-2">
                     <input

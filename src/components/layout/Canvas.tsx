@@ -106,24 +106,66 @@ export const Canvas: React.FC = () => {
     return Math.round(value / gridSize) * gridSize;
   };
 
+  const calculateTagEffect = (currentValue: number, tagValue: string | number | null): number => {
+    if (tagValue === null || tagValue === undefined || tagValue === '') return currentValue;
+    
+    const strVal = String(tagValue).trim();
+    if (strVal.startsWith('+')) {
+      return currentValue + (parseFloat(strVal.substring(1)) || 0);
+    } else if (strVal.startsWith('-')) {
+      return currentValue - (parseFloat(strVal.substring(1)) || 0);
+    } else {
+      // Valor brute (sans signe) = valeur absolue
+      const parsed = parseFloat(strVal);
+      return isNaN(parsed) ? currentValue : parsed;
+    }
+  };
+
   const applyTagToPlayer = (player: Player, tagModel: any) => {
+    const role = roles.find(r => r.id === player.roleId);
+    
+    // Calculate new persistent stats
+    const newLives = calculateTagEffect(player.lives ?? role?.lives ?? 0, tagModel.lives);
+    const newPoints = calculateTagEffect(player.points ?? 0, tagModel.points);
+    const newVotes = calculateTagEffect(player.votes ?? 0, tagModel.votes);
+
     const newTags = [...player.tags];
     const parentInstId = uuidv4();
 
-    // Add the parent tag
-    newTags.push({ ...tagModel, instanceId: parentInstId });
+    // Add the parent tag - we "consume" the numerical values into the player stats
+    // but we can keep them as strings in description or just clear them to avoid double-summing
+    newTags.push({ 
+      ...tagModel, 
+      instanceId: parentInstId,
+      // We clear these so they don't get added again by dynamic aggregation if any remains
+      lives: null,
+      points: null,
+      votes: null
+    });
 
     // If it's a container, apply children too
     if (tagModel.childTagIds && tagModel.childTagIds.length > 0) {
       tagModel.childTagIds.forEach((childId: string) => {
         const childModel = useVttStore.getState().tags.find(t => t.id === childId);
         if (childModel) {
-          newTags.push({ ...childModel, instanceId: uuidv4(), parentTagInstanceId: parentInstId });
+          newTags.push({ 
+            ...childModel, 
+            instanceId: uuidv4(), 
+            parentTagInstanceId: parentInstId,
+            lives: null,
+            points: null,
+            votes: null
+          });
         }
       });
     }
 
-    useVttStore.getState().updatePlayer(player.id, { tags: newTags });
+    useVttStore.getState().updatePlayer(player.id, { 
+      tags: newTags,
+      lives: newLives,
+      points: newPoints,
+      votes: newVotes
+    });
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -343,8 +385,8 @@ export const Canvas: React.FC = () => {
 
       const hasBaseLives = role !== undefined && baseLives !== null && baseLives > 0;
 
-      const tagLives = player.tags.reduce((sum, t) => sum + (t.lives || 0), 0);
-      const roleTagLives = role?.tags?.reduce((sum, t) => sum + (t.lives || 0), 0) || 0;
+      const tagLives = player.tags.reduce((sum, t) => sum + (Number(t.lives) || 0), 0);
+      const roleTagLives = role?.tags?.reduce((sum, t) => sum + (Number(t.lives) || 0), 0) || 0;
 
       const totalTagModifiers = tagLives + roleTagLives;
 
@@ -677,24 +719,28 @@ export const Canvas: React.FC = () => {
             const effectiveRole = roles.find(r => r.id === effectiveRoleId);
 
             // Calculate Total Lives
-            const baseLives = role?.lives || 0;
-            const tagLives = player.tags.reduce((sum, t) => sum + (t.lives || 0), 0);
-            const roleTagLives = role?.tags?.reduce((sum, t) => sum + (t.lives || 0), 0) || 0;
+            const baseLives = player.lives ?? role?.lives ?? 0;
+            const tagLives = player.tags.reduce((sum, t) => sum + (Number(t.lives) || 0), 0);
+            const roleTagLives = role?.tags?.reduce((sum, t) => sum + (Number(t.lives) || 0), 0) || 0;
             const totalLives = baseLives + tagLives + roleTagLives;
 
             // Compute other stats for custom badges
             const getAggregatedValue = (field: 'votes' | 'points' | 'uses') => {
-              const val1 = player.tags.reduce((sum, t) => sum + (t[field] || 0), 0);
-              const val2 = role?.tags?.reduce((sum, t) => sum + (t[field] || 0), 0) || 0;
-              return val1 + val2;
+              const baseVal = field === 'uses' ? 0 : (player[field] || 0);
+              const val1 = player.tags.reduce((sum, t) => sum + (Number(t[field]) || 0), 0);
+              const val2 = role?.tags?.reduce((sum, t) => sum + (Number(t[field]) || 0), 0) || 0;
+              return baseVal + val1 + val2;
             };
 
             // For call orders, pick the minimum
             const getMinOrder = (field: 'callOrderDay' | 'callOrderNight') => {
-              const vals = [
-                ...player.tags.map(t => t[field]).filter(v => v !== null),
-                ...(role?.tags || []).map(t => t[field]).filter(v => v !== null)
-              ] as number[];
+              const vals = ([
+                ...player.tags.map(t => t[field]),
+                ...(role?.tags || []).map(t => t[field])
+              ].filter(v => v !== null && v !== '') as (string | number)[])
+               .map(v => Number(v))
+               .filter(v => !isNaN(v));
+               
               if (vals.length === 0) return null;
               return Math.min(...vals);
             };
@@ -1126,7 +1172,7 @@ export const Canvas: React.FC = () => {
                               e.stopPropagation();
                               const nextTags = p.tags.map(t => {
                                 if (t.instanceId === tag.instanceId && t.uses !== null) {
-                                  return { ...t, uses: Math.max(0, t.uses - 1) };
+                                    return { ...t, uses: Math.max(0, Number(t.uses) - 1) };
                                 }
                                 return t;
                               });

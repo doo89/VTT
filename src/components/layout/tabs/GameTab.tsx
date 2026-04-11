@@ -18,7 +18,7 @@ export const GameTab: React.FC = () => {
   };
 
   const handleModifyTagField = (player: Player, tag: TagInstance, field: 'uses' | 'lives' | 'votes' | 'points', amount: number) => {
-    let newValue = (tag[field] ?? 0) + amount;
+    let newValue = (Number(tag[field]) ?? 0) + amount;
 
     // Uses cannot be negative
     if (field === 'uses') newValue = Math.max(0, newValue);
@@ -46,7 +46,7 @@ export const GameTab: React.FC = () => {
   };
 
   const handleModifyMarkerTagField = (marker: Marker, field: 'uses' | 'lives' | 'votes' | 'points', amount: number) => {
-    let newValue = (marker.tag[field] ?? 0) + amount;
+    let newValue = (Number(marker.tag[field]) ?? 0) + amount;
 
     if (field === 'uses') newValue = Math.max(0, newValue);
 
@@ -75,10 +75,11 @@ export const GameTab: React.FC = () => {
       // Check player's local tags
       player.tags.forEach(tag => {
         const order = (cycleMode === 'dayNight' && isNight) ? tag.callOrderNight : tag.callOrderDay;
-        if (order !== null && order !== undefined) {
+        if (order !== null && order !== undefined && order !== '') {
           isCalled = true;
-          if (order < minOrder) {
-            minOrder = order;
+          const numOrder = Number(order);
+          if (numOrder < minOrder) {
+            minOrder = numOrder;
             reason = `Tag: ${tag.name}`;
           }
         }
@@ -88,14 +89,15 @@ export const GameTab: React.FC = () => {
       const role = useVttStore.getState().roles.find(r => r.id === player.roleId);
       if (role && role.tags) {
         role.tags.forEach(tag => {
-          const order = (cycleMode === 'dayNight' && isNight) ? tag.callOrderNight : tag.callOrderDay;
-          if (order !== null && order !== undefined) {
-            isCalled = true;
-            if (order < minOrder) {
-              minOrder = order;
-              reason = `Tag Rôle: ${tag.name}`;
+            const order = (cycleMode === 'dayNight' && isNight) ? tag.callOrderNight : tag.callOrderDay;
+            if (order !== null && order !== undefined && order !== '') {
+              isCalled = true;
+              const numOrder = Number(order);
+              if (numOrder < minOrder) {
+                minOrder = numOrder;
+                reason = `Tag Rôle: ${tag.name}`;
+              }
             }
-          }
         });
       }
 
@@ -109,8 +111,8 @@ export const GameTab: React.FC = () => {
     // Check Markers
     markers.forEach(marker => {
       const order = (cycleMode === 'dayNight' && isNight) ? marker.tag.callOrderNight : marker.tag.callOrderDay;
-      if (order !== null && order !== undefined) {
-        called.push({ type: 'marker', entity: marker, order, reason: `Marker: ${marker.tag.name}` });
+      if (order !== null && order !== undefined && order !== '') {
+        called.push({ type: 'marker', entity: marker, order: Number(order), reason: `Marker: ${marker.tag.name}` });
       } else {
         others.push({ type: 'marker', entity: marker });
       }

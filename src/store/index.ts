@@ -263,7 +263,13 @@ export const useVttStore = create<VttStore>()(
 
   // Players
   addPlayer: (playerData) => set((state) => ({
-    players: [...state.players, { ...playerData, id: uuidv4() }]
+    players: [...state.players, { 
+      points: undefined,
+      votes: undefined,
+      lives: undefined,
+      ...playerData, 
+      id: uuidv4() 
+    }]
   })),
   updatePlayer: (id, updates) => set((state) => {
     // Check if the player exists, if not, do nothing to avoid unnecessary re-renders

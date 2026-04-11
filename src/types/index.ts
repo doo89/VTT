@@ -12,6 +12,9 @@ export interface Player {
   isDead: boolean;
   tags: TagInstance[];
   imageUrl?: string;
+  lives?: number;
+  points?: number;
+  votes?: number;
   privateNotes?: string;
   publicNotes?: string;
   publicNotesSendToPlayer?: boolean;
@@ -59,14 +62,14 @@ export interface TagCategory {
 export interface MarkerParameter {
   id: EntityId;
   name: string;
-  lives: number | null;
-  points: number | null;
-  votes: number | null;
-  uses: number | null;
+  lives: string | number | null;
+  points: string | number | null;
+  votes: string | number | null;
+  uses: string | number | null;
   autoDeleteOnZeroUses?: boolean;
   description?: string;
-  callOrderDay: number | null;
-  callOrderNight: number | null;
+  callOrderDay: string | number | null;
+  callOrderNight: string | number | null;
   showInTooltip?: boolean;
   showInGameTab?: boolean;
   showOnSmartphone?: boolean;
