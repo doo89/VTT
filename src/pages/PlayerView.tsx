@@ -2,14 +2,16 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { SyncStatePayload } from '../lib/supabase';
-import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock } from 'lucide-react';
+import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock, Gamepad2, Users, Map } from 'lucide-react';
 import * as icons from 'lucide-react';
-import type { Player, Role, Team } from '../types';
+import type { Player, Role, Team, TagModel } from '../types';
 
 export const PlayerView: React.FC = () => {
   const { roomId, playerName } = useParams<{ roomId: string, playerName: string }>();
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room'>('game');
+  const [roomData, setRoomData] = useState<any>(null);
   const [localPlayer, setLocalPlayer] = useState<Player | null>(null);
   const [localRole, setLocalRole] = useState<Role | null>(null);
   const [localTeam, setLocalTeam] = useState<Team | null>(null);
@@ -100,6 +102,7 @@ export const PlayerView: React.FC = () => {
         setIsNight(data.isNight || false);
         setCycleMode(data.cycleMode || 'dayNight');
         setDisplaySettings(data.displaySettings || null);
+        setRoomData(data.room || null);
 
         // Find player by previously matched ID, OR by name
         let found = null;
@@ -227,15 +230,17 @@ export const PlayerView: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col gap-6 z-10 pb-10 overflow-y-auto custom-scrollbar pr-2">
-
-          {/* Status Banner */}
-          {localPlayer.isDead && (
-            <div className="shrink-0 bg-red-950/50 border border-red-900 text-red-200 p-4 rounded-xl flex items-center justify-center gap-3 shadow-lg">
-              <ShieldAlert size={24} className="text-red-500" />
-              <span className="font-bold text-lg">Vous êtes mort.</span>
-            </div>
-          )}
+        <div className="flex-1 flex flex-col gap-6 z-10 pb-20 overflow-y-auto custom-scrollbar pr-2">
+          
+          {activeTab === 'game' && (
+            <>
+              {/* Status Banner */}
+              {localPlayer.isDead && (
+                <div className="shrink-0 bg-red-950/50 border border-red-900 text-red-200 p-4 rounded-xl flex items-center justify-center gap-3 shadow-lg">
+                  <ShieldAlert size={24} className="text-red-500" />
+                  <span className="font-bold text-lg">Vous êtes mort.</span>
+                </div>
+              )}
 
           {/* Role Card */}
           {(() => {
@@ -480,23 +485,146 @@ export const PlayerView: React.FC = () => {
             </div>
           )}
 
+            </>
+          )}
+
+          {activeTab === 'players' && (
+            <div className="flex-1 flex flex-col gap-4 py-2">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Joueurs en salle</h3>
+                <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">{roomPlayers.length} joueurs connectés</p>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {roomPlayers.map(p => (
+                  <div key={p.id} className="flex items-center gap-4 bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/50 backdrop-blur-sm">
+                    <div 
+                      className={`w-12 h-12 rounded-full flex items-center justify-center border-2 shrink-0 ${p.isDead ? 'border-zinc-800 grayscale opacity-40' : 'shadow-lg shadow-zinc-950/50'}`} 
+                      style={{ borderColor: p.isDead ? undefined : p.color }}
+                    >
+                       {p.imageUrl ? (
+                         <img src={p.imageUrl} className="w-full h-full rounded-full object-cover" alt={p.name} />
+                       ) : (
+                         <UserCircle2 size={24} className={p.isDead ? 'text-zinc-800' : 'text-zinc-600'} />
+                       )}
+                    </div>
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className={`text-lg font-bold truncate ${p.isDead ? 'line-through text-zinc-600 opacity-50' : 'text-zinc-100'}`}>
+                        {p.name}
+                      </span>
+                      {p.isDead && <span className="text-[10px] font-bold text-red-900/70 uppercase tracking-widest leading-none">Mort</span>}
+                    </div>
+                    {p.isDead && (
+                      <div className="bg-red-950/20 p-2 rounded-full">
+                        <ShieldAlert size={18} className="text-red-900/40" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'room' && (
+            <div className="flex-1 flex flex-col gap-4 py-2 overflow-hidden h-full">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Miniature de la salle</h3>
+                <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">Vue d'ensemble en temps réel</p>
+              </div>
+              {roomData ? (
+                <div className="flex-1 bg-zinc-900/50 rounded-2xl border border-zinc-800 relative overflow-hidden flex items-center justify-center p-2 shadow-inner">
+                  <div 
+                    className="relative bg-zinc-800 shadow-2xl border border-zinc-700 overflow-hidden rounded-sm pointer-events-none"
+                    style={{ 
+                      width: '100%', 
+                      aspectRatio: `${roomData.width}/${roomData.height}`,
+                      backgroundColor: roomData.backgroundColor,
+                      backgroundImage: roomData.backgroundImage ? `url(${roomData.backgroundImage})` : 'none',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      maxHeight: '100%'
+                    }}
+                  >
+                    {roomPlayers.map(p => (
+                       <div 
+                         key={p.id}
+                         className={`absolute ${p.isDead ? 'opacity-20' : 'animate-pulse'}`}
+                         style={{
+                           left: `${(p.x / roomData.width) * 100}%`,
+                           top: `${(p.y / roomData.height) * 100}%`,
+                           width: '10px',
+                           height: '10px',
+                           borderRadius: '50%',
+                           backgroundColor: p.color,
+                           transform: 'translate(-50%, -50%)',
+                           boxShadow: `0 0 12px ${p.color}`,
+                           zIndex: 10
+                         }}
+                       />
+                    ))}
+                    {/* Simplified marker representation if needed, but dots for players is usually enough for a "miniature" */}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-zinc-700 italic gap-2 bg-zinc-900/40 rounded-2xl border border-zinc-800/50">
+                   <Clock className="animate-spin opacity-20" size={32} />
+                   <span className="text-xs uppercase tracking-widest font-bold opacity-30">Chargement de la salle...</span>
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* Navigation Menu */}
+      {isConnected && localPlayer && (
+        <div className="fixed bottom-0 left-0 right-0 h-20 bg-zinc-950/80 backdrop-blur-xl border-t border-zinc-800 shadow-[0_-10px_20px_rgba(0,0,0,0.5)] flex items-center justify-around px-4 z-[60] pb-safe">
+          <button 
+            onClick={() => setActiveTab('game')}
+            className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'game' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'game' ? 'bg-blue-500/10' : 'bg-transparent'}`}>
+              <Gamepad2 size={22} strokeWidth={activeTab === 'game' ? 2.5 : 2} />
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'game' ? 'opacity-100' : 'opacity-40'}`}>Jeu</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('players')}
+            className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'players' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'players' ? 'bg-blue-500/10' : 'bg-transparent'}`}>
+              <Users size={22} strokeWidth={activeTab === 'players' ? 2.5 : 2} />
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'players' ? 'opacity-100' : 'opacity-40'}`}>Joueurs</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('room')}
+            className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'room' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'room' ? 'bg-blue-500/10' : 'bg-transparent'}`}>
+              <Map size={22} strokeWidth={activeTab === 'room' ? 2.5 : 2} />
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'room' ? 'opacity-100' : 'opacity-40'}`}>Salle</span>
+          </button>
         </div>
       )}
 
       {/* Decorative background glow */}
-      {localRole && !localPlayer?.isDead && (
+      {localRole && !localPlayer?.isDead && activeTab === 'game' && (
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] rounded-full blur-[120px] opacity-10 pointer-events-none"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] rounded-full blur-[120px] opacity-10 pointer-events-none z-0"
           style={{ backgroundColor: localRole.color }}
         />
       )}
 
       {/* Submit Message Popup */}
       {submitMessage && (
-        <div className="absolute top-0 inset-x-0 mx-auto w-full max-w-sm mt-16 p-4 z-50 animate-in fade-in slide-in-from-top-4">
-          <div className="bg-emerald-900 border border-emerald-600 text-emerald-100 rounded-xl p-4 shadow-xl flex items-center justify-between">
-            <span className="font-medium text-sm flex-1">{submitMessage}</span>
-            <button title="Fermer" onClick={() => setSubmitMessage(null)} className="opacity-70 hover:opacity-100 p-1">
+        <div className="absolute top-0 inset-x-0 mx-auto w-full max-w-sm mt-16 p-4 z-[70] animate-in fade-in slide-in-from-top-4">
+          <div className="bg-emerald-900/90 backdrop-blur-md border border-emerald-600 text-emerald-100 rounded-2xl p-4 shadow-2xl flex items-center justify-between">
+            <span className="font-bold text-sm flex-1">{submitMessage}</span>
+            <button title="Fermer" onClick={() => setSubmitMessage(null)} className="opacity-70 hover:opacity-100 p-1 bg-emerald-800/50 rounded-lg ml-2">
               <X size={16} />
             </button>
           </div>
