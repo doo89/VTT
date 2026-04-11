@@ -235,6 +235,16 @@ export const RightPanel: React.FC = () => {
                 Afficher l'icône {cycleMode === 'dayNight' ? 'Jour/Nuit' : 'Tours'}
               </label>
             )}
+            
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={displaySettings.showOfflineStatus}
+                onChange={(e) => updateDisplaySettings({ showOfflineStatus: e.target.checked })}
+                className="rounded border-border"
+              />
+              Joueur Hors ligne
+            </label>
 
             {/* Foreground Selection */}
             <div className="mt-2 flex flex-col gap-1.5 border-t border-border/50 pt-2">

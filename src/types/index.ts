@@ -208,6 +208,7 @@ export interface GameState {
     imagePriority: 'player' | 'role';
     playerNamePosition: 'inside' | 'bottom';
     showTagName: boolean;
+    showOfflineStatus: boolean;
     playerBadges: {
       topLeft: BadgeConfig;
       topRight: BadgeConfig;

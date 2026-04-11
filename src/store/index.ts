@@ -175,6 +175,7 @@ const initialState = {
     imagePriority: 'player' as const,
     playerNamePosition: 'bottom' as const,
     showTagName: false,
+    showOfflineStatus: true,
     playerBadges: {
       topLeft: { type: 'team' as const, bgColor: '#000000', textColor: '#ffffff' },
       topRight: { type: 'lives' as const, bgColor: '#ef4444', textColor: '#ffffff' },
