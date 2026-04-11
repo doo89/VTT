@@ -162,17 +162,30 @@ export const EditingModal: React.FC = () => {
                 <div className="relative group">
                   <img src={template.imageUrl} alt="Preview" className="w-12 h-12 rounded-full object-cover border-2 border-primary/20 shadow-sm" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
-                  <button
-                    onClick={async () => {
-                      if (template.imageUrl) await deleteImageFromStorage(template.imageUrl);
-                      updatePlayerTemplate(template.id, { imageUrl: undefined });
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"
-                  >
-                    <Trash2 size={12} /> Supprimer l'image
-                  </button>
+                <div className="flex flex-col flex-1">
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu & Style Smartphone</span>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={template.smartphoneImageStyle || 'circle'}
+                      onChange={(e) => updatePlayerTemplate(template.id, { smartphoneImageStyle: e.target.value as any })}
+                      className="bg-background border border-border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1"
+                    >
+                      <option value="circle">Rond</option>
+                      <option value="square">Carré</option>
+                      <option value="original">Taille réelle</option>
+                      <option value="background">Fond de carte</option>
+                    </select>
+                    <button
+                      onClick={async () => {
+                        if (template.imageUrl) await deleteImageFromStorage(template.imageUrl);
+                        updatePlayerTemplate(template.id, { imageUrl: undefined });
+                      }}
+                      className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
+                      title="Supprimer l'image"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -259,17 +272,30 @@ export const EditingModal: React.FC = () => {
             {player.imageUrl && (
               <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
                 <img src={player.imageUrl} alt="Preview" className="w-12 h-12 rounded-full object-cover border-2 border-primary/20 shadow-sm" />
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
-                  <button
-                    onClick={async () => {
-                      if (player.imageUrl) await deleteImageFromStorage(player.imageUrl);
-                      updatePlayer(player.id, { imageUrl: undefined });
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"
-                  >
-                    <Trash2 size={12} /> Supprimer l'image
-                  </button>
+                <div className="flex flex-col flex-1">
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu & Style Smartphone</span>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={player.smartphoneImageStyle || 'circle'}
+                      onChange={(e) => updatePlayer(player.id, { smartphoneImageStyle: e.target.value as any })}
+                      className="bg-background border border-border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1"
+                    >
+                      <option value="circle">Rond</option>
+                      <option value="square">Carré</option>
+                      <option value="original">Taille réelle</option>
+                      <option value="background">Fond de carte</option>
+                    </select>
+                    <button
+                      onClick={async () => {
+                        if (player.imageUrl) await deleteImageFromStorage(player.imageUrl);
+                        updatePlayer(player.id, { imageUrl: undefined });
+                      }}
+                      className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
+                      title="Supprimer l'image"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -390,17 +416,30 @@ export const EditingModal: React.FC = () => {
               {role.imageUrl && (
                 <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
                   <img src={role.imageUrl} alt="Preview" className="w-14 h-14 rounded-md object-cover border-2 border-primary/20 shadow-sm" />
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
-                    <button
-                      onClick={async () => {
-                        if (role.imageUrl) await deleteImageFromStorage(role.imageUrl);
-                        updateRole(role.id, { imageUrl: undefined });
-                      }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"
-                    >
-                      <Trash2 size={12} /> Supprimer l'image
-                    </button>
+                  <div className="flex flex-col flex-1">
+                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu & Style Smartphone</span>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={role.smartphoneImageStyle || 'circle'}
+                        onChange={(e) => updateRole(role.id, { smartphoneImageStyle: e.target.value as any })}
+                        className="bg-background border border-border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1"
+                      >
+                        <option value="circle">Rond</option>
+                        <option value="square">Carré</option>
+                        <option value="original">Taille réelle</option>
+                        <option value="background">Fond de carte</option>
+                      </select>
+                      <button
+                        onClick={async () => {
+                          if (role.imageUrl) await deleteImageFromStorage(role.imageUrl);
+                          updateRole(role.id, { imageUrl: undefined });
+                        }}
+                        className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
+                        title="Supprimer l'image"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

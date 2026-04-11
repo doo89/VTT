@@ -244,22 +244,41 @@ export const PlayerView: React.FC = () => {
                 />
             )}
 
-            <div
-              className={`w-28 h-28 rounded-full flex items-center justify-center shadow-xl mb-4 border-4 transition-all ${localPlayer.isDead ? 'grayscale opacity-50 border-zinc-700 bg-zinc-800' : 'border-zinc-800 bg-zinc-950'}`}
-              style={{ borderColor: localPlayer.isDead ? undefined : (localRole?.color || localPlayer.color) }}
-            >
-              {localRole?.imageUrl || localPlayer.imageUrl ? (
-                <img
-                  src={localRole?.imageUrl || localPlayer.imageUrl}
-                  alt="Avatar"
-                  className="w-full h-full rounded-full object-cover"
+            {/* Background Image Style */}
+            {((localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle) === 'background') && (localRole?.imageUrl || localPlayer?.imageUrl) && (
+              <div className="absolute inset-0 z-0 opacity-20 overflow-hidden">
+                <img 
+                  src={localRole?.imageUrl || localPlayer?.imageUrl} 
+                  alt="" 
+                  className="w-full h-full object-cover blur-sm"
                 />
-              ) : (
-                <UserCircle2 size={48} className="text-zinc-600" />
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="text-center flex flex-col items-center gap-1 w-full">
+            {(localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle) !== 'background' && (
+              <div
+                className={`flex items-center justify-center shadow-xl mb-4 border-4 transition-all overflow-hidden z-10 ${localPlayer.isDead ? 'grayscale opacity-50 border-zinc-700 bg-zinc-800' : 'border-zinc-800 bg-zinc-950'} ${
+                  (localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle) === 'square' ? 'w-28 h-28 rounded-2xl' :
+                  (localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle) === 'original' ? 'max-w-full rounded-lg' : 
+                  'w-28 h-28 rounded-full'
+                }`}
+                style={{ borderColor: localPlayer.isDead ? undefined : (localRole?.color || localPlayer.color) }}
+              >
+                {localRole?.imageUrl || localPlayer.imageUrl ? (
+                  <img
+                    src={localRole?.imageUrl || localPlayer.imageUrl}
+                    alt="Avatar"
+                    className={`w-full h-full ${(localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle) === 'original' ? 'object-contain' : 'object-cover'}`}
+                  />
+                ) : (
+                  <div className="p-6">
+                    <UserCircle2 size={48} className="text-zinc-600" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="text-center flex flex-col items-center gap-1 w-full z-10">
               <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Votre Rôle</span>
               <h3
                 className={`text-3xl font-black tracking-tight mt-1 ${localPlayer.isDead ? 'text-zinc-600' : 'text-white'}`}

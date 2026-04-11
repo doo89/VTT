@@ -18,6 +18,18 @@ export interface Player {
   publicNotesNoticeBoard?: boolean;
   publicNotesTimestamp?: number;
   selectionPastilles?: { id: string, icon: string, color: string }[];
+  smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background';
+}
+
+export interface PlayerTemplate {
+  id: EntityId;
+  name: string;
+  color: string;
+  size: number;
+  imageUrl?: string;
+  roleId: EntityId | null;
+  teamId: EntityId | null;
+  smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background';
 }
 
 export interface Role {
@@ -34,6 +46,7 @@ export interface Role {
   description?: string;
   isSelectableForDistribution?: boolean;
   distributionQuantity?: number;
+  smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background';
 }
 
 export interface TagCategory {
