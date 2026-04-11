@@ -104,14 +104,18 @@ export const PlayerView: React.FC = () => {
         setDisplaySettings(data.displaySettings || null);
         setRoomData(data.room || null);
 
+        // Normalize strings for comparison (remove accents & lowercase)
+        const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+
         // Find player by previously matched ID, OR by name
         let found = null;
         if (matchedPlayerIdRef.current) {
           found = data.players.find(p => p.id === matchedPlayerIdRef.current);
         }
         if (!found) {
-          const rawName = decodeURIComponent(playerName).trim().toLowerCase();
-          found = data.players.find(p => p.name.trim().toLowerCase() === rawName);
+          const rawName = decodeURIComponent(playerName);
+          const normalizedRaw = normalize(rawName);
+          found = data.players.find(p => normalize(p.name) === normalizedRaw);
           if (found) {
             matchedPlayerIdRef.current = found.id;
             // Track presence now that we know our ID (do not await to avoid blocking UI update)

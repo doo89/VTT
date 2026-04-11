@@ -22,8 +22,9 @@ export const initHostRealtime = (roomCode: string) => {
       const { playerName } = payload;
 
       const state = useVttStore.getState();
-      const rawName = playerName.trim().toLowerCase();
-      const existingPlayer = state.players.find(p => p.name.trim().toLowerCase() === rawName);
+      const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+      const rawName = normalize(playerName);
+      const existingPlayer = state.players.find(p => normalize(p.name) === rawName);
 
       if (!existingPlayer) {
         if (state.isRoomPublic) {
