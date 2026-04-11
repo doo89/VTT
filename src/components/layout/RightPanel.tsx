@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Grid3X3, Clock, Eye, PaintBucket, ChevronDown, Image as ImageIcon, Trash2, ArrowUpRight, Music, Shuffle, RefreshCw, Zap } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Grid3X3, Clock, Eye, PaintBucket, ChevronDown, Image as ImageIcon, Trash2, ArrowUpRight, Music, Shuffle, RefreshCw, Zap, Database, X } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -18,6 +18,18 @@ export const RightPanel: React.FC = () => {
   } = useVttStore();
 
   const [activeSection, setActiveSection] = useState<string | null>('affichage');
+  const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);
+  const urlRef = useRef<HTMLInputElement>(null);
+  const keyRef = useRef<HTMLInputElement>(null);
+
+  const saveSupabaseConfig = () => {
+    if (urlRef.current && keyRef.current) {
+      localStorage.setItem('VTT_SUPABASE_URL', urlRef.current.value);
+      localStorage.setItem('VTT_SUPABASE_ANON_KEY', keyRef.current.value);
+      setShowSupabaseSettings(false);
+      window.location.reload();
+    }
+  };
 
   const toggleSection = (section: string) => {
     setActiveSection(prev => prev === section ? null : section);
@@ -886,11 +898,83 @@ export const RightPanel: React.FC = () => {
                   Relance la connexion Supabase en cas de coupure réseau.
                 </p>
               </div>
+
+              <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-border/30 text-foreground">
+                <button
+                  onClick={() => setShowSupabaseSettings(true)}
+                  className="w-full py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-blue-500/30 shadow-sm"
+                >
+                  <Database size={14} /> Paramètres Supabase
+                </button>
+                <p className="text-[10px] text-muted-foreground italic px-1">
+                  Configurer l'URL et la clé d'API pour la synchronisation.
+                </p>
+              </div>
             </div>
           )}
         </section>
 
       </div>
+
+      {/* Supabase Settings Modal */}
+      {showSupabaseSettings && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={(e) => {
+            // Prevent close on modal content click, only on backdrop
+            if (e.target === e.currentTarget) setShowSupabaseSettings(false);
+          }}
+        >
+          <div className="bg-popover text-popover-foreground rounded-lg shadow-2xl w-full max-w-md overflow-hidden border border-border" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <Database size={20} className="text-blue-500" />
+                Configuration Supabase
+              </h2>
+              <button 
+                onClick={() => setShowSupabaseSettings(false)} 
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                title="Fermer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Enregistrez vos clés Supabase pour cette session locale. Cela permet de tester sur Vercel facilement sans fichier .env.
+              </p>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">URL Supabase</label>
+                <input
+                  type="text"
+                  defaultValue={localStorage.getItem('VTT_SUPABASE_URL') || ''}
+                  ref={urlRef}
+                  className="w-full bg-background border border-border rounded p-2 text-sm focus:outline-none focus:border-blue-500"
+                  placeholder="https://xxxxxx.supabase.co"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Clé Anonyme (Anon Key)</label>
+                <input
+                  type="password"
+                  defaultValue={localStorage.getItem('VTT_SUPABASE_ANON_KEY') || ''}
+                  ref={keyRef}
+                  className="w-full bg-background border border-border rounded p-2 text-sm focus:outline-none focus:border-blue-500"
+                  placeholder="eyJhbGciOiJIUzI1NiIsInR..."
+                />
+              </div>
+            </div>
+            <div className="p-4 bg-muted/50 border-t border-border flex justify-end gap-2">
+              <button onClick={() => setShowSupabaseSettings(false)} className="px-4 py-2 text-sm hover:bg-accent rounded transition-colors">
+                Annuler
+              </button>
+              <button onClick={saveSupabaseConfig} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition-colors">
+                Sauvegarder & Recharger
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Import / Export Footer */}
       <div className="p-4 border-t border-border flex flex-col gap-2">
