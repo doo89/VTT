@@ -794,6 +794,41 @@ export const RightPanel: React.FC = () => {
                 className="hidden"
               />
             </div>
+
+            {/* Minimap Image URL */}
+            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/50">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <ArrowUpRight size={12} className="text-blue-400" />
+                  Image de miniature (URL)
+                </span>
+                <p className="text-[10px] text-muted-foreground italic">Affichée sur le smartphone. Doit être une image accessible publiquement.</p>
+              </div>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="url"
+                  value={room.minimapImageUrl || ''}
+                  onChange={(e) => setRoom({ minimapImageUrl: e.target.value || null })}
+                  placeholder="https://..."
+                  className="flex-1 bg-input border border-border rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-muted-foreground/40"
+                />
+                {room.minimapImageUrl && (
+                  <button
+                    onClick={() => setRoom({ minimapImageUrl: null })}
+                    className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+                    title="Effacer l'URL"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+              {room.minimapImageUrl && (
+                <div className="w-full h-16 rounded-md overflow-hidden border border-border bg-zinc-900">
+                  <img src={room.minimapImageUrl} alt="Aperçu minimap" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                </div>
+              )}
+            </div>
+
           </div>
           )}
         </section>

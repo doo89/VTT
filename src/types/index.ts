@@ -192,6 +192,7 @@ export interface GameState {
     backgroundColor: string;
     backgroundImage: string | null;
     backgroundStyle: 'mosaic' | 'center' | 'stretch';
+    minimapImageUrl?: string | null;
   };
   displaySettings: {
     showTooltip: boolean;

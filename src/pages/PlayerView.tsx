@@ -629,36 +629,41 @@ export const PlayerView: React.FC = () => {
                       width: '100%', 
                       aspectRatio: `${roomData.width}/${roomData.height}`,
                       backgroundColor: roomData.backgroundColor,
-                      backgroundImage: roomData.backgroundImage ? `url(${roomData.backgroundImage})` : 'none',
+                      backgroundImage: (roomData.minimapImageUrl || roomData.backgroundImage) ? `url(${roomData.minimapImageUrl || roomData.backgroundImage})` : 'none',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       maxHeight: '100%'
                     }}
                   >
                     {roomPlayers.map(p => {
-                      // World coords are centered at (0,0). Room goes from -w/2 to +w/2 and -h/2 to +h/2.
-                      // Convert to percentage (0% = left/top edge, 100% = right/bottom edge)
                       const halfW = roomData.width / 2;
                       const halfH = roomData.height / 2;
                       const leftPct = Math.max(0, Math.min(100, ((p.x + halfW) / roomData.width) * 100));
                       const topPct  = Math.max(0, Math.min(100, ((p.y + halfH) / roomData.height) * 100));
                       return (
-                        <div 
+                        <div
                           key={p.id}
                           title={p.name}
-                          className={`absolute ${p.isDead ? 'opacity-20' : 'animate-pulse'}`}
-                          style={{
-                            left: `${leftPct}%`,
-                            top: `${topPct}%`,
-                            width: '10px',
-                            height: '10px',
-                            borderRadius: '50%',
-                            backgroundColor: p.color,
-                            transform: 'translate(-50%, -50%)',
-                            boxShadow: `0 0 12px ${p.color}`,
-                            zIndex: 10
-                          }}
-                        />
+                          className="absolute"
+                          style={{ left: `${leftPct}%`, top: `${topPct}%`, transform: 'translate(-50%, -50%)', zIndex: 10 }}
+                        >
+                          {p.isDead ? (
+                            <svg width="13" height="13" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill={p.color} opacity="0.65">
+                              <path d="M12 2C7.03 2 3 6.03 3 11c0 3.1 1.53 5.84 3.88 7.5L7 22h10l.12-3.5C19.47 16.84 21 14.1 21 11c0-4.97-4.03-9-9-9zm-3.5 13-.5-1H7l-1-1v-1l1-1h1l.5-1h4l.5 1H14l1 1v1l-1 1h-1l-.5 1h-4zm1-4a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm5 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                            </svg>
+                          ) : (
+                            <div
+                              className="animate-pulse"
+                              style={{
+                                width: '10px',
+                                height: '10px',
+                                borderRadius: '50%',
+                                backgroundColor: p.color,
+                                boxShadow: `0 0 10px ${p.color}`,
+                              }}
+                            />
+                          )}
+                        </div>
                       );
                     })}
                   </div>
