@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { SyncStatePayload } from '../lib/supabase';
-import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock, Gamepad2, Users, Map } from 'lucide-react';
+import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock, Gamepad2, Users, Map, Power, Bell, RefreshCw } from 'lucide-react';
 import * as icons from 'lucide-react';
 import type { Player, Role, Team } from '../types';
 
@@ -12,6 +12,8 @@ export const PlayerView: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room'>('game');
   const [roomData, setRoomData] = useState<any>(null);
+  const [isHostOnline, setIsHostOnline] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
   const [localPlayer, setLocalPlayer] = useState<Player | null>(null);
   const [localRole, setLocalRole] = useState<Role | null>(null);
   const [localTeam, setLocalTeam] = useState<Team | null>(null);
@@ -98,7 +100,7 @@ export const PlayerView: React.FC = () => {
     channel
       .on('broadcast', { event: 'sync_state' }, async ({ payload }) => {
         const data = payload as SyncStatePayload;
-
+        setLastSyncTime(Date.now());
         setIsNight(data.isNight || false);
         setCycleMode(data.cycleMode || 'dayNight');
         setDisplaySettings(data.displaySettings || null);
@@ -166,6 +168,11 @@ export const PlayerView: React.FC = () => {
             channel.untrack();
           }
         }
+      })
+      .on('presence', { event: 'sync' }, () => {
+        const newState = channel.presenceState();
+        const hostFound = Object.values(newState).flat().some((p: any) => (p as any).isHost === true);
+        setIsHostOnline(hostFound);
       })
       .subscribe((status, err) => {
         console.log('Player connection status:', status, err);
@@ -262,6 +269,19 @@ export const PlayerView: React.FC = () => {
                 <div className="flex justify-between text-[10px]">
                   <span className="text-zinc-500">Mon Pseudo:</span>
                   <span className="text-zinc-300 font-mono">{decodeURIComponent(playerName || '')}</span>
+                </div>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-zinc-500">MJ Connecté:</span>
+                  <span className={`font-bold flex items-center gap-1 ${isHostOnline ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <Power size={10} />
+                    {isHostOnline ? 'OUI' : 'NON'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-zinc-500">Dernière Sync:</span>
+                  <span className="text-zinc-300 font-mono">
+                    {lastSyncTime ? new Date(lastSyncTime).toLocaleTimeString('fr-FR') : 'Jamais'}
+                  </span>
                 </div>
                 <div className="flex justify-between text-[10px]">
                   <span className="text-zinc-500">Joueurs en salle:</span>

@@ -1,6 +1,7 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Grid3X3, Clock, Eye, PaintBucket, ChevronDown, Image as ImageIcon, Trash2, ArrowUpRight, Music, Shuffle } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Grid3X3, Clock, Eye, PaintBucket, ChevronDown, Image as ImageIcon, Trash2, ArrowUpRight, Music, Shuffle, RefreshCw, Zap } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore } from '../../store';
+import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
 import type { BadgeConfig, BadgeType, Role, Player } from '../../types';
 import { ColorPicker } from '../ColorPicker';
 
@@ -794,6 +795,51 @@ export const RightPanel: React.FC = () => {
               />
             </div>
           </div>
+          )}
+        <section className="border-b border-border">
+          <button
+            onClick={() => toggleSection('systeme')}
+            className="w-full flex items-center justify-between p-4 hover:bg-accent transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Zap size={18} className="text-amber-500" />
+              <span className="font-bold text-sm">Système & Connexion</span>
+            </div>
+            {activeSection === 'systeme' ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+          </button>
+
+          {activeSection === 'systeme' && (
+            <div className="p-4 pt-0 flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <button
+                  onClick={() => {
+                    forceBroadcastState();
+                    // Optional toast or feedback could go here
+                  }}
+                  className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
+                >
+                  <RefreshCw size={14} /> Forcer la Synchronisation
+                </button>
+                <p className="text-[10px] text-muted-foreground italic px-1">
+                  Envoie immédiatement l'état actuel à tous les joueurs connectés.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1.5 mt-2">
+                <button
+                  onClick={() => {
+                    const code = useVttStore.getState().roomCode;
+                    if (code) initHostRealtime(code);
+                  }}
+                  className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-border"
+                >
+                  <Zap size={14} /> Réinitialiser le Canal
+                </button>
+                <p className="text-[10px] text-muted-foreground italic px-1">
+                  Relance la connexion Supabase en cas de coupure réseau.
+                </p>
+              </div>
+            </div>
           )}
         </section>
 

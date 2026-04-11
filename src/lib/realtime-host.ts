@@ -171,7 +171,7 @@ export const cleanupHostRealtime = () => {
   }
 };
 
-const forceBroadcastState = () => {
+export const forceBroadcastState = () => {
   if (!currentChannel) return;
 
   const state = useVttStore.getState();
