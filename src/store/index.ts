@@ -181,6 +181,7 @@ const initialState = {
       bottomLeft: { type: 'none' as const, bgColor: '#3b82f6', textColor: '#ffffff' },
       bottomRight: { type: 'none' as const, bgColor: '#10b981', textColor: '#ffffff' },
     },
+    smartphoneImageStyle: 'circle' as const,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,

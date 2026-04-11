@@ -412,6 +412,19 @@ export const RightPanel: React.FC = () => {
                   </label>
                 </div>
               )}
+              <div className="mt-4 flex flex-col gap-1.5 border-t border-border/50 pt-3">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Image sur smartphone</label>
+                <select
+                  value={displaySettings.smartphoneImageStyle || 'circle'}
+                  onChange={(e) => updateDisplaySettings({ smartphoneImageStyle: e.target.value as any })}
+                  className="bg-input border border-border rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="circle">Rond (Défaut)</option>
+                  <option value="square">Carré</option>
+                  <option value="original">Taille réelle</option>
+                  <option value="background">Toute la carte (Fond)</option>
+                </select>
+              </div>
             </div>
           </div>
           )}

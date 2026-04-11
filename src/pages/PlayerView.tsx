@@ -22,6 +22,7 @@ export const PlayerView: React.FC = () => {
   const [handoutImages, setHandoutImages] = useState<{ id: string; url: string; name: string }[]>([]);
   const [roomPlayers, setRoomPlayers] = useState<Player[]>([]);
   const [selectedPlayersByTag, setSelectedPlayersByTag] = useState<Record<string, string[]>>({});
+  const [displaySettings, setDisplaySettings] = useState<any>(null);
 
   // Track the actual player ID once found, so if GM renames them, they stay connected
   // Use a ref so changes don't cause the useEffect to tear down the WebSocket channel
@@ -98,6 +99,7 @@ export const PlayerView: React.FC = () => {
 
         setIsNight(data.isNight || false);
         setCycleMode(data.cycleMode || 'dayNight');
+        setDisplaySettings(data.displaySettings || null);
 
         // Find player by previously matched ID, OR by name
         let found = null;
@@ -236,75 +238,80 @@ export const PlayerView: React.FC = () => {
           )}
 
           {/* Role Card */}
-          <div className={`relative shrink-0 flex flex-col items-center border rounded-2xl p-6 shadow-2xl overflow-hidden mt-4 transition-colors duration-1000 ${(isNight && cycleMode === 'dayNight') ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-800 border-zinc-700'}`}>
-            {localTeam && (
-               <div
-                  className="absolute top-0 left-0 w-full h-1.5"
-                  style={{ backgroundColor: localTeam.color }}
-                />
-            )}
+          {(() => {
+            const effectiveStyle = localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle || displaySettings?.smartphoneImageStyle || 'circle';
+            return (
+              <div className={`relative shrink-0 flex flex-col items-center border rounded-2xl p-6 shadow-2xl overflow-hidden mt-4 transition-colors duration-1000 ${(isNight && cycleMode === 'dayNight') ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-800 border-zinc-700'}`}>
+                {localTeam && (
+                  <div
+                      className="absolute top-0 left-0 w-full h-1.5"
+                      style={{ backgroundColor: localTeam.color }}
+                    />
+                )}
 
-            {/* Background Image Style */}
-            {((localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle) === 'background') && (localRole?.imageUrl || localPlayer?.imageUrl) && (
-              <div className="absolute inset-0 z-0 opacity-20 overflow-hidden">
-                <img 
-                  src={localRole?.imageUrl || localPlayer?.imageUrl} 
-                  alt="" 
-                  className="w-full h-full object-cover blur-sm"
-                />
-              </div>
-            )}
+                {/* Background Image Style */}
+                {(effectiveStyle === 'background') && (localRole?.imageUrl || localPlayer?.imageUrl) && (
+                  <div className="absolute inset-0 z-0 opacity-20 overflow-hidden">
+                    <img 
+                      src={localRole?.imageUrl || localPlayer?.imageUrl} 
+                      alt="" 
+                      className="w-full h-full object-cover blur-sm"
+                    />
+                  </div>
+                )}
 
-            {(localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle) !== 'background' && (
-              <div
-                className={`flex items-center justify-center shadow-xl mb-4 border-4 transition-all overflow-hidden z-10 ${localPlayer.isDead ? 'grayscale opacity-50 border-zinc-700 bg-zinc-800' : 'border-zinc-800 bg-zinc-950'} ${
-                  (localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle) === 'square' ? 'w-28 h-28 rounded-2xl' :
-                  (localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle) === 'original' ? 'max-w-full rounded-lg' : 
-                  'w-28 h-28 rounded-full'
-                }`}
-                style={{ borderColor: localPlayer.isDead ? undefined : (localRole?.color || localPlayer.color) }}
-              >
-                {localRole?.imageUrl || localPlayer.imageUrl ? (
-                  <img
-                    src={localRole?.imageUrl || localPlayer.imageUrl}
-                    alt="Avatar"
-                    className={`w-full h-full ${(localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle) === 'original' ? 'object-contain' : 'object-cover'}`}
-                  />
-                ) : (
-                  <div className="p-6">
-                    <UserCircle2 size={48} className="text-zinc-600" />
+                {effectiveStyle !== 'background' && (
+                  <div
+                    className={`flex items-center justify-center shadow-xl mb-4 border-4 transition-all overflow-hidden z-10 ${localPlayer.isDead ? 'grayscale opacity-50 border-zinc-700 bg-zinc-800' : 'border-zinc-800 bg-zinc-950'} ${
+                      effectiveStyle === 'square' ? 'w-28 h-28 rounded-2xl' :
+                      effectiveStyle === 'original' ? 'max-w-full rounded-lg' : 
+                      'w-28 h-28 rounded-full'
+                    }`}
+                    style={{ borderColor: localPlayer.isDead ? undefined : (localRole?.color || localPlayer.color) }}
+                  >
+                    {localRole?.imageUrl || localPlayer.imageUrl ? (
+                      <img
+                        src={localRole?.imageUrl || localPlayer.imageUrl}
+                        alt="Avatar"
+                        className={`w-full h-full ${effectiveStyle === 'original' ? 'object-contain' : 'object-cover'}`}
+                      />
+                    ) : (
+                      <div className="p-6">
+                        <UserCircle2 size={48} className="text-zinc-600" />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="text-center flex flex-col items-center gap-1 w-full z-10">
+                  <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Votre Rôle</span>
+                  <h3
+                    className={`text-3xl font-black tracking-tight mt-1 ${localPlayer.isDead ? 'text-zinc-600' : 'text-white'}`}
+                    style={{ color: localPlayer.isDead ? undefined : (localRole?.color || '#fff') }}
+                  >
+                    {localRole ? localRole.name : "Pas de rôle"}
+                  </h3>
+
+                  {localTeam && (
+                    <div
+                      className="inline-flex items-center justify-center px-3 py-1 rounded-full mt-3 border bg-zinc-950/50"
+                      style={{ borderColor: `${localTeam.color}40`, color: localTeam.color }}
+                    >
+                      <span className="text-xs font-bold">{localTeam.name}</span>
+                    </div>
+                  )}
+                </div>
+
+                {localRole?.description && (
+                  <div className="mt-6 pt-6 border-t border-zinc-800 w-full">
+                    <p className="text-sm text-zinc-400 italic text-center leading-relaxed">
+                      {localRole.description}
+                    </p>
                   </div>
                 )}
               </div>
-            )}
-
-            <div className="text-center flex flex-col items-center gap-1 w-full z-10">
-              <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Votre Rôle</span>
-              <h3
-                className={`text-3xl font-black tracking-tight mt-1 ${localPlayer.isDead ? 'text-zinc-600' : 'text-white'}`}
-                style={{ color: localPlayer.isDead ? undefined : (localRole?.color || '#fff') }}
-              >
-                {localRole ? localRole.name : "Pas de rôle"}
-              </h3>
-
-              {localTeam && (
-                <div
-                  className="inline-flex items-center justify-center px-3 py-1 rounded-full mt-3 border bg-zinc-950/50"
-                  style={{ borderColor: `${localTeam.color}40`, color: localTeam.color }}
-                >
-                  <span className="text-xs font-bold">{localTeam.name}</span>
-                </div>
-              )}
-            </div>
-
-            {localRole?.description && (
-              <div className="mt-6 pt-6 border-t border-zinc-800 w-full">
-                <p className="text-sm text-zinc-400 italic text-center leading-relaxed">
-                  {localRole.description}
-                </p>
-              </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* GM Message / Public Notes targeting this player */}
           {localPlayer.publicNotes && localPlayer.publicNotesSendToPlayer && (

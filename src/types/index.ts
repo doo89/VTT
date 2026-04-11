@@ -213,5 +213,6 @@ export interface GameState {
       bottomLeft: BadgeConfig;
       bottomRight: BadgeConfig;
     };
+    smartphoneImageStyle: 'circle' | 'square' | 'original' | 'background';
   };
 }
