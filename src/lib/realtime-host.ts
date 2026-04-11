@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import { useVttStore } from '../store';
 
 let currentChannel: RealtimeChannel | null = null;
+export const getChannel = () => currentChannel;
 
 export const initHostRealtime = (roomCode: string) => {
   if (!supabase) return;
@@ -134,6 +135,19 @@ export const initHostRealtime = (roomCode: string) => {
         }
       }
     })
+    .on('broadcast', { event: 'soundboard_action' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      if (!state.soundboard.remoteEnabled) return;
+      if (state.soundboard.remotePasscode !== payload.passcode) return;
+      
+      // Update store to trigger the playing logic in DetachedSoundboard
+      useVttStore.setState(s => ({
+        soundboard: {
+          ...s.soundboard,
+          remotePlayTrigger: { index: payload.index, timestamp: Date.now() }
+        }
+      }));
+    })
     .on('presence', { event: 'sync' }, () => {
       const state = useVttStore.getState();
       const newState = currentChannel?.presenceState() || {};
@@ -199,6 +213,19 @@ export const forceBroadcastState = () => {
       imageUrl: stripImage(h.imageUrl),
       referenceImageUrl: stripImage((h as any).referenceImageUrl),
     })),
+    soundboard: {
+      remoteEnabled: state.soundboard.remoteEnabled,
+      cols: state.soundboard.cols,
+      rows: state.soundboard.rows,
+      buttons: state.soundboard.buttons.map(b => ({
+        index: b.index,
+        name: b.name,
+        icon: b.icon,
+        color: b.color,
+        hasAudio: !!b.audioUrl,
+        imageUrl: stripImage(b.imageUrl)
+      }))
+    },
     isNight: state.isNight,
     cycleMode: state.cycleMode,
     displaySettings: state.displaySettings,
@@ -241,6 +268,7 @@ export const setupHostRealtimeSubscription = () => {
       state.isNight !== prevState.isNight ||
       state.isRoomPublic !== prevState.isRoomPublic ||
       state.displaySettings !== prevState.displaySettings ||
+      state.soundboard !== prevState.soundboard ||
       state.room !== prevState.room;
 
     if (state.roomCode !== prevState.roomCode) {

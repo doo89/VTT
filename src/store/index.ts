@@ -144,6 +144,9 @@ export const initialState = {
     x: 200,
     y: 200,
     buttons: [],
+    remoteEnabled: false,
+    remotePasscode: '1234',
+    remotePlayTrigger: null
   },
   activeLeftTab: 'players' as const,
   editingEntity: null,

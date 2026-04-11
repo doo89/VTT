@@ -147,6 +147,18 @@ export interface LogEvent {
   type: 'info' | 'action' | 'system' | 'death' | 'note' | 'role';
 }
 
+export interface SoundboardState {
+  cols: number;
+  rows: number;
+  isDetached: boolean;
+  x: number;
+  y: number;
+  buttons: SoundButton[];
+  remoteEnabled: boolean;
+  remotePasscode: string;
+  remotePlayTrigger?: { index: number, timestamp: number } | null;
+}
+
 export interface GameState {
   roomName: string;
   roomCode: string | null;
@@ -177,14 +189,7 @@ export interface GameState {
     x: number;
     y: number;
   };
-  soundboard: {
-    cols: number;
-    rows: number;
-    isDetached: boolean;
-    x: number;
-    y: number;
-    buttons: SoundButton[];
-  };
+  soundboard: SoundboardState;
   activeLeftTab: 'players' | 'roles' | 'tags' | 'game' | 'handouts';
   editingEntity: { type: 'player' | 'playerTemplate' | 'role' | 'tagModel' | 'tagInstance' | 'team' | 'tagCategory' | 'playerNotes' | 'playerPublicNotes' | 'soundButton', id: EntityId, parentId?: EntityId } | null;
   canvas: {

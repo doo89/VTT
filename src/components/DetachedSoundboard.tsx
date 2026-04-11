@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
 import { Music, X, Settings, Repeat, icons } from 'lucide-react';
 
+import { getChannel } from '../lib/realtime-host';
+
 export const DetachedSoundboard: React.FC = () => {
   const { soundboard, setSoundboard, setEditingEntity } = useVttStore();
   const [isDragging, setIsDragging] = useState(false);
@@ -21,6 +23,27 @@ export const DetachedSoundboard: React.FC = () => {
       });
     };
   }, []);
+
+  const broadcastPlaybackStatus = () => {
+    const channel = getChannel();
+    if (!channel) return;
+    const playing = Object.entries(audioRefs.current)
+      .filter(([_, audio]) => !audio.paused && audio.currentTime > 0 && !audio.ended)
+      .map(([idx]) => parseInt(idx));
+    
+    channel.send({
+      type: 'broadcast',
+      event: 'soundboard_playback',
+      payload: { playingIndices: playing }
+    }).catch(() => {});
+  };
+
+  useEffect(() => {
+    if (soundboard.remotePlayTrigger) {
+      handleButtonClick(soundboard.remotePlayTrigger.index);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soundboard.remotePlayTrigger]);
 
   if (!soundboard.isDetached) return null;
 
@@ -68,11 +91,18 @@ export const DetachedSoundboard: React.FC = () => {
     if (!audioRefs.current[index]) {
       const newAudio = new Audio(btn.audioUrl);
 
-      newAudio.addEventListener('play', () => setAudioStates(prev => ({ ...prev, [index]: { ...prev[index], isPlaying: true } })));
-      newAudio.addEventListener('pause', () => setAudioStates(prev => ({ ...prev, [index]: { ...prev[index], isPlaying: false } })));
+      newAudio.addEventListener('play', () => {
+        setAudioStates(prev => ({ ...prev, [index]: { ...prev[index], isPlaying: true } }));
+        broadcastPlaybackStatus();
+      });
+      newAudio.addEventListener('pause', () => {
+        setAudioStates(prev => ({ ...prev, [index]: { ...prev[index], isPlaying: false } }));
+        broadcastPlaybackStatus();
+      });
       newAudio.addEventListener('ended', () => {
         setAudioStates(prev => ({ ...prev, [index]: { isPlaying: false, progress: 0 } }));
         newAudio.currentTime = 0;
+        broadcastPlaybackStatus();
       });
       newAudio.addEventListener('timeupdate', () => {
         if (newAudio.duration) {
