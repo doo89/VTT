@@ -11,7 +11,7 @@ export const Canvas: React.FC = () => {
     roomName, setRoomName, roomCode, generateRoomCode, clearRoomCode, isRoomPublic, toggleRoomPublic,
     joinRequests, removeJoinRequest, onlinePlayerIds,
     canvas, setPan, setZoom, isNight, nextCycle, cycleMode,
-    players, updatePlayer, addPlayer, deletePlayer, clearPlayers,
+    players, updatePlayer, updatePlayers, addPlayer, deletePlayer, clearPlayers,
     markers, updateMarker, addMarker, deleteMarker, clearMarkers,
     roles, teams, grid, room, displaySettings,
     selectedEntityIds, setSelectedEntityIds, clearSelection,
@@ -1546,7 +1546,49 @@ export const Canvas: React.FC = () => {
                         closeContextMenu();
                       }}
                     >
-                      Tous les tags
+                    Tous les tags
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-destructive text-destructive hover:text-destructive-foreground flex items-center gap-2"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        setDeleteConfirm({
+                          title: "Supprimer toutes les notes privées",
+                          message: "Êtes-vous sûr de vouloir supprimer les notes privées de tous les joueurs ?",
+                          onConfirm: () => {
+                            const updates = players.map(p => ({
+                              id: p.id,
+                              updates: { privateNotes: '' }
+                            }));
+                            updatePlayers(updates);
+                            setDeleteConfirm(null);
+                          }
+                        });
+                        closeContextMenu();
+                      }}
+                    >
+                      Toutes les notes privées
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-destructive text-destructive hover:text-destructive-foreground flex items-center gap-2"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        setDeleteConfirm({
+                          title: "Supprimer toutes les notes publiques",
+                          message: "Êtes-vous sûr de vouloir supprimer les notes publiques de tous les joueurs ?",
+                          onConfirm: () => {
+                            const updates = players.map(p => ({
+                              id: p.id,
+                              updates: { publicNotes: '' }
+                            }));
+                            updatePlayers(updates);
+                            setDeleteConfirm(null);
+                          }
+                        });
+                        closeContextMenu();
+                      }}
+                    >
+                      Toutes les notes publiques
                     </button>
                     <button
                       className="w-full text-left px-4 py-2 text-sm hover:bg-destructive text-destructive hover:text-destructive-foreground flex items-center gap-2"
