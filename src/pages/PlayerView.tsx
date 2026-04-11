@@ -635,24 +635,32 @@ export const PlayerView: React.FC = () => {
                       maxHeight: '100%'
                     }}
                   >
-                    {roomPlayers.map(p => (
-                       <div 
-                         key={p.id}
-                         className={`absolute ${p.isDead ? 'opacity-20' : 'animate-pulse'}`}
-                         style={{
-                           left: `${(p.x / roomData.width) * 100}%`,
-                           top: `${(p.y / roomData.height) * 100}%`,
-                           width: '10px',
-                           height: '10px',
-                           borderRadius: '50%',
-                           backgroundColor: p.color,
-                           transform: 'translate(-50%, -50%)',
-                           boxShadow: `0 0 12px ${p.color}`,
-                           zIndex: 10
-                         }}
-                       />
-                    ))}
-                    {/* Simplified marker representation if needed, but dots for players is usually enough for a "miniature" */}
+                    {roomPlayers.map(p => {
+                      // World coords are centered at (0,0). Room goes from -w/2 to +w/2 and -h/2 to +h/2.
+                      // Convert to percentage (0% = left/top edge, 100% = right/bottom edge)
+                      const halfW = roomData.width / 2;
+                      const halfH = roomData.height / 2;
+                      const leftPct = Math.max(0, Math.min(100, ((p.x + halfW) / roomData.width) * 100));
+                      const topPct  = Math.max(0, Math.min(100, ((p.y + halfH) / roomData.height) * 100));
+                      return (
+                        <div 
+                          key={p.id}
+                          title={p.name}
+                          className={`absolute ${p.isDead ? 'opacity-20' : 'animate-pulse'}`}
+                          style={{
+                            left: `${leftPct}%`,
+                            top: `${topPct}%`,
+                            width: '10px',
+                            height: '10px',
+                            borderRadius: '50%',
+                            backgroundColor: p.color,
+                            transform: 'translate(-50%, -50%)',
+                            boxShadow: `0 0 12px ${p.color}`,
+                            zIndex: 10
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
