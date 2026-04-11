@@ -140,6 +140,7 @@ export const Canvas: React.FC = () => {
       isDead: false,
       tags: [],
     });
+    useVttStore.getState().addLog(`${playerName} a rejoint la partie.`, 'system');
   };
 
   const handleRejectJoin = (playerName: string) => {
@@ -216,6 +217,8 @@ export const Canvas: React.FC = () => {
       points: newPoints,
       votes: newVotes
     });
+    
+    useVttStore.getState().addLog(`${player.name} reçoit "${tagModel.name}"`, 'action');
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -466,6 +469,10 @@ export const Canvas: React.FC = () => {
     if (hasChanges) {
       updates.forEach(id => {
         updatePlayer(id, { isDead: true });
+        const p = players.find(x => x.id === id);
+        if (p) {
+          useVttStore.getState().addLog(`${p.name} est mort(e)`, 'death');
+        }
       });
     }
   }, [players, roles, updatePlayer]);
@@ -1114,7 +1121,10 @@ export const Canvas: React.FC = () => {
                   onMouseDown={(e) => {
                     e.stopPropagation();
                     const p = players.find(p => p.id === contextMenu.entityId);
-                    if (p) updatePlayer(p.id, { isDead: !p.isDead });
+                    if (p) {
+                      updatePlayer(p.id, { isDead: !p.isDead });
+                      useVttStore.getState().addLog(`${p.name} est ${!p.isDead ? 'mort(e)' : 'ressuscité(e)'}`, !p.isDead ? 'death' : 'system');
+                    }
                     closeContextMenu();
                   }}
                 >

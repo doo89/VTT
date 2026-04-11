@@ -44,6 +44,7 @@ export const initHostRealtime = (roomCode: string) => {
             isDead: false,
             tags: [],
           });
+          state.addLog(`${playerName} a rejoint la partie.`, 'system');
           // State change will automatically trigger a broadcast via the subscriber below
         } else {
           // Private room logic - queue for approval
@@ -68,6 +69,7 @@ export const initHostRealtime = (roomCode: string) => {
           playerName: payload.playerName,
           message: payload.feedbackMessage,
         });
+        state.addLog(`${payload.playerName} : ${payload.feedbackMessage}`, 'action');
       }
 
       // Handle selection pastilles if targeted players are present

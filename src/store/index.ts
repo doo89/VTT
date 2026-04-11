@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate } from '../types';
+import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface VttStore extends GameState {
@@ -101,6 +101,9 @@ interface VttStore extends GameState {
   // Smartphone Action Popups for GM
   smartphoneActionMessage: { playerName: string, message: string } | null;
   setSmartphoneActionMessage: (message: { playerName: string, message: string } | null) => void;
+  // Logs
+  addLog: (message: string, type: LogEvent['type']) => void;
+  clearLogs: () => void;
 }
 
 export const initialState = {
@@ -120,6 +123,7 @@ export const initialState = {
   teams: [],
   tagCategories: [],
   handouts: [],
+  logs: [],
   recentColors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff', '#000000', '#6b7280'], // default colors
   isNight: false,
   cycleNumber: 1,
@@ -371,10 +375,20 @@ export const useVttStore = create<VttStore>()(
   // Game Logic
   setNight: (isNight) => set({ isNight }),
   nextCycle: () => set((state) => {
+    let msg = "";
     if (state.isNight) {
-      return { isNight: false, cycleNumber: state.cycleNumber + 1 };
+      msg = `Le jour se lève (Cycle ${state.cycleNumber + 1})`;
+      return { 
+        isNight: false, 
+        cycleNumber: state.cycleNumber + 1,
+        logs: [{ id: uuidv4(), timestamp: Date.now(), message: msg, type: 'system' as const }, ...state.logs].slice(0, 100)
+      };
     } else {
-      return { isNight: true };
+      msg = `La nuit tombe (Cycle ${state.cycleNumber})`;
+      return { 
+        isNight: true,
+        logs: [{ id: uuidv4(), timestamp: Date.now(), message: msg, type: 'system' as const }, ...state.logs].slice(0, 100)
+      };
     }
   }),
   resetCycle: () => set({ isNight: false, cycleNumber: 1 }),
@@ -402,6 +416,12 @@ export const useVttStore = create<VttStore>()(
 
         // Smartphone action message
         setSmartphoneActionMessage: (message) => set({ smartphoneActionMessage: message }),
+
+        // Logs
+        addLog: (message, type) => set((state) => ({
+          logs: [{ id: uuidv4(), timestamp: Date.now(), message, type }, ...state.logs].slice(0, 100) // Keep last 100 logs
+        })),
+        clearLogs: () => set({ logs: [] }),
       }),
       {
         partialize: (state) => ({

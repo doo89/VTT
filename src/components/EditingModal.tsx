@@ -17,7 +17,7 @@ const TAG_ICONS = [
 ];
 
 export const EditingModal: React.FC = () => {
-  const { editingEntity, setEditingEntity, players, playerTemplates, roles, teams, tags, tagCategories, markers, soundboard, handouts, updatePlayer, updatePlayerTemplate, updateRole, updateTeam, updateTagModel, updateTagCategory, updateMarker, updateSoundButton, removeSoundButton } = useVttStore();
+  const { editingEntity, setEditingEntity, players, playerTemplates, roles, teams, tags, tagCategories, markers, soundboard, handouts, updatePlayer, updatePlayerTemplate, updateRole, updateTeam, updateTagModel, updateTagCategory, updateMarker, updateSoundButton, removeSoundButton, addLog } = useVttStore();
   const [activeTagTab, setActiveTagTab] = React.useState<'general' | 'appearance' | 'fields' | 'container' | 'smartphone'>('general');
   const [expandedContainerCategories, setExpandedContainerCategories] = React.useState<Record<string, boolean>>({});
 
@@ -37,14 +37,39 @@ export const EditingModal: React.FC = () => {
     return grouped;
   }, [tags, tagCategories]);
 
+  const [initialNotes, setInitialNotes] = React.useState<string | null>(null);
+
   // Reset tab when editing entity changes
   React.useEffect(() => {
     setActiveTagTab('general');
-  }, [editingEntity?.id]);
+    
+    if (editingEntity?.type === 'playerNotes') {
+        const player = useVttStore.getState().players.find(p => p.id === editingEntity.id);
+        setInitialNotes(player?.privateNotes || '');
+    } else if (editingEntity?.type === 'playerPublicNotes') {
+        const player = useVttStore.getState().players.find(p => p.id === editingEntity.id);
+        setInitialNotes(player?.publicNotes || '');
+    } else {
+        setInitialNotes(null);
+    }
+  }, [editingEntity?.id, editingEntity?.type]);
 
   if (!editingEntity) return null;
 
-  const handleClose = () => setEditingEntity(null);
+  const handleClose = () => {
+    if (editingEntity.type === 'playerNotes') {
+        const player = useVttStore.getState().players.find(p => p.id === editingEntity.id);
+        if (player && (player.privateNotes || '') !== initialNotes) {
+            addLog(`Notes privées modifiées pour ${player.name}`, 'note');
+        }
+    } else if (editingEntity.type === 'playerPublicNotes') {
+        const player = useVttStore.getState().players.find(p => p.id === editingEntity.id);
+        if (player && (player.publicNotes || '') !== initialNotes) {
+            addLog(`Notes publiques modifiées pour ${player.name}`, 'note');
+        }
+    }
+    setEditingEntity(null);
+  };
 
   let entityTitle = '';
   let entityContent = null;

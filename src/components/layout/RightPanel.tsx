@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Grid3X3, Clock, Eye, PaintBucket, ChevronDown, Image as ImageIcon, Trash2, ArrowUpRight, Music, Shuffle, RefreshCw, Zap, Database, X } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Grid3X3, Clock, Eye, PaintBucket, ChevronDown, Image as ImageIcon, Trash2, ArrowUpRight, Music, Shuffle, RefreshCw, Zap, Database, X, History } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -14,7 +14,8 @@ export const RightPanel: React.FC = () => {
     room, setRoom,
     timer, setTimer,
     soundboard, setSoundboard,
-    roles, updateRole, players, updatePlayers
+    roles, updateRole, players, updatePlayers,
+    logs, clearLogs, addLog
   } = useVttStore();
 
   const [activeSection, setActiveSection] = useState<string | null>('affichage');
@@ -88,6 +89,13 @@ export const RightPanel: React.FC = () => {
 
     if (updates.length > 0) {
       updatePlayers(updates);
+      updates.forEach((update) => {
+        const player = players.find(p => p.id === update.id);
+        const role = roles.find(r => r.id === update.updates.roleId);
+        if (player && role) {
+          addLog(`Distribution : ${player.name} reçoit ${role.name}`, 'role');
+        }
+      });
     }
   };
 
@@ -707,6 +715,59 @@ export const RightPanel: React.FC = () => {
                   </button>
                 </>
               )}
+            </div>
+          )}
+        </section>
+
+        {/* Historique / Logs */}
+        <section className="flex flex-col border border-border rounded-md bg-background">
+          <button
+            onClick={() => toggleSection('logs')}
+            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+          >
+            <div className={`flex items-center gap-2 ${activeSection === 'logs' ? 'text-teal-400' : ''}`}>
+              <History size={16} /> Log / Historique
+            </div>
+            {activeSection === 'logs' ? <ChevronDown size={16} className="text-teal-400" /> : <ChevronRight size={16} />}
+          </button>
+          {activeSection === 'logs' && (
+            <div className="flex flex-col p-0 border-t border-border">
+              <div className="flex justify-between items-center p-2 border-b border-border bg-muted/20">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{logs.length} Événements</span>
+                <button
+                  onClick={clearLogs}
+                  className="text-xs flex items-center gap-1 text-destructive hover:text-white hover:bg-destructive px-2 py-1 rounded transition-colors"
+                  title="Effacer l'historique"
+                >
+                  <Trash2 size={12} /> Vider
+                </button>
+              </div>
+              <div className="flex flex-col max-h-[300px] overflow-y-auto custom-scrollbar p-2 gap-2">
+                {logs.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic text-center py-4">Aucune action enregistrée pour le moment.</p>
+                ) : (
+                  logs.map((log) => {
+                    let dotColor = "bg-primary";
+                    if (log.type === 'death') dotColor = "bg-destructive";
+                    else if (log.type === 'action') dotColor = "bg-amber-500";
+                    else if (log.type === 'system') dotColor = "bg-blue-500";
+                    else if (log.type === 'note') dotColor = "bg-purple-500";
+                    else if (log.type === 'role') dotColor = "bg-emerald-500";
+
+                    return (
+                      <div key={log.id} className="flex gap-2 items-start text-sm">
+                        <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-foreground leading-snug">{log.message}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(log.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           )}
         </section>

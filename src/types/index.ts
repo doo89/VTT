@@ -140,6 +140,13 @@ export interface SoundButton {
   imageUrl?: string;
 }
 
+export interface LogEvent {
+  id: string;
+  timestamp: number;
+  message: string;
+  type: 'info' | 'action' | 'system' | 'death' | 'note' | 'role';
+}
+
 export interface GameState {
   roomName: string;
   roomCode: string | null;
@@ -156,6 +163,7 @@ export interface GameState {
   tags: TagModel[]; // Added tags property here
   tagCategories: TagCategory[];
   handouts: Handout[];
+  logs: LogEvent[];
   recentColors: string[];
   isNight: boolean;
   cycleNumber: number;
