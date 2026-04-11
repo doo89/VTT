@@ -1,18 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout } from '../types';
+import { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate } from '../types';
 import { v4 as uuidv4 } from 'uuid';
-
-export interface PlayerTemplate {
-  id: EntityId;
-  color: string;
-  name: string;
-  roleId: EntityId | null;
-  teamId: EntityId | null;
-  size: number;
-  imageUrl?: string;
-}
 
 interface VttStore extends GameState {
   setCycleMode: (mode: GameState['cycleMode']) => void;
