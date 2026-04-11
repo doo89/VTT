@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import type { SyncStatePayload } from '../lib/supabase';
 import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock, Gamepad2, Users, Map } from 'lucide-react';
 import * as icons from 'lucide-react';
-import type { Player, Role, Team, TagModel } from '../types';
+import type { Player, Role, Team } from '../types';
 
 export const PlayerView: React.FC = () => {
   const { roomId, playerName } = useParams<{ roomId: string, playerName: string }>();
