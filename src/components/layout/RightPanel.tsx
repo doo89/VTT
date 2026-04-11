@@ -796,6 +796,8 @@ export const RightPanel: React.FC = () => {
             </div>
           </div>
           )}
+        </section>
+
         <section className="border-b border-border">
           <button
             onClick={() => toggleSection('systeme')}
