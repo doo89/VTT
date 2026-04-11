@@ -36,6 +36,7 @@ export type SyncStatePayload = {
   handouts: any[];
   isNight: boolean;
   cycleMode: 'dayNight' | 'turns' | 'none';
+  displaySettings: any;
 };
 
 export type JoinRequestPayload = {

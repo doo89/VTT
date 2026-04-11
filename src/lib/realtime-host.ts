@@ -182,6 +182,7 @@ const forceBroadcastState = () => {
     handouts: state.handouts,
     isNight: state.isNight,
     cycleMode: state.cycleMode,
+    displaySettings: state.displaySettings,
   };
 
   // We must always broadcast if it's forced by a client request, not just on diff.
@@ -210,7 +211,8 @@ export const setupHostRealtimeSubscription = () => {
       state.tags !== prevState.tags ||
       state.handouts !== prevState.handouts ||
       state.isNight !== prevState.isNight ||
-      state.isRoomPublic !== prevState.isRoomPublic;
+      state.isRoomPublic !== prevState.isRoomPublic ||
+      state.displaySettings !== prevState.displaySettings;
 
     if (state.roomCode !== prevState.roomCode) {
       if (state.roomCode) {
