@@ -73,13 +73,13 @@ export const initHostRealtime = (roomCode: string) => {
       // Handle selection pastilles if targeted players are present
       if (payload.selectedPlayerIds && Array.isArray(payload.selectedPlayerIds) && payload.selectedPlayerIds.length > 0) {
         // Find the tag info
-        let tagInfo: { icon: string, color: string } | null = null;
+        let tagInfo: { icon: string, color: string, name: string } | null = null;
         
         // Search in all players and their tags
         for (const p of state.players) {
           const t = p.tags.find(tag => tag.instanceId === payload.tagInstanceId);
           if (t) {
-            tagInfo = { icon: t.icon, color: t.color };
+            tagInfo = { icon: t.icon, color: t.color, name: t.name };
             break;
           }
         }
@@ -88,7 +88,7 @@ export const initHostRealtime = (roomCode: string) => {
         if (!tagInfo) {
           const m = state.markers.find(m => m.tag.instanceId === payload.tagInstanceId);
           if (m) {
-            tagInfo = { icon: m.tag.icon, color: m.tag.color };
+            tagInfo = { icon: m.tag.icon, color: m.tag.color, name: m.tag.name };
           }
         }
 
@@ -103,7 +103,7 @@ export const initHostRealtime = (roomCode: string) => {
               const currentPastilles = target.selectionPastilles || [];
               return {
                 id: pid,
-                updates: { selectionPastilles: [...currentPastilles, { id: pastilleId, icon, color }] }
+                updates: { selectionPastilles: [...currentPastilles, { id: pastilleId, icon, color, name: tagInfo?.name }] }
               };
             }
             return null;

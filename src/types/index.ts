@@ -17,7 +17,7 @@ export interface Player {
   publicNotesSendToPlayer?: boolean;
   publicNotesNoticeBoard?: boolean;
   publicNotesTimestamp?: number;
-  selectionPastilles?: { id: string, icon: string, color: string }[];
+  selectionPastilles?: { id: string, icon: string, color: string, name?: string }[];
   smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background';
 }
 

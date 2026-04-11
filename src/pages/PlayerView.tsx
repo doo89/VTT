@@ -376,6 +376,25 @@ export const PlayerView: React.FC = () => {
                         <UserCircle2 size={48} className="text-zinc-600" />
                       </div>
                     )}
+                    
+                    {/* Selection Pastilles Overlay */}
+                    {localPlayer.selectionPastilles && localPlayer.selectionPastilles.length > 0 && (
+                      <div className="absolute top-1 right-1 flex flex-col gap-1 z-20">
+                        {localPlayer.selectionPastilles.map((p, idx) => {
+                          const PIcon = (icons as any)[p.icon] || TagIcon;
+                          return (
+                            <div
+                              key={`${p.id}-${idx}`}
+                              className="w-6 h-6 rounded-full border-2 border-zinc-900 shadow-lg flex items-center justify-center bg-zinc-950 animate-in zoom-in-50 duration-300"
+                              style={{ borderColor: p.color }}
+                              title={p.name}
+                            >
+                              <PIcon size={12} style={{ color: p.color }} />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 

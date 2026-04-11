@@ -1076,6 +1076,33 @@ export const Canvas: React.FC = () => {
                   <Settings size={14} />
                   Éditer
                 </button>
+                
+                {(() => {
+                  const p = players.find(p => p.id === contextMenu.entityId);
+                  if (!p || !p.selectionPastilles || p.selectionPastilles.length === 0) return null;
+                  
+                  return (
+                    <>
+                      <div className="h-px bg-border my-1" />
+                      {p.selectionPastilles.map(pastille => (
+                        <button
+                          key={pastille.id}
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-destructive/10 text-destructive flex items-center gap-2"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            updatePlayer(p.id, {
+                              selectionPastilles: p.selectionPastilles?.filter(ps => ps.id !== pastille.id)
+                            });
+                            closeContextMenu();
+                          }}
+                        >
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: pastille.color }} />
+                          <span className="truncate">Supprimer la pastille {pastille.name || 'Inconnue'}</span>
+                        </button>
+                      ))}
+                    </>
+                  );
+                })()}
 
                 {/* Utiliser Tag uses */}
                 {(() => {
