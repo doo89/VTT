@@ -1,20 +1,21 @@
 import React, { useRef, useState } from 'react';
 import { useVttStore } from '../../../store';
 import { Upload, Trash2, Eye, EyeOff } from 'lucide-react';
+import { uploadImageToStorage, deleteImageFromStorage } from '../../../lib/supabase';
 
 export const HandoutsTab: React.FC = () => {
   const { handouts, addHandout, deleteHandout, toggleHandout } = useVttStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newHandoutName, setNewHandoutName] = useState('');
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
+      const url = await uploadImageToStorage(file);
+      if (url) {
         addHandout({
           name: newHandoutName || file.name.split('.')[0],
-          imageUrl: e.target?.result as string,
+          imageUrl: url,
           isOpen: true, // open by default when created
           x: 50,
           y: 50,
@@ -23,8 +24,7 @@ export const HandoutsTab: React.FC = () => {
           isMaximized: false,
         });
         setNewHandoutName('');
-      };
-      reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -81,7 +81,10 @@ export const HandoutsTab: React.FC = () => {
                     {handout.isOpen ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
                   <button
-                    onClick={() => deleteHandout(handout.id)}
+                    onClick={async () => {
+                      if (handout.imageUrl) await deleteImageFromStorage(handout.imageUrl);
+                      deleteHandout(handout.id);
+                    }}
                     className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
                     title="Supprimer"
                   >

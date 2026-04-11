@@ -80,3 +80,35 @@ export const uploadImageToStorage = async (file: File): Promise<string | null> =
     return null;
   }
 };
+
+/**
+ * Deletes an image from Supabase Storage given its public URL.
+ */
+export const deleteImageFromStorage = async (imageUrl: string): Promise<boolean> => {
+  if (!supabase || !imageUrl) return false;
+
+  // Check if it's a Supabase URL and get the file name
+  // Standard format: .../storage/v1/object/public/images-all/FILENAME
+  if (!imageUrl.includes('/storage/v1/object/public/images-all/')) {
+    return false; // Not a Supabase managed image or from another bucket
+  }
+
+  try {
+    const fileName = imageUrl.split('/').pop();
+    if (!fileName) return false;
+
+    const { error } = await supabase.storage
+      .from('images-all')
+      .remove([fileName]);
+
+    if (error) {
+      console.error("Error deleting image from storage:", error.message);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Unexpected error during image deletion:", error);
+    return false;
+  }
+};

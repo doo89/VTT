@@ -1,7 +1,7 @@
 import React from 'react';
 import { useVttStore } from '../store';
 import { X, Trash2, icons } from 'lucide-react';
-import { uploadImageToStorage } from '../lib/supabase';
+import { uploadImageToStorage, deleteImageFromStorage } from '../lib/supabase';
 import { ColorPicker } from './ColorPicker';
 
 const TEAM_ICONS = [
@@ -132,39 +132,49 @@ export const EditingModal: React.FC = () => {
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Image / Icône (Modèle)</label>
-          <div className="flex items-center gap-3">
-            {template.imageUrl && (
-              <img src={template.imageUrl} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-border" />
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const url = await uploadImageToStorage(file);
-                  if (url) {
-                    updatePlayerTemplate(template.id, { imageUrl: url });
+          <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const url = await uploadImageToStorage(file);
+                    if (url) {
+                      updatePlayerTemplate(template.id, { imageUrl: url });
+                    }
                   }
-                }
-              }}
-              className="text-xs file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-            />
-            <input
-              type="text"
-              value={template.imageUrl || ''}
-              onChange={(e) => updatePlayerTemplate(template.id, { imageUrl: e.target.value })}
-              placeholder="Ou URL de l'image..."
-              className="bg-input border border-border rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring flex-1"
-            />
+                }}
+                className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={template.imageUrl || ''}
+                onChange={(e) => updatePlayerTemplate(template.id, { imageUrl: e.target.value })}
+                placeholder="Ou collez l'URL d'une image ici..."
+                className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
             {template.imageUrl && (
-              <button
-                onClick={() => updatePlayerTemplate(template.id, { imageUrl: undefined })}
-                className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded"
-                title="Supprimer l'image"
-              >
-                <Trash2 size={14} />
-              </button>
+              <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
+                <div className="relative group">
+                  <img src={template.imageUrl} alt="Preview" className="w-12 h-12 rounded-full object-cover border-2 border-primary/20 shadow-sm" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
+                  <button
+                    onClick={async () => {
+                      if (template.imageUrl) await deleteImageFromStorage(template.imageUrl);
+                      updatePlayerTemplate(template.id, { imageUrl: undefined });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"
+                  >
+                    <Trash2 size={12} /> Supprimer l'image
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -221,39 +231,47 @@ export const EditingModal: React.FC = () => {
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Image / Icône</label>
-          <div className="flex items-center gap-3">
-            {player.imageUrl && (
-              <img src={player.imageUrl} alt="Avatar" className="w-10 h-10 rounded-full object-cover border border-border" />
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const url = await uploadImageToStorage(file);
-                  if (url) {
-                    updatePlayer(player.id, { imageUrl: url });
+          <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const url = await uploadImageToStorage(file);
+                    if (url) {
+                      updatePlayer(player.id, { imageUrl: url });
+                    }
                   }
-                }
-              }}
-              className="text-xs file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-            />
-            <input
-              type="text"
-              value={player.imageUrl || ''}
-              onChange={(e) => updatePlayer(player.id, { imageUrl: e.target.value })}
-              placeholder="Ou URL de l'image..."
-              className="bg-input border border-border rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring flex-1"
-            />
+                }}
+                className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={player.imageUrl || ''}
+                onChange={(e) => updatePlayer(player.id, { imageUrl: e.target.value })}
+                placeholder="Ou collez l'URL d'une image ici..."
+                className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
             {player.imageUrl && (
-              <button
-                onClick={() => updatePlayer(player.id, { imageUrl: undefined })}
-                className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded"
-                title="Supprimer l'image"
-              >
-                <Trash2 size={14} />
-              </button>
+              <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
+                <img src={player.imageUrl} alt="Preview" className="w-12 h-12 rounded-full object-cover border-2 border-primary/20 shadow-sm" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
+                  <button
+                    onClick={async () => {
+                      if (player.imageUrl) await deleteImageFromStorage(player.imageUrl);
+                      updatePlayer(player.id, { imageUrl: undefined });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"
+                  >
+                    <Trash2 size={12} /> Supprimer l'image
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -344,43 +362,49 @@ export const EditingModal: React.FC = () => {
 
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Image du rôle</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const url = await uploadImageToStorage(file);
-                    if (url) {
-                      updateRole(role.id, { imageUrl: url });
+            <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+              <div className="flex flex-col gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const url = await uploadImageToStorage(file);
+                      if (url) {
+                        updateRole(role.id, { imageUrl: url });
+                      }
                     }
-                  }
-                }}
-                className="text-sm flex-1 text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-              />
-              <input
-                type="text"
-                value={role.imageUrl || ''}
-                onChange={(e) => updateRole(role.id, { imageUrl: e.target.value })}
-                placeholder="Ou URL de l'image..."
-                className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring flex-1"
-              />
+                  }}
+                  className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={role.imageUrl || ''}
+                  onChange={(e) => updateRole(role.id, { imageUrl: e.target.value })}
+                  placeholder="Ou collez l'URL d'une image ici..."
+                  className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring flex-1"
+                />
+              </div>
+
               {role.imageUrl && (
-                <button
-                  onClick={() => updateRole(role.id, { imageUrl: undefined })}
-                  className="p-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
-                  title="Supprimer l'image"
-                >
-                  <X size={16} />
-                </button>
+                <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
+                  <img src={role.imageUrl} alt="Preview" className="w-14 h-14 rounded-md object-cover border-2 border-primary/20 shadow-sm" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
+                    <button
+                      onClick={async () => {
+                        if (role.imageUrl) await deleteImageFromStorage(role.imageUrl);
+                        updateRole(role.id, { imageUrl: undefined });
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"
+                    >
+                      <Trash2 size={12} /> Supprimer l'image
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
-            {role.imageUrl && (
-              <div className="mt-2 w-16 h-16 rounded-md overflow-hidden border border-border">
-                <img src={role.imageUrl} alt={role.name} className="w-full h-full object-cover" />
-              </div>
-            )}
           </div>
 
           <div className="flex flex-col gap-1">
@@ -768,43 +792,49 @@ export const EditingModal: React.FC = () => {
 
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Image personnalisée</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const url = await uploadImageToStorage(file);
-                        if (url) {
-                          updateTagModel(tag.id, { imageUrl: url });
+                <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = await uploadImageToStorage(file);
+                          if (url) {
+                            updateTagModel(tag.id, { imageUrl: url });
+                          }
                         }
-                      }
-                    }}
-                    className="text-sm flex-1 text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                  />
-                  <input
-                    type="text"
-                    value={tag.imageUrl || ''}
-                    onChange={(e) => updateTagModel(tag.id, { imageUrl: e.target.value })}
-                    placeholder="Ou URL de l'image..."
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring flex-1"
-                  />
+                      }}
+                      className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={tag.imageUrl || ''}
+                      onChange={(e) => updateTagModel(tag.id, { imageUrl: e.target.value })}
+                      placeholder="Ou collez l'URL d'une image ici..."
+                      className="bg-input border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                  </div>
+
                   {tag.imageUrl && (
-                    <button
-                      onClick={() => updateTagModel(tag.id, { imageUrl: undefined })}
-                      className="p-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
-                      title="Supprimer l'image"
-                    >
-                      <X size={16} />
-                    </button>
+                    <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
+                      <img src={tag.imageUrl} alt="Preview" className="w-14 h-14 rounded-md object-cover border-2 border-primary/20 shadow-sm" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
+                        <button
+                          onClick={async () => {
+                            if (tag.imageUrl) await deleteImageFromStorage(tag.imageUrl);
+                            updateTagModel(tag.id, { imageUrl: undefined });
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"
+                        >
+                          <Trash2 size={12} /> Supprimer l'image
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
-                {tag.imageUrl && (
-                  <div className="mt-2 w-16 h-16 rounded-md overflow-hidden border border-border">
-                    <img src={tag.imageUrl} alt={tag.name} className="w-full h-full object-cover" />
-                  </div>
-                )}
               </div>
 
               <div className="flex flex-col gap-1 mt-2">
@@ -1592,36 +1622,49 @@ export const EditingModal: React.FC = () => {
 
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Image de fond optionnelle</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const url = await uploadImageToStorage(file);
-                  if (url) {
-                    updateSoundButton(index, { imageUrl: url });
+          <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const url = await uploadImageToStorage(file);
+                    if (url) {
+                      updateSoundButton(index, { imageUrl: url });
+                    }
                   }
-                }
-              }}
-              className="text-sm flex-1 text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-            />
+                }}
+                className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={btn.imageUrl || ''}
+                onChange={(e) => updateSoundButton(index, { imageUrl: e.target.value })}
+                placeholder="Ou collez l'URL d'une image ici..."
+                className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
             {btn.imageUrl && (
-              <button
-                onClick={() => updateSoundButton(index, { imageUrl: undefined })}
-                className="p-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
-                title="Supprimer l'image"
-              >
-                <X size={16} />
-              </button>
+              <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
+                <img src={btn.imageUrl} alt="Preview" className="w-12 h-12 rounded-md object-cover border-2 border-primary/20 shadow-sm" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
+                  <button
+                    onClick={async () => {
+                      if (btn.imageUrl) await deleteImageFromStorage(btn.imageUrl);
+                      updateSoundButton(index, { imageUrl: undefined });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"
+                  >
+                    <Trash2 size={12} /> Supprimer l'image
+                  </button>
+                </div>
+              </div>
             )}
           </div>
-          {btn.imageUrl && (
-            <div className="mt-2 w-12 h-12 rounded-md overflow-hidden border border-border">
-              <img src={btn.imageUrl} alt="background" className="w-full h-full object-cover" />
-            </div>
-          )}
         </div>
 
         <div className="flex flex-col gap-1 mt-2">
