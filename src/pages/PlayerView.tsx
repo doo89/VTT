@@ -226,11 +226,57 @@ export const PlayerView: React.FC = () => {
           <p className="text-sm text-zinc-500">Connexion à la salle {roomId}...</p>
         </div>
       ) : !localPlayer ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-center gap-4 z-10">
+        <div className="flex-1 flex flex-col items-center justify-center text-center gap-6 z-10">
           <div className="w-16 h-16 rounded-full border-4 border-blue-500 border-t-transparent animate-pulse" />
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2">
             <h3 className="text-lg font-semibold text-zinc-200">En attente du Maître du Jeu...</h3>
-            <p className="text-sm text-zinc-500">Connexion établie. Le MJ doit valider votre entrée sur le plateau.</p>
+            <p className="text-sm text-zinc-400 max-w-[250px]">Le MJ doit valider votre entrée ou vous placer sur le plateau.</p>
+          </div>
+          
+          <div className="flex flex-col gap-3 w-full mt-4">
+             <button 
+               onClick={() => {
+                 if (channelRef.current) {
+                   channelRef.current.send({
+                     type: 'broadcast',
+                     event: 'join_request',
+                     payload: { playerName: decodeURIComponent(playerName || '') }
+                   });
+                   channelRef.current.send({
+                     type: 'broadcast',
+                     event: 'get_state',
+                   });
+                 }
+               }}
+               className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors"
+             >
+               Relancer la demande au MJ
+             </button>
+
+             <div className="bg-zinc-950/50 border border-zinc-800 rounded-xl p-4 text-left flex flex-col gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 border-b border-zinc-800 pb-1 mb-1">Infos de Debug</span>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-zinc-500">ID Salle:</span>
+                  <span className="text-zinc-300 font-mono">{roomId}</span>
+                </div>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-zinc-500">Mon Pseudo:</span>
+                  <span className="text-zinc-300 font-mono">{decodeURIComponent(playerName || '')}</span>
+                </div>
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-zinc-500">Joueurs en salle:</span>
+                  <span className="text-blue-400 font-bold">{roomPlayers.length}</span>
+                </div>
+                {roomPlayers.length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {roomPlayers.map(p => (
+                      <span key={p.id} className="text-[9px] bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-400">
+                        {p.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+             </div>
           </div>
         </div>
       ) : (
