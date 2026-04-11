@@ -45,8 +45,6 @@ export const DetachedSoundboard: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundboard.remotePlayTrigger]);
 
-  if (!soundboard.isDetached) return null;
-
   const handlePointerDown = (e: React.PointerEvent) => {
     if (!(e.target as HTMLElement).closest('.drag-handle')) return;
     setIsDragging(true);
@@ -129,6 +127,8 @@ export const DetachedSoundboard: React.FC = () => {
     e.preventDefault();
     setEditingEntity({ type: 'soundButton', id: index.toString() });
   };
+
+  if (!soundboard.isDetached) return null;
 
   return (
     <div
