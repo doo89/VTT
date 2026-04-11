@@ -200,6 +200,27 @@ export const PlayerView: React.FC = () => {
             event: 'get_state',
           }).catch(console.error);
 
+          // Retry every 4 seconds until we are matched by the host
+          // This handles the case where the host was not ready when we first joined
+          const retryInterval = setInterval(() => {
+            if (matchedPlayerIdRef.current) {
+              clearInterval(retryInterval);
+              return;
+            }
+            channel.send({
+              type: 'broadcast',
+              event: 'join_request',
+              payload: { playerName: decodeURIComponent(playerName) }
+            }).catch(console.error);
+            channel.send({
+              type: 'broadcast',
+              event: 'get_state',
+            }).catch(console.error);
+          }, 4000);
+
+          // Store interval ID for cleanup on unmount
+          return () => clearInterval(retryInterval);
+
         } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
           setIsConnected(false);
         }
