@@ -175,19 +175,43 @@ export const forceBroadcastState = () => {
   if (!currentChannel) return;
 
   const state = useVttStore.getState();
+
+  // Strip large binary data (base64 images) from payload to avoid the
+  // Supabase Realtime 250KB broadcast size limit. Only send URLs, not embedded data.
+  const stripImage = (url: string | null | undefined) =>
+    url && (url.startsWith('data:') || url.length > 2000) ? null : url;
+
   const payload = {
-    players: state.players,
-    roles: state.roles,
+    players: state.players.map(p => ({
+      ...p,
+      imageUrl: stripImage(p.imageUrl),
+    })),
+    roles: state.roles.map(r => ({
+      ...r,
+      imageUrl: stripImage(r.imageUrl),
+    })),
     teams: state.teams,
     tags: state.tags,
-    handouts: state.handouts,
+    handouts: state.handouts.map(h => ({
+      ...h,
+      imageUrl: stripImage(h.imageUrl),
+      referenceImageUrl: stripImage((h as any).referenceImageUrl),
+    })),
     isNight: state.isNight,
     cycleMode: state.cycleMode,
     displaySettings: state.displaySettings,
-    room: state.room,
+    room: {
+      ...state.room,
+      // Strip backgroundImage if it's a base64 blob — send only external URLs
+      backgroundImage: stripImage(state.room.backgroundImage),
+    },
   };
 
-  // We must always broadcast if it's forced by a client request, not just on diff.
+  const payloadSize = JSON.stringify(payload).length;
+  if (payloadSize > 200_000) {
+    console.warn(`[VTT] Broadcast payload is large: ${Math.round(payloadSize / 1024)}KB. Some images may have been stripped.`);
+  }
+
   currentChannel.send({
     type: 'broadcast',
     event: 'sync_state',
