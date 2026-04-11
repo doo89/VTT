@@ -103,7 +103,7 @@ interface VttStore extends GameState {
   setSmartphoneActionMessage: (message: { playerName: string, message: string } | null) => void;
 }
 
-const initialState = {
+export const initialState = {
   roomName: 'Ma Salle',
   roomCode: null,
   isRoomPublic: true,

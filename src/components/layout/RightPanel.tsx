@@ -1,6 +1,6 @@
 import { Settings, ChevronLeft, ChevronRight, Upload, Grid3X3, Clock, Eye, PaintBucket, ChevronDown, Image as ImageIcon, Trash2, ArrowUpRight, Music, Shuffle, RefreshCw, Zap, Database, X } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useVttStore } from '../../store';
+import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
 import type { BadgeConfig, BadgeType, Role, Player } from '../../types';
 import { ColorPicker } from '../ColorPicker';
@@ -146,7 +146,38 @@ export const RightPanel: React.FC = () => {
       reader.onload = (e) => {
         try {
           const json = JSON.parse(e.target?.result as string);
-          useVttStore.setState(json);
+          if (json._importMode === 'reset') {
+            useVttStore.setState({ ...initialState, ...json });
+          } else if (json._importMode === 'merge') {
+            const mergedState: any = { ...useVttStore.getState() };
+            for (const key of Object.keys(json)) {
+              if (key === '_importMode') continue;
+              if (Array.isArray(json[key]) && Array.isArray(mergedState[key])) {
+                const existing = [...mergedState[key]];
+                json[key].forEach((newItem: any) => {
+                  if (newItem && typeof newItem === 'object' && newItem.id) {
+                    const index = existing.findIndex(e => e.id === newItem.id);
+                    if (index >= 0) {
+                      existing[index] = { ...existing[index], ...newItem };
+                    } else {
+                      existing.push(newItem);
+                    }
+                  } else {
+                     // non-id arrays (like simple strings) just don't try strict merge or merge uniquely
+                     if (!existing.includes(newItem)) existing.push(newItem);
+                  }
+                });
+                mergedState[key] = existing;
+              } else if (typeof json[key] === 'object' && !Array.isArray(json[key]) && json[key] !== null) {
+                mergedState[key] = { ...mergedState[key], ...json[key] };
+              } else {
+                mergedState[key] = json[key];
+              }
+            }
+            useVttStore.setState(mergedState);
+          } else {
+            useVttStore.setState(json);
+          }
         } catch (error) {
           console.error("Error parsing JSON:", error);
           alert("Fichier JSON invalide.");

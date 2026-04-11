@@ -45,6 +45,67 @@ export const Canvas: React.FC = () => {
     message: string,
     onConfirm: () => void
   } | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportOptions, setExportOptions] = useState({
+    joueurs: true,
+    roles: true,
+    equipes: true,
+    tags: true,
+    aides: true,
+    salle: true,
+    outils: true,
+    mode: 'default' as 'default' | 'reset' | 'merge'
+  });
+
+  const handleExport = () => {
+    const state = useVttStore.getState();
+    const stateToSave: any = { _importMode: exportOptions.mode };
+    
+    if (exportOptions.joueurs) {
+      stateToSave.players = state.players;
+      stateToSave.playerTemplates = state.playerTemplates;
+    }
+    if (exportOptions.roles) {
+      stateToSave.roles = state.roles;
+    }
+    if (exportOptions.equipes) {
+      stateToSave.teams = state.teams;
+    }
+    if (exportOptions.tags) {
+      stateToSave.tags = state.tags;
+      stateToSave.tagCategories = state.tagCategories;
+    }
+    if (exportOptions.aides) {
+      stateToSave.handouts = state.handouts;
+    }
+    if (exportOptions.salle) {
+      stateToSave.room = state.room;
+      stateToSave.grid = state.grid;
+      stateToSave.canvas = state.canvas;
+      stateToSave.roomName = state.roomName;
+    }
+    if (exportOptions.outils) {
+      stateToSave.markers = state.markers;
+      stateToSave.markerParameters = state.markerParameters;
+      stateToSave.isNight = state.isNight;
+      stateToSave.cycleNumber = state.cycleNumber;
+      stateToSave.activeLeftTab = state.activeLeftTab;
+      stateToSave.displaySettings = state.displaySettings;
+    }
+
+    const stateStr = JSON.stringify(stateToSave, null, 2);
+    const blob = new Blob([stateStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const safeRoomName = roomName ? roomName.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'vtt_state';
+    a.download = `${safeRoomName}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setShowExportModal(false);
+  };
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
 
@@ -424,40 +485,7 @@ export const Canvas: React.FC = () => {
           />
 
           <button
-            onClick={() => {
-              const state = useVttStore.getState();
-              // Create a serializable state by extracting the relevant data
-              const stateToSave = {
-                roomName: state.roomName,
-                playerTemplates: state.playerTemplates,
-                players: state.players,
-                roles: state.roles,
-                tags: state.tags,
-                tagCategories: state.tagCategories,
-                markers: state.markers,
-                markerParameters: state.markerParameters,
-                teams: state.teams,
-                handouts: state.handouts,
-                isNight: state.isNight,
-                cycleNumber: state.cycleNumber,
-                activeLeftTab: state.activeLeftTab,
-                canvas: state.canvas,
-                grid: state.grid,
-                room: state.room,
-                displaySettings: state.displaySettings,
-              };
-              const stateStr = JSON.stringify(stateToSave, null, 2);
-              const blob = new Blob([stateStr], { type: 'application/json' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              const safeRoomName = roomName ? roomName.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'vtt_state';
-              a.download = `${safeRoomName}.json`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(url);
-            }}
+            onClick={() => setShowExportModal(true)}
             className="p-1.5 text-muted-foreground hover:text-primary hover:bg-accent rounded-md transition-colors"
             title="Exporter l'état (JSON)"
           >
@@ -1867,6 +1895,96 @@ export const Canvas: React.FC = () => {
                   className="px-8 py-2 text-sm bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full font-bold transition-all shadow-md"
                 >
                   Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showExportModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-background rounded-xl shadow-xl outline-1 border border-border w-[450px] max-w-full overflow-hidden text-foreground">
+              <div className="p-4 bg-muted/30 border-b border-border flex justify-between items-center">
+                <h3 className="font-bold text-lg">Exporter l'état</h3>
+                <button onClick={() => setShowExportModal(false)} className="text-muted-foreground hover:text-foreground">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6 flex flex-col gap-4">
+                <p className="text-sm text-muted-foreground">Sélectionnez les éléments à sauvegarder :</p>
+                <div className="grid grid-cols-2 gap-3 pl-2">
+                  {[
+                    { key: 'joueurs', label: 'Les joueurs' },
+                    { key: 'roles', label: 'Les rôles' },
+                    { key: 'equipes', label: 'Les équipes' },
+                    { key: 'tags', label: 'Les tags' },
+                    { key: 'aides', label: 'Les aides' },
+                    { key: 'salle', label: 'La salle' },
+                    { key: 'outils', label: 'Outils' },
+                  ].map(({ key, label }) => (
+                    <label key={key} className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={exportOptions[key as keyof typeof exportOptions] as boolean}
+                        onChange={(e) => setExportOptions(prev => ({ ...prev, [key]: e.target.checked }))}
+                        className="rounded border-border text-primary focus:ring-primary"
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+                
+                <div className="mt-4 border-t border-border pt-4">
+                  <p className="text-sm font-semibold mb-2">Comportement à l'importation :</p>
+                  <div className="flex flex-col gap-2 pl-2">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        name="importMode"
+                        value="default"
+                        checked={exportOptions.mode === 'default'}
+                        onChange={() => setExportOptions(prev => ({ ...prev, mode: 'default' }))}
+                        className="text-primary focus:ring-primary"
+                      />
+                      Classique 
+                    </label>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        name="importMode"
+                        value="reset"
+                        checked={exportOptions.mode === 'reset'}
+                        onChange={() => setExportOptions(prev => ({ ...prev, mode: 'reset' }))}
+                        className="text-primary focus:ring-primary"
+                      />
+                      Repartir de 0 (Remet tout à 0)
+                    </label>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input
+                        type="radio"
+                        name="importMode"
+                        value="merge"
+                        checked={exportOptions.mode === 'merge'}
+                        onChange={() => setExportOptions(prev => ({ ...prev, mode: 'merge' }))}
+                        className="text-primary focus:ring-primary"
+                      />
+                      Fusionner avec l'existant
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-muted/50 border-t border-border flex justify-end gap-3">
+                <button
+                  onClick={() => setShowExportModal(false)}
+                  className="px-6 py-2 text-sm hover:bg-accent rounded-md font-semibold transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="px-8 py-2 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-md font-bold transition-all shadow-md"
+                >
+                  Exporter
                 </button>
               </div>
             </div>
