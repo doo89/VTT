@@ -443,7 +443,7 @@ export const PlayerView: React.FC = () => {
           })()}
 
           {/* GM Message / Public Notes targeting this player */}
-          {localPlayer.publicNotes && localPlayer.publicNotesSendToPlayer && (
+          {localPlayer.publicNotes && localPlayer.publicNotesSendToPlayer !== false && (
             <div className="shrink-0 bg-blue-900/30 border border-blue-500/50 rounded-2xl overflow-hidden mt-4 relative">
               <div className="bg-blue-500/20 px-4 py-2 border-b border-blue-500/30 flex items-center justify-between">
                 <h4 className="text-xs font-bold text-blue-300 uppercase tracking-widest flex items-center gap-2">

@@ -431,14 +431,14 @@ export const useVttStore = create<VttStore>()(
         isNight: false, 
         cycleNumber: state.cycleNumber + 1
       };
-      if (state.displaySettings.recordLogs) {
+      if (state.displaySettings.recordLogs !== false) {
         updates.logs = [{ id: uuidv4(), timestamp: Date.now(), message: msg, type: 'system' as const }, ...state.logs].slice(0, 100);
       }
       return updates;
     } else {
       msg = `La nuit tombe (Cycle ${state.cycleNumber})`;
       const updates: any = { isNight: true };
-      if (state.displaySettings.recordLogs) {
+      if (state.displaySettings.recordLogs !== false) {
         updates.logs = [{ id: uuidv4(), timestamp: Date.now(), message: msg, type: 'system' as const }, ...state.logs].slice(0, 100);
       }
       return updates;
@@ -472,7 +472,7 @@ export const useVttStore = create<VttStore>()(
 
         // Logs
         addLog: (message, type) => set((state) => {
-          if (!state.displaySettings.recordLogs) return {};
+          if (state.displaySettings.recordLogs === false) return {};
           return {
             logs: [{ id: uuidv4(), timestamp: Date.now(), message, type }, ...state.logs].slice(0, 100) // Keep last 100 logs
           };
