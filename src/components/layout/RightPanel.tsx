@@ -532,6 +532,8 @@ export const RightPanel: React.FC = () => {
             </div>
           )}
         </section>
+        )}
+
         {/* Système & Connexion */}
         {displaySettings.panels?.system !== false && (
         <section className="flex flex-col border border-border rounded-md bg-background">
