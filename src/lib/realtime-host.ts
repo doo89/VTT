@@ -73,48 +73,47 @@ export const initHostRealtime = (roomCode: string) => {
         state.addLog(`${payload.playerName} : ${payload.feedbackMessage}`, 'action');
       }
 
-      // Handle selection pastilles if targeted players are present
-      if (payload.selectedPlayerIds && Array.isArray(payload.selectedPlayerIds) && payload.selectedPlayerIds.length > 0) {
-        // Find the tag info
-        let tagInfo: { icon: string, color: string, name: string } | null = null;
+      // Find the tag info and handle pastilles
+      let tagData: any = null;
+      for (const p of state.players) {
+        tagData = p.tags.find(t => t.instanceId === payload.tagInstanceId);
+        if (tagData) break;
+      }
+      if (!tagData) {
+        tagData = state.markers.find(m => m.tag.instanceId === payload.tagInstanceId)?.tag;
+      }
+
+      if (tagData) {
+        const pastilleId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+        const playerUpdatesMap: Record<string, any> = {};
         
-        // Search in all players and their tags
-        for (const p of state.players) {
-          const t = p.tags.find(tag => tag.instanceId === payload.tagInstanceId);
-          if (t) {
-            tagInfo = { icon: t.icon, color: t.color, name: t.name };
-            break;
-          }
+        // Add pastilles to targets if it's a selector
+        if (payload.selectedPlayerIds && Array.isArray(payload.selectedPlayerIds) && payload.selectedPlayerIds.length > 0) {
+          payload.selectedPlayerIds.forEach((pid: string) => {
+            const target = state.players.find(p => p.id === pid);
+            if (target) {
+              const currentPastilles = playerUpdatesMap[pid]?.selectionPastilles || target.selectionPastilles || [];
+              playerUpdatesMap[pid] = {
+                selectionPastilles: [...currentPastilles, { id: pastilleId, icon: tagData.icon, color: tagData.color, name: tagData.name }]
+              };
+            }
+          });
         }
         
-        // If not found in players, search in markers
-        if (!tagInfo) {
-          const m = state.markers.find(m => m.tag.instanceId === payload.tagInstanceId);
-          if (m) {
-            tagInfo = { icon: m.tag.icon, color: m.tag.color, name: m.tag.name };
+        // Add pastille to acting player if enabled
+        if (tagData.smartphoneShowPastille && payload.playerId) {
+          const source = state.players.find(p => p.id === payload.playerId);
+          if (source) {
+            const currentPastilles = playerUpdatesMap[source.id]?.selectionPastilles || source.selectionPastilles || [];
+            playerUpdatesMap[source.id] = {
+              selectionPastilles: [...currentPastilles, { id: pastilleId, icon: tagData.icon, color: tagData.color, name: tagData.name }]
+            };
           }
         }
 
-        if (tagInfo) {
-          const pastilleId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
-          const icon = tagInfo.icon;
-          const color = tagInfo.color;
-          
-          const playerUpdates = payload.selectedPlayerIds.map((pid: string) => {
-            const target = state.players.find(p => p.id === pid);
-            if (target) {
-              const currentPastilles = target.selectionPastilles || [];
-              return {
-                id: pid,
-                updates: { selectionPastilles: [...currentPastilles, { id: pastilleId, icon, color, name: tagInfo?.name }] }
-              };
-            }
-            return null;
-          }).filter(Boolean) as { id: string, updates: Partial<any> }[];
-          
-          if (playerUpdates.length > 0) {
-            state.updatePlayers(playerUpdates as any);
-          }
+        const updates = Object.entries(playerUpdatesMap).map(([id, updates]) => ({ id, updates }));
+        if (updates.length > 0) {
+          state.updatePlayers(updates as any);
         }
       }
 

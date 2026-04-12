@@ -1185,6 +1185,16 @@ export const EditingModal: React.FC = () => {
                   )}
                 </div>
 
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1 ml-4">
+                  <input
+                    type="checkbox"
+                    checked={tag.smartphoneShowPastille || false}
+                    onChange={(e) => updateTagModel(tag.id, { smartphoneShowPastille: e.target.checked })}
+                    className="rounded border-border w-4 h-4"
+                  />
+                  Afficher la pastille tag au dessus du joueur
+                </label>
+
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
                   <input
                     type="checkbox"
@@ -1624,6 +1634,16 @@ export const EditingModal: React.FC = () => {
                     </div>
                   )}
                 </div>
+
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1 ml-4">
+                  <input
+                    type="checkbox"
+                    checked={tag.smartphoneShowPastille || false}
+                    onChange={(e) => updateTagInstance({ smartphoneShowPastille: e.target.checked })}
+                    className="rounded border-border w-4 h-4"
+                  />
+                  Afficher la pastille tag au dessus du joueur
+                </label>
 
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
                   <input

@@ -82,6 +82,7 @@ export interface MarkerParameter {
   smartphoneReturnInfo?: 'none' | 'real_role' | 'real_team' | 'seen_role' | 'seen_team';
   seenAsRoleId?: EntityId | null;
   seenInTeamId?: EntityId | null;
+  smartphoneShowPastille?: boolean;
 }
 
 export interface Marker {
