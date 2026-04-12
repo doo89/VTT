@@ -1,0 +1,638 @@
+import React, { useState, useRef } from 'react';
+import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Zap, RefreshCw, Database } from 'lucide-react';
+import { useVttStore } from '../../store';
+import { ColorPicker } from '../ColorPicker';
+import type { BadgeConfig, BadgeType } from '../../types';
+import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
+
+interface SettingsModalProps {
+  onClose: () => void;
+  onOpenSupabase: () => void;
+}
+
+export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onOpenSupabase }) => {
+  const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'smartphone' | 'outils'>('salle');
+
+  const {
+    room, setRoom,
+    grid, setGrid,
+    cycleMode, setCycleMode,
+    displaySettings, updateDisplaySettings,
+    soundboard, setSoundboard
+  } = useVttStore();
+
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setRoom({ backgroundImage: e.target?.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="bg-popover text-popover-foreground rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-border" onClick={(e) => e.stopPropagation()}>
+        
+        {/* Header */}
+        <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <SettingsIcon size={24} className="text-blue-500" />
+            Paramètres
+          </h2>
+          <button 
+            onClick={onClose} 
+            className="text-muted-foreground hover:text-foreground hover:bg-accent p-1.5 rounded transition-colors"
+            title="Fermer"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-border bg-muted/20 px-2 overflow-x-auto custom-scrollbar">
+          <button
+            onClick={() => setActiveTab('salle')}
+            className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'salle' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            <PaintBucket size={16} /> Salle & Autres
+          </button>
+          <button
+            onClick={() => setActiveTab('joueurs')}
+            className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'joueurs' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            <Users size={16} /> Joueurs
+          </button>
+          <button
+            onClick={() => setActiveTab('smartphone')}
+            className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'smartphone' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            <Smartphone size={16} /> Smartphone
+          </button>
+          <button
+            onClick={() => setActiveTab('outils')}
+            className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'outils' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            <SettingsIcon size={16} /> Outils
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-background">
+          
+          {/* TAB: SALLE & AUTRES */}
+          {activeTab === 'salle' && (
+             <div className="flex flex-col gap-6">
+               {/* Grille */}
+               <section>
+                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3 flex items-center gap-2">
+                   <Grid3X3 size={16} /> Grille Magnétique
+                 </h3>
+                 <div className="flex flex-col gap-3">
+                   <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={grid.enabled}
+                      onChange={(e) => setGrid({ ...grid, enabled: e.target.checked })}
+                      className="rounded border-border"
+                    />
+                    Activer la grille
+                  </label>
+                  {grid.enabled && (
+                    <div className="flex items-center gap-2 ml-6">
+                      <span className="text-xs text-muted-foreground">Taille (px):</span>
+                      <input
+                        type="number"
+                        value={grid.sizeX}
+                        onChange={(e) => setGrid({ ...grid, sizeX: Math.max(10, parseInt(e.target.value) || 50), sizeY: Math.max(10, parseInt(e.target.value) || 50) })}
+                        className="w-20 bg-input border border-border rounded px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  )}
+                 </div>
+               </section>
+
+               {/* Dimensions & Fond */}
+               <section>
+                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3 flex items-center gap-2">
+                   <PaintBucket size={16} /> Dimensions & Fond de la salle
+                 </h3>
+                 <div className="flex flex-col gap-4">
+                  <div className="flex gap-4">
+                    <div className="flex flex-col gap-1 flex-1">
+                      <label className="text-xs text-muted-foreground">Largeur (px)</label>
+                      <input
+                        type="number"
+                        value={room.width}
+                        onChange={(e) => setRoom({ width: Math.max(100, parseInt(e.target.value) || 2000) })}
+                        className="w-full bg-input border border-border rounded px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1 flex-1">
+                      <label className="text-xs text-muted-foreground">Hauteur (px)</label>
+                      <input
+                        type="number"
+                        value={room.height}
+                        onChange={(e) => setRoom({ height: Math.max(100, parseInt(e.target.value) || 1500) })}
+                        className="w-full bg-input border border-border rounded px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground">Couleur de fond</label>
+                    <div className="flex gap-3 items-center">
+                      <ColorPicker
+                        color={room.backgroundColor}
+                        onChange={(c) => setRoom({ backgroundColor: c })}
+                        label="Couleur de fond"
+                      />
+                      <span className="text-sm uppercase font-mono">{room.backgroundColor}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs text-muted-foreground">Image de fond</label>
+
+                    {!room.backgroundImage ? (
+                      <div
+                        onClick={() => imageInputRef.current?.click()}
+                        className="w-full h-32 border-2 border-dashed border-border rounded-md flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-colors"
+                      >
+                        <ImageIcon size={28} className="mb-2 opacity-50" />
+                        <span className="text-sm font-medium">Charger une image depuis votre appareil</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col md:flex-row gap-4 items-start">
+                        <div className="relative w-full md:w-48 h-32 rounded-md overflow-hidden border border-border group shrink-0">
+                          <div
+                            className="absolute inset-0 bg-contain bg-center bg-no-repeat"
+                            style={{ backgroundImage: `url(${room.backgroundImage})` }}
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                            <button
+                              onClick={() => setRoom({ backgroundImage: null })}
+                              className="p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
+                              title="Supprimer l'image"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1 w-full flex-1">
+                          <label className="text-xs text-muted-foreground">Style d'affichage de l'image</label>
+                          <select
+                            value={room.backgroundStyle}
+                            onChange={(e) => setRoom({ backgroundStyle: e.target.value as any })}
+                            className="bg-input border border-border rounded-md px-3 py-2 text-sm w-full outline-none focus:ring-1 focus:ring-primary"
+                          >
+                            <option value="mosaic">Mosaïque (Répéter)</option>
+                            <option value="center">Centrer (Taille réelle)</option>
+                            <option value="stretch">Étendre (Occuper tout l'espace)</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                    <input type="file" ref={imageInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
+                  </div>
+                 </div>
+               </section>
+
+               {/* Système & Connexion */}
+               <section>
+                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3 flex items-center gap-2">
+                   <Zap size={16} /> Système & Connexion
+                 </h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-2 bg-muted/20 p-4 rounded-lg border border-border">
+                      <h4 className="text-sm font-bold">Synchronisation</h4>
+                      <p className="text-xs text-muted-foreground h-10">Envoie immédiatement l'état actuel à tous les joueurs connectés.</p>
+                      <button
+                        onClick={() => forceBroadcastState()}
+                        className="py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
+                      >
+                        <RefreshCw size={16} /> Forcer la Synchronisation
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-2 bg-muted/20 p-4 rounded-lg border border-border">
+                      <h4 className="text-sm font-bold">Base de données</h4>
+                      <p className="text-xs text-muted-foreground h-10">Gérer la configuration Supabase (URL et Clé publique).</p>
+                      <button
+                        onClick={() => {
+                          onClose();
+                          onOpenSupabase();
+                        }}
+                        className="py-2.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-blue-500/30"
+                      >
+                        <Database size={16} /> Paramètres Supabase
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-2 bg-muted/20 p-4 rounded-lg border border-border md:col-span-2">
+                      <h4 className="text-sm font-bold">Reconnexion</h4>
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="text-xs text-muted-foreground">Relance la connexion aux services temps réel en cas de coupure (Canal Supabase).</p>
+                        <button
+                          onClick={() => {
+                            const code = useVttStore.getState().roomCode;
+                            if (code) initHostRealtime(code);
+                          }}
+                          className="shrink-0 py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-bold flex items-center gap-2 transition-colors border border-border"
+                        >
+                          <Zap size={14} /> Réinitialiser
+                        </button>
+                      </div>
+                    </div>
+                 </div>
+               </section>
+             </div>
+          )}
+
+          {/* TAB: JOUEURS */}
+          {activeTab === 'joueurs' && (
+            <div className="flex flex-col gap-6">
+               <section>
+                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Options Globales</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                   <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Type de cycle</label>
+                    <select
+                      value={cycleMode}
+                      onChange={(e) => setCycleMode(e.target.value as any)}
+                      className="bg-input border border-border rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-full max-w-[200px]"
+                    >
+                      <option value="dayNight">Jour/Nuit</option>
+                      <option value="turns">Par tour</option>
+                      <option value="none">Aucun</option>
+                    </select>
+                   </div>
+                   <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Priorité au premier plan</label>
+                    <select
+                      value={displaySettings.foregroundElement}
+                      onChange={(e) => updateDisplaySettings({ foregroundElement: e.target.value as any })}
+                      className="bg-input border border-border rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-full max-w-[200px]"
+                    >
+                      <option value="players">Joueurs</option>
+                      <option value="markers">Marqueurs</option>
+                    </select>
+                   </div>
+                   
+                   <label className="flex items-center gap-2 text-sm cursor-pointer mt-2 md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={displaySettings.showCenter}
+                      onChange={(e) => updateDisplaySettings({ showCenter: e.target.checked })}
+                      className="rounded border-border w-4 h-4 text-primary"
+                    />
+                    Afficher le réticule du centre de la salle
+                  </label>
+                   <label className="flex items-center gap-2 text-sm cursor-pointer md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={displaySettings.showTagName}
+                      onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
+                      className="rounded border-border w-4 h-4 text-primary"
+                    />
+                    Toujours afficher le nom des tags/marqueurs
+                  </label>
+                   {cycleMode !== 'none' && (
+                    <label className="flex items-center gap-2 text-sm cursor-pointer md:col-span-2">
+                      <input
+                        type="checkbox"
+                        checked={displaySettings.showCycleIcon}
+                        onChange={(e) => updateDisplaySettings({ showCycleIcon: e.target.checked })}
+                        className="rounded border-border w-4 h-4 text-primary"
+                      />
+                      Afficher l'icône {cycleMode === 'dayNight' ? 'Jour/Nuit' : 'Tours'} au centre
+                    </label>
+                  )}
+                 </div>
+               </section>
+
+               <section>
+                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Affichage des Joueurs</h3>
+                 <div className="flex flex-col gap-3">
+                   <label className="flex items-center gap-2 text-base font-semibold cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={displaySettings.showPlayers}
+                      onChange={(e) => updateDisplaySettings({ showPlayers: e.target.checked })}
+                      className="rounded border-border w-4 h-4 text-primary"
+                    />
+                    Rendre les joueurs visibles sur le plateau
+                  </label>
+
+                  {displaySettings.showPlayers && (
+                    <div className="pl-6 flex flex-col gap-4">
+                      {/* Affichages basiques */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showOfflineStatus}
+                            onChange={(e) => updateDisplaySettings({ showOfflineStatus: e.target.checked })}
+                            className="rounded border-border w-4 h-4 text-primary"
+                          />
+                          Indiquer lorsqu'un joueur est Hors Ligne
+                        </label>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showPlayerImage}
+                            onChange={(e) => updateDisplaySettings({ showPlayerImage: e.target.checked })}
+                            className="rounded border-border w-4 h-4 text-primary"
+                          />
+                          Afficher l'image du joueur (si définie)
+                        </label>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showRoleImage}
+                            onChange={(e) => updateDisplaySettings({ showRoleImage: e.target.checked })}
+                            className="rounded border-border w-4 h-4 text-primary"
+                          />
+                          Afficher l'image du rôle (si définie)
+                        </label>
+                      </div>
+
+                      {/* Selects */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                         <div className="flex flex-col gap-1.5">
+                           <label className="text-xs text-muted-foreground">Priorité si joueur et rôle ont une image :</label>
+                           <select
+                            value={displaySettings.imagePriority}
+                            onChange={(e) => updateDisplaySettings({ imagePriority: e.target.value as 'player' | 'role' })}
+                            className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-fit"
+                          >
+                            <option value="player">Image du Joueur</option>
+                            <option value="role">Image du Rôle</option>
+                          </select>
+                         </div>
+                         <div className="flex flex-col gap-1.5">
+                           <label className="text-xs text-muted-foreground">Position du nom (sans image) :</label>
+                           <select
+                            value={displaySettings.playerNamePosition}
+                            onChange={(e) => updateDisplaySettings({ playerNamePosition: e.target.value as 'inside' | 'bottom' })}
+                            className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-fit"
+                          >
+                            <option value="inside">À l'intérieur de la pastille</option>
+                            <option value="bottom">En dessous (texte flottant)</option>
+                          </select>
+                         </div>
+                      </div>
+
+                      {/* Info-Bulle */}
+                      <div className="mt-4 p-4 rounded-lg bg-muted/20 border border-border/50 flex flex-col gap-3">
+                        <label className="flex items-center gap-2 text-sm font-semibold cursor-pointer border-b border-border/30 pb-2">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showTooltip}
+                            onChange={(e) => updateDisplaySettings({ showTooltip: e.target.checked })}
+                            className="rounded border-border w-4 h-4 text-primary"
+                          />
+                          Afficher l'info-bulle au survol (Sur le plateau GM et l'écran Déporté)
+                        </label>
+                        {displaySettings.showTooltip && (
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 ml-6">
+                            <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showRole}
+                                onChange={(e) => updateDisplaySettings({ showRole: e.target.checked })}
+                                className="rounded border-border"
+                              /> Afficher le rôle
+                            </label>
+                            <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTeam}
+                                onChange={(e) => updateDisplaySettings({ showTeam: e.target.checked })}
+                                className="rounded border-border"
+                              /> Afficher l'équipe
+                            </label>
+                            <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTags}
+                                onChange={(e) => updateDisplaySettings({ showTags: e.target.checked })}
+                                className="rounded border-border"
+                              /> Afficher les Tags
+                            </label>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Pastilles personnalisables */}
+                      <div className="mt-4">
+                        <h4 className="text-sm border-b border-border/30 pb-2 mb-3">Pastilles (Coins des pions)</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {[
+                            { key: 'topLeft', label: 'Haut Gauche' },
+                            { key: 'topRight', label: 'Haut Droite (Priorité à la Vie si "Vie")' },
+                            { key: 'bottomLeft', label: 'Bas Gauche' },
+                            { key: 'bottomRight', label: 'Bas Droite' }
+                          ].map(corner => {
+                            const badgeKey = corner.key as keyof typeof displaySettings.playerBadges;
+                            const badge = displaySettings.playerBadges?.[badgeKey] || { type: 'none', bgColor: '#000', textColor: '#fff' };
+
+                            const updateBadge = (updates: Partial<BadgeConfig>) => {
+                              updateDisplaySettings({
+                                playerBadges: {
+                                  ...displaySettings.playerBadges,
+                                  [badgeKey]: { ...badge, ...updates }
+                                }
+                              });
+                            };
+
+                            return (
+                              <div key={corner.key} className="flex flex-col gap-2 bg-muted/10 p-3 rounded-md border border-border/40">
+                                <span className="text-xs text-muted-foreground font-semibold">{corner.label}</span>
+                                <div className="flex items-center justify-between gap-3">
+                                  <select
+                                    value={badge.type}
+                                    onChange={(e) => updateBadge({ type: e.target.value as BadgeType })}
+                                    className="flex-1 bg-background border border-border rounded px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary w-fit"
+                                  >
+                                    <option value="none">-- Vide --</option>
+                                    <option value="team">Couleur Équipe</option>
+                                    <option value="lives">Points de Vie</option>
+                                    <option value="votes">Votes/Voix</option>
+                                    <option value="points">Points génériques</option>
+                                    <option value="uses">Utilisations Tags</option>
+                                    <option value="callOrderDay">Ordre Appel Jour</option>
+                                    <option value="callOrderNight">Ordre Appel Nuit</option>
+                                    <option value="connection">État Connexion</option>
+                                  </select>
+
+                                  {badge.type !== 'none' && badge.type !== 'team' && badge.type !== 'connection' && (
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <ColorPicker
+                                        color={badge.bgColor}
+                                        onChange={(c) => updateBadge({ bgColor: c })}
+                                        label="Fond"
+                                        className="!w-6 !h-6 rounded-full"
+                                      />
+                                      <ColorPicker
+                                        color={badge.textColor}
+                                        onChange={(c) => updateBadge({ textColor: c })}
+                                        label="Texte"
+                                        className="!w-6 !h-6 rounded-full"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                    </div>
+                  )}
+                 </div>
+               </section>
+            </div>
+          )}
+
+          {/* TAB: SMARTPHONE */}
+          {activeTab === 'smartphone' && (
+            <div className="flex flex-col gap-6">
+               <section>
+                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Affichage côté Joueur</h3>
+                 <div className="flex flex-col gap-5">
+                   <div className="flex flex-col gap-1.5 w-fit">
+                    <label className="text-xs font-bold text-foreground">Style de l'image (Avatar / Rôle)</label>
+                    <p className="text-xs text-muted-foreground mb-1">Définit la forme de l'image affichée sur l'écran du smartphone des joueurs.</p>
+                    <select
+                      value={displaySettings.smartphoneImageStyle || 'circle'}
+                      onChange={(e) => updateDisplaySettings({ smartphoneImageStyle: e.target.value as any })}
+                      className="bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary min-w-[200px]"
+                    >
+                      <option value="circle">Pastille Ronde (Défaut, rognée)</option>
+                      <option value="square">Carré (Rognée)</option>
+                      <option value="original">Format Original (Entière, centrée)</option>
+                      <option value="background">Mettre en plein écran (Image de fond floutée)</option>
+                    </select>
+                   </div>
+
+                   <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-border/30">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <ArrowUpRight size={14} className="text-blue-500" />
+                        URL de Miniature de la Salle
+                      </span>
+                      <p className="text-[11px] text-muted-foreground">
+                        Cette image s'affiche dans l'onglet "Salle" du smartphone des joueurs pour leur donner une idée de la carte. 
+                        Elle doit être une URL publique (ex: Imgur, Discord CDN...). Si vide, l'image de fond de la salle est utilisée si c'est une URL.
+                      </p>
+                    </div>
+                    <div className="flex gap-2 items-center max-w-lg">
+                      <input
+                        type="url"
+                        value={room.minimapImageUrl || ''}
+                        onChange={(e) => setRoom({ minimapImageUrl: e.target.value || null })}
+                        placeholder="https://i.imgur.com/..."
+                        className="flex-1 bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground/40"
+                      />
+                      {room.minimapImageUrl && (
+                        <button
+                          onClick={() => setRoom({ minimapImageUrl: null })}
+                          className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+                          title="Effacer"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                    {room.minimapImageUrl && (
+                      <div className="w-full max-w-sm h-32 mt-2 rounded-lg overflow-hidden border border-border bg-zinc-900 shadow-inner">
+                        <img src={room.minimapImageUrl} alt="Aperçu minimap" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      </div>
+                    )}
+                   </div>
+                 </div>
+               </section>
+
+               <section>
+                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Télécommande Soundboard</h3>
+                 <div className="flex flex-col gap-4 p-4 bg-muted/20 rounded-lg border border-border">
+                   <label className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={soundboard.remoteEnabled || false}
+                        onChange={(e) => setSoundboard({ remoteEnabled: e.target.checked })}
+                        className="rounded border-border w-5 h-5 text-primary"
+                      />
+                      Activer le portail "Soundboard / Télécommande"
+                    </label>
+                    <p className="text-xs text-muted-foreground leading-relaxed pl-8">
+                      Si activé, l'URL <code>/soundboard</code> permettra à un appareil de se connecter à la boîte à sons du MJ à distance (sans voir le jeu). 
+                      Les joueurs pourront déclencher des bruits de la boîte à sons.
+                    </p>
+                    
+                    {soundboard.remoteEnabled && (
+                      <div className="pl-8 pt-3 border-t border-border/50 flex flex-col gap-2 mt-2">
+                        <label className="text-xs font-bold text-foreground">Code d'accès obligatoire</label>
+                        <input
+                          type="text"
+                          value={soundboard.remotePasscode || ''}
+                          onChange={(e) => setSoundboard({ remotePasscode: e.target.value })}
+                          className="bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-fit font-mono tracking-widest"
+                          placeholder="EX: 1234"
+                        />
+                      </div>
+                    )}
+                 </div>
+               </section>
+            </div>
+          )}
+
+          {/* TAB: OUTILS */}
+          {activeTab === 'outils' && (
+            <div className="flex flex-col gap-6">
+              <section>
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-blue-200">
+                    Cochez les modules que vous souhaitez afficher dans le panneau latéral droit "Outils".
+                  </p>
+                </div>
+                
+                <div className="flex flex-col gap-3">
+                  {[
+                    { key: 'distribution', label: 'Distribution des Rôles' },
+                    { key: 'chrono', label: 'Chronomètre' },
+                    { key: 'soundboard', label: 'Boîte à Sons (Soundboard)' },
+                    { key: 'logs', label: 'Log / Historique' }
+                  ].map(tool => (
+                    <label key={tool.key} className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={displaySettings.panels[tool.key as keyof typeof displaySettings.panels] ?? true}
+                        onChange={(e) => updateDisplaySettings({ panels: { ...displaySettings.panels, [tool.key]: e.target.checked } })}
+                        className="rounded border-border w-5 h-5 text-primary"
+                      />
+                      <span className="font-semibold text-sm">{tool.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+};

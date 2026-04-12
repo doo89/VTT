@@ -232,5 +232,11 @@ export interface GameState {
       bottomRight: BadgeConfig;
     };
     smartphoneImageStyle: 'circle' | 'square' | 'original' | 'background';
+    panels: {
+      distribution: boolean;
+      chrono: boolean;
+      soundboard: boolean;
+      logs: boolean;
+    };
   };
 }

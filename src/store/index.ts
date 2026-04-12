@@ -190,6 +190,12 @@ export const initialState = {
       bottomRight: { type: 'none' as const, bgColor: '#10b981', textColor: '#ffffff' },
     },
     smartphoneImageStyle: 'circle' as const,
+    panels: {
+      distribution: true,
+      chrono: true,
+      soundboard: true,
+      logs: true,
+    },
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,

@@ -1,25 +1,22 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Grid3X3, Clock, Eye, PaintBucket, ChevronDown, Image as ImageIcon, Trash2, ArrowUpRight, Music, Shuffle, RefreshCw, Zap, Database, X, History } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2 } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
-import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
-import type { BadgeConfig, BadgeType, Role, Player } from '../../types';
-import { ColorPicker } from '../ColorPicker';
+import type { Role, Player } from '../../types';
+import { SettingsModal } from './SettingsModal';
 
 export const RightPanel: React.FC = () => {
   const {
     isRightPanelOpen, toggleRightPanel,
-    grid, setGrid,
-    cycleMode, setCycleMode,
-    displaySettings, updateDisplaySettings,
-    room, setRoom,
+    displaySettings,
     timer, setTimer,
     soundboard, setSoundboard,
     roles, updateRole, players, updatePlayers,
     logs, clearLogs, addLog
   } = useVttStore();
 
-  const [activeSection, setActiveSection] = useState<string | null>('affichage');
+  const [activeSection, setActiveSection] = useState<string | null>('distribution');
   const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const urlRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef<HTMLInputElement>(null);
 
@@ -142,7 +139,6 @@ export const RightPanel: React.FC = () => {
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -195,18 +191,6 @@ export const RightPanel: React.FC = () => {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setRoom({ backgroundImage: e.target?.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-
   if (!isRightPanelOpen) {
     return (
       <div className="absolute right-0 top-0 h-full flex items-center z-50">
@@ -222,277 +206,25 @@ export const RightPanel: React.FC = () => {
 
   return (
     <div className="w-[288px] h-full bg-card border-l border-border flex flex-col relative z-40 shrink-0">
-      <div className="p-4 border-b border-border flex items-center gap-2">
-        <Settings size={20} />
-        <h2 className="text-xl font-bold">Outils</h2>
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Settings size={20} />
+          <h2 className="text-xl font-bold">Outils</h2>
+        </div>
+        <button 
+          onClick={() => setIsSettingsOpen(true)}
+          className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 hover:bg-accent rounded-md border border-border bg-background"
+          title="Paramètres"
+        >
+          <Settings size={14} />
+          Paramètres
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 custom-scrollbar min-h-0">
 
-        {/* Display Settings */}
-        <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('affichage')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'affichage' ? 'text-blue-400' : ''}`}>
-              <Eye size={16} /> Affichage
-            </div>
-            {activeSection === 'affichage' ? <ChevronDown size={16} className="text-blue-400" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'affichage' && (
-          <div className="flex flex-col gap-2 p-3 border-t border-border">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Type de cycle</label>
-              <select
-                value={cycleMode}
-                onChange={(e) => setCycleMode(e.target.value as 'dayNight' | 'turns' | 'none')}
-                className="bg-input border border-border rounded p-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                <option value="dayNight">Jour/Nuit</option>
-                <option value="turns">Par tour</option>
-                <option value="none">Aucun</option>
-              </select>
-            </div>
-
-            <label className="flex items-center gap-2 text-sm cursor-pointer mt-2">
-              <input
-                type="checkbox"
-                checked={displaySettings.showCenter}
-                onChange={(e) => updateDisplaySettings({ showCenter: e.target.checked })}
-                className="rounded border-border"
-              />
-              Afficher le centre de la salle
-            </label>
-
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={displaySettings.showTagName}
-                onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
-                className="rounded border-border"
-              />
-              Afficher le nom des tags
-            </label>
-
-            {cycleMode !== 'none' && (
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={displaySettings.showCycleIcon}
-                  onChange={(e) => updateDisplaySettings({ showCycleIcon: e.target.checked })}
-                  className="rounded border-border"
-                />
-                Afficher l'icône {cycleMode === 'dayNight' ? 'Jour/Nuit' : 'Tours'}
-              </label>
-            )}
-            
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={displaySettings.showOfflineStatus}
-                onChange={(e) => updateDisplaySettings({ showOfflineStatus: e.target.checked })}
-                className="rounded border-border"
-              />
-              Joueur Hors ligne
-            </label>
-
-            {/* Foreground Selection */}
-            <div className="mt-2 flex flex-col gap-1.5 border-t border-border/50 pt-2">
-              <label className="text-xs font-semibold text-muted-foreground">Élément au premier plan</label>
-              <select
-                value={displaySettings.foregroundElement}
-                onChange={(e) => updateDisplaySettings({ foregroundElement: e.target.value as 'players' | 'markers' })}
-                className="w-full bg-background border border-border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-ring focus:border-input outline-none"
-              >
-                <option value="players">Joueurs</option>
-                <option value="markers">Marqueurs</option>
-              </select>
-            </div>
-
-            {/* Display Settings for Players */}
-            <div className="mt-2 flex flex-col gap-2 border-t border-border/50 pt-2">
-              <span className="text-xs font-semibold text-muted-foreground">Paramètres d'affichage des Joueurs</span>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={displaySettings.showPlayers}
-                  onChange={(e) => updateDisplaySettings({ showPlayers: e.target.checked })}
-                  className="rounded border-border"
-                />
-                Afficher les joueurs
-              </label>
-
-              {displaySettings.showPlayers && (
-                <div className="flex flex-col gap-1.5 pl-5 border-l-2 border-border/30 ml-1.5 mt-1">
-                  <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground">
-                    <input
-                      type="checkbox"
-                      checked={displaySettings.showPlayerImage}
-                      onChange={(e) => updateDisplaySettings({ showPlayerImage: e.target.checked })}
-                      className="rounded border-border w-3 h-3"
-                    />
-                    Afficher l'image du joueur
-                  </label>
-                  <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground">
-                    <input
-                      type="checkbox"
-                      checked={displaySettings.showRoleImage}
-                      onChange={(e) => updateDisplaySettings({ showRoleImage: e.target.checked })}
-                      className="rounded border-border w-3 h-3"
-                    />
-                    Afficher l'image du rôle
-                  </label>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Priorité si les deux existent :</span>
-                    <select
-                      value={displaySettings.imagePriority}
-                      onChange={(e) => updateDisplaySettings({ imagePriority: e.target.value as 'player' | 'role' })}
-                      className="bg-background border border-border rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-ring"
-                    >
-                      <option value="player">Joueur</option>
-                      <option value="role">Rôle</option>
-                    </select>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                    <span>Position du nom (sans image) :</span>
-                    <select
-                      value={displaySettings.playerNamePosition}
-                      onChange={(e) => updateDisplaySettings({ playerNamePosition: e.target.value as 'inside' | 'bottom' })}
-                      className="bg-background border border-border rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-ring"
-                    >
-                      <option value="inside">À l'intérieur</option>
-                      <option value="bottom">En dessous</option>
-                    </select>
-                  </div>
-
-                  {/* Custom Badges Configurator */}
-                  <div className="mt-3 flex flex-col gap-2 border-t border-border/30 pt-2">
-                    <span className="text-[11px] font-bold text-foreground">Pastilles personnalisables</span>
-
-                    {[
-                      { key: 'topLeft', label: 'Haut Gauche' },
-                      { key: 'topRight', label: 'Haut Droite (Cœur si Vie)' },
-                      { key: 'bottomLeft', label: 'Bas Gauche' },
-                      { key: 'bottomRight', label: 'Bas Droite' }
-                    ].map(corner => {
-                      const badgeKey = corner.key as keyof typeof displaySettings.playerBadges;
-                      const badge = displaySettings.playerBadges?.[badgeKey] || { type: 'none', bgColor: '#000', textColor: '#fff' };
-
-                      const updateBadge = (updates: Partial<BadgeConfig>) => {
-                        updateDisplaySettings({
-                          playerBadges: {
-                            ...displaySettings.playerBadges,
-                            [badgeKey]: { ...badge, ...updates }
-                          }
-                        });
-                      };
-
-                      return (
-                        <div key={corner.key} className="flex flex-col gap-1 bg-muted/20 p-1.5 rounded border border-border/50">
-                          <span className="text-[10px] text-muted-foreground font-medium">{corner.label}</span>
-                          <div className="flex items-center gap-2">
-                            <select
-                              value={badge.type}
-                              onChange={(e) => updateBadge({ type: e.target.value as BadgeType })}
-                              className="flex-1 bg-background border border-border rounded px-1 py-0.5 text-[10px] outline-none focus:ring-1 focus:ring-ring"
-                            >
-                              <option value="none">Rien</option>
-                              <option value="team">Équipe</option>
-                              <option value="lives">Vie</option>
-                              <option value="votes">Votes</option>
-                              <option value="points">Pts</option>
-                              <option value="uses">Uses</option>
-                              <option value="callOrderDay">Ordre Appel Jour</option>
-                              <option value="callOrderNight">Ordre Appel Nuit</option>
-                              <option value="connection">Connexion</option>
-                            </select>
-
-                            {badge.type !== 'none' && badge.type !== 'team' && badge.type !== 'connection' && (
-                              <div className="flex items-center gap-1 shrink-0">
-                                <ColorPicker
-                                  color={badge.bgColor}
-                                  onChange={(c) => updateBadge({ bgColor: c })}
-                                  label="Couleur de fond"
-                                  className="!w-4 !h-4"
-                                />
-                                <ColorPicker
-                                  color={badge.textColor}
-                                  onChange={(c) => updateBadge({ textColor: c })}
-                                  label="Couleur du texte"
-                                  className="!w-4 !h-4"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={displaySettings.showTooltip}
-                  onChange={(e) => updateDisplaySettings({ showTooltip: e.target.checked })}
-                  className="rounded border-border"
-                />
-                Afficher la bulle d'information
-              </label>
-
-              {displaySettings.showTooltip && (
-                <div className="flex flex-col gap-1.5 pl-5 border-l-2 border-border/30 ml-1.5 mt-1">
-                  <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground">
-                    <input
-                      type="checkbox"
-                      checked={displaySettings.showRole}
-                      onChange={(e) => updateDisplaySettings({ showRole: e.target.checked })}
-                      className="rounded border-border w-3 h-3"
-                    />
-                    Afficher le rôle
-                  </label>
-                  <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground">
-                    <input
-                      type="checkbox"
-                      checked={displaySettings.showTeam}
-                      onChange={(e) => updateDisplaySettings({ showTeam: e.target.checked })}
-                      className="rounded border-border w-3 h-3"
-                    />
-                    Afficher l'équipe
-                  </label>
-                  <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground">
-                    <input
-                      type="checkbox"
-                      checked={displaySettings.showTags}
-                      onChange={(e) => updateDisplaySettings({ showTags: e.target.checked })}
-                      className="rounded border-border w-3 h-3"
-                    />
-                    Afficher les Tags
-                  </label>
-                </div>
-              )}
-              <div className="mt-4 flex flex-col gap-1.5 border-t border-border/50 pt-3">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Image sur smartphone</label>
-                <select
-                  value={displaySettings.smartphoneImageStyle || 'circle'}
-                  onChange={(e) => updateDisplaySettings({ smartphoneImageStyle: e.target.value as any })}
-                  className="bg-input border border-border rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  <option value="circle">Rond (Défaut)</option>
-                  <option value="square">Carré</option>
-                  <option value="original">Taille réelle</option>
-                  <option value="background">Toute la carte (Fond)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          )}
-        </section>
-
         {/* Distribution des rôles */}
+        {displaySettings.panels?.distribution !== false && (
         <section className="flex flex-col border border-border rounded-md bg-background">
           <button
             onClick={() => toggleSection('distribution')}
@@ -566,8 +298,10 @@ export const RightPanel: React.FC = () => {
             </div>
           )}
         </section>
+        )}
 
         {/* Timer */}
+        {displaySettings.panels?.chrono !== false && (
         <section className="flex flex-col border border-border rounded-md bg-background">
           <button
             onClick={() => toggleSection('chrono')}
@@ -659,8 +393,10 @@ export const RightPanel: React.FC = () => {
             </div>
           )}
         </section>
+        )}
 
         {/* Soundboard */}
+        {displaySettings.panels?.soundboard !== false && (
         <section className="flex flex-col border border-border rounded-md bg-background">
           <button
             onClick={() => toggleSection('soundboard')}
@@ -740,8 +476,10 @@ export const RightPanel: React.FC = () => {
             </div>
           )}
         </section>
+        )}
 
         {/* Historique / Logs */}
+        {displaySettings.panels?.logs !== false && (
         <section className="flex flex-col border border-border rounded-md bg-background">
           <button
             onClick={() => toggleSection('logs')}
@@ -793,240 +531,7 @@ export const RightPanel: React.FC = () => {
             </div>
           )}
         </section>
-
-        {/* Magnetic Grid */}
-        <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('grille')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'grille' ? 'text-green-400' : ''}`}>
-              <Grid3X3 size={16} /> Grille Magnétique
-            </div>
-            {activeSection === 'grille' ? <ChevronDown size={16} className="text-green-400" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'grille' && (
-          <div className="flex flex-col gap-2 p-3 border-t border-border">
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={grid.enabled}
-                onChange={(e) => setGrid({ ...grid, enabled: e.target.checked })}
-                className="rounded border-border"
-              />
-              Activer la grille
-            </label>
-            {grid.enabled && (
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs text-muted-foreground">Taille (px):</span>
-                <input
-                  type="number"
-                  value={grid.sizeX}
-                  onChange={(e) => setGrid({ ...grid, sizeX: Math.max(10, parseInt(e.target.value) || 50), sizeY: Math.max(10, parseInt(e.target.value) || 50) })}
-                  className="w-16 bg-input border border-border rounded px-2 py-1 text-sm"
-                />
-              </div>
-            )}
-          </div>
-          )}
-        </section>
-
-        {/* Background Config */}
-         <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('salle')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'salle' ? 'text-indigo-400' : ''}`}>
-              <PaintBucket size={16} /> Salle
-            </div>
-            {activeSection === 'salle' ? <ChevronDown size={16} className="text-indigo-400" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'salle' && (
-          <div className="flex flex-col gap-3 p-3 border-t border-border">
-
-            <div className="flex gap-2">
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-xs text-muted-foreground">Largeur (px)</label>
-                <input
-                  type="number"
-                  value={room.width}
-                  onChange={(e) => setRoom({ width: Math.max(100, parseInt(e.target.value) || 2000) })}
-                  className="w-full bg-input border border-border rounded px-2 py-1 text-sm"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-xs text-muted-foreground">Hauteur (px)</label>
-                <input
-                  type="number"
-                  value={room.height}
-                  onChange={(e) => setRoom({ height: Math.max(100, parseInt(e.target.value) || 1500) })}
-                  className="w-full bg-input border border-border rounded px-2 py-1 text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-muted-foreground">Couleur de fond</label>
-              <div className="flex gap-2 items-center">
-                <ColorPicker
-                  color={room.backgroundColor}
-                  onChange={(c) => setRoom({ backgroundColor: c })}
-                  label="Couleur de fond"
-                />
-                <span className="text-xs uppercase font-mono">{room.backgroundColor}</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/50">
-              <span className="text-xs font-semibold text-muted-foreground">Image de fond</span>
-
-              {!room.backgroundImage ? (
-                <div
-                  onClick={() => imageInputRef.current?.click()}
-                  className="w-full h-24 border-2 border-dashed border-border rounded-md flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-colors"
-                >
-                  <ImageIcon size={24} className="mb-2" />
-                  <span className="text-xs">Charger une image</span>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <div className="relative w-full h-24 rounded-md overflow-hidden border border-border group">
-                    <div
-                      className="absolute inset-0 bg-contain bg-center bg-no-repeat"
-                      style={{ backgroundImage: `url(${room.backgroundImage})` }}
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <button
-                        onClick={() => setRoom({ backgroundImage: null })}
-                        className="p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
-                        title="Supprimer l'image"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1 mt-1">
-                    <label className="text-xs text-muted-foreground">Style d'affichage</label>
-                    <select
-                      value={room.backgroundStyle}
-                      onChange={(e) => setRoom({ backgroundStyle: e.target.value as any })}
-                      className="bg-input border border-border rounded-md px-2 py-1 text-sm w-full outline-none focus:ring-1 focus:ring-ring"
-                    >
-                      <option value="mosaic">Mosaïque (Répéter)</option>
-                      <option value="center">Centrer (Taille réelle)</option>
-                      <option value="stretch">Étendre (Occuper tout l'espace)</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              <input
-                type="file"
-                ref={imageInputRef}
-                onChange={handleImageUpload}
-                accept="image/*"
-                className="hidden"
-              />
-            </div>
-
-            {/* Minimap Image URL */}
-            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/50">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <ArrowUpRight size={12} className="text-blue-400" />
-                  Image de miniature (URL)
-                </span>
-                <p className="text-[10px] text-muted-foreground italic">Affichée sur le smartphone. Doit être une image accessible publiquement.</p>
-              </div>
-              <div className="flex gap-2 items-center">
-                <input
-                  type="url"
-                  value={room.minimapImageUrl || ''}
-                  onChange={(e) => setRoom({ minimapImageUrl: e.target.value || null })}
-                  placeholder="https://..."
-                  className="flex-1 bg-input border border-border rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-muted-foreground/40"
-                />
-                {room.minimapImageUrl && (
-                  <button
-                    onClick={() => setRoom({ minimapImageUrl: null })}
-                    className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
-                    title="Effacer l'URL"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
-              </div>
-              {room.minimapImageUrl && (
-                <div className="w-full h-16 rounded-md overflow-hidden border border-border bg-zinc-900">
-                  <img src={room.minimapImageUrl} alt="Aperçu minimap" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                </div>
-              )}
-            </div>
-
-          </div>
-          )}
-        </section>
-
-        <section className="border-b border-border">
-          <button
-            onClick={() => toggleSection('systeme')}
-            className="w-full flex items-center justify-between p-4 hover:bg-accent transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Zap size={18} className="text-amber-500" />
-              <span className="font-bold text-sm">Système & Connexion</span>
-            </div>
-            {activeSection === 'systeme' ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-          </button>
-
-          {activeSection === 'systeme' && (
-            <div className="p-4 pt-0 flex flex-col gap-3">
-              <div className="flex flex-col gap-1.5">
-                <button
-                  onClick={() => {
-                    forceBroadcastState();
-                    // Optional toast or feedback could go here
-                  }}
-                  className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
-                >
-                  <RefreshCw size={14} /> Forcer la Synchronisation
-                </button>
-                <p className="text-[10px] text-muted-foreground italic px-1">
-                  Envoie immédiatement l'état actuel à tous les joueurs connectés.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-1.5 mt-2">
-                <button
-                  onClick={() => {
-                    const code = useVttStore.getState().roomCode;
-                    if (code) initHostRealtime(code);
-                  }}
-                  className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-border"
-                >
-                  <Zap size={14} /> Réinitialiser le Canal
-                </button>
-                <p className="text-[10px] text-muted-foreground italic px-1">
-                  Relance la connexion Supabase en cas de coupure réseau.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-border/30 text-foreground">
-                <button
-                  onClick={() => setShowSupabaseSettings(true)}
-                  className="w-full py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-blue-500/30 shadow-sm"
-                >
-                  <Database size={14} /> Paramètres Supabase
-                </button>
-                <p className="text-[10px] text-muted-foreground italic px-1">
-                  Configurer l'URL et la clé d'API pour la synchronisation.
-                </p>
-              </div>
-            </div>
-          )}
-        </section>
+        )}
 
       </div>
 
@@ -1106,6 +611,13 @@ export const RightPanel: React.FC = () => {
           onChange={handleImport}
         />
       </div>
+
+      {isSettingsOpen && (
+        <SettingsModal 
+          onClose={() => setIsSettingsOpen(false)}
+          onOpenSupabase={() => setShowSupabaseSettings(true)}
+        />
+      )}
 
       <button
         onClick={toggleRightPanel}
