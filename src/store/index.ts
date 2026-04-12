@@ -195,6 +195,7 @@ export const initialState = {
       chrono: true,
       soundboard: true,
       logs: true,
+      system: true,
     },
   },
   isLeftPanelOpen: true,

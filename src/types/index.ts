@@ -237,6 +237,7 @@ export interface GameState {
       chrono: boolean;
       soundboard: boolean;
       logs: boolean;
+      system: boolean;
     };
   };
 }

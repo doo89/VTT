@@ -1,16 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Zap, RefreshCw, Database } from 'lucide-react';
+import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3 } from 'lucide-react';
 import { useVttStore } from '../../store';
 import { ColorPicker } from '../ColorPicker';
 import type { BadgeConfig, BadgeType } from '../../types';
-import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
+
 
 interface SettingsModalProps {
   onClose: () => void;
-  onOpenSupabase: () => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onOpenSupabase }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'smartphone' | 'outils'>('salle');
 
   const {
@@ -205,55 +204,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onOpenSup
                     )}
                     <input type="file" ref={imageInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
                   </div>
-                 </div>
-               </section>
-
-               {/* Système & Connexion */}
-               <section>
-                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3 flex items-center gap-2">
-                   <Zap size={16} /> Système & Connexion
-                 </h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-2 bg-muted/20 p-4 rounded-lg border border-border">
-                      <h4 className="text-sm font-bold">Synchronisation</h4>
-                      <p className="text-xs text-muted-foreground h-10">Envoie immédiatement l'état actuel à tous les joueurs connectés.</p>
-                      <button
-                        onClick={() => forceBroadcastState()}
-                        className="py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
-                      >
-                        <RefreshCw size={16} /> Forcer la Synchronisation
-                      </button>
-                    </div>
-
-                    <div className="flex flex-col gap-2 bg-muted/20 p-4 rounded-lg border border-border">
-                      <h4 className="text-sm font-bold">Base de données</h4>
-                      <p className="text-xs text-muted-foreground h-10">Gérer la configuration Supabase (URL et Clé publique).</p>
-                      <button
-                        onClick={() => {
-                          onClose();
-                          onOpenSupabase();
-                        }}
-                        className="py-2.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-blue-500/30"
-                      >
-                        <Database size={16} /> Paramètres Supabase
-                      </button>
-                    </div>
-
-                    <div className="flex flex-col gap-2 bg-muted/20 p-4 rounded-lg border border-border md:col-span-2">
-                      <h4 className="text-sm font-bold">Reconnexion</h4>
-                      <div className="flex items-center justify-between gap-4">
-                        <p className="text-xs text-muted-foreground">Relance la connexion aux services temps réel en cas de coupure (Canal Supabase).</p>
-                        <button
-                          onClick={() => {
-                            const code = useVttStore.getState().roomCode;
-                            if (code) initHostRealtime(code);
-                          }}
-                          className="shrink-0 py-2 px-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-bold flex items-center gap-2 transition-colors border border-border"
-                        >
-                          <Zap size={14} /> Réinitialiser
-                        </button>
-                      </div>
-                    </div>
                  </div>
                </section>
              </div>
@@ -614,7 +564,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onOpenSup
                     { key: 'distribution', label: 'Distribution des Rôles' },
                     { key: 'chrono', label: 'Chronomètre' },
                     { key: 'soundboard', label: 'Boîte à Sons (Soundboard)' },
-                    { key: 'logs', label: 'Log / Historique' }
+                    { key: 'logs', label: 'Log / Historique' },
+                    { key: 'system', label: 'Système & Connexion' }
                   ].map(tool => (
                     <label key={tool.key} className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
                       <input

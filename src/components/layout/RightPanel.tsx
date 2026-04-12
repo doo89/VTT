@@ -1,6 +1,7 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2 } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
+import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
 import type { Role, Player } from '../../types';
 import { SettingsModal } from './SettingsModal';
 
@@ -531,6 +532,61 @@ export const RightPanel: React.FC = () => {
             </div>
           )}
         </section>
+        {/* Système & Connexion */}
+        {displaySettings.panels?.system !== false && (
+        <section className="flex flex-col border border-border rounded-md bg-background">
+          <button
+            onClick={() => toggleSection('systeme')}
+            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+          >
+            <div className={`flex items-center gap-2 ${activeSection === 'systeme' ? 'text-amber-500' : ''}`}>
+              <Zap size={16} /> Système & Connexion
+            </div>
+            {activeSection === 'systeme' ? <ChevronDown size={16} className="text-amber-500" /> : <ChevronRight size={16} />}
+          </button>
+          {activeSection === 'systeme' && (
+            <div className="p-4 pt-3 flex flex-col gap-3 border-t border-border">
+              <div className="flex flex-col gap-1.5">
+                <button
+                  onClick={() => forceBroadcastState()}
+                  className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
+                >
+                  <RefreshCw size={14} /> Forcer la Synchronisation
+                </button>
+                <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
+                  Envoie immédiatement l'état actuel à tous les joueurs connectés.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1.5 mt-2">
+                <button
+                  onClick={() => {
+                    const code = useVttStore.getState().roomCode;
+                    if (code) initHostRealtime(code);
+                  }}
+                  className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-border"
+                >
+                  <Zap size={14} /> Réinitialiser le Canal
+                </button>
+                <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
+                  Relance la connexion Supabase en cas de coupure réseau.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-border/30 text-foreground">
+                <button
+                  onClick={() => setShowSupabaseSettings(true)}
+                  className="w-full py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-blue-500/30 shadow-sm"
+                >
+                  <Database size={14} /> Paramètres Supabase
+                </button>
+                <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
+                  Clé d'API (Sauvegardée localement ou .env).
+                </p>
+              </div>
+            </div>
+          )}
+        </section>
         )}
 
       </div>
@@ -615,7 +671,6 @@ export const RightPanel: React.FC = () => {
       {isSettingsOpen && (
         <SettingsModal 
           onClose={() => setIsSettingsOpen(false)}
-          onOpenSupabase={() => setShowSupabaseSettings(true)}
         />
       )}
 
