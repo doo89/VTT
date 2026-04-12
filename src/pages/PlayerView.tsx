@@ -641,7 +641,7 @@ export const PlayerView: React.FC = () => {
                 <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">Vue d'ensemble en temps réel</p>
               </div>
               {roomData ? (
-                <div className="flex-1 bg-zinc-900/50 rounded-2xl border border-zinc-800 relative overflow-hidden flex items-center justify-center p-2 shadow-inner">
+                <div className="flex-1 bg-zinc-900/50 rounded-2xl border border-zinc-800 relative overflow-hidden flex items-start justify-center p-2 shadow-inner">
                   <div 
                     className="relative bg-zinc-800 shadow-2xl border border-zinc-700 overflow-hidden rounded-sm pointer-events-none"
                     style={{ 
@@ -667,18 +667,18 @@ export const PlayerView: React.FC = () => {
                           style={{ left: `${leftPct}%`, top: `${topPct}%`, transform: 'translate(-50%, -50%)', zIndex: 10 }}
                         >
                           {p.isDead ? (
-                            <svg width="13" height="13" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill={p.color} opacity="0.65">
+                            <svg width="39" height="39" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill={p.color} opacity="0.65">
                               <path d="M12 2C7.03 2 3 6.03 3 11c0 3.1 1.53 5.84 3.88 7.5L7 22h10l.12-3.5C19.47 16.84 21 14.1 21 11c0-4.97-4.03-9-9-9zm-3.5 13-.5-1H7l-1-1v-1l1-1h1l.5-1h4l.5 1H14l1 1v1l-1 1h-1l-.5 1h-4zm1-4a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm5 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
                             </svg>
                           ) : (
                             <div
                               className="animate-pulse"
                               style={{
-                                width: '10px',
-                                height: '10px',
+                                width: '30px',
+                                height: '30px',
                                 borderRadius: '50%',
                                 backgroundColor: p.color,
-                                boxShadow: `0 0 10px ${p.color}`,
+                                boxShadow: `0 0 15px ${p.color}`,
                               }}
                             />
                           )}
