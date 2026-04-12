@@ -444,28 +444,7 @@ export const RightPanel: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 mt-2 pt-3 border-t border-border/50">
-                    <label className="flex items-center gap-2 text-sm cursor-pointer hover:text-foreground text-muted-foreground transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={soundboard.remoteEnabled || false}
-                        onChange={(e) => setSoundboard({ remoteEnabled: e.target.checked })}
-                        className="rounded border-border text-pink-500 focus:ring-pink-500"
-                      />
-                      Autoriser mode télécommande (Smartphone)
-                    </label>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Code d'accès personnalisé</label>
-                      <input
-                        type="text"
-                        value={soundboard.remotePasscode || ''}
-                        onChange={(e) => setSoundboard({ remotePasscode: e.target.value })}
-                        disabled={!soundboard.remoteEnabled}
-                        className="bg-input border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
-                        placeholder="ex: 1234"
-                      />
-                    </div>
-                  </div>
+
                   <button
                     onClick={() => setSoundboard({ isDetached: true })}
                     className="w-full mt-3 bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
