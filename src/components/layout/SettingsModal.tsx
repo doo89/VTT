@@ -5,6 +5,7 @@ import { ColorPicker } from '../ColorPicker';
 import { ThemeToggle } from '../ThemeToggle';
 import type { BadgeConfig, BadgeType } from '../../types';
 import { QRCodeSVG } from 'qrcode.react';
+import { getEnvUrl, getEnvKey } from '../../lib/supabase';
 
 
 interface SettingsModalProps {
@@ -634,43 +635,58 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
               <section>
                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Liens rapides et de Connexion</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Join Link */}
-                  <div className="flex flex-col gap-3 bg-muted/20 p-4 rounded-lg border border-border">
-                    <h4 className="text-sm font-bold text-blue-400">Connexion Joueurs (Smartphone)</h4>
-                    <p className="text-[10px] text-muted-foreground h-8">
-                      Faites scanner ce QR Code ou partagez l'URL pour rejoindre la partie en tant que joueur.
-                    </p>
-                    <div className="mx-auto bg-white p-2 rounded">
-                      <QRCodeSVG value={`${window.location.origin}/join`} size={120} />
-                    </div>
-                    <a 
-                      href="/join" 
-                      target="_blank" 
-                      className="text-xs text-center break-all font-mono hover:text-blue-400 transition-colors bg-background border border-border p-2 rounded"
-                    >
-                      {window.location.origin}/join
-                    </a>
-                  </div>
+                
+                {(() => {
+                  let sbParams = '';
+                  const sbUrl = getEnvUrl();
+                  const sbKey = getEnvKey();
+                  if (!import.meta.env.VITE_SUPABASE_URL && sbUrl && sbKey) {
+                    sbParams = `?sburl=${encodeURIComponent(btoa(sbUrl))}&sbkey=${encodeURIComponent(btoa(sbKey))}`;
+                  }
+                  
+                  const joinHref = `${window.location.origin}/join${sbParams}`;
+                  const sbHref = `${window.location.origin}/soundboard${sbParams}`;
+                  
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Join Link */}
+                      <div className="flex flex-col gap-3 bg-muted/20 p-4 rounded-lg border border-border">
+                        <h4 className="text-sm font-bold text-blue-400">Connexion Joueurs (Smartphone)</h4>
+                        <p className="text-[10px] text-muted-foreground h-8">
+                          Faites scanner ce QR Code ou partagez l'URL pour rejoindre la partie en tant que joueur.
+                        </p>
+                        <div className="mx-auto bg-white p-2 rounded">
+                          <QRCodeSVG value={joinHref} size={120} />
+                        </div>
+                        <a 
+                          href={joinHref} 
+                          target="_blank" 
+                          className="text-xs text-center break-all font-mono hover:text-blue-400 transition-colors bg-background border border-border p-2 rounded max-h-16 overflow-y-auto"
+                        >
+                          {joinHref}
+                        </a>
+                      </div>
 
-                  {/* Soundboard Link */}
-                  <div className="flex flex-col gap-3 bg-muted/20 p-4 rounded-lg border border-border">
-                    <h4 className="text-sm font-bold text-pink-400">Soundboard Externe</h4>
-                    <p className="text-[10px] text-muted-foreground h-8">
-                      Faites scanner ce QR Code pour contrôler la boîte à sons depuis un autre appareil (Nécessite le code configuré dans Smartphone).
-                    </p>
-                    <div className="mx-auto bg-white p-2 rounded">
-                      <QRCodeSVG value={`${window.location.origin}/soundboard`} size={120} />
+                      {/* Soundboard Link */}
+                      <div className="flex flex-col gap-3 bg-muted/20 p-4 rounded-lg border border-border">
+                        <h4 className="text-sm font-bold text-pink-400">Soundboard Externe</h4>
+                        <p className="text-[10px] text-muted-foreground h-8">
+                          Faites scanner ce QR Code pour contrôler la boîte à sons depuis un autre appareil (Nécessite le code configuré dans Smartphone).
+                        </p>
+                        <div className="mx-auto bg-white p-2 rounded">
+                          <QRCodeSVG value={sbHref} size={120} />
+                        </div>
+                        <a 
+                          href={sbHref} 
+                          target="_blank" 
+                          className="text-xs text-center break-all font-mono hover:text-pink-400 transition-colors bg-background border border-border p-2 rounded max-h-16 overflow-y-auto"
+                        >
+                          {sbHref}
+                        </a>
+                      </div>
                     </div>
-                    <a 
-                      href="/soundboard" 
-                      target="_blank" 
-                      className="text-xs text-center break-all font-mono hover:text-pink-400 transition-colors bg-background border border-border p-2 rounded"
-                    >
-                      {window.location.origin}/soundboard
-                    </a>
-                  </div>
-                </div>
+                  );
+                })()}
               </section>
             </div>
           )}

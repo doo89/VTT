@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-const getEnvUrl = () => {
+export const getEnvUrl = () => {
   try {
     return localStorage.getItem('VTT_SUPABASE_URL') || import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
   } catch(e) { return null; }
 };
 
-const getEnvKey = () => {
+export const getEnvKey = () => {
   try {
     return localStorage.getItem('VTT_SUPABASE_ANON_KEY') || import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   } catch(e) { return null; }
