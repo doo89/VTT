@@ -206,6 +206,20 @@ export const initialState = {
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
+  downloadLogs: () => {
+    const logs = useVttStore.getState().logs;
+    if (logs.length === 0) return;
+    const dataStr = JSON.stringify(logs, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `vtt-logs-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  },
 };
 
 export const useVttStore = create<VttStore>()(

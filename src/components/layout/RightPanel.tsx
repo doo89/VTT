@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -486,7 +486,8 @@ export const RightPanel: React.FC = () => {
                 {logs.length === 0 ? (
                   <p className="text-xs text-muted-foreground italic text-center py-4">Aucune action enregistrée pour le moment.</p>
                 ) : (
-                  logs.map((log) => {
+                  <>
+                  {logs.map((log) => {
                     let dotColor = "bg-primary";
                     if (log.type === 'death') dotColor = "bg-destructive";
                     else if (log.type === 'action') dotColor = "bg-amber-500";
@@ -505,7 +506,16 @@ export const RightPanel: React.FC = () => {
                         </div>
                       </div>
                     );
-                  })
+                  })}
+                  <div className="pt-2 border-t border-border mt-1">
+                    <button
+                      onClick={initialState.downloadLogs}
+                      className="w-full flex items-center justify-center gap-2 py-1.5 px-2 bg-accent hover:bg-accent/80 text-xs font-medium rounded transition-colors"
+                    >
+                      <Download size={14} /> Enregistrer JSON
+                    </button>
+                  </div>
+                  </>
                 )}
               </div>
             </div>
