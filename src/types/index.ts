@@ -74,6 +74,7 @@ export interface MarkerParameter {
   showInGameTab?: boolean;
   showOnSmartphone?: boolean;
   isMultiPlayerSelector?: boolean;
+  isSinglePlayerSelector?: boolean;
   smartphoneButtonText?: string;
   smartphoneButtonFeedback?: string;
   smartphonePlayerFeedback?: string;

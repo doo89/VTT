@@ -1088,15 +1088,41 @@ export const EditingModal: React.FC = () => {
                   Interface Smartphone
                 </h4>
 
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.isMultiPlayerSelector || false}
-                    onChange={(e) => updateTagModel(tag.id, { isMultiPlayerSelector: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Selecteur multi-joueurs (le joueur choisit des joueurs depuis son telephone)
-                </label>
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs font-medium text-muted-foreground">Sélection de joueur(s) sur Smartphone</p>
+                  <div className="flex flex-col gap-2 bg-background/50 p-2 rounded-md border border-border">
+                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                      <input
+                        type="radio"
+                        name="playerSelectorMode"
+                        checked={!tag.isMultiPlayerSelector && !tag.isSinglePlayerSelector}
+                        onChange={() => updateTagModel(tag.id, { isMultiPlayerSelector: false, isSinglePlayerSelector: false })}
+                        className="w-4 h-4 text-primary"
+                      />
+                      Aucun (Action simple)
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                      <input
+                        type="radio"
+                        name="playerSelectorMode"
+                        checked={tag.isSinglePlayerSelector || false}
+                        onChange={() => updateTagModel(tag.id, { isMultiPlayerSelector: false, isSinglePlayerSelector: true })}
+                        className="w-4 h-4 text-primary"
+                      />
+                      Sélecteur de joueur (le joueur choisit UN joueur)
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                      <input
+                        type="radio"
+                        name="playerSelectorMode"
+                        checked={tag.isMultiPlayerSelector || false}
+                        onChange={() => updateTagModel(tag.id, { isMultiPlayerSelector: true, isSinglePlayerSelector: false })}
+                        className="w-4 h-4 text-primary"
+                      />
+                      Sélecteur multi-joueurs (le joueur choisit PLUSIEURS joueurs)
+                    </label>
+                  </div>
+                </div>
 
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-muted-foreground">Texte du bouton</label>
@@ -1445,15 +1471,41 @@ export const EditingModal: React.FC = () => {
                   Interface Smartphone
                 </h4>
 
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.isMultiPlayerSelector || false}
-                    onChange={(e) => updateTagInstance({ isMultiPlayerSelector: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Sélecteur multi-joueurs (le joueur choisit des joueurs depuis son téléphone)
-                </label>
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs font-medium text-muted-foreground">Sélection de joueur(s) sur Smartphone</p>
+                  <div className="flex flex-col gap-2 bg-background/50 p-2 rounded-md border border-border">
+                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                      <input
+                        type="radio"
+                        name="playerSelectorModeInstance"
+                        checked={!tag.isMultiPlayerSelector && !tag.isSinglePlayerSelector}
+                        onChange={() => updateTagInstance({ isMultiPlayerSelector: false, isSinglePlayerSelector: false })}
+                        className="w-4 h-4 text-primary"
+                      />
+                      Aucun (Action simple)
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                      <input
+                        type="radio"
+                        name="playerSelectorModeInstance"
+                        checked={tag.isSinglePlayerSelector || false}
+                        onChange={() => updateTagInstance({ isMultiPlayerSelector: false, isSinglePlayerSelector: true })}
+                        className="w-4 h-4 text-primary"
+                      />
+                      Sélecteur de joueur (le joueur choisit UN joueur)
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                      <input
+                        type="radio"
+                        name="playerSelectorModeInstance"
+                        checked={tag.isMultiPlayerSelector || false}
+                        onChange={() => updateTagInstance({ isMultiPlayerSelector: true, isSinglePlayerSelector: false })}
+                        className="w-4 h-4 text-primary"
+                      />
+                      Sélecteur multi-joueurs (le joueur choisit PLUSIEURS joueurs)
+                    </label>
+                  </div>
+                </div>
 
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-muted-foreground">Texte du bouton d'action</label>
