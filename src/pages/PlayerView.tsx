@@ -433,7 +433,7 @@ export const PlayerView: React.FC = () => {
 
                 {localRole?.description && (
                   <div className="mt-6 pt-6 border-t border-zinc-800 w-full">
-                    <p className="text-sm text-zinc-400 italic text-center leading-relaxed">
+                    <p className="text-sm text-zinc-400 italic text-center leading-relaxed whitespace-pre-wrap">
                       {localRole.description}
                     </p>
                   </div>
@@ -502,7 +502,7 @@ export const PlayerView: React.FC = () => {
                       )}
                     </div>
                     {tag.description && (
-                      <p className="text-xs text-zinc-500 italic mt-1 leading-relaxed">{tag.description}</p>
+                      <p className="text-xs text-zinc-500 italic mt-1 leading-relaxed whitespace-pre-wrap">{tag.description}</p>
                     )}
 
                     {(tag.isMultiPlayerSelector || tag.isSinglePlayerSelector || tag.smartphoneButtonText) && (

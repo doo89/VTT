@@ -1001,7 +1001,7 @@ export const Canvas: React.FC = () => {
                                       {t.votes !== null && <span>Votes: {t.votes === -1 ? 'Illimité' : t.votes}</span>}
                                     </div>
                                   )}
-                                  {t.description && <div className="text-[9px] text-muted-foreground pl-4 italic">{t.description}</div>}
+                                  {t.description && <div className="text-[9px] text-muted-foreground pl-4 italic whitespace-pre-wrap">{t.description}</div>}
                                 </li>
                               );
                             })}
@@ -1024,7 +1024,7 @@ export const Canvas: React.FC = () => {
                                       {t.votes !== null && <span>Votes: {t.votes === -1 ? 'Illimité' : t.votes}</span>}
                                     </div>
                                   )}
-                                  {t.description && <div className="text-[9px] text-muted-foreground pl-4 italic">{t.description}</div>}
+                                  {t.description && <div className="text-[9px] text-muted-foreground pl-4 italic whitespace-pre-wrap">{t.description}</div>}
                                 </li>
                               );
                             })}
@@ -1099,7 +1099,7 @@ export const Canvas: React.FC = () => {
                     {marker.tag.points !== null && <span>Pts: {marker.tag.points} </span>}
                     {marker.tag.votes !== null && <span>Votes: {marker.tag.votes === -1 ? 'Illimité' : marker.tag.votes}</span>}
                   </div>
-                  {marker.tag.description && <p className="text-[10px] text-muted-foreground italic mt-1">{marker.tag.description}</p>}
+                  {marker.tag.description && <p className="text-[10px] text-muted-foreground italic mt-1 whitespace-pre-wrap">{marker.tag.description}</p>}
                 </div>
               </div>
             );
