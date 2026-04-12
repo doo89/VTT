@@ -4,6 +4,7 @@ import { useVttStore } from '../../store';
 import { ColorPicker } from '../ColorPicker';
 import { ThemeToggle } from '../ThemeToggle';
 import type { BadgeConfig, BadgeType } from '../../types';
+import { QRCodeSVG } from 'qrcode.react';
 
 
 interface SettingsModalProps {
@@ -479,7 +480,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                <section>
                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Affichage côté Joueur</h3>
                  <div className="flex flex-col gap-5">
-                   <div className="flex flex-col gap-1.5 w-fit">
+                   <div className="flex flex-col gap-2">
+                     <p className="text-xs font-bold text-foreground">Onglets visibles sur Smartphone</p>
+                     <p className="text-[11px] text-muted-foreground mb-1">Si aucun onglet n'est coché, le contenu de "Jeu" s'affichera par défaut (sans barre de navigation).</p>
+                     <div className="flex flex-col gap-2 bg-muted/10 p-3 rounded-md border border-border/40">
+                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
+                         <input
+                           type="checkbox"
+                           checked={displaySettings.smartphoneTabs?.game ?? true}
+                           onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true }), game: e.target.checked } })}
+                           className="rounded border-border w-4 h-4 text-primary"
+                         />
+                         Afficher l'onglet "Jeu" (Plateau principal, actions de base)
+                       </label>
+                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
+                         <input
+                           type="checkbox"
+                           checked={displaySettings.smartphoneTabs?.players ?? true}
+                           onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true }), players: e.target.checked } })}
+                           className="rounded border-border w-4 h-4 text-primary"
+                         />
+                         Afficher l'onglet "Joueurs" (Liste des joueurs en jeu)
+                       </label>
+                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
+                         <input
+                           type="checkbox"
+                           checked={displaySettings.smartphoneTabs?.room ?? true}
+                           onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true }), room: e.target.checked } })}
+                           className="rounded border-border w-4 h-4 text-primary"
+                         />
+                         Afficher l'onglet "Salle" (Miniature globale)
+                       </label>
+                     </div>
+                   </div>
+
+                   <div className="flex flex-col gap-1.5 w-fit mt-2 pt-4 border-t border-border/30">
                     <label className="text-xs font-bold text-foreground">Style de l'image (Avatar / Rôle)</label>
                     <p className="text-xs text-muted-foreground mb-1">Définit la forme de l'image affichée sur l'écran du smartphone des joueurs.</p>
                     <select
@@ -594,6 +629,47 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       <span className="font-semibold text-sm">{tool.label}</span>
                     </label>
                   ))}
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Liens rapides et de Connexion</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Join Link */}
+                  <div className="flex flex-col gap-3 bg-muted/20 p-4 rounded-lg border border-border">
+                    <h4 className="text-sm font-bold text-blue-400">Connexion Joueurs (Smartphone)</h4>
+                    <p className="text-[10px] text-muted-foreground h-8">
+                      Faites scanner ce QR Code ou partagez l'URL pour rejoindre la partie en tant que joueur.
+                    </p>
+                    <div className="mx-auto bg-white p-2 rounded">
+                      <QRCodeSVG value={`${window.location.origin}/join`} size={120} />
+                    </div>
+                    <a 
+                      href="/join" 
+                      target="_blank" 
+                      className="text-xs text-center break-all font-mono hover:text-blue-400 transition-colors bg-background border border-border p-2 rounded"
+                    >
+                      {window.location.origin}/join
+                    </a>
+                  </div>
+
+                  {/* Soundboard Link */}
+                  <div className="flex flex-col gap-3 bg-muted/20 p-4 rounded-lg border border-border">
+                    <h4 className="text-sm font-bold text-pink-400">Soundboard Externe</h4>
+                    <p className="text-[10px] text-muted-foreground h-8">
+                      Faites scanner ce QR Code pour contrôler la boîte à sons depuis un autre appareil (Nécessite le code configuré dans Smartphone).
+                    </p>
+                    <div className="mx-auto bg-white p-2 rounded">
+                      <QRCodeSVG value={`${window.location.origin}/soundboard`} size={120} />
+                    </div>
+                    <a 
+                      href="/soundboard" 
+                      target="_blank" 
+                      className="text-xs text-center break-all font-mono hover:text-pink-400 transition-colors bg-background border border-border p-2 rounded"
+                    >
+                      {window.location.origin}/soundboard
+                    </a>
+                  </div>
                 </div>
               </section>
             </div>

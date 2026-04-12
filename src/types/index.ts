@@ -239,5 +239,10 @@ export interface GameState {
       logs: boolean;
       system: boolean;
     };
+    smartphoneTabs: {
+      game: boolean;
+      players: boolean;
+      room: boolean;
+    };
   };
 }

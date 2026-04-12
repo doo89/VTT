@@ -197,6 +197,11 @@ export const initialState = {
       logs: true,
       system: true,
     },
+    smartphoneTabs: {
+      game: true,
+      players: true,
+      room: true,
+    },
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,

@@ -231,6 +231,20 @@ export const PlayerView: React.FC = () => {
     };
   }, [roomId, playerName]);
 
+  const smartphoneTabs = displaySettings?.smartphoneTabs || { game: true, players: true, room: true };
+  const hasSelectedTabs = smartphoneTabs.game || smartphoneTabs.players || smartphoneTabs.room;
+  
+  // If no tabs are selected, we fallback to showing the game content ONLY (no tab bar will be rendered)
+  const showGame = hasSelectedTabs ? smartphoneTabs.game : true;
+  const showPlayers = hasSelectedTabs ? smartphoneTabs.players : false;
+  const showRoom = hasSelectedTabs ? smartphoneTabs.room : false;
+
+  useEffect(() => {
+    if (activeTab === 'players' && !showPlayers) setActiveTab(showGame ? 'game' : 'room');
+    if (activeTab === 'room' && !showRoom) setActiveTab(showGame ? 'game' : 'players');
+    if (activeTab === 'game' && !showGame) setActiveTab(showPlayers ? 'players' : 'room');
+  }, [showGame, showPlayers, showRoom, activeTab]);
+
   return (
     <div className={`h-screen w-screen text-zinc-50 flex flex-col p-4 md:p-8 max-w-md mx-auto relative overflow-hidden transition-colors duration-1000 ${(isNight && cycleMode === 'dayNight') ? 'bg-zinc-950' : 'bg-zinc-900'}`}>
       {/* Header */}
@@ -598,7 +612,7 @@ export const PlayerView: React.FC = () => {
             </>
           )}
 
-          {activeTab === 'players' && (
+          {(activeTab === 'players' && showPlayers) && (
             <div className="flex-1 flex flex-col gap-4 py-2">
               <div className="flex flex-col gap-1">
                 <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Joueurs en salle</h3>
@@ -634,7 +648,7 @@ export const PlayerView: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'room' && (
+          {(activeTab === 'room' && showRoom) && (
             <div className="flex-1 flex flex-col gap-4 py-2 overflow-hidden h-full">
               <div className="flex flex-col gap-1">
                 <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Miniature de la salle</h3>
@@ -700,8 +714,9 @@ export const PlayerView: React.FC = () => {
       )}
 
       {/* Navigation Menu */}
-      {isConnected && localPlayer && (
+      {isConnected && localPlayer && (showGame || showPlayers || showRoom) && (
         <div className="fixed bottom-0 left-0 right-0 h-20 bg-zinc-950/80 backdrop-blur-xl border-t border-zinc-800 shadow-[0_-10px_20px_rgba(0,0,0,0.5)] flex items-center justify-around px-4 z-[60] pb-safe">
+          {showGame && (
           <button 
             onClick={() => setActiveTab('game')}
             className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'game' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
@@ -711,7 +726,9 @@ export const PlayerView: React.FC = () => {
             </div>
             <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'game' ? 'opacity-100' : 'opacity-40'}`}>Jeu</span>
           </button>
+          )}
           
+          {showPlayers && (
           <button 
             onClick={() => setActiveTab('players')}
             className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'players' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
@@ -721,7 +738,9 @@ export const PlayerView: React.FC = () => {
             </div>
             <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'players' ? 'opacity-100' : 'opacity-40'}`}>Joueurs</span>
           </button>
-          
+          )}
+
+          {showRoom && (
           <button 
             onClick={() => setActiveTab('room')}
             className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'room' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
@@ -731,6 +750,7 @@ export const PlayerView: React.FC = () => {
             </div>
             <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'room' ? 'opacity-100' : 'opacity-40'}`}>Salle</span>
           </button>
+          )}
         </div>
       )}
 
