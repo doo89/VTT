@@ -619,8 +619,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, onOpenSup
                     <label key={tool.key} className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
                       <input
                         type="checkbox"
-                        checked={displaySettings.panels[tool.key as keyof typeof displaySettings.panels] ?? true}
-                        onChange={(e) => updateDisplaySettings({ panels: { ...displaySettings.panels, [tool.key]: e.target.checked } })}
+                        checked={(displaySettings.panels || {})[tool.key as keyof typeof displaySettings.panels] ?? true}
+                        onChange={(e) => updateDisplaySettings({ panels: { ...(displaySettings.panels || { distribution: true, chrono: true, soundboard: true, logs: true }), [tool.key]: e.target.checked } })}
                         className="rounded border-border w-5 h-5 text-primary"
                       />
                       <span className="font-semibold text-sm">{tool.label}</span>
