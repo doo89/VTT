@@ -87,27 +87,31 @@ export const initHostRealtime = (roomCode: string) => {
         const pastilleId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
         const playerUpdatesMap: Record<string, any> = {};
         
-        // Add pastilles to targets if it's a selector
-        if (payload.selectedPlayerIds && Array.isArray(payload.selectedPlayerIds) && payload.selectedPlayerIds.length > 0) {
-          payload.selectedPlayerIds.forEach((pid: string) => {
-            const target = state.players.find(p => p.id === pid);
-            if (target) {
-              const currentPastilles = playerUpdatesMap[pid]?.selectionPastilles || target.selectionPastilles || [];
-              playerUpdatesMap[pid] = {
+        const isSelector = !!tagData.isSinglePlayerSelector || !!tagData.isMultiPlayerSelector;
+        
+        if (isSelector) {
+          // If enabled, add pastilles ONLY to targets
+          if (tagData.smartphoneShowPastille && payload.selectedPlayerIds && Array.isArray(payload.selectedPlayerIds) && payload.selectedPlayerIds.length > 0) {
+            payload.selectedPlayerIds.forEach((pid: string) => {
+              const target = state.players.find(p => p.id === pid);
+              if (target) {
+                const currentPastilles = playerUpdatesMap[pid]?.selectionPastilles || target.selectionPastilles || [];
+                playerUpdatesMap[pid] = {
+                  selectionPastilles: [...currentPastilles, { id: pastilleId, icon: tagData.icon, color: tagData.color, name: tagData.name }]
+                };
+              }
+            });
+          }
+        } else {
+          // Action simple: Always add pastille to acting player
+          if (payload.playerId) {
+            const source = state.players.find(p => p.id === payload.playerId);
+            if (source) {
+              const currentPastilles = playerUpdatesMap[source.id]?.selectionPastilles || source.selectionPastilles || [];
+              playerUpdatesMap[source.id] = {
                 selectionPastilles: [...currentPastilles, { id: pastilleId, icon: tagData.icon, color: tagData.color, name: tagData.name }]
               };
             }
-          });
-        }
-        
-        // Add pastille to acting player if enabled
-        if (tagData.smartphoneShowPastille && payload.playerId) {
-          const source = state.players.find(p => p.id === payload.playerId);
-          if (source) {
-            const currentPastilles = playerUpdatesMap[source.id]?.selectionPastilles || source.selectionPastilles || [];
-            playerUpdatesMap[source.id] = {
-              selectionPastilles: [...currentPastilles, { id: pastilleId, icon: tagData.icon, color: tagData.color, name: tagData.name }]
-            };
           }
         }
 
