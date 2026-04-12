@@ -490,6 +490,7 @@ export const useVttStore = create<VttStore>()(
           displaySettings: state.displaySettings,
           isNight: state.isNight,
           cycleNumber: state.cycleNumber,
+          scoreboard: state.scoreboard,
         }),
         limit: 50, // Keep last 50 states to prevent memory issues
         equality: (pastState, currentState) => {

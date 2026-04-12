@@ -20,7 +20,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     grid, setGrid,
     cycleMode, setCycleMode,
     displaySettings, updateDisplaySettings,
-    soundboard, setSoundboard
+    soundboard, setSoundboard,
+    scoreboard, setScoreboard
   } = useVttStore();
 
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -647,12 +648,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label key={col.key} className="flex items-center gap-2 cursor-pointer group">
                             <input
                               type="checkbox"
-                              checked={(useVttStore.getState().scoreboard as any)[col.key] ?? true}
+                              checked={(scoreboard as any)[col.key] ?? true}
                               onChange={(e) => {
                                 const updates: any = {};
                                 updates[col.key] = e.target.checked;
-                                if (col.key === 'showVotes') updates.showLives = e.target.checked; // Link votes and lives for simplicity or just keep it
-                                useVttStore.getState().setScoreboard(updates);
+                                if (col.key === 'showVotes') updates.showLives = e.target.checked; 
+                                setScoreboard(updates);
                               }}
                               className="rounded border-border w-4 h-4 text-yellow-500 focus:ring-yellow-500"
                             />
