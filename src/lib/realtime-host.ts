@@ -162,6 +162,37 @@ export const initHostRealtime = (roomCode: string) => {
         }
       }
 
+      // Handle tag merging (Fusionner ce Tag)
+      if (tagData?.smartphoneMergeTagId) {
+        const mergeModel = state.tags.find(t => t.id === tagData.smartphoneMergeTagId);
+        if (mergeModel) {
+          const isSelector = !!tagData.isSinglePlayerSelector || !!tagData.isMultiPlayerSelector;
+          const targets = isSelector
+            ? (payload.selectedPlayerIds || [])
+            : [payload.playerId].filter(Boolean);
+            
+          const mergeUpdates = targets.map((pid: string) => {
+            const target = state.players.find(p => p.id === pid);
+            if (!target) return null;
+            
+            const newInstanceId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+            const newTagInstance = {
+              ...mergeModel,
+              instanceId: newInstanceId,
+            };
+            
+            return {
+              id: pid,
+              updates: { tags: [...target.tags, newTagInstance] }
+            };
+          }).filter(Boolean);
+          
+          if (mergeUpdates.length > 0) {
+            state.updatePlayers(mergeUpdates as any);
+          }
+        }
+      }
+
       // Handle auto-delete of UI for this tag
       if (payload.autoDeleteSmartphoneUI && payload.playerId && payload.tagInstanceId) {
         const player = state.players.find(p => p.id === payload.playerId);

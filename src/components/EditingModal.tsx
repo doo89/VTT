@@ -1195,6 +1195,20 @@ export const EditingModal: React.FC = () => {
                   Afficher la pastille tag au dessus du joueur
                 </label>
 
+                <div className="flex flex-col gap-1 mt-2">
+                  <label className="text-xs font-medium text-muted-foreground">Fusionner ce Tag</label>
+                  <select
+                    value={tag.smartphoneMergeTagId || ''}
+                    onChange={(e) => updateTagModel(tag.id, { smartphoneMergeTagId: e.target.value || null })}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">-- Aucun --</option>
+                    {tags.filter(t => t.id !== tag.id).map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
                   <input
                     type="checkbox"
@@ -1644,6 +1658,20 @@ export const EditingModal: React.FC = () => {
                   />
                   Afficher la pastille tag au dessus du joueur
                 </label>
+
+                <div className="flex flex-col gap-1 mt-2">
+                  <label className="text-xs font-medium text-muted-foreground">Fusionner ce Tag</label>
+                  <select
+                    value={tag.smartphoneMergeTagId || ''}
+                    onChange={(e) => updateTagInstance({ smartphoneMergeTagId: e.target.value || null })}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">-- Aucun --</option>
+                    {tags.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
 
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
                   <input

@@ -83,6 +83,7 @@ export interface MarkerParameter {
   seenAsRoleId?: EntityId | null;
   seenInTeamId?: EntityId | null;
   smartphoneShowPastille?: boolean;
+  smartphoneMergeTagId?: EntityId | null;
 }
 
 export interface Marker {
