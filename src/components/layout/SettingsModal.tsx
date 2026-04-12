@@ -91,6 +91,66 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
           {/* TAB: SALLE & AUTRES */}
           {activeTab === 'salle' && (
              <div className="flex flex-col gap-6">
+               {/* Options Globales */}
+               <section>
+                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Options Globales</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                   <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Type de cycle</label>
+                    <select
+                      value={cycleMode}
+                      onChange={(e) => setCycleMode(e.target.value as any)}
+                      className="bg-input border border-border rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-full max-w-[200px]"
+                    >
+                      <option value="dayNight">Jour/Nuit</option>
+                      <option value="turns">Par tour</option>
+                      <option value="none">Aucun</option>
+                    </select>
+                   </div>
+                   <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Priorité au premier plan</label>
+                    <select
+                      value={displaySettings.foregroundElement}
+                      onChange={(e) => updateDisplaySettings({ foregroundElement: e.target.value as any })}
+                      className="bg-input border border-border rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-full max-w-[200px]"
+                    >
+                      <option value="players">Joueurs</option>
+                      <option value="markers">Marqueurs</option>
+                    </select>
+                   </div>
+                   
+                   <label className="flex items-center gap-2 text-sm cursor-pointer mt-2 md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={displaySettings.showCenter}
+                      onChange={(e) => updateDisplaySettings({ showCenter: e.target.checked })}
+                      className="rounded border-border w-4 h-4 text-primary"
+                    />
+                    Afficher le réticule du centre de la salle
+                  </label>
+                   <label className="flex items-center gap-2 text-sm cursor-pointer md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={displaySettings.showTagName}
+                      onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
+                      className="rounded border-border w-4 h-4 text-primary"
+                    />
+                    Toujours afficher le nom des tags/marqueurs
+                  </label>
+                   {cycleMode !== 'none' && (
+                    <label className="flex items-center gap-2 text-sm cursor-pointer md:col-span-2">
+                      <input
+                        type="checkbox"
+                        checked={displaySettings.showCycleIcon}
+                        onChange={(e) => updateDisplaySettings({ showCycleIcon: e.target.checked })}
+                        className="rounded border-border w-4 h-4 text-primary"
+                      />
+                      Afficher l'icône {cycleMode === 'dayNight' ? 'Jour/Nuit' : 'Tours'} au centre
+                    </label>
+                  )}
+                 </div>
+               </section>
+
                {/* Grille */}
                <section>
                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3 flex items-center gap-2">
@@ -212,64 +272,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
           {/* TAB: JOUEURS */}
           {activeTab === 'joueurs' && (
             <div className="flex flex-col gap-6">
-               <section>
-                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Options Globales</h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Type de cycle</label>
-                    <select
-                      value={cycleMode}
-                      onChange={(e) => setCycleMode(e.target.value as any)}
-                      className="bg-input border border-border rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-full max-w-[200px]"
-                    >
-                      <option value="dayNight">Jour/Nuit</option>
-                      <option value="turns">Par tour</option>
-                      <option value="none">Aucun</option>
-                    </select>
-                   </div>
-                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Priorité au premier plan</label>
-                    <select
-                      value={displaySettings.foregroundElement}
-                      onChange={(e) => updateDisplaySettings({ foregroundElement: e.target.value as any })}
-                      className="bg-input border border-border rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-full max-w-[200px]"
-                    >
-                      <option value="players">Joueurs</option>
-                      <option value="markers">Marqueurs</option>
-                    </select>
-                   </div>
-                   
-                   <label className="flex items-center gap-2 text-sm cursor-pointer mt-2 md:col-span-2">
-                    <input
-                      type="checkbox"
-                      checked={displaySettings.showCenter}
-                      onChange={(e) => updateDisplaySettings({ showCenter: e.target.checked })}
-                      className="rounded border-border w-4 h-4 text-primary"
-                    />
-                    Afficher le réticule du centre de la salle
-                  </label>
-                   <label className="flex items-center gap-2 text-sm cursor-pointer md:col-span-2">
-                    <input
-                      type="checkbox"
-                      checked={displaySettings.showTagName}
-                      onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
-                      className="rounded border-border w-4 h-4 text-primary"
-                    />
-                    Toujours afficher le nom des tags/marqueurs
-                  </label>
-                   {cycleMode !== 'none' && (
-                    <label className="flex items-center gap-2 text-sm cursor-pointer md:col-span-2">
-                      <input
-                        type="checkbox"
-                        checked={displaySettings.showCycleIcon}
-                        onChange={(e) => updateDisplaySettings({ showCycleIcon: e.target.checked })}
-                        className="rounded border-border w-4 h-4 text-primary"
-                      />
-                      Afficher l'icône {cycleMode === 'dayNight' ? 'Jour/Nuit' : 'Tours'} au centre
-                    </label>
-                  )}
-                 </div>
-               </section>
+
 
                <section>
                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Affichage des Joueurs</h3>
