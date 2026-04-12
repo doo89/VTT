@@ -197,6 +197,7 @@ export const initialState = {
       logs: true,
       system: true,
     },
+    recordLogs: true,
     smartphoneTabs: {
       game: true,
       players: true,
@@ -398,17 +399,21 @@ export const useVttStore = create<VttStore>()(
     let msg = "";
     if (state.isNight) {
       msg = `Le jour se lève (Cycle ${state.cycleNumber + 1})`;
-      return { 
+      const updates: any = { 
         isNight: false, 
-        cycleNumber: state.cycleNumber + 1,
-        logs: [{ id: uuidv4(), timestamp: Date.now(), message: msg, type: 'system' as const }, ...state.logs].slice(0, 100)
+        cycleNumber: state.cycleNumber + 1
       };
+      if (state.displaySettings.recordLogs) {
+        updates.logs = [{ id: uuidv4(), timestamp: Date.now(), message: msg, type: 'system' as const }, ...state.logs].slice(0, 100);
+      }
+      return updates;
     } else {
       msg = `La nuit tombe (Cycle ${state.cycleNumber})`;
-      return { 
-        isNight: true,
-        logs: [{ id: uuidv4(), timestamp: Date.now(), message: msg, type: 'system' as const }, ...state.logs].slice(0, 100)
-      };
+      const updates: any = { isNight: true };
+      if (state.displaySettings.recordLogs) {
+        updates.logs = [{ id: uuidv4(), timestamp: Date.now(), message: msg, type: 'system' as const }, ...state.logs].slice(0, 100);
+      }
+      return updates;
     }
   }),
   resetCycle: () => set({ isNight: false, cycleNumber: 1 }),
@@ -438,9 +443,12 @@ export const useVttStore = create<VttStore>()(
         setSmartphoneActionMessage: (message) => set({ smartphoneActionMessage: message }),
 
         // Logs
-        addLog: (message, type) => set((state) => ({
-          logs: [{ id: uuidv4(), timestamp: Date.now(), message, type }, ...state.logs].slice(0, 100) // Keep last 100 logs
-        })),
+        addLog: (message, type) => set((state) => {
+          if (!state.displaySettings.recordLogs) return {};
+          return {
+            logs: [{ id: uuidv4(), timestamp: Date.now(), message, type }, ...state.logs].slice(0, 100) // Keep last 100 logs
+          };
+        }),
         clearLogs: () => set({ logs: [] }),
       }),
       {

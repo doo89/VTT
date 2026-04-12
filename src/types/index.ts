@@ -240,6 +240,7 @@ export interface GameState {
       logs: boolean;
       system: boolean;
     };
+    recordLogs: boolean;
     smartphoneTabs: {
       game: boolean;
       players: boolean;

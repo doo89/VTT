@@ -620,7 +620,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     { key: 'logs', label: 'Log / Historique' },
                     { key: 'system', label: 'Système & Connexion' }
                   ].map(tool => (
-                    <label key={tool.key} className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
+                    <div key={tool.key} className="flex flex-col gap-2">
+                    <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
                       <input
                         type="checkbox"
                         checked={(displaySettings.panels || {})[tool.key as keyof typeof displaySettings.panels] ?? true}
@@ -629,6 +630,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       />
                       <span className="font-semibold text-sm">{tool.label}</span>
                     </label>
+                    {tool.key === 'logs' && (displaySettings.panels?.logs ?? true) && (
+                      <div className="ml-8 flex items-center gap-3 p-2 bg-muted/10 border-l-2 border-primary/30">
+                        <label className="flex items-center gap-2 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.recordLogs ?? true}
+                            onChange={(e) => updateDisplaySettings({ recordLogs: e.target.checked })}
+                            className="rounded-full border-border w-4 h-4 text-teal-400 focus:ring-teal-400"
+                          />
+                          <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                            {displaySettings.recordLogs ?? true ? 'Écoute activée' : 'Écoute désactivée'}
+                          </span>
+                        </label>
+                      </div>
+                    )}
+                    </div>
                   ))}
                 </div>
               </section>

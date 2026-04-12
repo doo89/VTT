@@ -466,7 +466,7 @@ export const RightPanel: React.FC = () => {
             className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
           >
             <div className={`flex items-center gap-2 ${activeSection === 'logs' ? 'text-teal-400' : ''}`}>
-              <History size={16} /> Log / Historique
+              <History size={16} /> Log / Historique ({logs.length})
             </div>
             {activeSection === 'logs' ? <ChevronDown size={16} className="text-teal-400" /> : <ChevronRight size={16} />}
           </button>
