@@ -1157,6 +1157,32 @@ export const EditingModal: React.FC = () => {
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   />
                   <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup sur le smartphone du joueur quand il appuie sur le bouton.</p>
+
+                  {(tag.isSinglePlayerSelector || tag.isMultiPlayerSelector) && (
+                    <div className="ml-4 flex flex-col gap-2 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Information à retourner</span>
+                      <div className="flex flex-wrap gap-x-4 gap-y-2">
+                        {[
+                          { key: 'none', label: 'Aucun' },
+                          { key: 'real_role', label: 'Rôle réel' },
+                          { key: 'real_team', label: 'Equipe réelle' },
+                          { key: 'seen_role', label: 'Vu comme rôle' },
+                          { key: 'seen_team', label: 'Vu dans l’équipe' }
+                        ].map(info => (
+                          <label key={info.key} className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                            <input
+                              type="radio"
+                              name={`returnInfo-model-${tag.id}`}
+                              checked={(tag.smartphoneReturnInfo || 'none') === info.key}
+                              onChange={() => updateTagModel(tag.id, { smartphoneReturnInfo: info.key as any })}
+                              className="w-3.5 h-3.5 text-primary"
+                            />
+                            <span className="group-hover:text-primary transition-colors">{info.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
@@ -1541,6 +1567,32 @@ export const EditingModal: React.FC = () => {
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   />
                   <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup sur le smartphone du joueur quand il appuie sur le bouton.</p>
+
+                  {(tag.isSinglePlayerSelector || tag.isMultiPlayerSelector) && (
+                    <div className="ml-4 flex flex-col gap-2 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Information à retourner</span>
+                      <div className="flex flex-wrap gap-x-4 gap-y-2">
+                        {[
+                          { key: 'none', label: 'Aucun' },
+                          { key: 'real_role', label: 'Rôle réel' },
+                          { key: 'real_team', label: 'Equipe réelle' },
+                          { key: 'seen_role', label: 'Vu comme rôle' },
+                          { key: 'seen_team', label: 'Vu dans l’équipe' }
+                        ].map(info => (
+                          <label key={info.key} className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                            <input
+                              type="radio"
+                              name={`returnInfo-instance-${tag.id}`}
+                              checked={(tag.smartphoneReturnInfo || 'none') === info.key}
+                              onChange={() => updateTagInstance({ smartphoneReturnInfo: info.key as any })}
+                              className="w-3.5 h-3.5 text-primary"
+                            />
+                            <span className="group-hover:text-primary transition-colors">{info.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">

@@ -79,6 +79,7 @@ export interface MarkerParameter {
   smartphoneButtonFeedback?: string;
   smartphonePlayerFeedback?: string;
   smartphoneAutoDelete?: boolean;
+  smartphoneReturnInfo?: 'none' | 'real_role' | 'real_team' | 'seen_role' | 'seen_team';
 }
 
 export interface Marker {
