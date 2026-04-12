@@ -344,7 +344,12 @@ export const useVttStore = create<VttStore>()(
     tags: [...state.tags, { ...tagData, id: uuidv4() }]
   })),
   updateTagModel: (id, updates) => set((state) => ({
-    tags: state.tags.map(t => t.id === id ? { ...t, ...updates } : t)
+    tags: state.tags.map(t => t.id === id ? { ...t, ...updates } : t),
+    players: state.players.map(p => ({
+      ...p,
+      tags: p.tags.map(t => t.id === id ? { ...t, ...updates } : t)
+    })),
+    markers: state.markers.map(m => m.tag.id === id ? { ...m, tag: { ...m.tag, ...updates } } : m)
   })),
   deleteTagModel: (id) => set((state) => ({
     tags: state.tags.filter(t => t.id !== id)
