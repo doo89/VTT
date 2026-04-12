@@ -83,130 +83,135 @@ export const initHostRealtime = (roomCode: string) => {
         tagData = state.markers.find(m => m.tag.instanceId === payload.tagInstanceId)?.tag;
       }
 
+      // Prepare a map for all player updates to apply them in a single batch at the end
+      const playerUpdatesMap: Record<string, any> = {};
+      const getLatestPlayerTags = (pid: string) => {
+        if (playerUpdatesMap[pid]?.tags) return playerUpdatesMap[pid].tags;
+        return state.players.find(p => p.id === pid)?.tags || [];
+      };
+      const getLatestPlayerPastilles = (pid: string) => {
+        if (playerUpdatesMap[pid]?.selectionPastilles) return playerUpdatesMap[pid].selectionPastilles;
+        return state.players.find(p => p.id === pid)?.selectionPastilles || [];
+      };
+
       if (tagData) {
         const pastilleId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
-        const playerUpdatesMap: Record<string, any> = {};
-        
         const isSelector = !!tagData.isSinglePlayerSelector || !!tagData.isMultiPlayerSelector;
         
+        // 1. Handle Selection Pastilles
         if (isSelector) {
-          // If enabled, add pastilles ONLY to targets
           if (tagData.smartphoneShowPastille && payload.selectedPlayerIds && Array.isArray(payload.selectedPlayerIds) && payload.selectedPlayerIds.length > 0) {
             payload.selectedPlayerIds.forEach((pid: string) => {
               const target = state.players.find(p => p.id === pid);
               if (target) {
-                const currentPastilles = playerUpdatesMap[pid]?.selectionPastilles || target.selectionPastilles || [];
+                const currentPastilles = getLatestPlayerPastilles(pid);
                 playerUpdatesMap[pid] = {
+                  ...playerUpdatesMap[pid],
                   selectionPastilles: [...currentPastilles, { id: pastilleId, icon: tagData.icon, color: tagData.color, name: tagData.name }]
                 };
               }
             });
           }
         } else {
-          // Action simple: Always add pastille to acting player
           if (payload.playerId) {
             const source = state.players.find(p => p.id === payload.playerId);
             if (source) {
-              const currentPastilles = playerUpdatesMap[source.id]?.selectionPastilles || source.selectionPastilles || [];
+              const currentPastilles = getLatestPlayerPastilles(source.id);
               playerUpdatesMap[source.id] = {
+                ...playerUpdatesMap[source.id],
                 selectionPastilles: [...currentPastilles, { id: pastilleId, icon: tagData.icon, color: tagData.color, name: tagData.name }]
               };
             }
           }
         }
 
-        const updates = Object.entries(playerUpdatesMap).map(([id, updates]) => ({ id, updates }));
-        if (updates.length > 0) {
-          state.updatePlayers(updates as any);
-        }
-      }
-
-      // Handle returning info to smartphone
-      if (payload.smartphoneReturnInfo && payload.smartphoneReturnInfo !== 'none' && payload.selectedPlayerIds?.length > 0) {
-        const infoMsg = payload.selectedPlayerIds.map((pid: string) => {
-          const target = state.players.find(p => p.id === pid);
-          if (!target) return null;
-          
-          let val = '';
-          const infoType = payload.smartphoneReturnInfo;
-          
-          if (infoType === 'real_role') {
-            const role = state.roles.find(r => r.id === target.roleId);
-            val = role?.name || 'Sans Rôle';
-          } else if (infoType === 'real_team') {
-            const team = state.teams.find(t => t.id === target.teamId);
-            val = team?.name || 'Sans Équipe';
-          } else if (infoType === 'seen_role') {
-            const role = state.roles.find(r => r.id === target.roleId);
-            const tagSeenRole = target.tags.find(t => t.seenAsRoleId)?.seenAsRoleId;
-            const seenRoleId = tagSeenRole || role?.seenAsRoleId || target.roleId;
-            const seenRole = state.roles.find(r => r.id === seenRoleId);
-            val = seenRole?.name || role?.name || 'Sans Rôle';
-          } else if (infoType === 'seen_team') {
-            const role = state.roles.find(r => r.id === target.roleId);
-            const tagSeenTeam = target.tags.find(t => t.seenInTeamId)?.seenInTeamId;
-            const teamId = tagSeenTeam || role?.seenInTeamId || role?.teamId || target.teamId;
-            const team = state.teams.find(t => t.id === teamId);
-            val = team?.name || 'Sans Équipe';
-          }
-          
-          return `${target.name} : ${val}`;
-        }).filter(Boolean).join('\n');
-
-        if (infoMsg && currentChannel) {
-          currentChannel.send({
-            type: 'broadcast',
-            event: 'feedback_popup',
-            payload: { playerId: payload.playerId, message: infoMsg }
-          });
-        }
-      }
-
-      // Handle tag merging (Fusionner ce Tag)
-      if (tagData?.smartphoneMergeTagId) {
-        const mergeModel = state.tags.find(t => t.id === tagData.smartphoneMergeTagId);
-        if (mergeModel) {
-          const isSelector = !!tagData.isSinglePlayerSelector || !!tagData.isMultiPlayerSelector;
-          const targets = isSelector
-            ? (payload.selectedPlayerIds || [])
-            : [payload.playerId].filter(Boolean);
-            
-          const mergeUpdates = targets.map((pid: string) => {
+        // 2. Handle Feedback / Info Reveal
+        if (payload.smartphoneReturnInfo && payload.smartphoneReturnInfo !== 'none' && payload.selectedPlayerIds?.length > 0) {
+          const infoMsg = payload.selectedPlayerIds.map((pid: string) => {
             const target = state.players.find(p => p.id === pid);
             if (!target) return null;
             
-            const newInstanceId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
-            const newTagInstance = {
-              ...mergeModel,
-              instanceId: newInstanceId,
-            };
+            let val = '';
+            const infoType = payload.smartphoneReturnInfo;
             
-            return {
-              id: pid,
-              updates: { tags: [...target.tags, newTagInstance] }
-            };
-          }).filter(Boolean);
-          
-          if (mergeUpdates.length > 0) {
-            state.updatePlayers(mergeUpdates as any);
+            if (infoType === 'real_role') {
+              const role = state.roles.find(r => r.id === target.roleId);
+              val = role?.name || 'Sans Rôle';
+            } else if (infoType === 'real_team') {
+              const team = state.teams.find(t => t.id === target.teamId);
+              val = team?.name || 'Sans Équipe';
+            } else if (infoType === 'seen_role') {
+              const role = state.roles.find(r => r.id === target.roleId);
+              const tagSeenRole = target.tags.find(t => t.seenAsRoleId)?.seenAsRoleId;
+              const seenRoleId = tagSeenRole || role?.seenAsRoleId || target.roleId;
+              const seenRole = state.roles.find(r => r.id === seenRoleId);
+              val = seenRole?.name || role?.name || 'Sans Rôle';
+            } else if (infoType === 'seen_team') {
+              const role = state.roles.find(r => r.id === target.roleId);
+              const tagSeenTeam = target.tags.find(t => t.seenInTeamId)?.seenInTeamId;
+              const teamId = tagSeenTeam || role?.seenInTeamId || role?.teamId || target.teamId;
+              const team = state.teams.find(t => t.id === teamId);
+              val = team?.name || 'Sans Équipe';
+            }
+            
+            return `${target.name} : ${val}`;
+          }).filter(Boolean).join('\n');
+
+          if (infoMsg && currentChannel) {
+            currentChannel.send({
+              type: 'broadcast',
+              event: 'feedback_popup',
+              payload: { playerId: payload.playerId, message: infoMsg }
+            });
           }
         }
-      }
 
-      // Handle auto-delete of UI for this tag
-      if (payload.autoDeleteSmartphoneUI && payload.playerId && payload.tagInstanceId) {
-        const player = state.players.find(p => p.id === payload.playerId);
-        if (player) {
-          const tagsToRemove = new Set([payload.tagInstanceId]);
-          // Include any children tags if it was a container
-          player.tags.forEach(t => {
-            if (t.parentTagInstanceId === payload.tagInstanceId) {
-              tagsToRemove.add(t.instanceId);
-            }
-          });
+        // 3. Handle Tag Merging (Fusionner ce Tag)
+        if (tagData.smartphoneMergeTagId) {
+          const mergeModel = state.tags.find(t => t.id === tagData.smartphoneMergeTagId);
+          if (mergeModel) {
+            const targets = isSelector
+              ? (payload.selectedPlayerIds || [])
+              : [payload.playerId].filter(Boolean);
+              
+            targets.forEach((pid: string) => {
+              const target = state.players.find(p => p.id === pid);
+              if (target) {
+                const newInstanceId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+                const currentTags = getLatestPlayerTags(pid);
+                playerUpdatesMap[pid] = {
+                  ...playerUpdatesMap[pid],
+                  tags: [...currentTags, { ...mergeModel, instanceId: newInstanceId }]
+                };
+              }
+            });
+          }
+        }
 
-          const newTags = player.tags.filter(t => !tagsToRemove.has(t.instanceId));
-          state.updatePlayer(player.id, { tags: newTags });
+        // 4. Handle auto-delete of UI for this tag
+        if (payload.autoDeleteSmartphoneUI && payload.playerId && payload.tagInstanceId) {
+          const player = state.players.find(p => p.id === payload.playerId);
+          if (player) {
+            const tagsToRemove = new Set([payload.tagInstanceId]);
+            // Include any children tags if it was a container
+            player.tags.forEach(t => {
+              if (t.parentTagInstanceId === payload.tagInstanceId) {
+                tagsToRemove.add(t.instanceId);
+              }
+            });
+
+            const currentTags = getLatestPlayerTags(player.id);
+            playerUpdatesMap[player.id] = {
+              ...playerUpdatesMap[player.id],
+              tags: currentTags.filter((t: any) => !tagsToRemove.has(t.instanceId))
+            };
+          }
+        }
+
+        // Apply all batched updates
+        const finalUpdates = Object.entries(playerUpdatesMap).map(([id, updates]) => ({ id, updates }));
+        if (finalUpdates.length > 0) {
+          state.updatePlayers(finalUpdates as any);
         }
       }
     })
