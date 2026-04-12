@@ -80,6 +80,8 @@ export interface MarkerParameter {
   smartphonePlayerFeedback?: string;
   smartphoneAutoDelete?: boolean;
   smartphoneReturnInfo?: 'none' | 'real_role' | 'real_team' | 'seen_role' | 'seen_team';
+  seenAsRoleId?: EntityId | null;
+  seenInTeamId?: EntityId | null;
 }
 
 export interface Marker {

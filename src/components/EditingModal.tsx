@@ -544,36 +544,6 @@ export const EditingModal: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex gap-4">
-            <div className="flex flex-col gap-1 flex-1">
-              <label className="text-sm font-medium">Vu comme rôle (info-bulle)</label>
-              <select
-                value={role.seenAsRoleId || ''}
-                onChange={(e) => updateRole(role.id, { seenAsRoleId: e.target.value || null })}
-                className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                <option value="">-- Aucun --</option>
-                {roles.filter(r => r.id !== role.id).map(r => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1 flex-1">
-              <label className="text-sm font-medium">Vu dans équipe (info-bulle)</label>
-              <select
-                value={role.seenInTeamId || ''}
-                onChange={(e) => updateRole(role.id, { seenInTeamId: e.target.value || null })}
-                className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                <option value="">-- Identique à réelle --</option>
-                {teams.map(t => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Description libre</label>
             <textarea
@@ -1051,6 +1021,36 @@ export const EditingModal: React.FC = () => {
                 </div>
               </div>
 
+              <div className="flex gap-4 mb-2">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-xs font-medium text-muted-foreground">Vu comme rôle (info-bulle)</label>
+                  <select
+                    value={tag.seenAsRoleId || ''}
+                    onChange={(e) => updateTagModel(tag.id, { seenAsRoleId: e.target.value || null })}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">-- Aucun --</option>
+                    {roles.map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-xs font-medium text-muted-foreground">Vu dans équipe (info-bulle)</label>
+                  <select
+                    value={tag.seenInTeamId || ''}
+                    onChange={(e) => updateTagModel(tag.id, { seenInTeamId: e.target.value || null })}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">-- Identique à réelle --</option>
+                    {teams.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div className="flex flex-col gap-1 mt-2">
                 <label className="text-sm font-medium text-muted-foreground">Texte libre</label>
                 <textarea
@@ -1457,6 +1457,36 @@ export const EditingModal: React.FC = () => {
                     />
                     Suppr. auto à 0
                   </label>
+                </div>
+              </div>
+
+              <div className="flex gap-4 mb-2">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-xs font-medium text-muted-foreground">Vu comme rôle (info-bulle)</label>
+                  <select
+                    value={tag.seenAsRoleId || ''}
+                    onChange={(e) => updateTagInstance({ seenAsRoleId: e.target.value || null })}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">-- Aucun --</option>
+                    {roles.map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-xs font-medium text-muted-foreground">Vu dans équipe (info-bulle)</label>
+                  <select
+                    value={tag.seenInTeamId || ''}
+                    onChange={(e) => updateTagInstance({ seenInTeamId: e.target.value || null })}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">-- Identique à réelle --</option>
+                    {teams.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

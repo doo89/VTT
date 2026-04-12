@@ -728,12 +728,16 @@ export const Canvas: React.FC = () => {
           {displaySettings.showPlayers && players.map(player => {
             const role = roles.find(r => r.id === player.roleId);
 
-            // Determine effective team (role's seenInTeamId -> role's actual teamId -> player's teamId)
-            const effectiveTeamId = role?.seenInTeamId || role?.teamId || player.teamId;
+            // Determine overrides from tags
+            const tagSeenRole = player.tags.find(t => t.seenAsRoleId)?.seenAsRoleId;
+            const tagSeenTeam = player.tags.find(t => t.seenInTeamId)?.seenInTeamId;
+
+            // Determine effective team (tag override -> role's seenInTeamId -> role's actual teamId -> player's teamId)
+            const effectiveTeamId = tagSeenTeam || role?.seenInTeamId || role?.teamId || player.teamId;
             const team = teams.find(t => t.id === effectiveTeamId);
 
             // Determine effective role for tooltip
-            const effectiveRoleId = role?.seenAsRoleId || role?.id;
+            const effectiveRoleId = tagSeenRole || role?.seenAsRoleId || role?.id;
             const effectiveRole = roles.find(r => r.id === effectiveRoleId);
 
             // Calculate Total Lives
