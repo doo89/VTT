@@ -466,18 +466,27 @@ export const PlayerView: React.FC = () => {
           )}
 
           {/* Tags / Status Effects */}
-          {localPlayer.tags.filter(t => t.showOnSmartphone).length > 0 && (
-            <div className="shrink-0 flex flex-col gap-3 mt-4">
-              <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                <TagIcon size={14} /> Effets Actifs
-              </h4>
-              <div className="grid grid-cols-1 gap-2">
-                {localPlayer.tags.filter(t => t.showOnSmartphone).map(tag => (
-                  <div key={tag.instanceId} className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 font-bold text-white">
-                        {(() => {
-                           const IconComponent = tag.icon ? (icons as any)[tag.icon] : null;
+          {(() => {
+            const playerTags = localPlayer.tags.filter(t => t.showOnSmartphone);
+            const roleTags = (localRole?.tags || []).filter((t: any) => t.showOnSmartphone);
+            const allTags = [...playerTags, ...roleTags];
+            
+            if (allTags.length === 0) return null;
+            
+            return (
+              <div className="shrink-0 flex flex-col gap-3 mt-4">
+                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                  <TagIcon size={14} /> Effets & Rôle
+                </h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {allTags.map((tag: any) => {
+                    const tagId = tag.instanceId || `role-tag-${tag.id}`;
+                    return (
+                      <div key={tagId} className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 font-bold text-white">
+                          {(() => {
+                             const IconComponent = tag.icon ? (icons as any)[tag.icon] : null;
                            return IconComponent ? (
                              <IconComponent size={14} style={{ color: tag.color }} />
                            ) : (
@@ -506,42 +515,44 @@ export const PlayerView: React.FC = () => {
                              <div className="flex flex-col gap-1 max-h-32 overflow-y-auto custom-scrollbar pr-1 bg-zinc-950/30 p-2 rounded-lg border border-zinc-800/50">
                                 {roomPlayers.map(p => (
                                   <label key={p.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-colors ${p.isDead ? 'hover:bg-transparent opacity-50' : 'hover:bg-zinc-800/50'}`}>
-                                    <input 
-                                      type={tag.isSinglePlayerSelector ? "radio" : "checkbox"}
-                                      name={tag.isSinglePlayerSelector ? `selector-${tag.instanceId}` : undefined}
-                                      disabled={p.isDead}
-                                      checked={(selectedPlayersByTag[tag.instanceId] || []).includes(p.id)}
-                                      onChange={() => {
-                                        if (tag.isSinglePlayerSelector) {
-                                          setSelectedPlayersByTag(prev => ({ ...prev, [tag.instanceId]: [p.id] }));
-                                        } else {
-                                          togglePlayerSelection(tag.instanceId, p.id);
-                                        }
-                                      }}
-                                      className={`${tag.isSinglePlayerSelector ? 'rounded-full' : 'rounded'} bg-zinc-900 border-zinc-700 w-3.5 h-3.5`}
-                                    />
-                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
-                                    <span className={`text-xs text-zinc-300 truncate ${p.isDead ? 'line-through text-zinc-500' : ''}`}>{p.name}</span>
-                                  </label>
-                                ))}
+                                      <input 
+                                        type={tag.isSinglePlayerSelector ? "radio" : "checkbox"}
+                                        name={tag.isSinglePlayerSelector ? `selector-${tagId}` : undefined}
+                                        disabled={p.isDead}
+                                        checked={(selectedPlayersByTag[tagId] || []).includes(p.id)}
+                                        onChange={() => {
+                                          if (tag.isSinglePlayerSelector) {
+                                            setSelectedPlayersByTag(prev => ({ ...prev, [tagId]: [p.id] }));
+                                          } else {
+                                            togglePlayerSelection(tagId, p.id);
+                                          }
+                                        }}
+                                        className={`${tag.isSinglePlayerSelector ? 'rounded-full' : 'rounded'} bg-zinc-900 border-zinc-700 w-3.5 h-3.5`}
+                                      />
+                                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
+                                      <span className={`text-xs text-zinc-300 truncate ${p.isDead ? 'line-through text-zinc-500' : ''}`}>{p.name}</span>
+                                    </label>
+                                  ))}
+                               </div>
                              </div>
-                           </div>
-                        )}
-                        {tag.smartphoneButtonText && (
-                          <button
-                            onClick={() => handleSmartphoneAction(tag.instanceId, tag.smartphoneButtonFeedback || '', (!!tag.isMultiPlayerSelector || !!tag.isSinglePlayerSelector), !!tag.smartphoneAutoDelete, tag.smartphonePlayerFeedback)}
-                            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors w-full uppercase tracking-wider shadow-lg shadow-blue-900/20 active:scale-95"
-                          >
-                            {tag.smartphoneButtonText}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                          )}
+                          {tag.smartphoneButtonText && (
+                            <button
+                              onClick={() => handleSmartphoneAction(tagId, tag.smartphoneButtonFeedback || '', (!!tag.isMultiPlayerSelector || !!tag.isSinglePlayerSelector), !!tag.smartphoneAutoDelete, tag.smartphonePlayerFeedback)}
+                              className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors w-full uppercase tracking-wider shadow-lg shadow-blue-900/20 active:scale-95"
+                            >
+                              {tag.smartphoneButtonText}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Public Notice Board */}
           {noticeBoardPlayers.length > 0 && (

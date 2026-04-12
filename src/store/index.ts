@@ -447,6 +447,11 @@ export const useVttStore = create<VttStore>()(
         partialize: (state) => ({
           players: state.players,
           markers: state.markers,
+          tags: state.tags,
+          tagCategories: state.tagCategories,
+          teams: state.teams,
+          roles: state.roles,
+          displaySettings: state.displaySettings,
           isNight: state.isNight,
           cycleNumber: state.cycleNumber,
         }),
