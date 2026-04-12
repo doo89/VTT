@@ -191,6 +191,12 @@ export interface GameState {
     y: number;
   };
   soundboard: SoundboardState;
+  scoreboard: {
+    isDetached: boolean;
+    x: number;
+    y: number;
+    isOpen: boolean;
+  };
   activeLeftTab: 'players' | 'roles' | 'tags' | 'game' | 'handouts';
   editingEntity: { type: 'player' | 'playerTemplate' | 'role' | 'tagModel' | 'tagInstance' | 'team' | 'tagCategory' | 'playerNotes' | 'playerPublicNotes' | 'soundButton', id: EntityId, parentId?: EntityId } | null;
   canvas: {
@@ -237,6 +243,7 @@ export interface GameState {
       distribution: boolean;
       chrono: boolean;
       soundboard: boolean;
+      scoreboard: boolean;
       logs: boolean;
       system: boolean;
     };

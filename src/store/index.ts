@@ -10,6 +10,7 @@ interface VttStore extends GameState {
   setSoundboard: (soundboardUpdate: Partial<GameState['soundboard']>) => void;
   updateSoundButton: (index: number, updates: Partial<GameState['soundboard']['buttons'][0]>) => void;
   removeSoundButton: (index: number) => void;
+  setScoreboard: (scoreboardUpdate: Partial<GameState['scoreboard']>) => void;
   playerTemplates: PlayerTemplate[];
 
   // Selection & Interaction
@@ -148,6 +149,12 @@ export const initialState = {
     remotePasscode: '1234',
     remotePlayTrigger: null
   },
+  scoreboard: {
+    isDetached: false,
+    x: 300,
+    y: 200,
+    isOpen: false,
+  },
   activeLeftTab: 'players' as const,
   editingEntity: null,
   smartphoneActionMessage: null,
@@ -194,6 +201,7 @@ export const initialState = {
       distribution: true,
       chrono: true,
       soundboard: true,
+      scoreboard: true,
       logs: true,
       system: true,
     },
@@ -262,6 +270,7 @@ export const useVttStore = create<VttStore>()(
   setRoom: (roomUpdates) => set((state) => ({ room: { ...state.room, ...roomUpdates } })),
   setTimer: (timerUpdates) => set((state) => ({ timer: { ...state.timer, ...timerUpdates } })),
   setSoundboard: (soundboardUpdates) => set((state) => ({ soundboard: { ...state.soundboard, ...soundboardUpdates } })),
+  setScoreboard: (scoreboardUpdates) => set((state) => ({ scoreboard: { ...state.scoreboard, ...scoreboardUpdates } })),
   updateSoundButton: (index, updates) => set((state) => {
     const newButtons = [...state.soundboard.buttons];
     const existingIndex = newButtons.findIndex(b => b.index === index);

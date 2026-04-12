@@ -617,6 +617,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     { key: 'distribution', label: 'Distribution des Rôles' },
                     { key: 'chrono', label: 'Chronomètre' },
                     { key: 'soundboard', label: 'Boîte à Sons (Soundboard)' },
+                    { key: 'scoreboard', label: 'Tableau des Scores' },
                     { key: 'logs', label: 'Log / Historique' },
                     { key: 'system', label: 'Système & Connexion' }
                   ].map(tool => (
@@ -625,7 +626,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       <input
                         type="checkbox"
                         checked={(displaySettings.panels || {})[tool.key as keyof typeof displaySettings.panels] ?? true}
-                        onChange={(e) => updateDisplaySettings({ panels: { ...(displaySettings.panels || { distribution: true, chrono: true, soundboard: true, logs: true }), [tool.key]: e.target.checked } })}
+                        onChange={(e) => updateDisplaySettings({ 
+                          panels: { 
+                            ...(displaySettings.panels || {}), 
+                            [tool.key]: e.target.checked 
+                          } 
+                        })}
                         className="rounded border-border w-5 h-5 text-primary"
                       />
                       <span className="font-semibold text-sm">{tool.label}</span>

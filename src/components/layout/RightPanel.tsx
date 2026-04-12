@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -12,7 +12,8 @@ export const RightPanel: React.FC = () => {
     timer, setTimer,
     soundboard, setSoundboard,
     roles, updateRole, players, updatePlayers,
-    logs, clearLogs, addLog
+    logs, clearLogs, addLog,
+    scoreboard, setScoreboard
   } = useVttStore();
 
   const [activeSection, setActiveSection] = useState<string | null>('distribution');
@@ -452,6 +453,83 @@ export const RightPanel: React.FC = () => {
                     <ArrowUpRight size={14} /> Afficher la boîte à sons
                   </button>
                 </>
+              )}
+            </div>
+          )}
+        </section>
+        )}
+
+        {/* Tableau des Scores */}
+        {displaySettings.panels?.scoreboard !== false && (
+        <section className="flex flex-col border border-border rounded-md bg-background">
+          <button
+            onClick={() => toggleSection('scoreboard')}
+            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+          >
+            <div className={`flex items-center gap-2 ${activeSection === 'scoreboard' ? 'text-yellow-400' : ''}`}>
+              <Trophy size={16} /> Tableau des Scores
+            </div>
+            {activeSection === 'scoreboard' ? <ChevronDown size={16} className="text-yellow-400" /> : <ChevronRight size={16} />}
+          </button>
+          {activeSection === 'scoreboard' && (
+            <div className="flex flex-col p-3 border-t border-border gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Mode détaché</span>
+                <button
+                  onClick={() => setScoreboard({ isDetached: !scoreboard.isDetached })}
+                  className={`w-10 h-5 rounded-full transition-colors relative ${scoreboard.isDetached ? 'bg-primary' : 'bg-muted'}`}
+                >
+                  <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${scoreboard.isDetached ? 'left-6' : 'left-1'}`} />
+                </button>
+              </div>
+
+              <button
+                onClick={() => setScoreboard({ isOpen: !scoreboard.isOpen })}
+                className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Trophy size={14} /> {scoreboard.isOpen ? 'Masquer le tableau' : 'Afficher le tableau'}
+              </button>
+
+              {scoreboard.isOpen && !scoreboard.isDetached && (
+                <div className="mt-2 border border-border rounded-lg overflow-hidden bg-muted/10">
+                  <table className="w-full text-left text-[10px]">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground">Joueur</th>
+                        <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Pts</th>
+                        <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Vie</th>
+                        <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {[...players].sort((a, b) => (b.points || 0) - (a.points || 0)).map((player) => {
+                        const role = roles.find(r => r.id === player.roleId);
+                        return (
+                          <tr key={player.id} className={`${player.isDead ? 'opacity-50' : ''}`}>
+                            <td className="p-1.5">
+                              <div className="font-bold truncate max-w-[80px]">{player.name}</div>
+                              <div className="text-[8px] text-muted-foreground uppercase truncate max-w-[80px]">{role?.name || 'Sans Rôle'}</div>
+                            </td>
+                            <td className="p-1.5 text-center font-bold text-blue-400">{player.points || 0}</td>
+                            <td className="p-1.5 text-center">
+                               <div className="flex items-center justify-center gap-0.5 text-red-500">
+                                 <Heart size={8} fill={player.lives && player.lives > 0 ? "currentColor" : "none"} />
+                                 <span>{player.lives ?? 0}</span>
+                               </div>
+                            </td>
+                            <td className="p-1.5 text-center">
+                               {player.isDead ? (
+                                 <span className="text-destructive font-bold">Mort</span>
+                               ) : (
+                                 <span className="text-green-500 font-bold">Vif</span>
+                               )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           )}
