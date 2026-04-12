@@ -90,10 +90,10 @@ export const ScoreboardWindow: React.FC = () => {
             <tr>
               <th className="p-3 font-bold uppercase tracking-wider text-muted-foreground border-b border-border w-12 text-center">#</th>
               <th className="p-3 font-bold uppercase tracking-wider text-muted-foreground border-b border-border">Joueur</th>
-              <th className="p-3 font-bold uppercase tracking-wider text-muted-foreground border-b border-border">Points</th>
-              <th className="p-3 font-bold uppercase tracking-wider text-muted-foreground border-b border-border text-center">Vie</th>
-              <th className="p-3 font-bold uppercase tracking-wider text-muted-foreground border-b border-border text-center">Vote</th>
-              <th className="p-3 font-bold uppercase tracking-wider text-muted-foreground border-b border-border text-center">Statut</th>
+              {scoreboard.showPoints && <th className="p-3 font-bold uppercase tracking-wider text-muted-foreground border-b border-border text-center">Points</th>}
+              {scoreboard.showLives && <th className="p-3 font-bold uppercase tracking-wider text-muted-foreground border-b border-border text-center">Vie</th>}
+              {scoreboard.showVotes && <th className="p-3 font-bold uppercase tracking-wider text-muted-foreground border-b border-border text-center">Vote</th>}
+              {scoreboard.showStatus && <th className="p-3 font-bold uppercase tracking-wider text-muted-foreground border-b border-border text-center">Statut</th>}
             </tr>
           </thead>
           <tbody>
@@ -117,33 +117,43 @@ export const ScoreboardWindow: React.FC = () => {
                           <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: player.color }} />
                           <span className="font-bold text-sm truncate max-w-[120px]">{player.name}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium uppercase truncate">
-                          <Shield size={10} className="shrink-0" /> {role?.name || 'Sans Rôle'}
-                        </div>
+                        {scoreboard.showRoles && (
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium uppercase truncate">
+                            <Shield size={10} className="shrink-0" /> {role?.name || 'Sans Rôle'}
+                          </div>
+                        )}
                       </div>
                     </td>
-                    <td className="p-3">
-                       <span className="font-black text-blue-400 text-sm">{player.points || 0}</span>
-                    </td>
-                    <td className="p-3 text-center">
-                       <div className="flex items-center justify-center gap-1 text-red-500 font-bold">
-                         <Heart size={12} fill={player.lives && player.lives > 0 ? "currentColor" : "none"} />
-                         <span>{player.lives ?? 0}</span>
-                       </div>
-                    </td>
-                    <td className="p-3 text-center">
-                       <div className="flex items-center justify-center gap-1 text-purple-400 font-bold">
-                         <Vote size={12} />
-                         <span>{player.votes ?? 0}</span>
-                       </div>
-                    </td>
-                    <td className="p-3 text-center">
-                       {player.isDead ? (
-                         <span className="bg-destructive/10 text-destructive text-[10px] font-black px-2 py-0.5 rounded-full border border-destructive/20 uppercase tracking-tighter">Mort</span>
-                       ) : (
-                         <span className="bg-green-500/10 text-green-500 text-[10px] font-black px-2 py-0.5 rounded-full border border-green-500/20 uppercase tracking-tighter">Vivant</span>
-                       )}
-                    </td>
+                    {scoreboard.showPoints && (
+                      <td className="p-3 text-center">
+                         <span className="font-black text-blue-400 text-sm">{player.points || 0}</span>
+                      </td>
+                    )}
+                    {scoreboard.showLives && (
+                      <td className="p-3 text-center">
+                         <div className="flex items-center justify-center gap-1 text-red-500 font-bold">
+                           <Heart size={12} fill={player.lives && player.lives > 0 ? "currentColor" : "none"} />
+                           <span>{player.lives ?? 0}</span>
+                         </div>
+                      </td>
+                    )}
+                    {scoreboard.showVotes && (
+                      <td className="p-3 text-center">
+                         <div className="flex items-center justify-center gap-1 text-purple-400 font-bold">
+                           <Vote size={12} />
+                           <span>{player.votes ?? 0}</span>
+                         </div>
+                      </td>
+                    )}
+                    {scoreboard.showStatus && (
+                      <td className="p-3 text-center">
+                         {player.isDead ? (
+                           <span className="bg-destructive/10 text-destructive text-[10px] font-black px-2 py-0.5 rounded-full border border-destructive/20 uppercase tracking-tighter">Mort</span>
+                         ) : (
+                           <span className="bg-green-500/10 text-green-500 text-[10px] font-black px-2 py-0.5 rounded-full border border-green-500/20 uppercase tracking-tighter">Vivant</span>
+                         )}
+                      </td>
+                    )}
                   </tr>
                 );
               })

@@ -196,6 +196,11 @@ export interface GameState {
     x: number;
     y: number;
     isOpen: boolean;
+    showRoles: boolean;
+    showPoints: boolean;
+    showVotes: boolean;
+    showLives: boolean;
+    showStatus: boolean;
   };
   activeLeftTab: 'players' | 'roles' | 'tags' | 'game' | 'handouts';
   editingEntity: { type: 'player' | 'playerTemplate' | 'role' | 'tagModel' | 'tagInstance' | 'team' | 'tagCategory' | 'playerNotes' | 'playerPublicNotes' | 'soundButton', id: EntityId, parentId?: EntityId } | null;

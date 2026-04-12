@@ -636,6 +636,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       />
                       <span className="font-semibold text-sm">{tool.label}</span>
                     </label>
+                    {tool.key === 'scoreboard' && (displaySettings.panels?.scoreboard ?? true) && (
+                      <div className="ml-8 grid grid-cols-2 gap-2 p-3 bg-muted/10 border-l-2 border-yellow-500/30 rounded-r-lg">
+                        {[
+                          { key: 'showRoles', label: 'Afficher le rôle' },
+                          { key: 'showPoints', label: 'Afficher les points' },
+                          { key: 'showVotes', label: 'Afficher les votes' },
+                          { key: 'showStatus', label: 'Afficher le statut' }
+                        ].map(col => (
+                          <label key={col.key} className="flex items-center gap-2 cursor-pointer group">
+                            <input
+                              type="checkbox"
+                              checked={(useVttStore.getState().scoreboard as any)[col.key] ?? true}
+                              onChange={(e) => {
+                                const updates: any = {};
+                                updates[col.key] = e.target.checked;
+                                if (col.key === 'showVotes') updates.showLives = e.target.checked; // Link votes and lives for simplicity or just keep it
+                                useVttStore.getState().setScoreboard(updates);
+                              }}
+                              className="rounded border-border w-4 h-4 text-yellow-500 focus:ring-yellow-500"
+                            />
+                            <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                              {col.label}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
                     {tool.key === 'logs' && (displaySettings.panels?.logs ?? true) && (
                       <div className="ml-8 flex items-center gap-3 p-2 bg-muted/10 border-l-2 border-primary/30">
                         <label className="flex items-center gap-2 cursor-pointer group">

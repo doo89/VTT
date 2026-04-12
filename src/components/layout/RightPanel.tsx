@@ -496,9 +496,9 @@ export const RightPanel: React.FC = () => {
                     <thead className="bg-muted">
                       <tr>
                         <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground">Joueur</th>
-                        <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Pts</th>
-                        <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Vie</th>
-                        <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Statut</th>
+                        {scoreboard.showPoints && <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Pts</th>}
+                        {scoreboard.showLives && <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Vie</th>}
+                        {scoreboard.showStatus && <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Statut</th>}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
@@ -508,22 +508,26 @@ export const RightPanel: React.FC = () => {
                           <tr key={player.id} className={`${player.isDead ? 'opacity-50' : ''}`}>
                             <td className="p-1.5">
                               <div className="font-bold truncate max-w-[80px]">{player.name}</div>
-                              <div className="text-[8px] text-muted-foreground uppercase truncate max-w-[80px]">{role?.name || 'Sans Rôle'}</div>
+                              {scoreboard.showRoles && <div className="text-[8px] text-muted-foreground uppercase truncate max-w-[80px]">{role?.name || 'Sans Rôle'}</div>}
                             </td>
-                            <td className="p-1.5 text-center font-bold text-blue-400">{player.points || 0}</td>
-                            <td className="p-1.5 text-center">
-                               <div className="flex items-center justify-center gap-0.5 text-red-500">
-                                 <Heart size={8} fill={player.lives && player.lives > 0 ? "currentColor" : "none"} />
-                                 <span>{player.lives ?? 0}</span>
-                               </div>
-                            </td>
-                            <td className="p-1.5 text-center">
-                               {player.isDead ? (
-                                 <span className="text-destructive font-bold">Mort</span>
-                               ) : (
-                                 <span className="text-green-500 font-bold">Vif</span>
-                               )}
-                            </td>
+                            {scoreboard.showPoints && <td className="p-1.5 text-center font-bold text-blue-400">{player.points || 0}</td>}
+                            {scoreboard.showLives && (
+                              <td className="p-1.5 text-center">
+                                 <div className="flex items-center justify-center gap-0.5 text-red-500">
+                                   <Heart size={8} fill={player.lives && player.lives > 0 ? "currentColor" : "none"} />
+                                   <span>{player.lives ?? 0}</span>
+                                 </div>
+                              </td>
+                            )}
+                            {scoreboard.showStatus && (
+                              <td className="p-1.5 text-center">
+                                 {player.isDead ? (
+                                   <span className="text-destructive font-bold">Mort</span>
+                                 ) : (
+                                   <span className="text-green-500 font-bold">Vif</span>
+                                 )}
+                              </td>
+                            )}
                           </tr>
                         );
                       })}
