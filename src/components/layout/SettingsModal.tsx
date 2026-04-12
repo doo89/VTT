@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3 } from 'lucide-react';
+import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Sun } from 'lucide-react';
 import { useVttStore } from '../../store';
 import { ColorPicker } from '../ColorPicker';
+import { ThemeToggle } from '../ThemeToggle';
 import type { BadgeConfig, BadgeType } from '../../types';
 
 
@@ -264,8 +265,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     )}
                     <input type="file" ref={imageInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
                   </div>
-                 </div>
-               </section>
+                </div>
+              </section>
+
+                {/* Apparence */}
+                <section>
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3 flex items-center gap-2">
+                    <Sun size={16} /> Apparence (Thème)
+                  </h3>
+                  <div className="flex flex-col gap-2 p-3 bg-muted/20 border border-border rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Choisissez l'ambiance visuelle du logiciel (Clair ou Sombre).
+                    </p>
+                    <ThemeToggle className="w-fit" />
+                  </div>
+                </section>
              </div>
           )}
 
