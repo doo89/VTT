@@ -575,63 +575,64 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
                         Affiche les informations détaillées lors du survol d'un marqueur ou d'un tag.
                       </p>
-
-                      <div className="pl-8 mt-4 flex flex-col gap-3 border-l-2 border-border/10 ml-2.5">
-                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={displaySettings.showTagCallOrderDay ?? true}
-                            onChange={(e) => updateDisplaySettings({ showTagCallOrderDay: e.target.checked })}
-                            className="rounded border-border w-3.5 h-3.5 text-primary"
-                          />
-                          Afficher l'ordre d'appel du jour
-                        </label>
-                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={displaySettings.showTagCallOrderNight ?? true}
-                            onChange={(e) => updateDisplaySettings({ showTagCallOrderNight: e.target.checked })}
-                            className="rounded border-border w-3.5 h-3.5 text-primary"
-                          />
-                          Afficher l'ordre d'appel de la nuit
-                        </label>
-                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={displaySettings.showTagLives ?? true}
-                            onChange={(e) => updateDisplaySettings({ showTagLives: e.target.checked })}
-                            className="rounded border-border w-3.5 h-3.5 text-primary"
-                          />
-                          Afficher la vie
-                        </label>
-                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={displaySettings.showTagVotes ?? true}
-                            onChange={(e) => updateDisplaySettings({ showTagVotes: e.target.checked })}
-                            className="rounded border-border w-3.5 h-3.5 text-primary"
-                          />
-                          Afficher les votes
-                        </label>
-                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={displaySettings.showTagPoints ?? true}
-                            onChange={(e) => updateDisplaySettings({ showTagPoints: e.target.checked })}
-                            className="rounded border-border w-3.5 h-3.5 text-primary"
-                          />
-                          Afficher les points
-                        </label>
-                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={displaySettings.showTagUses ?? true}
-                            onChange={(e) => updateDisplaySettings({ showTagUses: e.target.checked })}
-                            className="rounded border-border w-3.5 h-3.5 text-primary"
-                          />
-                          Afficher le nombre d'utilisation
-                        </label>
-                      </div>
+                      {displaySettings.showTagTooltip && (
+                        <div className="pl-8 mt-4 flex flex-col gap-3 border-l-2 border-border/10 ml-2.5 anim-fade-down">
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showTagCallOrderDay ?? true}
+                              onChange={(e) => updateDisplaySettings({ showTagCallOrderDay: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Afficher l'ordre d'appel du jour
+                          </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showTagCallOrderNight ?? true}
+                              onChange={(e) => updateDisplaySettings({ showTagCallOrderNight: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Afficher l'ordre d'appel de la nuit
+                          </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showTagLives ?? true}
+                              onChange={(e) => updateDisplaySettings({ showTagLives: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Afficher la vie
+                          </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showTagVotes ?? true}
+                              onChange={(e) => updateDisplaySettings({ showTagVotes: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Afficher les votes
+                          </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showTagPoints ?? true}
+                              onChange={(e) => updateDisplaySettings({ showTagPoints: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Afficher les points
+                          </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showTagUses ?? true}
+                              onChange={(e) => updateDisplaySettings({ showTagUses: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Afficher le nombre d'utilisation
+                          </label>
+                        </div>
+                      )}
                     </div>
 
                     <div className="border-t border-border/20 pt-4 mt-2">
