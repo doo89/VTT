@@ -12,6 +12,7 @@ export const PlayerView: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room' | 'wiki'>('game');
   const [allRoles, setAllRoles] = useState<Role[]>([]);
+  const [allTeams, setAllTeams] = useState<Team[]>([]);
   const [roomData, setRoomData] = useState<any>(null);
   const [isHostOnline, setIsHostOnline] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
@@ -167,6 +168,9 @@ export const PlayerView: React.FC = () => {
         
         // Store all roles for the Wiki
         setAllRoles(data.roles || []);
+
+        // Store all teams for the Wiki
+        setAllTeams(data.teams || []);
 
         // Update notice board players
         const noticeBoard = data.players.filter(p => p.publicNotes && p.publicNotesNoticeBoard);
@@ -942,7 +946,7 @@ export const PlayerView: React.FC = () => {
                      {filteredRoles && filteredRoles.length > 0 ? (
                         filteredRoles.map(role => {
                          const isExpanded = expandedNoticeId === `role-wiki-${role.id}`;
-                         const team = displaySettings?.teams?.find((t: any) => t.id === role.teamId);
+                         const team = allTeams.find(t => t.id === role.teamId);
                          
                          return (
                             <div 
