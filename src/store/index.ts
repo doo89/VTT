@@ -233,6 +233,8 @@ export const initialState = {
       allowNotesForDeadPlayers: true,
       showNotePreview: true,
     },
+    wikiTitle: 'NOTE DU MAÎTRE DU JEU',
+    wikiLightMode: false,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,

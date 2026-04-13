@@ -30,8 +30,8 @@ export const PlayerView: React.FC = () => {
   const [displaySettings, setDisplaySettings] = useState<any>(null);
   const [wiki, setWiki] = useState<any>(null);
   const [wikiLightMode, setWikiLightMode] = useState(false);
-  const [isWikiNotesOpen, setIsWikiNotesOpen] = useState(true);
-  const [isWikiRolesOpen, setIsWikiRolesOpen] = useState(true);
+  const [isWikiNotesOpen, setIsWikiNotesOpen] = useState(false);
+  const [isWikiRolesOpen, setIsWikiRolesOpen] = useState(false);
   const [expandedPlayerNotesId, setExpandedPlayerNotesId] = useState<string | null>(null);
   const [playerNotes, setPlayerNotes] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem(`vtt_player_notes_${roomId}`);
@@ -135,6 +135,12 @@ export const PlayerView: React.FC = () => {
         setCycleMode(data.cycleMode || 'dayNight');
         setDisplaySettings(data.displaySettings || null);
         setWiki(data.wiki || null);
+        
+        // Initial light mode from GM settings if not already toggled by user
+        if (data.displaySettings?.wikiLightMode !== undefined) {
+           setWikiLightMode(prev => prev || data.displaySettings.wikiLightMode);
+        }
+
         setRoomData(data.room || null);
 
         // Normalize strings for comparison (remove accents & lowercase)
@@ -862,7 +868,9 @@ export const PlayerView: React.FC = () => {
                        className="flex items-center gap-2 flex-1 text-left"
                     >
                        <icons.Book size={18} className="text-blue-500" />
-                       <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Notes du Maître du Jeu</h3>
+                       <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">
+                          {displaySettings?.wikiTitle || 'NOTE DU MAÎTRE DU JEU'}
+                       </h3>
                        {isWikiNotesOpen ? <icons.ChevronUp size={16} className="text-zinc-600" /> : <icons.ChevronDown size={16} className="text-zinc-600" />}
                     </button>
                     {isWikiNotesOpen && (

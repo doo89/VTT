@@ -281,5 +281,7 @@ export interface GameState {
       allowNotesForDeadPlayers: boolean;
       showNotePreview: boolean;
     };
+    wikiTitle?: string;
+    wikiLightMode?: boolean;
   };
 }

@@ -577,6 +577,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           />
                           Afficher l'onglet "Wiki" (Notes & Rôles)
                         </label>
+                        <div className="flex flex-col gap-2 ml-7 mt-1">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Titre du Wiki</label>
+                            <input
+                              type="text"
+                              value={displaySettings.wikiTitle || 'NOTE DU MAÎTRE DU JEU'}
+                              onChange={(e) => updateDisplaySettings({ wikiTitle: e.target.value })}
+                              placeholder="Ex: NOTE DU MAÎTRE DU JEU"
+                              className="bg-input border border-border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary w-full max-w-[200px]"
+                            />
+                          </div>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.wikiLightMode || false}
+                              onChange={(e) => updateDisplaySettings({ wikiLightMode: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Fond clair (Améliore la lisibilité)
+                          </label>
+                        </div>
                      </div>
                    </div>
 
