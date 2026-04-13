@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
-import { Book, X, Bold, Italic, Underline, List, ListOrdered, Palette, Type, ArrowUpRight } from 'lucide-react';
+import { Book, X, Bold, Italic, Underline, List, ListOrdered, Palette, Type } from 'lucide-react';
 
 export const WikiWindow: React.FC = () => {
   const { wiki, setWiki } = useVttStore();
