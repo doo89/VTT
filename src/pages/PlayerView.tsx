@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import type { SyncStatePayload } from '../lib/supabase';
 import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock, Gamepad2, Users, Map, Power, Trash2 } from 'lucide-react';
 import * as icons from 'lucide-react';
+import { useVttStore } from '../store';
 import type { Player, Role, Team } from '../types';
 
 export const PlayerView: React.FC = () => {
@@ -143,6 +144,12 @@ export const PlayerView: React.FC = () => {
         }
 
         setRoomData(data.room || null);
+        
+        // Push custom popups to the global store so that CustomPopupOverlay can render them
+        useVttStore.setState({
+          customPopups: (data as any).customPopups || [],
+          activeCustomPopupId: (data as any).activeCustomPopupId || null
+        });
 
         // Normalize strings for comparison (remove accents & lowercase)
         const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();

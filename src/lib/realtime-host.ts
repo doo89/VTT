@@ -315,6 +315,11 @@ export const forceBroadcastState = () => {
       // Strip backgroundImage if it's a base64 blob — send only external URLs
       backgroundImage: stripImage(state.room.backgroundImage),
     },
+    customPopups: state.customPopups.map(p => ({
+      ...p,
+      imageUrl: stripImage(p.imageUrl)
+    })),
+    activeCustomPopupId: state.activeCustomPopupId,
   };
 
   const payloadSize = JSON.stringify(payload).length;
@@ -351,6 +356,8 @@ export const setupHostRealtimeSubscription = () => {
       state.displaySettings !== prevState.displaySettings ||
       state.soundboard !== prevState.soundboard ||
       state.wiki !== prevState.wiki ||
+      state.customPopups !== prevState.customPopups ||
+      state.activeCustomPopupId !== prevState.activeCustomPopupId ||
       state.room !== prevState.room;
 
     if (state.roomCode !== prevState.roomCode) {
