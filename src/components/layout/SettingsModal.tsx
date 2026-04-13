@@ -642,10 +642,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
                           className="rounded border-border w-5 h-5 text-primary"
                         />
-                        Toujours afficher le nom des tags/marqueurs
+                        Afficher le nom des tags/marqueurs
                       </label>
                       <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
-                        Affiche le nom du marqueur en permanence sur le plateau, même sans survoler l'élément.
+                        Affiche le nom du marqueur en permanence sur le plateau.
                       </p>
                     </div>
                   </div>
