@@ -561,19 +561,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     <p className="text-[11px] text-muted-foreground pl-8 leading-relaxed -mt-2">
                       Si activé, le glisser-déposer d'un tag (marqueur) sur un joueur fusionnera automatiquement l'entité sans demander de confirmation.
                     </p>
-                    
+
                     <div className="border-t border-border/20 pt-4 mt-2">
                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
                         <input
                           type="checkbox"
-                          checked={displaySettings.showTagName}
-                          onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
+                          checked={displaySettings.showTagTooltip ?? true}
+                          onChange={(e) => updateDisplaySettings({ showTagTooltip: e.target.checked })}
                           className="rounded border-border w-5 h-5 text-primary"
                         />
-                        Toujours afficher le nom des tags/marqueurs
+                        Afficher l'info bulle des tags
                       </label>
                       <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
-                        Affiche le nom du marqueur en permanence sur le plateau, même sans survoler l'élément.
+                        Affiche les informations détaillées lors du survol d'un marqueur ou d'un tag.
                       </p>
 
                       <div className="pl-8 mt-4 flex flex-col gap-3 border-l-2 border-border/10 ml-2.5">
@@ -632,6 +632,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           Afficher le nombre d'utilisation
                         </label>
                       </div>
+                    </div>
+
+                    <div className="border-t border-border/20 pt-4 mt-2">
+                      <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
+                        <input
+                          type="checkbox"
+                          checked={displaySettings.showTagName}
+                          onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
+                          className="rounded border-border w-5 h-5 text-primary"
+                        />
+                        Toujours afficher le nom des tags/marqueurs
+                      </label>
+                      <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
+                        Affiche le nom du marqueur en permanence sur le plateau, même sans survoler l'élément.
+                      </p>
                     </div>
                   </div>
                 </div>

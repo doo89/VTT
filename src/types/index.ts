@@ -300,5 +300,6 @@ export interface GameState {
     showTagVotes?: boolean;
     showTagPoints?: boolean;
     showTagUses?: boolean;
+    showTagTooltip?: boolean;
   };
 }

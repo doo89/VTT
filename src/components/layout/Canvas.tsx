@@ -994,7 +994,7 @@ export const Canvas: React.FC = () => {
                     {displaySettings.showRole && effectiveRole && <p>Rôle: <span style={{ color: effectiveRole.color }}>{effectiveRole.name}</span></p>}
                     {displaySettings.showTeam && team && <p>Équipe: <span style={{ color: team.color }}>{team.name}</span></p>}
                     {player.isDead && <p className="text-destructive font-bold">Mort</p>}
-                    {displaySettings.showTags && (
+                    {displaySettings.showTags && displaySettings.showTagTooltip !== false && (
                       player.tags.some(t => t.showInTooltip !== false) ||
                       (role && role.tags && role.tags.some(t => t.showInTooltip !== false))
                     ) && (
@@ -1137,7 +1137,8 @@ export const Canvas: React.FC = () => {
                 )}
 
                 {/* Tooltip */}
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-7 w-max max-w-[200px] bg-popover text-popover-foreground text-xs p-2 rounded shadow-xl border border-border opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                {displaySettings.showTagTooltip !== false && (
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-7 w-max max-w-[200px] bg-popover text-popover-foreground text-xs p-2 rounded shadow-xl border border-border opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                   <p className="font-bold" style={{ color: marker.tag.color }}>{marker.tag.name}</p>
                   <div className="text-[10px] text-muted-foreground mt-1 flex flex-wrap gap-x-2">
                     {displaySettings.showTagCallOrderDay && marker.tag.callOrderDay !== null && marker.tag.callOrderDay !== '' && <span>J:{marker.tag.callOrderDay}</span>}
@@ -1148,7 +1149,8 @@ export const Canvas: React.FC = () => {
                     {displaySettings.showTagVotes && marker.tag.votes !== null && <span>Votes: {marker.tag.votes === -1 ? 'Illimité' : marker.tag.votes}</span>}
                   </div>
                   {marker.tag.description && <p className="text-[10px] text-muted-foreground italic mt-1 whitespace-pre-wrap">{marker.tag.description}</p>}
-                </div>
+                  </div>
+                )}
               </div>
             );
           })}

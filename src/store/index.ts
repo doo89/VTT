@@ -252,6 +252,7 @@ export const initialState = {
     showTagVotes: true,
     showTagPoints: true,
     showTagUses: true,
+    showTagTooltip: true,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
