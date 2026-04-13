@@ -511,7 +511,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                              <input
                                type="checkbox"
                                checked={displaySettings.smartphonePlayersOptions?.allowPrivateNotes ?? true}
-                               onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true }), allowPrivateNotes: e.target.checked } })}
+                               onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true, showNotePreview: true }), allowPrivateNotes: e.target.checked } })}
                                className="rounded border-border w-3.5 h-3.5 text-primary"
                              />
                              Mettre des notes privés
@@ -521,17 +521,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                <input
                                  type="checkbox"
                                  checked={displaySettings.smartphonePlayersOptions?.allowNotesForDeadPlayers ?? true}
-                                 onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true }), allowNotesForDeadPlayers: e.target.checked } })}
+                                 onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true, showNotePreview: true }), allowNotesForDeadPlayers: e.target.checked } })}
                                  className="rounded border-border w-3 h-3 text-primary"
                                />
                                Même aux morts
+                             </label>
+                           )}
+                           {(displaySettings.smartphonePlayersOptions?.allowPrivateNotes !== false) && (
+                             <label className="flex items-center gap-3 text-[10px] cursor-pointer hover:text-primary transition-colors pl-6 border-l border-border/20 ml-1.5 -mt-1 mb-1 opacity-80">
+                               <input
+                                 type="checkbox"
+                                 checked={displaySettings.smartphonePlayersOptions?.showNotePreview ?? true}
+                                 onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true, showNotePreview: true }), showNotePreview: e.target.checked } })}
+                                 className="rounded border-border w-3 h-3 text-primary"
+                               />
+                               Visible sous le nom du joueur
                              </label>
                            )}
                            <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
                              <input
                                type="checkbox"
                                checked={displaySettings.smartphonePlayersOptions?.showDeadPlayers ?? true}
-                               onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true }), showDeadPlayers: e.target.checked } })}
+                               onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true, showNotePreview: true }), showDeadPlayers: e.target.checked } })}
                                className="rounded border-border w-3.5 h-3.5 text-primary"
                              />
                              Afficher les morts
@@ -540,7 +551,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                              <input
                                type="checkbox"
                                checked={displaySettings.smartphonePlayersOptions?.includeSelf ?? true}
-                               onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true }), includeSelf: e.target.checked } })}
+                               onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true, showNotePreview: true }), includeSelf: e.target.checked } })}
                                className="rounded border-border w-3.5 h-3.5 text-primary"
                              />
                              Inclure le joueur du smartphone

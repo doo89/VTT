@@ -221,6 +221,7 @@ export const initialState = {
       showDeadPlayers: true,
       includeSelf: true,
       allowNotesForDeadPlayers: true,
+      showNotePreview: true,
     },
   },
   isLeftPanelOpen: true,

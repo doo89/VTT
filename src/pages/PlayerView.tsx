@@ -274,7 +274,8 @@ export const PlayerView: React.FC = () => {
     allowPrivateNotes: true, 
     showDeadPlayers: true, 
     includeSelf: true,
-    allowNotesForDeadPlayers: true
+    allowNotesForDeadPlayers: true,
+    showNotePreview: true
   };
 
   const filteredPlayers = useMemo(() => {
@@ -730,7 +731,7 @@ export const PlayerView: React.FC = () => {
                             {p.name} {isLocal && <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded ml-1 font-black">MOI</span>}
                           </span>
                           {p.isDead && <span className="text-[10px] font-bold text-red-900/70 uppercase tracking-widest leading-none">Mort</span>}
-                          {!p.isDead && playerNotes[p.id] && (
+                          {smartphoneOptions.showNotePreview !== false && !p.isDead && playerNotes[p.id] && (
                             <span className="text-[10px] text-zinc-500 truncate italic mt-1">Note: {playerNotes[p.id]}</span>
                           )}
                         </div>

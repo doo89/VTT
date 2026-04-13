@@ -268,6 +268,7 @@ export interface GameState {
       showDeadPlayers: boolean;
       includeSelf: boolean;
       allowNotesForDeadPlayers: boolean;
+      showNotePreview: boolean;
     };
   };
 }
