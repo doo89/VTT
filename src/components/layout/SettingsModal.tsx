@@ -615,6 +615,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             />
                             Afficher les Rôles
                           </label>
+                          <div className="flex flex-col gap-1.5 ml-5 mt-1">
+                            <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.wikiOnlySelectedRoles || false}
+                                onChange={(e) => updateDisplaySettings({ wikiOnlySelectedRoles: e.target.checked })}
+                                className="rounded border-border w-3.5 h-3.5 text-primary"
+                              />
+                              Seulement les rôles sélectionnés
+                            </label>
+                            <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.wikiOnlyInPlayRoles || false}
+                                onChange={(e) => updateDisplaySettings({ wikiOnlyInPlayRoles: e.target.checked })}
+                                className="rounded border-border w-3.5 h-3.5 text-primary"
+                              />
+                              Seulement les rôles en jeu
+                            </label>
+                          </div>
                         </div>
                      </div>
                    </div>

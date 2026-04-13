@@ -280,6 +280,24 @@ export const PlayerView: React.FC = () => {
   const showRoom = hasSelectedTabs ? (smartphoneTabs.room ?? true) : false;
   const showWiki = hasSelectedTabs ? (smartphoneTabs.wiki ?? true) : false;
 
+  const filteredRoles = useMemo(() => {
+    if (!allRoles) return [];
+    let roles = [...allRoles];
+    
+    // Filter by selected roles
+    if (displaySettings?.wikiOnlySelectedRoles) {
+      roles = roles.filter(r => (r.distributionQuantity || 0) > 0);
+    }
+    
+    // Filter by roles in play
+    if (displaySettings?.wikiOnlyInPlayRoles) {
+      const activeRoleIds = new Set(roomPlayers.map(p => p.roleId).filter(id => id !== null));
+      roles = roles.filter(r => activeRoleIds.has(r.id));
+    }
+    
+    return roles;
+  }, [allRoles, roomPlayers, displaySettings?.wikiOnlySelectedRoles, displaySettings?.wikiOnlyInPlayRoles]);
+
   useEffect(() => {
     if (activeTab === 'players' && !showPlayers) setActiveTab(showGame ? 'game' : (showRoom ? 'room' : 'wiki'));
     if (activeTab === 'room' && !showRoom) setActiveTab(showGame ? 'game' : (showPlayers ? 'players' : 'wiki'));
@@ -921,8 +939,8 @@ export const PlayerView: React.FC = () => {
 
                  {isWikiRolesOpen && (
                    <div className="flex flex-col gap-3 animate-in slide-in-from-top-2">
-                     {allRoles && allRoles.length > 0 ? (
-                        allRoles.map(role => {
+                     {filteredRoles && filteredRoles.length > 0 ? (
+                        filteredRoles.map(role => {
                          const isExpanded = expandedNoticeId === `role-wiki-${role.id}`;
                          const team = displaySettings?.teams?.find((t: any) => t.id === role.teamId);
                          

@@ -237,6 +237,8 @@ export const initialState = {
     wikiLightMode: false,
     showWikiNotes: true,
     showWikiRoles: true,
+    wikiOnlySelectedRoles: false,
+    wikiOnlyInPlayRoles: false,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
