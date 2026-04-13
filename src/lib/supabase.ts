@@ -37,6 +37,7 @@ export type SyncStatePayload = {
   isNight: boolean;
   cycleMode: 'dayNight' | 'turns' | 'none';
   displaySettings: any;
+  wiki: any;
   room: any;
 };
 
