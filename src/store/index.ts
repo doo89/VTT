@@ -229,6 +229,7 @@ export const initialState = {
       logs: true,
       system: true,
       wiki: true,
+      popupCreator: true,
     },
     recordLogs: true,
     smartphoneTabs: {

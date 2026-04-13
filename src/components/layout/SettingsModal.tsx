@@ -1051,6 +1051,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     { key: 'scoreboard', label: 'Tableau des Scores' },
                     { key: 'logs', label: 'Log / Historique' },
                     { key: 'wiki', label: 'Wiki / Notes GM' },
+                    { key: 'popupCreator', label: 'Créateur de Popup' },
                     { key: 'system', label: 'Système & Connexion' }
                   ].map(tool => (
                     <div key={tool.key} className="flex flex-col gap-2">

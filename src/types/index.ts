@@ -280,6 +280,7 @@ export interface GameState {
       logs: boolean;
       system: boolean;
       wiki: boolean;
+      popupCreator: boolean;
     };
     recordLogs: boolean;
     smartphoneTabs: {

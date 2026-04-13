@@ -725,71 +725,73 @@ export const RightPanel: React.FC = () => {
         )}
 
         {/* Créateur de Popup */}
-        <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('popups')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'popups' ? 'text-indigo-400' : ''}`}>
-              <MessageSquare size={16} /> Créateur de Popup ({customPopups.length})
-            </div>
-            {activeSection === 'popups' ? <ChevronDown size={16} className="text-indigo-400" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'popups' && (
-            <div className="p-3 flex flex-col gap-3 border-t border-border">
-               <button
-                  onClick={() => {
-                    setEditingPopupId(null);
-                    setNewPopupData({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
-                    setShowPopupCreator(true);
-                  }}
-                  className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
-                >
-                  <Plus size={14} /> Ajouter popup
-                </button>
-
-                <div className="flex flex-col gap-2 mt-2">
-                  {customPopups.map(popup => (
-                    <div key={popup.id} className="flex flex-col gap-1 w-full bg-muted/20 border border-border/50 rounded-md p-2">
-                      <div className="flex justify-between items-center w-full">
-                        <span className="text-xs font-bold truncate pr-2">{popup.title}</span>
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => {
-                            setEditingPopupId(popup.id);
-                            setNewPopupData({
-                              title: popup.title,
-                              imageUrl: popup.imageUrl || '',
-                              content: popup.content,
-                              showCloseButton: popup.showCloseButton,
-                              autoCloseTimer: popup.autoCloseTimer
-                            });
-                            setShowPopupCreator(true);
-                          }} className="text-muted-foreground hover:text-primary transition-colors p-1" title="Modifier">
-                            <Edit2 size={12} />
-                          </button>
-                          <button onClick={async () => {
-                            if (popup.imageUrl) await deleteImageFromStorage(popup.imageUrl);
-                            deleteCustomPopup(popup.id);
-                          }} className="text-destructive hover:text-white hover:bg-destructive p-1 rounded transition-colors" title="Supprimer">
-                            <Trash2 size={12} />
-                          </button>
+        {(displaySettings.panels?.popupCreator ?? true) && (
+          <section className="flex flex-col border border-border rounded-md bg-background">
+            <button
+              onClick={() => toggleSection('popups')}
+              className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+            >
+              <div className={`flex items-center gap-2 ${activeSection === 'popups' ? 'text-indigo-400' : ''}`}>
+                <MessageSquare size={16} /> Créateur de Popup ({customPopups.length})
+              </div>
+              {activeSection === 'popups' ? <ChevronDown size={16} className="text-indigo-400" /> : <ChevronRight size={16} />}
+            </button>
+            {activeSection === 'popups' && (
+              <div className="p-3 flex flex-col gap-3 border-t border-border">
+                 <button
+                    onClick={() => {
+                      setEditingPopupId(null);
+                      setNewPopupData({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+                      setShowPopupCreator(true);
+                    }}
+                    className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <Plus size={14} /> Ajouter popup
+                  </button>
+  
+                  <div className="flex flex-col gap-2 mt-2">
+                    {customPopups.map(popup => (
+                      <div key={popup.id} className="flex flex-col gap-1 w-full bg-muted/20 border border-border/50 rounded-md p-2">
+                        <div className="flex justify-between items-center w-full">
+                          <span className="text-xs font-bold truncate pr-2">{popup.title}</span>
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => {
+                              setEditingPopupId(popup.id);
+                              setNewPopupData({
+                                title: popup.title,
+                                imageUrl: popup.imageUrl || '',
+                                content: popup.content,
+                                showCloseButton: popup.showCloseButton,
+                                autoCloseTimer: popup.autoCloseTimer
+                              });
+                              setShowPopupCreator(true);
+                            }} className="text-muted-foreground hover:text-primary transition-colors p-1" title="Modifier">
+                              <Edit2 size={12} />
+                            </button>
+                            <button onClick={async () => {
+                              if (popup.imageUrl) await deleteImageFromStorage(popup.imageUrl);
+                              deleteCustomPopup(popup.id);
+                            }} className="text-destructive hover:text-white hover:bg-destructive p-1 rounded transition-colors" title="Supprimer">
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
                         </div>
+                        <button
+                          onClick={() => triggerCustomPopup(popup.id)}
+                          className="w-full mt-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded text-[10px] uppercase font-bold py-1.5 transition-colors border border-indigo-500/30 flex justify-center items-center gap-1.5"
+                        >
+                           <MonitorUp size={12} /> Afficher à tous
+                        </button>
                       </div>
-                      <button
-                        onClick={() => triggerCustomPopup(popup.id)}
-                        className="w-full mt-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded text-[10px] uppercase font-bold py-1.5 transition-colors border border-indigo-500/30 flex justify-center items-center gap-1.5"
-                      >
-                         <MonitorUp size={12} /> Afficher à tous
-                      </button>
-                    </div>
-                  ))}
-                  {customPopups.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic text-center py-2">Aucune popup créée.</p>
-                  )}
-                </div>
-            </div>
-          )}
-        </section>
+                    ))}
+                    {customPopups.length === 0 && (
+                      <p className="text-xs text-muted-foreground italic text-center py-2">Aucune popup créée.</p>
+                    )}
+                  </div>
+              </div>
+            )}
+          </section>
+        )}
 
       </div>
 
