@@ -306,5 +306,7 @@ export interface GameState {
     showTagSeenInTeam?: boolean;
     showTagDescription?: boolean;
     showTagNameInTooltip?: boolean;
+    showTagNameSeenAsRole?: boolean;
+    showTagNameSeenInTeam?: boolean;
   };
 }

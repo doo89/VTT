@@ -681,18 +681,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     </div>
 
                     <div className="border-t border-border/20 pt-4 mt-2">
-                      <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
-                        <input
-                          type="checkbox"
-                          checked={displaySettings.showTagName}
-                          onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
-                          className="rounded border-border w-5 h-5 text-primary"
-                        />
-                        Afficher le nom des tags/marqueurs
-                      </label>
-                      <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
-                        Affiche le nom du marqueur en permanence sur le plateau.
-                      </p>
+                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showTagName}
+                            onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
+                            className="rounded border-border w-5 h-5 text-primary"
+                          />
+                          Afficher le nom des tags/marqueurs
+                        </label>
+                        <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
+                          Affiche le nom du marqueur en permanence sur le plateau.
+                        </p>
+                        
+                        {displaySettings.showTagName && (
+                          <div className="pl-8 mt-4 flex flex-col gap-3 border-l-2 border-border/10 ml-2.5 anim-fade-down">
+                            <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={!!displaySettings.showTagNameSeenAsRole}
+                                onChange={(e) => updateDisplaySettings({ showTagNameSeenAsRole: e.target.checked })}
+                                className="rounded border-border w-3.5 h-3.5 text-primary"
+                              />
+                              Rôle vu comme
+                            </label>
+                            <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={!!displaySettings.showTagNameSeenInTeam}
+                                onChange={(e) => updateDisplaySettings({ showTagNameSeenInTeam: e.target.checked })}
+                                className="rounded border-border w-3.5 h-3.5 text-primary"
+                              />
+                              Equipe vue comme
+                            </label>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>

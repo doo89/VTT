@@ -1146,8 +1146,22 @@ export const Canvas: React.FC = () => {
 
                 {/* Tag Name Label */}
                 {displaySettings.showTagName && (
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap border border-border pointer-events-none text-center flex flex-col items-center">
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap border border-border pointer-events-none text-center flex flex-col items-center min-w-[40px]">
                     <span className="text-xs">{marker.tag.name}</span>
+                    {(displaySettings.showTagNameSeenAsRole && marker.tag.seenAsRoleId) || (displaySettings.showTagNameSeenInTeam && marker.tag.seenInTeamId) ? (
+                      <div className="flex flex-col gap-0 border-t border-border/20 mt-0.5 pt-0.5 w-full">
+                        {displaySettings.showTagNameSeenAsRole && marker.tag.seenAsRoleId && (
+                          <span className="text-[8px] opacity-80 italic font-medium leading-tight">
+                            {roles.find(r => r.id === marker.tag.seenAsRoleId)?.name || 'Inconnu'}
+                          </span>
+                        )}
+                        {displaySettings.showTagNameSeenInTeam && marker.tag.seenInTeamId && (
+                          <span className="text-[8px] opacity-80 italic font-medium leading-tight">
+                            {teams.find(tm => tm.id === marker.tag.seenInTeamId)?.name || 'Inconnue'}
+                          </span>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 )}
 
