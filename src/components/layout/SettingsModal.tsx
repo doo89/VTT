@@ -648,6 +648,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                               className="rounded border-border w-3.5 h-3.5 text-primary"
                             />
                             Supprimé à 0 utilisation
+                            <div className="bg-destructive text-destructive-foreground rounded-full p-0.5 shadow-sm border border-background scale-75">
+                              <Trash2 size={8} />
+                            </div>
                           </label>
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
@@ -731,6 +734,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                            className="rounded border-border w-5 h-5 text-primary"
                          />
                          Action sur smartphone
+                         <div className="bg-blue-500 text-white rounded-full p-0.5 shadow-sm border border-background scale-75">
+                           <Smartphone size={8} />
+                         </div>
                        </label>
                        <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
                          Affiche une pastille de téléphone sur les tags ayant une action smartphone configurée.
