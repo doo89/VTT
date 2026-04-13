@@ -90,7 +90,6 @@ export const TagDistributorWindow: React.FC = () => {
               draggable
               onDragStart={(e) => {
                 e.dataTransfer.setData('application/json', JSON.stringify({ type: 'new_marker', data: tag }));
-                e.dataTransfer.effectAllowed = 'copy';
               }}
               className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 cursor-grab transform transition-all active:scale-95"
               title="Glisser vers la salle ou un joueur"
