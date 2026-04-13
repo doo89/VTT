@@ -1,25 +1,39 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useVttStore } from '../store';
+import { useVttStore, initialState } from '../store';
 import { Book, X, Bold, Italic, Underline, List, ListOrdered, Palette, Type } from 'lucide-react';
 
 export const WikiWindow: React.FC = () => {
-  const { wiki: storeWiki, setWiki } = useVttStore();
-  const wiki = storeWiki || { isOpen: false, isDetached: false, x: 400, y: 200, content: '' };
+  const storeWiki = useVttStore(state => state.wiki);
+  const setWiki = useVttStore(state => state.setWiki);
+  const wiki = storeWiki || initialState.wiki || { isOpen: false, isDetached: false, x: 400, y: 200, content: '' };
+  
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
 
+  // Sync editor content with store content when window opens or store content changes (from sync)
+  useEffect(() => {
+    if (editorRef.current && wiki.isOpen && wiki.isDetached) {
+      if (editorRef.current.innerHTML !== wiki.content) {
+        editorRef.current.innerHTML = wiki.content;
+      }
+    }
+  }, [wiki.isOpen, wiki.isDetached, wiki.content]);
+
   if (!wiki.isOpen || !wiki.isDetached) return null;
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (!(e.target as HTMLElement).closest('.drag-handle')) return;
+    const target = e.target as HTMLElement;
+    if (!target.closest('.drag-handle')) return;
+    if (target.closest('button')) return;
+
     setIsDragging(true);
     e.currentTarget.setPointerCapture(e.pointerId);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
-      initX: wiki.x,
-      initY: wiki.y
+      initX: wiki.x || 400,
+      initY: wiki.y || 200
     };
   };
 
@@ -54,18 +68,24 @@ export const WikiWindow: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== wiki.content) {
-      editorRef.current.innerHTML = wiki.content;
-    }
-  }, []);
+  const toggleDetached = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setWiki({ isDetached: false });
+  };
+
+  const closeWiki = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setWiki({ isOpen: false });
+  };
 
   return (
     <div
       className="fixed bg-card border border-border shadow-2xl rounded-xl overflow-hidden flex flex-col z-[150] w-[500px] h-[600px] touch-none"
       style={{
-        left: wiki.x,
-        top: wiki.y,
+        left: wiki.x || 400,
+        top: wiki.y || 200,
         transition: isDragging ? 'none' : 'opacity 0.2s',
       }}
       onPointerDown={handlePointerDown}
@@ -77,22 +97,16 @@ export const WikiWindow: React.FC = () => {
         <div className="flex items-center gap-2 text-sm font-bold text-blue-400 select-none">
           <Book size={16} /> Wiki
         </div>
-        <div className="flex items-center gap-1 text-white">
+        <div className="flex items-center gap-1">
           <button
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              setWiki({ isDetached: false });
-            }}
+            onClick={toggleDetached}
             className="p-1.5 hover:bg-accent hover:text-foreground text-muted-foreground rounded transition-colors text-[10px] font-bold uppercase tracking-tighter"
             title="Rattacher au panneau"
           >
             Rattacher
           </button>
           <button
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              setWiki({ isOpen: false });
-            }}
+            onClick={closeWiki}
             className="p-1 hover:bg-destructive hover:text-white text-muted-foreground rounded transition-colors"
           >
             <X size={18} />
@@ -119,7 +133,7 @@ export const WikiWindow: React.FC = () => {
         ref={editorRef}
         contentEditable
         onInput={onInput}
-        className="flex-1 p-4 overflow-y-auto custom-scrollbar focus:outline-none prose prose-invert max-w-none text-sm leading-relaxed text-foreground"
+        className="flex-1 p-4 overflow-y-auto custom-scrollbar focus:outline-none text-sm leading-relaxed text-foreground"
         style={{ minHeight: '100px' }}
       />
     </div>

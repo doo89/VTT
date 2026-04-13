@@ -17,9 +17,12 @@ if (sburl && sbkey) {
 }
 
 import App from './App.tsx'
+import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )

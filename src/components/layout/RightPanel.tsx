@@ -638,7 +638,7 @@ export const RightPanel: React.FC = () => {
                      Le Wiki est intégré ci-dessous (lecture seule ici, détachez-le pour éditer).
                    </p>
                    <div 
-                      className="p-3 bg-zinc-950/50 border border-border rounded-lg min-h-[100px] max-h-[300px] overflow-y-auto custom-scrollbar prose prose-invert max-w-none text-xs leading-relaxed text-foreground"
+                      className="p-3 bg-zinc-950/50 border border-border rounded-lg min-h-[100px] max-h-[300px] overflow-y-auto custom-scrollbar text-xs leading-relaxed text-foreground"
                       dangerouslySetInnerHTML={{ __html: wiki.content || '<em class="opacity-30">Aucun contenu...</em>' }}
                    />
                     <button
