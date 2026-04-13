@@ -495,6 +495,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                          />
                          Afficher l'onglet "Jeu" (Plateau principal, actions de base)
                        </label>
+                        {(displaySettings.smartphoneTabs?.game ?? true) && (
                    <div className="flex flex-col gap-1.5 w-fit ml-7 mt-1">
                     <label className="text-xs font-bold text-foreground">Style de l'image (Avatar / Rôle)</label>
                     <p className="text-xs text-muted-foreground mb-1">Définit la forme de l'image affichée sur l'écran du smartphone des joueurs.</p>
@@ -509,6 +510,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       <option value="background">Mettre en plein écran (Image de fond floutée)</option>
                     </select>
                    </div>
+                        )}
                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
                          <input
                            type="checkbox"
@@ -582,6 +584,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           />
                           Afficher l'onglet "Salle" (Miniature globale)
                         </label>
+                        {(displaySettings.smartphoneTabs?.room ?? true) && (
                    <div className="flex flex-col gap-2 ml-7 mt-1">
                     <div className="flex flex-col gap-1">
                       <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
@@ -617,6 +620,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       </div>
                     )}
                    </div>
+                        )}
                         <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
                           <input
                             type="checkbox"
