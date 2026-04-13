@@ -289,5 +289,7 @@ export interface GameState {
     wikiOnlyInPlayRoles?: boolean;
     smartphoneImageBlur?: number;
     smartphoneImageMinHeight?: number;
+    roomMiniatureAnimation?: boolean;
+    roomMiniatureDeadIconUrl?: string | null;
   };
 }
