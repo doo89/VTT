@@ -101,6 +101,7 @@ export interface TagModel extends MarkerParameter {
   categoryId?: EntityId | null;
   childTagIds?: EntityId[]; // List of other tag model IDs to apply when this container is applied
   handoutId?: EntityId | null; // Reference to a handout image
+  isInDistributor?: boolean;
 }
 
 // Local Tag Instance (attached to a player or marker)
@@ -193,6 +194,13 @@ export interface ChecklistState {
   y: number;
 }
 
+export interface TagDistributorState {
+  isOpen: boolean;
+  isDetached: boolean;
+  x: number;
+  y: number;
+}
+
 export interface WikiState {
   isOpen: boolean;
   isDetached: boolean;
@@ -237,6 +245,7 @@ export interface GameState {
   soundboard: SoundboardState;
   wiki: WikiState;
   checklistState: ChecklistState;
+  tagDistributorState: TagDistributorState;
   scoreboard: {
     isDetached: boolean;
     x: number;
@@ -303,6 +312,7 @@ export interface GameState {
       wiki: boolean;
       popupCreator: boolean;
       checklist: boolean;
+      tagDistributor: boolean;
     };
     recordLogs: boolean;
     smartphoneTabs: {

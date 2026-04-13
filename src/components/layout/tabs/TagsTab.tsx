@@ -5,7 +5,7 @@ import { ColorPicker } from '../../ColorPicker';
 
 
 export const TagsTab: React.FC = () => {
-  const { tags, tagCategories, addTagModel, deleteTagModel, setEditingEntity, addTagCategory, deleteTagCategory } = useVttStore();
+  const { tags, tagCategories, addTagModel, updateTagModel, deleteTagModel, setEditingEntity, addTagCategory, deleteTagCategory } = useVttStore();
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('#10b981');
 
@@ -213,6 +213,13 @@ export const TagsTab: React.FC = () => {
                           return (
                             <div key={tag.id} className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group">
                               <div className="flex items-center gap-2 overflow-hidden flex-1">
+                                <input
+                                  type="checkbox"
+                                  checked={tag.isInDistributor || false}
+                                  onChange={(e) => updateTagModel(tag.id, { isInDistributor: e.target.checked })}
+                                  className="rounded border-border text-primary focus:ring-primary h-4 w-4 shrink-0 cursor-pointer"
+                                  title="Ajouter au Distributeur"
+                                />
                                 <div className="w-6 h-6 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: tag.color, color: '#fff' }}>
                                   <IconComponent size={12} />
                                 </div>
@@ -267,6 +274,13 @@ export const TagsTab: React.FC = () => {
                         return (
                           <div key={tag.id} className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group">
                             <div className="flex items-center gap-2 overflow-hidden flex-1">
+                              <input
+                                type="checkbox"
+                                checked={tag.isInDistributor || false}
+                                onChange={(e) => updateTagModel(tag.id, { isInDistributor: e.target.checked })}
+                                className="rounded border-border text-primary focus:ring-primary h-4 w-4 shrink-0 cursor-pointer"
+                                title="Ajouter au Distributeur"
+                              />
                               <div className="w-6 h-6 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: tag.color, color: '#fff' }}>
                                 <IconComponent size={12} />
                               </div>

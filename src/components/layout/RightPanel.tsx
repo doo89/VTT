@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2 } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -19,7 +19,8 @@ export const RightPanel: React.FC = () => {
     wiki: storeWiki, setWiki,
     customPopups, addCustomPopup, updateCustomPopup, deleteCustomPopup, triggerCustomPopup,
     checklist,
-    checklistState, setChecklistState
+    checklistState, setChecklistState,
+    tagDistributorState, setTagDistributorState
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -840,6 +841,35 @@ export const RightPanel: React.FC = () => {
                   Rattacher ici
                 </button>
               </div>
+            )}
+          </section>
+        )}
+        {/* Distributeur de Tag */}
+        {(displaySettings.panels?.tagDistributor ?? true) && (
+          <section className="flex flex-col border border-border rounded-md bg-background overflow-hidden p-2">
+            <div className="flex items-center justify-between font-semibold text-sm transition-colors group">
+              <div className="flex items-center gap-2 flex-1 text-left">
+                <Tag size={16} /> Distributeur de Tags
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setTagDistributorState({ isDetached: true, isOpen: true });
+                  }}
+                  disabled={tagDistributorState.isDetached}
+                  className={`p-1 transition-colors flex items-center justify-center ${tagDistributorState.isDetached ? 'opacity-30 cursor-not-allowed' : 'text-primary hover:bg-primary/20 bg-primary/10 rounded-md'}`}
+                  title="Détacher le distributeur"
+                >
+                  <ArrowUpRight size={14} />
+                </button>
+              </div>
+            </div>
+            {tagDistributorState.isDetached && (
+              <p className="text-[10px] text-muted-foreground mt-1 px-1">Géré dans une fenêtre flottante.</p>
+            )}
+            {!tagDistributorState.isDetached && (
+              <p className="text-[10px] text-muted-foreground mt-1 px-1">Cliquez sur l'icône pour détacher la liste de distribution rapide.</p>
             )}
           </section>
         )}

@@ -13,6 +13,7 @@ interface VttStore extends GameState {
   setScoreboard: (scoreboardUpdate: Partial<GameState['scoreboard']>) => void;
   setWiki: (wikiUpdate: Partial<GameState['wiki']>) => void;
   setChecklistState: (checklistUpdate: Partial<GameState['checklistState']>) => void;
+  setTagDistributorState: (distributorUpdate: Partial<GameState['tagDistributorState']>) => void;
   playerTemplates: PlayerTemplate[];
 
   // Selection & Interaction
@@ -187,6 +188,12 @@ export const initialState = {
     x: 500,
     y: 200,
   },
+  tagDistributorState: {
+    isOpen: false,
+    isDetached: false,
+    x: 100,
+    y: 100,
+  },
   activeLeftTab: 'players' as const,
   editingEntity: null,
   smartphoneActionMessage: null,
@@ -242,6 +249,7 @@ export const initialState = {
       wiki: true,
       popupCreator: true,
       checklist: true,
+      tagDistributor: true,
     },
     recordLogs: true,
     smartphoneTabs: {
@@ -344,6 +352,7 @@ export const useVttStore = create<VttStore>()(
   setScoreboard: (update) => set((state) => ({ scoreboard: { ...state.scoreboard, ...update } })),
   setWiki: (update) => set((state) => ({ wiki: { ...state.wiki, ...update } })),
   setChecklistState: (update) => set((state) => ({ checklistState: { ...state.checklistState, ...update } })),
+  setTagDistributorState: (update) => set((state) => ({ tagDistributorState: { ...state.tagDistributorState, ...update } })),
   updateSoundButton: (index, updates) => set((state) => {
     const newButtons = [...state.soundboard.buttons];
     const existingIndex = newButtons.findIndex(b => b.index === index);
@@ -580,6 +589,7 @@ export const useVttStore = create<VttStore>()(
           wiki: state.wiki,
           checklist: state.checklist,
           checklistState: state.checklistState,
+          tagDistributorState: state.tagDistributorState,
         }),
         limit: 50, // Keep last 50 states to prevent memory issues
         equality: (pastState, currentState) => {

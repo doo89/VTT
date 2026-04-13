@@ -255,11 +255,22 @@ export const Canvas: React.FC = () => {
         updatePlayer(payload.data.id, { x: canvasX, y: canvasY });
       } else if (payload.type === 'new_marker') {
         // Creating a new marker from a tag model
-        addMarker({
-          x: canvasX,
-          y: canvasY,
-          tag: { ...payload.data, instanceId: uuidv4() }
+        const hitPlayer = players.find(p => {
+          const dx = p.x - canvasX;
+          const dy = p.y - canvasY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          return distance <= p.size; // Simple circle collision
         });
+
+        if (hitPlayer) {
+          applyTagToPlayer(hitPlayer, payload.data);
+        } else {
+          addMarker({
+            x: canvasX,
+            y: canvasY,
+            tag: { ...payload.data, instanceId: uuidv4() }
+          });
+        }
       } else if (payload.type === 'existing_marker') {
         // Moving an existing marker, check for collision with players for merge
         const marker = payload.data as Marker;
