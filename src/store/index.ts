@@ -220,6 +220,7 @@ export const initialState = {
       allowPrivateNotes: true,
       showDeadPlayers: true,
       includeSelf: true,
+      allowNotesForDeadPlayers: true,
     },
   },
   isLeftPanelOpen: true,

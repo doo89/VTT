@@ -516,6 +516,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                              />
                              Mettre des notes privés
                            </label>
+                           {(displaySettings.smartphonePlayersOptions?.allowPrivateNotes !== false && displaySettings.smartphonePlayersOptions?.showDeadPlayers !== false) && (
+                             <label className="flex items-center gap-3 text-[10px] cursor-pointer hover:text-primary transition-colors pl-6 border-l border-border/20 ml-1.5 -mt-1 mb-1 opacity-80">
+                               <input
+                                 type="checkbox"
+                                 checked={displaySettings.smartphonePlayersOptions?.allowNotesForDeadPlayers ?? true}
+                                 onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true }), allowNotesForDeadPlayers: e.target.checked } })}
+                                 className="rounded border-border w-3 h-3 text-primary"
+                               />
+                               Même aux morts
+                             </label>
+                           )}
                            <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
                              <input
                                type="checkbox"

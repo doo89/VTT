@@ -273,7 +273,8 @@ export const PlayerView: React.FC = () => {
   const smartphoneOptions = displaySettings?.smartphonePlayersOptions || { 
     allowPrivateNotes: true, 
     showDeadPlayers: true, 
-    includeSelf: true 
+    includeSelf: true,
+    allowNotesForDeadPlayers: true
   };
 
   const filteredPlayers = useMemo(() => {
@@ -707,9 +708,9 @@ export const PlayerView: React.FC = () => {
                       }`}
                     >
                       <div 
-                        className={`flex items-center gap-4 p-4 ${smartphoneOptions.allowPrivateNotes !== false ? 'cursor-pointer' : ''}`}
+                        className={`flex items-center gap-4 p-4 ${(smartphoneOptions.allowPrivateNotes !== false && (!p.isDead || smartphoneOptions.allowNotesForDeadPlayers !== false)) ? 'cursor-pointer' : ''}`}
                         onClick={() => {
-                          if (smartphoneOptions.allowPrivateNotes !== false) {
+                          if (smartphoneOptions.allowPrivateNotes !== false && (!p.isDead || smartphoneOptions.allowNotesForDeadPlayers !== false)) {
                             setExpandedPlayerNotesId(isExpanded ? null : p.id);
                           }
                         }}
@@ -734,8 +735,15 @@ export const PlayerView: React.FC = () => {
                           )}
                         </div>
                         {p.isDead ? (
-                          <div className="bg-red-950/20 p-2 rounded-full">
-                            <ShieldAlert size={18} className="text-red-900/40" />
+                          <div className="flex items-center gap-2">
+                             <div className="bg-red-950/20 p-2 rounded-full">
+                                <ShieldAlert size={18} className="text-red-900/40" />
+                             </div>
+                             {(smartphoneOptions.allowPrivateNotes !== false && smartphoneOptions.allowNotesForDeadPlayers !== false) && (
+                                <div className={`p-1.5 rounded-full transition-colors ${isExpanded ? 'bg-zinc-800 text-blue-400' : 'text-zinc-600'}`}>
+                                  {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                </div>
+                             )}
                           </div>
                         ) : (
                           smartphoneOptions.allowPrivateNotes !== false && (
