@@ -165,6 +165,15 @@ export interface SoundboardState {
   remotePlayTrigger?: { index: number, timestamp: number } | null;
 }
 
+export interface CustomPopup {
+  id: string;
+  title: string;
+  imageUrl?: string | null;
+  content: string;
+  showCloseButton: boolean;
+  autoCloseTimer: boolean;
+}
+
 export interface WikiState {
   isOpen: boolean;
   isDetached: boolean;
@@ -191,6 +200,8 @@ export interface GameState {
   handouts: Handout[];
   logs: LogEvent[];
   recentColors: string[];
+  customPopups: CustomPopup[];
+  activeCustomPopupId: string | null;
   isNight: boolean;
   cycleNumber: number;
   cycleMode: 'dayNight' | 'turns' | 'none';

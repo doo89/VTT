@@ -4,6 +4,7 @@ import { PlayerJoin } from './pages/PlayerJoin';
 import { PlayerView } from './pages/PlayerView';
 import { SoundboardJoin } from './pages/SoundboardJoin';
 import { SoundboardRemote } from './pages/SoundboardRemote';
+import { CustomPopupOverlay } from './components/CustomPopupOverlay';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/soundboard/:roomId/:passcode" element={<SoundboardRemote />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <CustomPopupOverlay />
     </BrowserRouter>
   );
 }

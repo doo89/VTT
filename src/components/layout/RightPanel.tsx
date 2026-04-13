@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -14,7 +14,8 @@ export const RightPanel: React.FC = () => {
     roles, updateRole, players, updatePlayers,
     logs, clearLogs, addLog,
     scoreboard, setScoreboard,
-    wiki: storeWiki, setWiki
+    wiki: storeWiki, setWiki,
+    customPopups, addCustomPopup, deleteCustomPopup, triggerCustomPopup
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -22,8 +23,11 @@ export const RightPanel: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string | null>('distribution');
   const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showPopupCreator, setShowPopupCreator] = useState(false);
+  const [newPopupData, setNewPopupData] = useState({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
   const urlRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef<HTMLInputElement>(null);
+  const popupImageInputRef = useRef<HTMLInputElement>(null);
 
   const saveSupabaseConfig = () => {
     if (urlRef.current && keyRef.current) {
@@ -718,6 +722,51 @@ export const RightPanel: React.FC = () => {
         </section>
         )}
 
+        {/* Créateur de Popup */}
+        <section className="flex flex-col border border-border rounded-md bg-background">
+          <button
+            onClick={() => toggleSection('popups')}
+            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+          >
+            <div className={`flex items-center gap-2 ${activeSection === 'popups' ? 'text-indigo-400' : ''}`}>
+              <MessageSquare size={16} /> Créateur de Popup ({customPopups.length})
+            </div>
+            {activeSection === 'popups' ? <ChevronDown size={16} className="text-indigo-400" /> : <ChevronRight size={16} />}
+          </button>
+          {activeSection === 'popups' && (
+            <div className="p-3 flex flex-col gap-3 border-t border-border">
+               <button
+                  onClick={() => setShowPopupCreator(true)}
+                  className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Plus size={14} /> Ajouter popup
+                </button>
+
+                <div className="flex flex-col gap-2 mt-2">
+                  {customPopups.map(popup => (
+                    <div key={popup.id} className="flex flex-col gap-1 w-full bg-muted/20 border border-border/50 rounded-md p-2">
+                      <div className="flex justify-between items-center w-full">
+                        <span className="text-xs font-bold truncate pr-2">{popup.title}</span>
+                        <button onClick={() => deleteCustomPopup(popup.id)} className="text-destructive hover:text-white hover:bg-destructive p-1 rounded transition-colors" title="Supprimer">
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => triggerCustomPopup(popup.id)}
+                        className="w-full mt-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded text-[10px] uppercase font-bold py-1.5 transition-colors border border-indigo-500/30 flex justify-center items-center gap-1.5"
+                      >
+                         <MonitorUp size={12} /> Afficher à tous
+                      </button>
+                    </div>
+                  ))}
+                  {customPopups.length === 0 && (
+                    <p className="text-xs text-muted-foreground italic text-center py-2">Aucune popup créée.</p>
+                  )}
+                </div>
+            </div>
+          )}
+        </section>
+
       </div>
 
       {/* Supabase Settings Modal */}
@@ -774,6 +823,148 @@ export const RightPanel: React.FC = () => {
               </button>
               <button onClick={saveSupabaseConfig} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition-colors">
                 Sauvegarder & Recharger
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup Creator Modal */}
+      {showPopupCreator && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowPopupCreator(false);
+          }}
+        >
+          <div className="bg-popover text-popover-foreground rounded-lg shadow-2xl w-full max-w-xl overflow-hidden border border-border flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50 shrink-0">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <MessageSquare size={20} className="text-indigo-500" />
+                Créateur de Popup
+              </h2>
+              <button 
+                onClick={() => setShowPopupCreator(false)} 
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                title="Fermer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-4 space-y-4 overflow-y-auto custom-scrollbar">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Titre Popup</label>
+                <input
+                  type="text"
+                  value={newPopupData.title}
+                  onChange={e => setNewPopupData({...newPopupData, title: e.target.value})}
+                  className="w-full bg-background border border-border rounded p-2 text-sm focus:outline-none focus:border-primary"
+                  placeholder="Ex: Événement Spécial"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold">Image principale (Optionnel)</label>
+                {!newPopupData.imageUrl ? (
+                  <div
+                    onClick={() => popupImageInputRef.current?.click()}
+                    className="w-full h-24 border-2 border-dashed border-border rounded-md flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-colors"
+                  >
+                    <Upload size={24} className="mb-2 opacity-50" />
+                    <span className="text-xs font-medium">Charger une image (Appareil)</span>
+                  </div>
+                ) : (
+                  <div className="relative w-full h-32 rounded-md overflow-hidden border border-border group">
+                    <div
+                      className="absolute inset-0 bg-contain bg-center bg-no-repeat"
+                      style={{ backgroundImage: `url(${newPopupData.imageUrl})` }}
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <button
+                        onClick={() => setNewPopupData({...newPopupData, imageUrl: ''})}
+                        className="p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
+                        title="Supprimer l'image"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <input 
+                  type="file" 
+                  ref={popupImageInputRef} 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (evt) => {
+                        setNewPopupData({...newPopupData, imageUrl: evt.target?.result as string});
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }} 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold flex justify-between items-end">
+                  <span>Contenu (Texte riche WIKI)</span>
+                </label>
+                <textarea
+                  value={newPopupData.content}
+                  onChange={e => setNewPopupData({...newPopupData, content: e.target.value})}
+                  className="w-full bg-background border border-border rounded p-2 text-sm focus:outline-none focus:border-primary custom-scrollbar min-h-[120px] resize-y"
+                  placeholder="Corps du texte... Support HTML simple si désiré."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border/50 pt-4 mt-2">
+                <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={newPopupData.showCloseButton}
+                    onChange={e => setNewPopupData({...newPopupData, showCloseButton: e.target.checked})}
+                    className="rounded border-border text-primary focus:ring-primary w-4 h-4"
+                  />
+                  Afficher un bouton de fermeture
+                </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={newPopupData.autoCloseTimer}
+                    onChange={e => setNewPopupData({...newPopupData, autoCloseTimer: e.target.checked})}
+                    className="rounded border-border text-primary focus:ring-primary w-4 h-4"
+                  />
+                  Fermeture automatique (10s)
+                </label>
+              </div>
+            </div>
+
+            <div className="p-4 bg-muted/50 border-t border-border flex justify-between items-center shrink-0">
+              <button 
+                onClick={() => {
+                  setNewPopupData({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+                  setShowPopupCreator(false);
+                }} 
+                className="px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded font-medium transition-colors border border-destructive/20"
+              >
+                Annuler
+              </button>
+              <button 
+                onClick={() => {
+                  if (newPopupData.title.trim()) {
+                    addCustomPopup(newPopupData);
+                    setNewPopupData({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+                    setShowPopupCreator(false);
+                  }
+                }} 
+                disabled={!newPopupData.title.trim()}
+                className="px-6 py-2 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+              >
+                Sauvegarder
               </button>
             </div>
           </div>

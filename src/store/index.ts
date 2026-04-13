@@ -103,6 +103,12 @@ interface VttStore extends GameState {
   // Smartphone Action Popups for GM
   smartphoneActionMessage: { playerName: string, message: string } | null;
   setSmartphoneActionMessage: (message: { playerName: string, message: string } | null) => void;
+  // Custom Popups
+  addCustomPopup: (popup: Omit<CustomPopup, 'id'>) => void;
+  updateCustomPopup: (id: string, updates: Partial<CustomPopup>) => void;
+  deleteCustomPopup: (id: string) => void;
+  triggerCustomPopup: (id: string | null) => void;
+
   // Logs
   addLog: (message: string, type: LogEvent['type']) => void;
   clearLogs: () => void;
@@ -127,6 +133,8 @@ export const initialState = {
   handouts: [],
   logs: [],
   recentColors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff', '#000000', '#6b7280'], // default colors
+  customPopups: [],
+  activeCustomPopupId: null,
   isNight: false,
   cycleNumber: 1,
   cycleMode: 'dayNight' as const,
@@ -512,6 +520,19 @@ export const useVttStore = create<VttStore>()(
             return { recentColors: [uppercaseColor, ...state.recentColors].slice(0, 16) };
           }
         }),
+
+        // Custom Popups
+        addCustomPopup: (popup) => set((state) => ({
+          customPopups: [...state.customPopups, { ...popup, id: uuidv4() }]
+        })),
+        updateCustomPopup: (id, updates) => set((state) => ({
+          customPopups: state.customPopups.map(p => p.id === id ? { ...p, ...updates } : p)
+        })),
+        deleteCustomPopup: (id) => set((state) => ({
+          customPopups: state.customPopups.filter(p => p.id !== id),
+          activeCustomPopupId: state.activeCustomPopupId === id ? null : state.activeCustomPopupId
+        })),
+        triggerCustomPopup: (id) => set({ activeCustomPopupId: id }),
 
         // Smartphone action message
         setSmartphoneActionMessage: (message) => set({ smartphoneActionMessage: message }),
