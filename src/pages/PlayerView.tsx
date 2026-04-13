@@ -10,7 +10,8 @@ export const PlayerView: React.FC = () => {
   const { roomId, playerName } = useParams<{ roomId: string, playerName: string }>();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room' | 'wiki'>('game');
+  const [allRoles, setAllRoles] = useState<Role[]>([]);
   const [roomData, setRoomData] = useState<any>(null);
   const [isHostOnline, setIsHostOnline] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
@@ -152,6 +153,9 @@ export const PlayerView: React.FC = () => {
 
         // Store all players for the selector
         setRoomPlayers(data.players || []);
+        
+        // Store all roles for the Wiki
+        setAllRoles(data.roles || []);
 
         // Update notice board players
         const noticeBoard = data.players.filter(p => p.publicNotes && p.publicNotesNoticeBoard);
@@ -256,19 +260,21 @@ export const PlayerView: React.FC = () => {
     };
   }, [roomId, playerName]);
 
-  const smartphoneTabs = displaySettings?.smartphoneTabs || { game: true, players: true, room: true };
-  const hasSelectedTabs = smartphoneTabs.game || smartphoneTabs.players || smartphoneTabs.room;
+  const smartphoneTabs = displaySettings?.smartphoneTabs || { game: true, players: true, room: true, wiki: true };
+  const hasSelectedTabs = smartphoneTabs.game || smartphoneTabs.players || smartphoneTabs.room || smartphoneTabs.wiki;
   
   // If no tabs are selected, we fallback to showing the game content ONLY (no tab bar will be rendered)
   const showGame = hasSelectedTabs ? smartphoneTabs.game : true;
   const showPlayers = hasSelectedTabs ? smartphoneTabs.players : false;
   const showRoom = hasSelectedTabs ? smartphoneTabs.room : false;
+  const showWiki = hasSelectedTabs ? smartphoneTabs.wiki : false;
 
   useEffect(() => {
-    if (activeTab === 'players' && !showPlayers) setActiveTab(showGame ? 'game' : 'room');
-    if (activeTab === 'room' && !showRoom) setActiveTab(showGame ? 'game' : 'players');
-    if (activeTab === 'game' && !showGame) setActiveTab(showPlayers ? 'players' : 'room');
-  }, [showGame, showPlayers, showRoom, activeTab]);
+    if (activeTab === 'players' && !showPlayers) setActiveTab(showGame ? 'game' : (showRoom ? 'room' : 'wiki'));
+    if (activeTab === 'room' && !showRoom) setActiveTab(showGame ? 'game' : (showPlayers ? 'players' : 'wiki'));
+    if (activeTab === 'game' && !showGame) setActiveTab(showPlayers ? 'players' : (showRoom ? 'room' : 'wiki'));
+    if (activeTab === 'wiki' && !showWiki) setActiveTab(showGame ? 'game' : (showPlayers ? 'players' : 'room'));
+  }, [showGame, showPlayers, showRoom, showWiki, activeTab]);
 
   const smartphoneOptions = displaySettings?.smartphonePlayersOptions || { 
     allowPrivateNotes: true, 
@@ -841,6 +847,100 @@ export const PlayerView: React.FC = () => {
             </div>
           )}
 
+          {(activeTab === 'wiki' && showWiki) && (
+            <div className="flex-1 flex flex-col gap-6 py-2 pb-10">
+              {/* Part 1: MJ Wiki Content */}
+              <section className="flex flex-col gap-3">
+                 <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
+                    <icons.Book size={18} className="text-blue-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Notes du Maître du Jeu</h3>
+                 </div>
+                 
+                 <div 
+                    className={`bg-zinc-950/50 border border-zinc-800 rounded-2xl overflow-hidden p-5 transition-all duration-300 ${isNight && cycleMode === 'dayNight' ? 'shadow-blue-900/5' : 'shadow-black/5'}`}
+                 >
+                    {displaySettings?.wiki?.content ? (
+                       <div 
+                          className="wiki-content text-sm leading-relaxed text-zinc-300 pointer-events-none select-none"
+                          dangerouslySetInnerHTML={{ __html: displaySettings.wiki.content }}
+                       />
+                    ) : (
+                       <div className="flex flex-col items-center justify-center py-6 text-zinc-600 gap-2 grayscale">
+                          <icons.FileText size={40} className="opacity-20" />
+                          <p className="text-xs font-bold uppercase tracking-tighter opacity-30">Aucune information partagée...</p>
+                       </div>
+                    )}
+                 </div>
+              </section>
+
+              {/* Part 2: Roles Arborescence */}
+              <section className="flex flex-col gap-3 mt-4">
+                 <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
+                    <icons.Users size={18} className="text-indigo-400" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Guide des Rôles</h3>
+                 </div>
+
+                 <div className="flex flex-col gap-3">
+                   {allRoles && allRoles.length > 0 ? (
+                      allRoles.map(role => {
+                         const isExpanded = expandedNoticeId === `role-wiki-${role.id}`;
+                         const team = displaySettings?.teams?.find((t: any) => t.id === role.teamId);
+                         
+                         return (
+                            <div 
+                               key={role.id} 
+                               className={`bg-zinc-900/60 border rounded-2xl overflow-hidden transition-all duration-300 ${isExpanded ? 'border-zinc-700 shadow-xl' : 'border-zinc-800/80'}`}
+                            >
+                               <button
+                                 onClick={() => setExpandedNoticeId(isExpanded ? null : `role-wiki-${role.id}`)}
+                                 className="w-full flex items-center justify-between p-4 text-left active:bg-zinc-800/50 transition-colors"
+                               >
+                                  <div className="flex items-center gap-3 min-w-0">
+                                     <div 
+                                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 shrink-0 ${isExpanded ? 'shadow-inner' : ''}`}
+                                        style={{ borderColor: role.color + '60', backgroundColor: role.color + '15' }}
+                                     >
+                                        {role.imageUrl ? (
+                                           <img src={role.imageUrl} className="w-full h-full rounded-full object-cover" alt="" />
+                                        ) : (
+                                           <icons.Shield size={18} style={{ color: role.color }} />
+                                        )}
+                                     </div>
+                                     <div className="flex flex-col min-w-0">
+                                        <span className="font-bold text-zinc-100 truncate">{role.name}</span>
+                                        {team && (
+                                           <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: team.color }}>
+                                              {team.name}
+                                           </span>
+                                        )}
+                                     </div>
+                                  </div>
+                                  <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                                     <ChevronDown size={18} className="text-zinc-600" />
+                                  </div>
+                               </button>
+
+                               {isExpanded && (
+                                  <div className="px-4 pb-5 pt-0 animate-in slide-in-from-top-4 duration-300">
+                                     <div className="h-px bg-gradient-to-r from-transparent via-zinc-800 to-transparent mb-4" />
+                                     <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap italic">
+                                        {role.description || "Aucune description disponible pour ce rôle."}
+                                     </p>
+                                  </div>
+                               )}
+                            </div>
+                         );
+                      })
+                   ) : (
+                      <p className="text-xs text-center text-zinc-600 italic py-10 uppercase tracking-widest font-black opacity-30">
+                        Chargement des rôles...
+                      </p>
+                   )}
+                 </div>
+              </section>
+            </div>
+          )}
+
         </div>
       )}
 
@@ -880,6 +980,18 @@ export const PlayerView: React.FC = () => {
               <Map size={22} strokeWidth={activeTab === 'room' ? 2.5 : 2} />
             </div>
             <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'room' ? 'opacity-100' : 'opacity-40'}`}>Salle</span>
+          </button>
+          )}
+
+          {showWiki && (
+          <button 
+            onClick={() => setActiveTab('wiki')}
+            className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'wiki' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'wiki' ? 'bg-blue-500/10' : 'bg-transparent'}`}>
+              <icons.Book size={22} strokeWidth={activeTab === 'wiki' ? 2.5 : 2} />
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'wiki' ? 'opacity-100' : 'opacity-40'}`}>Wiki</span>
           </button>
           )}
         </div>

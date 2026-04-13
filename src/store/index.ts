@@ -224,6 +224,7 @@ export const initialState = {
       game: true,
       players: true,
       room: true,
+      wiki: true,
     },
     smartphonePlayersOptions: {
       allowPrivateNotes: true,

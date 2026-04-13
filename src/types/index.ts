@@ -272,6 +272,7 @@ export interface GameState {
       game: boolean;
       players: boolean;
       room: boolean;
+      wiki: boolean;
     };
     smartphonePlayersOptions?: {
       allowPrivateNotes: boolean;
