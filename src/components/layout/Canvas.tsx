@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useStore } from 'zustand';
 import { useVttStore } from '../../store';
-import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, Sun, Moon, Copy, Heart, icons, Users, Hand, MousePointer2, Undo2, Redo2, Radio, Lock, Globe, Bell, Check, X, WifiOff, FileText, FastForward } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, Sun, Moon, Copy, Heart, icons, Users, Hand, MousePointer2, Undo2, Redo2, Radio, Lock, Globe, Bell, Check, X, WifiOff, FileText, FastForward, Smartphone } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Marker, Player } from '../../types';
 
