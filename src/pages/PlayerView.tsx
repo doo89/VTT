@@ -28,6 +28,7 @@ export const PlayerView: React.FC = () => {
   const [roomPlayers, setRoomPlayers] = useState<Player[]>([]);
   const [selectedPlayersByTag, setSelectedPlayersByTag] = useState<Record<string, string[]>>({});
   const [displaySettings, setDisplaySettings] = useState<any>(null);
+  const [wiki, setWiki] = useState<any>(null);
   const [expandedPlayerNotesId, setExpandedPlayerNotesId] = useState<string | null>(null);
   const [playerNotes, setPlayerNotes] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem(`vtt_player_notes_${roomId}`);
@@ -130,6 +131,7 @@ export const PlayerView: React.FC = () => {
         setIsNight(data.isNight || false);
         setCycleMode(data.cycleMode || 'dayNight');
         setDisplaySettings(data.displaySettings || null);
+        setWiki(data.wiki || null);
         setRoomData(data.room || null);
 
         // Normalize strings for comparison (remove accents & lowercase)
@@ -264,10 +266,10 @@ export const PlayerView: React.FC = () => {
   const hasSelectedTabs = smartphoneTabs.game || smartphoneTabs.players || smartphoneTabs.room || smartphoneTabs.wiki;
   
   // If no tabs are selected, we fallback to showing the game content ONLY (no tab bar will be rendered)
-  const showGame = hasSelectedTabs ? smartphoneTabs.game : true;
-  const showPlayers = hasSelectedTabs ? smartphoneTabs.players : false;
-  const showRoom = hasSelectedTabs ? smartphoneTabs.room : false;
-  const showWiki = hasSelectedTabs ? smartphoneTabs.wiki : false;
+  const showGame = hasSelectedTabs ? (smartphoneTabs.game ?? true) : true;
+  const showPlayers = hasSelectedTabs ? (smartphoneTabs.players ?? true) : false;
+  const showRoom = hasSelectedTabs ? (smartphoneTabs.room ?? true) : false;
+  const showWiki = hasSelectedTabs ? (smartphoneTabs.wiki ?? true) : false;
 
   useEffect(() => {
     if (activeTab === 'players' && !showPlayers) setActiveTab(showGame ? 'game' : (showRoom ? 'room' : 'wiki'));
@@ -859,10 +861,10 @@ export const PlayerView: React.FC = () => {
                  <div 
                     className={`bg-zinc-950/50 border border-zinc-800 rounded-2xl overflow-hidden p-5 transition-all duration-300 ${isNight && cycleMode === 'dayNight' ? 'shadow-blue-900/5' : 'shadow-black/5'}`}
                  >
-                    {displaySettings?.wiki?.content ? (
+                    {wiki?.content ? (
                        <div 
                           className="wiki-content text-sm leading-relaxed text-zinc-300 pointer-events-none select-none"
-                          dangerouslySetInnerHTML={{ __html: displaySettings.wiki.content }}
+                          dangerouslySetInnerHTML={{ __html: wiki.content }}
                        />
                     ) : (
                        <div className="flex flex-col items-center justify-center py-6 text-zinc-600 gap-2 grayscale">
