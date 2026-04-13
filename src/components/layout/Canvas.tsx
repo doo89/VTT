@@ -1011,7 +1011,7 @@ export const Canvas: React.FC = () => {
                                     ) : (
                                       <TIcon size={10} style={{ color: t.color }} />
                                     )}
-                                    <span className="font-medium">{t.name} (Rôle)</span>
+                                    {displaySettings.showTagNameInTooltip && <span className="font-medium">{t.name} (Rôle)</span>}
                                   </div>
                                   {(t.uses !== null || t.points !== null || t.votes !== null || t.lives !== null || t.callOrderDay !== null || t.callOrderNight !== null) && (
                                     <div className="text-[9px] text-muted-foreground pl-4 flex flex-wrap gap-x-2">
@@ -1052,7 +1052,7 @@ export const Canvas: React.FC = () => {
                                     ) : (
                                       <TIcon size={10} style={{ color: t.color }} />
                                     )}
-                                    <span className="font-medium">{t.name}</span>
+                                    {displaySettings.showTagNameInTooltip && <span className="font-medium">{t.name}</span>}
                                   </div>
                                   {(t.uses !== null || t.points !== null || t.votes !== null || t.lives !== null || t.callOrderDay !== null || t.callOrderNight !== null) && (
                                     <div className="text-[9px] text-muted-foreground pl-4 flex flex-wrap gap-x-2">
@@ -1154,7 +1154,7 @@ export const Canvas: React.FC = () => {
                 {/* Tooltip */}
                 {displaySettings.showTagTooltip !== false && (
                   <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-7 w-max max-w-[200px] bg-popover text-popover-foreground text-xs p-2 rounded shadow-xl border border-border opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                  <p className="font-bold" style={{ color: marker.tag.color }}>{marker.tag.name}</p>
+                  {displaySettings.showTagNameInTooltip && <p className="font-bold" style={{ color: marker.tag.color }}>{marker.tag.name}</p>}
                   <div className="text-[10px] text-muted-foreground mt-1 flex flex-wrap gap-x-2">
                     {displaySettings.showTagCallOrderDay && marker.tag.callOrderDay !== null && marker.tag.callOrderDay !== '' && <span>J:{marker.tag.callOrderDay}</span>}
                     {displaySettings.showTagCallOrderNight && marker.tag.callOrderNight !== null && marker.tag.callOrderNight !== '' && <span>N:{marker.tag.callOrderNight}</span>}

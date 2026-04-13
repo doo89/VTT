@@ -580,6 +580,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
+                              checked={!!displaySettings.showTagNameInTooltip}
+                              onChange={(e) => updateDisplaySettings({ showTagNameInTooltip: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Afficher le nom du Tag
+                          </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
                               checked={displaySettings.showTagCallOrderDay !== false}
                               onChange={(e) => updateDisplaySettings({ showTagCallOrderDay: e.target.checked })}
                               className="rounded border-border w-3.5 h-3.5 text-primary"

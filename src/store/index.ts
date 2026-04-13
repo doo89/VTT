@@ -257,6 +257,7 @@ export const initialState = {
     showTagSeenAsRole: true,
     showTagSeenInTeam: true,
     showTagDescription: true,
+    showTagNameInTooltip: false,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
