@@ -1012,6 +1012,7 @@ export const Canvas: React.FC = () => {
                                       <TIcon size={10} style={{ color: t.color }} />
                                     )}
                                     {displaySettings.showTagNameInTooltip && <span className="font-medium">{t.name} (Rôle)</span>}
+                                    {displaySettings.showTagSmartphoneIcon !== false && t.showOnSmartphone && <Smartphone size={10} className="text-blue-500 shrink-0 ml-0.5" />}
                                   </div>
                                   {(t.uses !== null || t.points !== null || t.votes !== null || t.lives !== null || t.callOrderDay !== null || t.callOrderNight !== null) && (
                                     <div className="text-[9px] text-muted-foreground pl-4 flex flex-wrap gap-x-2">
@@ -1059,6 +1060,7 @@ export const Canvas: React.FC = () => {
                                       <TIcon size={10} style={{ color: t.color }} />
                                     )}
                                     {displaySettings.showTagNameInTooltip && <span className="font-medium">{t.name}</span>}
+                                    {displaySettings.showTagSmartphoneIcon !== false && t.showOnSmartphone && <Smartphone size={10} className="text-blue-500 shrink-0 ml-0.5" />}
                                   </div>
                                   {(t.uses !== null || t.points !== null || t.votes !== null || t.lives !== null || t.callOrderDay !== null || t.callOrderNight !== null) && (
                                     <div className="text-[9px] text-muted-foreground pl-4 flex flex-wrap gap-x-2">
@@ -1152,6 +1154,11 @@ export const Canvas: React.FC = () => {
                   {displaySettings.showTagAutoDelete && marker.tag.autoDeleteOnZeroUses && (
                     <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-destructive text-destructive-foreground rounded-full p-0.5 shadow-sm border border-background z-10">
                       <Trash2 size={8} />
+                    </div>
+                  )}
+                  {displaySettings.showTagSmartphoneIcon !== false && marker.tag.showOnSmartphone && (
+                    <div className="absolute top-0 left-0 -mt-1 -ml-1 bg-blue-500 text-white rounded-full p-0.5 shadow-sm border border-background z-10">
+                      <Smartphone size={8} />
                     </div>
                   )}
                 </div>

@@ -717,6 +717,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           </div>
                         )}
                     </div>
+
+                    <div className="border-t border-border/20 pt-4 mt-2">
+                       <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                         <Smartphone size={16} className="text-primary" />
+                         Action Smartphone
+                       </h3>
+                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
+                         <input
+                           type="checkbox"
+                           checked={displaySettings.showTagSmartphoneIcon !== false}
+                           onChange={(e) => updateDisplaySettings({ showTagSmartphoneIcon: e.target.checked })}
+                           className="rounded border-border w-5 h-5 text-primary"
+                         />
+                         Action sur smartphone
+                       </label>
+                       <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
+                         Affiche une pastille de téléphone sur les tags ayant une action smartphone configurée.
+                       </p>
+                    </div>
                   </div>
                 </div>
               </section>

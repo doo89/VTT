@@ -308,5 +308,6 @@ export interface GameState {
     showTagNameInTooltip?: boolean;
     showTagNameSeenAsRole?: boolean;
     showTagNameSeenInTeam?: boolean;
+    showTagSmartphoneIcon?: boolean;
   };
 }

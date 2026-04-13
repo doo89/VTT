@@ -260,6 +260,7 @@ export const initialState = {
     showTagNameInTooltip: false,
     showTagNameSeenAsRole: false,
     showTagNameSeenInTeam: false,
+    showTagSmartphoneIcon: true,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
