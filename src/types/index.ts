@@ -185,6 +185,13 @@ export interface ChecklistItem {
   imageUrl?: string | null;
 }
 
+export interface ChecklistState {
+  isOpen: boolean;
+  isDetached: boolean;
+  x: number;
+  y: number;
+}
+
 export interface WikiState {
   isOpen: boolean;
   isDetached: boolean;
@@ -228,6 +235,7 @@ export interface GameState {
   };
   soundboard: SoundboardState;
   wiki: WikiState;
+  checklistState: ChecklistState;
   scoreboard: {
     isDetached: boolean;
     x: number;

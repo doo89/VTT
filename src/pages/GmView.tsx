@@ -8,6 +8,7 @@ import { DetachedTimer } from '../components/DetachedTimer';
 import { DetachedSoundboard } from '../components/DetachedSoundboard';
 import { ScoreboardWindow } from '../components/ScoreboardWindow';
 import { WikiWindow } from '../components/WikiWindow';
+import { ChecklistWindow } from '../components/ChecklistWindow';
 import { useVttStore } from '../store';
 import { setupHostRealtimeSubscription, cleanupHostRealtime } from '../lib/realtime-host';
 import { X, MessageSquareWarning } from 'lucide-react';
@@ -39,6 +40,7 @@ export const GmView: React.FC = () => {
       <DetachedSoundboard />
       <ScoreboardWindow />
       <WikiWindow />
+      <ChecklistWindow />
 
       {/* Smartphone Action Popup */}
       {smartphoneActionMessage && (

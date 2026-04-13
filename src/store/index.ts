@@ -12,6 +12,7 @@ interface VttStore extends GameState {
   removeSoundButton: (index: number) => void;
   setScoreboard: (scoreboardUpdate: Partial<GameState['scoreboard']>) => void;
   setWiki: (wikiUpdate: Partial<GameState['wiki']>) => void;
+  setChecklistState: (checklistUpdate: Partial<GameState['checklistState']>) => void;
   playerTemplates: PlayerTemplate[];
 
   // Selection & Interaction
@@ -180,6 +181,12 @@ export const initialState = {
     y: 200,
     content: ''
   },
+  checklistState: {
+    isOpen: false,
+    isDetached: false,
+    x: 500,
+    y: 200,
+  },
   activeLeftTab: 'players' as const,
   editingEntity: null,
   smartphoneActionMessage: null,
@@ -334,8 +341,9 @@ export const useVttStore = create<VttStore>()(
   setRoom: (roomUpdates) => set((state) => ({ room: { ...state.room, ...roomUpdates } })),
   setTimer: (timerUpdates) => set((state) => ({ timer: { ...state.timer, ...timerUpdates } })),
   setSoundboard: (soundboardUpdates) => set((state) => ({ soundboard: { ...state.soundboard, ...soundboardUpdates } })),
-  setScoreboard: (scoreboardUpdates) => set((state) => ({ scoreboard: { ...state.scoreboard, ...scoreboardUpdates } })),
-  setWiki: (wikiUpdates) => set((state) => ({ wiki: { ...(state.wiki || initialState.wiki), ...wikiUpdates } })),
+  setScoreboard: (update) => set((state) => ({ scoreboard: { ...state.scoreboard, ...update } })),
+  setWiki: (update) => set((state) => ({ wiki: { ...state.wiki, ...update } })),
+  setChecklistState: (update) => set((state) => ({ checklistState: { ...state.checklistState, ...update } })),
   updateSoundButton: (index, updates) => set((state) => {
     const newButtons = [...state.soundboard.buttons];
     const existingIndex = newButtons.findIndex(b => b.index === index);
@@ -571,6 +579,7 @@ export const useVttStore = create<VttStore>()(
           scoreboard: state.scoreboard,
           wiki: state.wiki,
           checklist: state.checklist,
+          checklistState: state.checklistState,
         }),
         limit: 50, // Keep last 50 states to prevent memory issues
         equality: (pastState, currentState) => {
