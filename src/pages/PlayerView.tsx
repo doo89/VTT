@@ -30,6 +30,8 @@ export const PlayerView: React.FC = () => {
   const [displaySettings, setDisplaySettings] = useState<any>(null);
   const [wiki, setWiki] = useState<any>(null);
   const [wikiLightMode, setWikiLightMode] = useState(false);
+  const [isWikiNotesOpen, setIsWikiNotesOpen] = useState(true);
+  const [isWikiRolesOpen, setIsWikiRolesOpen] = useState(true);
   const [expandedPlayerNotesId, setExpandedPlayerNotesId] = useState<string | null>(null);
   const [playerNotes, setPlayerNotes] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem(`vtt_player_notes_${roomId}`);
@@ -855,46 +857,61 @@ export const PlayerView: React.FC = () => {
               {/* Part 1: MJ Wiki Content */}
               <section className="flex flex-col gap-3">
                  <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                    <div className="flex items-center gap-2">
+                    <button 
+                       onClick={() => setIsWikiNotesOpen(!isWikiNotesOpen)}
+                       className="flex items-center gap-2 flex-1 text-left"
+                    >
                        <icons.Book size={18} className="text-blue-500" />
                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Notes du Maître du Jeu</h3>
-                    </div>
-                    <button 
-                       onClick={() => setWikiLightMode(!wikiLightMode)}
-                       className={`p-1.5 rounded-lg border transition-all ${wikiLightMode ? 'bg-white text-zinc-900 border-zinc-300 shadow-sm' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}
-                       title={wikiLightMode ? "Passer en mode sombre" : "Passer en mode clair"}
-                    >
-                       {wikiLightMode ? <icons.Moon size={14} /> : <icons.Sun size={14} />}
+                       {isWikiNotesOpen ? <icons.ChevronUp size={16} className="text-zinc-600" /> : <icons.ChevronDown size={16} className="text-zinc-600" />}
                     </button>
-                 </div>
-                 
-                 <div 
-                    className={`border rounded-2xl overflow-hidden p-5 transition-all duration-300 ${wikiLightMode ? 'bg-white border-zinc-200' : (isNight && cycleMode === 'dayNight' ? 'bg-zinc-950/50 border-zinc-800 shadow-blue-900/5' : 'bg-zinc-900/50 border-zinc-800 shadow-black/5')}`}
-                 >
-                    {wiki?.content ? (
-                       <div 
-                          className={`wiki-content text-sm leading-relaxed pointer-events-none select-none ${wikiLightMode ? 'text-zinc-900' : 'text-zinc-300'}`}
-                          dangerouslySetInnerHTML={{ __html: wiki.content }}
-                       />
-                    ) : (
-                       <div className="flex flex-col items-center justify-center py-6 text-zinc-600 gap-2 grayscale">
-                          <icons.FileText size={40} className="opacity-20" />
-                          <p className="text-xs font-bold uppercase tracking-tighter opacity-30">Aucune information partagée...</p>
-                       </div>
+                    {isWikiNotesOpen && (
+                      <button 
+                         onClick={() => setWikiLightMode(!wikiLightMode)}
+                         className={`p-1.5 rounded-lg border transition-all ${wikiLightMode ? 'bg-white text-zinc-900 border-zinc-300 shadow-sm' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}
+                         title={wikiLightMode ? "Passer en mode sombre" : "Passer en mode clair"}
+                      >
+                         {wikiLightMode ? <icons.Moon size={14} /> : <icons.Sun size={14} />}
+                      </button>
                     )}
                  </div>
+                 
+                 {isWikiNotesOpen && (
+                   <div 
+                      className={`border rounded-2xl overflow-hidden p-5 transition-all duration-300 animate-in slide-in-from-top-2 ${wikiLightMode ? 'bg-white border-zinc-200' : (isNight && cycleMode === 'dayNight' ? 'bg-zinc-950/50 border-zinc-800 shadow-blue-900/5' : 'bg-zinc-900/50 border-zinc-800 shadow-black/5')}`}
+                   >
+                      {wiki?.content ? (
+                         <div 
+                            className={`wiki-content text-sm leading-relaxed pointer-events-none select-none ${wikiLightMode ? 'text-zinc-900' : 'text-zinc-300'}`}
+                            dangerouslySetInnerHTML={{ __html: wiki.content }}
+                         />
+                      ) : (
+                         <div className="flex flex-col items-center justify-center py-6 text-zinc-600 gap-2 grayscale">
+                            <icons.FileText size={40} className="opacity-20" />
+                            <p className="text-xs font-bold uppercase tracking-tighter opacity-30">Aucune information partagée...</p>
+                         </div>
+                      )}
+                   </div>
+                 )}
               </section>
 
               {/* Part 2: Roles Arborescence */}
               <section className="flex flex-col gap-3 mt-4">
                  <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
-                    <icons.Users size={18} className="text-indigo-400" />
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Guide des Rôles</h3>
+                    <button 
+                       onClick={() => setIsWikiRolesOpen(!isWikiRolesOpen)}
+                       className="flex items-center gap-2 flex-1 text-left"
+                    >
+                       <icons.Users size={18} className="text-indigo-400" />
+                       <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Guide des Rôles</h3>
+                       {isWikiRolesOpen ? <icons.ChevronUp size={16} className="text-zinc-600" /> : <icons.ChevronDown size={16} className="text-zinc-600" />}
+                    </button>
                  </div>
 
-                 <div className="flex flex-col gap-3">
-                   {allRoles && allRoles.length > 0 ? (
-                      allRoles.map(role => {
+                 {isWikiRolesOpen && (
+                   <div className="flex flex-col gap-3 animate-in slide-in-from-top-2">
+                     {allRoles && allRoles.length > 0 ? (
+                        allRoles.map(role => {
                          const isExpanded = expandedNoticeId === `role-wiki-${role.id}`;
                          const team = displaySettings?.teams?.find((t: any) => t.id === role.teamId);
                          
@@ -949,6 +966,7 @@ export const PlayerView: React.FC = () => {
                       </p>
                    )}
                  </div>
+                 )}
               </section>
             </div>
           )}
