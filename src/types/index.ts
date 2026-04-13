@@ -241,6 +241,7 @@ export interface GameState {
     showRole: boolean;
     showTeam: boolean;
     showTags: boolean;
+    showPlayerName: boolean;
     showPlayers: boolean;
     showCenter: boolean;
     showCycleIcon: boolean;

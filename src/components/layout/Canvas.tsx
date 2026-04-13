@@ -928,7 +928,7 @@ export const Canvas: React.FC = () => {
                     {/* Show name inside circle ONLY if there's no image AND setting says 'inside' */}
                     {!imageToShow && displaySettings.playerNamePosition === 'inside' && (
                       <span className="font-bold text-white text-sm mix-blend-difference drop-shadow-md px-1 text-center leading-tight z-10 pointer-events-none flex flex-col items-center">
-                        <span>{player.name}</span>
+                        {displaySettings.showPlayerName !== false && <span>{player.name}</span>}
                         {roomCode && !onlinePlayerIds.includes(player.id) && displaySettings.showOfflineStatus && (
                           <span className="text-[9px] text-destructive opacity-90 -mt-1 drop-shadow-sm font-bold">(hors ligne)</span>
                         )}
@@ -937,7 +937,7 @@ export const Canvas: React.FC = () => {
                   </div>
 
                   {/* Show name below the circle IF there IS an image OR setting says 'bottom' */}
-                  {(imageToShow || (!imageToShow && displaySettings.playerNamePosition === 'bottom')) && (
+                  {(imageToShow || (!imageToShow && displaySettings.playerNamePosition === 'bottom')) && displaySettings.showPlayerName !== false && (
                     <div className="absolute top-full mt-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap border border-border pointer-events-none text-center flex flex-col items-center">
                       <span>{player.name}</span>
                       {roomCode && !onlinePlayerIds.includes(player.id) && displaySettings.showOfflineStatus && (
@@ -975,7 +975,7 @@ export const Canvas: React.FC = () => {
                 {/* Tooltip */}
                 {displaySettings.showTooltip && (
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max max-w-[200px] bg-popover text-popover-foreground text-xs p-2 rounded shadow-xl border border-border opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
-                    <p className="font-bold">{player.name}</p>
+                    {displaySettings.showPlayerName !== false && <p className="font-bold">{player.name}</p>}
                     {displaySettings.showRole && effectiveRole && <p>Rôle: <span style={{ color: effectiveRole.color }}>{effectiveRole.name}</span></p>}
                     {displaySettings.showTeam && team && <p>Équipe: <span style={{ color: team.color }}>{team.name}</span></p>}
                     {player.isDead && <p className="text-destructive font-bold">Mort</p>}

@@ -408,6 +408,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground">
                               <input
                                 type="checkbox"
+                                checked={displaySettings.showPlayerName ?? true}
+                                onChange={(e) => updateDisplaySettings({ showPlayerName: e.target.checked })}
+                                className="rounded border-border"
+                              /> Afficher le nom
+                            </label>
+                            <label className="flex items-center gap-2 text-xs cursor-pointer text-muted-foreground hover:text-foreground">
+                              <input
+                                type="checkbox"
                                 checked={displaySettings.showRole}
                                 onChange={(e) => updateDisplaySettings({ showRole: e.target.checked })}
                                 className="rounded border-border"

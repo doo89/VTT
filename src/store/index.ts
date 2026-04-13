@@ -193,6 +193,7 @@ export const initialState = {
     showRole: true,
     showTeam: true,
     showTags: true,
+    showPlayerName: true,
     showPlayers: true,
     showCenter: true,
     showCycleIcon: true,
