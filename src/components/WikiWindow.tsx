@@ -3,7 +3,8 @@ import { useVttStore } from '../store';
 import { Book, X, Bold, Italic, Underline, List, ListOrdered, Palette, Type } from 'lucide-react';
 
 export const WikiWindow: React.FC = () => {
-  const { wiki, setWiki } = useVttStore();
+  const { wiki: storeWiki, setWiki } = useVttStore();
+  const wiki = storeWiki || { isOpen: false, isDetached: false, x: 400, y: 200, content: '' };
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);

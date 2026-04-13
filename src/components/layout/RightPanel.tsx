@@ -14,8 +14,10 @@ export const RightPanel: React.FC = () => {
     roles, updateRole, players, updatePlayers,
     logs, clearLogs, addLog,
     scoreboard, setScoreboard,
-    wiki, setWiki
+    wiki: storeWiki, setWiki
   } = useVttStore();
+
+  const wiki = storeWiki || initialState.wiki;
 
   const [activeSection, setActiveSection] = useState<string | null>('distribution');
   const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);

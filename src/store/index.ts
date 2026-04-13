@@ -292,7 +292,7 @@ export const useVttStore = create<VttStore>()(
   setTimer: (timerUpdates) => set((state) => ({ timer: { ...state.timer, ...timerUpdates } })),
   setSoundboard: (soundboardUpdates) => set((state) => ({ soundboard: { ...state.soundboard, ...soundboardUpdates } })),
   setScoreboard: (scoreboardUpdates) => set((state) => ({ scoreboard: { ...state.scoreboard, ...scoreboardUpdates } })),
-  setWiki: (wikiUpdates) => set((state) => ({ wiki: { ...state.wiki, ...wikiUpdates } })),
+  setWiki: (wikiUpdates) => set((state) => ({ wiki: { ...(state.wiki || initialState.wiki), ...wikiUpdates } })),
   updateSoundButton: (index, updates) => set((state) => {
     const newButtons = [...state.soundboard.buttons];
     const existingIndex = newButtons.findIndex(b => b.index === index);

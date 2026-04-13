@@ -309,6 +309,7 @@ export const forceBroadcastState = () => {
     isNight: state.isNight,
     cycleMode: state.cycleMode,
     displaySettings: state.displaySettings,
+    wiki: state.wiki,
     room: {
       ...state.room,
       // Strip backgroundImage if it's a base64 blob — send only external URLs
@@ -349,6 +350,7 @@ export const setupHostRealtimeSubscription = () => {
       state.isRoomPublic !== prevState.isRoomPublic ||
       state.displaySettings !== prevState.displaySettings ||
       state.soundboard !== prevState.soundboard ||
+      state.wiki !== prevState.wiki ||
       state.room !== prevState.room;
 
     if (state.roomCode !== prevState.roomCode) {
