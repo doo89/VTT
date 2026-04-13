@@ -694,37 +694,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                  </div>
                </section>
 
-               <section>
-                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Télécommande Soundboard</h3>
-                 <div className="flex flex-col gap-4 p-4 bg-muted/20 rounded-lg border border-border">
-                   <label className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={soundboard.remoteEnabled || false}
-                        onChange={(e) => setSoundboard({ remoteEnabled: e.target.checked })}
-                        className="rounded border-border w-5 h-5 text-primary"
-                      />
-                      Activer le portail "Soundboard / Télécommande"
-                    </label>
-                    <p className="text-xs text-muted-foreground leading-relaxed pl-8">
-                      Si activé, l'URL <code>/soundboard</code> permettra à un appareil de se connecter à la boîte à sons du MJ à distance (sans voir le jeu). 
-                      Les joueurs pourront déclencher des bruits de la boîte à sons.
-                    </p>
-                    
-                    {soundboard.remoteEnabled && (
-                      <div className="pl-8 pt-3 border-t border-border/50 flex flex-col gap-2 mt-2">
-                        <label className="text-xs font-bold text-foreground">Code d'accès obligatoire</label>
-                        <input
-                          type="text"
-                          value={soundboard.remotePasscode || ''}
-                          onChange={(e) => setSoundboard({ remotePasscode: e.target.value })}
-                          className="bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-fit font-mono tracking-widest"
-                          placeholder="EX: 1234"
-                        />
-                      </div>
-                    )}
-                 </div>
-               </section>
             </div>
           )}
 
@@ -763,6 +732,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       />
                       <span className="font-semibold text-sm">{tool.label}</span>
                     </label>
+                    {tool.key === 'soundboard' && (displaySettings.panels?.soundboard ?? true) && (
+                      <div className="ml-8 flex flex-col gap-4 p-4 bg-muted/20 rounded-lg border border-border mt-1 mb-2">
+                        <label className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">
+                           <input
+                             type="checkbox"
+                             checked={soundboard.remoteEnabled || false}
+                             onChange={(e) => setSoundboard({ remoteEnabled: e.target.checked })}
+                             className="rounded border-border w-5 h-5 text-primary"
+                           />
+                           Activer le portail "Soundboard / Télécommande"
+                         </label>
+                         <p className="text-[11px] text-muted-foreground leading-relaxed pl-8">
+                           Si activé, l'URL <code>/soundboard</code> permettra à un appareil de se connecter à la boîte à sons du MJ à distance (sans voir le jeu). 
+                         </p>
+                         
+                         {soundboard.remoteEnabled && (
+                           <div className="pl-8 pt-3 border-t border-border/50 flex flex-col gap-2 mt-2">
+                             <label className="text-[10px] uppercase font-bold text-foreground tracking-widest">Code d'accès obligatoire</label>
+                             <input
+                               type="text"
+                               value={soundboard.remotePasscode || ''}
+                               onChange={(e) => setSoundboard({ remotePasscode: e.target.value })}
+                               className="bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-fit font-mono tracking-widest"
+                               placeholder="EX: 1234"
+                             />
+                           </div>
+                         )}
+                      </div>
+                    )}
                     {tool.key === 'scoreboard' && (displaySettings.panels?.scoreboard ?? true) && (
                       <div className="ml-8 grid grid-cols-2 gap-2 p-3 bg-muted/10 border-l-2 border-yellow-500/30 rounded-r-lg">
                         {[
