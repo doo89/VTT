@@ -116,35 +116,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       <option value="turns">Par tour</option>
                       <option value="none">Aucun</option>
                     </select>
-                     {displaySettings.smartphoneImageStyle === 'background' && (
-                       <div className="flex flex-col gap-3 p-3 bg-muted/10 border-l-2 border-primary/30 mt-2 rounded-r-md">
-                         <div className="flex flex-col gap-1">
-                           <div className="flex justify-between items-center">
-                             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Niveau de flou ({displaySettings.smartphoneImageBlur ?? 20}%)</label>
-                           </div>
-                           <input
-                             type="range"
-                             min="0"
-                             max="100"
-                             step="1"
-                             value={displaySettings.smartphoneImageBlur ?? 20}
-                             onChange={(e) => updateDisplaySettings({ smartphoneImageBlur: parseInt(e.target.value) })}
-                             className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                           />
-                         </div>
-                         <div className="flex flex-col gap-1">
-                           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Hauteur minimum (en px)</label>
-                           <input
-                             type="number"
-                             min="0"
-                             max="1000"
-                             value={displaySettings.smartphoneImageMinHeight ?? 400}
-                             onChange={(e) => updateDisplaySettings({ smartphoneImageMinHeight: parseInt(e.target.value) })}
-                             className="bg-input border border-border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary w-24"
-                           />
-                         </div>
-                       </div>
-                     )}
+
                    </div>
                    <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-muted-foreground uppercase">Priorité au premier plan</label>
