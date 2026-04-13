@@ -582,6 +582,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           />
                           Afficher l'onglet "Salle" (Miniature globale)
                         </label>
+                   <div className="flex flex-col gap-2 ml-7 mt-1">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <ArrowUpRight size={14} className="text-blue-500" />
+                        URL de Miniature de la Salle
+                      </span>
+                      <p className="text-[11px] text-muted-foreground">
+                        Cette image s'affiche dans l'onglet "Salle" du smartphone des joueurs pour leur donner une idée de la carte. 
+                        Elle doit être une URL publique (ex: Imgur, Discord CDN...). Si vide, l'image de fond de la salle est utilisée si c'est une URL.
+                      </p>
+                    </div>
+                    <div className="flex gap-2 items-center max-w-lg">
+                      <input
+                        type="url"
+                        value={room.minimapImageUrl || ''}
+                        onChange={(e) => setRoom({ minimapImageUrl: e.target.value || null })}
+                        placeholder="https://i.imgur.com/..."
+                        className="flex-1 bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground/40"
+                      />
+                      {room.minimapImageUrl && (
+                        <button
+                          onClick={() => setRoom({ minimapImageUrl: null })}
+                          className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+                          title="Effacer"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                    {room.minimapImageUrl && (
+                      <div className="w-full max-w-sm h-32 mt-2 rounded-lg overflow-hidden border border-border bg-zinc-900 shadow-inner">
+                        <img src={room.minimapImageUrl} alt="Aperçu minimap" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      </div>
+                    )}
+                   </div>
                         <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
                           <input
                             type="checkbox"
@@ -656,41 +691,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                    </div>
 
 
-                   <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-border/30">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <ArrowUpRight size={14} className="text-blue-500" />
-                        URL de Miniature de la Salle
-                      </span>
-                      <p className="text-[11px] text-muted-foreground">
-                        Cette image s'affiche dans l'onglet "Salle" du smartphone des joueurs pour leur donner une idée de la carte. 
-                        Elle doit être une URL publique (ex: Imgur, Discord CDN...). Si vide, l'image de fond de la salle est utilisée si c'est une URL.
-                      </p>
-                    </div>
-                    <div className="flex gap-2 items-center max-w-lg">
-                      <input
-                        type="url"
-                        value={room.minimapImageUrl || ''}
-                        onChange={(e) => setRoom({ minimapImageUrl: e.target.value || null })}
-                        placeholder="https://i.imgur.com/..."
-                        className="flex-1 bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground/40"
-                      />
-                      {room.minimapImageUrl && (
-                        <button
-                          onClick={() => setRoom({ minimapImageUrl: null })}
-                          className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
-                          title="Effacer"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </div>
-                    {room.minimapImageUrl && (
-                      <div className="w-full max-w-sm h-32 mt-2 rounded-lg overflow-hidden border border-border bg-zinc-900 shadow-inner">
-                        <img src={room.minimapImageUrl} alt="Aperçu minimap" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                      </div>
-                    )}
-                   </div>
                  </div>
                </section>
 
