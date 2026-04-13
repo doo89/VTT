@@ -1038,7 +1038,7 @@ export const Canvas: React.FC = () => {
                                       )}
                                     </div>
                                   ) : null}
-                                  {t.description && <div className="text-[9px] text-muted-foreground pl-4 italic whitespace-pre-wrap">{t.description}</div>}
+                                  {displaySettings.showTagDescription !== false && t.description && <div className="text-[9px] text-muted-foreground pl-4 italic whitespace-pre-wrap">{t.description}</div>}
                                 </li>
                               );
                             })}
@@ -1079,7 +1079,7 @@ export const Canvas: React.FC = () => {
                                       )}
                                     </div>
                                   ) : null}
-                                  {t.description && <div className="text-[9px] text-muted-foreground pl-4 italic whitespace-pre-wrap">{t.description}</div>}
+                                  {displaySettings.showTagDescription !== false && t.description && <div className="text-[9px] text-muted-foreground pl-4 italic whitespace-pre-wrap">{t.description}</div>}
                                 </li>
                               );
                             })}
@@ -1177,7 +1177,7 @@ export const Canvas: React.FC = () => {
                       )}
                     </div>
                   ) : null}
-                  {marker.tag.description && <p className="text-[10px] text-muted-foreground italic mt-1 whitespace-pre-wrap">{marker.tag.description}</p>}
+                  {displaySettings.showTagDescription !== false && marker.tag.description && <p className="text-[10px] text-muted-foreground italic mt-1 whitespace-pre-wrap">{marker.tag.description}</p>}
                   </div>
                 )}
               </div>

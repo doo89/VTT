@@ -256,6 +256,7 @@ export const initialState = {
     showTagAutoDelete: true,
     showTagSeenAsRole: true,
     showTagSeenInTeam: true,
+    showTagDescription: true,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,

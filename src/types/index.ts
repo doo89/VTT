@@ -304,5 +304,6 @@ export interface GameState {
     showTagAutoDelete?: boolean;
     showTagSeenAsRole?: boolean;
     showTagSeenInTeam?: boolean;
+    showTagDescription?: boolean;
   };
 }

@@ -566,7 +566,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
                         <input
                           type="checkbox"
-                          checked={displaySettings.showTagTooltip ?? true}
+                          checked={displaySettings.showTagTooltip !== false}
                           onChange={(e) => updateDisplaySettings({ showTagTooltip: e.target.checked })}
                           className="rounded border-border w-5 h-5 text-primary"
                         />
@@ -575,12 +575,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
                         Affiche les informations détaillées lors du survol d'un marqueur ou d'un tag.
                       </p>
-                      {displaySettings.showTagTooltip && (
+                      {displaySettings.showTagTooltip !== false && (
                         <div className="pl-8 mt-4 flex flex-col gap-3 border-l-2 border-border/10 ml-2.5 anim-fade-down">
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
-                              checked={displaySettings.showTagCallOrderDay ?? true}
+                              checked={displaySettings.showTagCallOrderDay !== false}
                               onChange={(e) => updateDisplaySettings({ showTagCallOrderDay: e.target.checked })}
                               className="rounded border-border w-3.5 h-3.5 text-primary"
                             />
@@ -589,7 +589,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
-                              checked={displaySettings.showTagCallOrderNight ?? true}
+                              checked={displaySettings.showTagCallOrderNight !== false}
                               onChange={(e) => updateDisplaySettings({ showTagCallOrderNight: e.target.checked })}
                               className="rounded border-border w-3.5 h-3.5 text-primary"
                             />
@@ -598,7 +598,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
-                              checked={displaySettings.showTagLives ?? true}
+                              checked={displaySettings.showTagLives !== false}
                               onChange={(e) => updateDisplaySettings({ showTagLives: e.target.checked })}
                               className="rounded border-border w-3.5 h-3.5 text-primary"
                             />
@@ -607,7 +607,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
-                              checked={displaySettings.showTagVotes ?? true}
+                              checked={displaySettings.showTagVotes !== false}
                               onChange={(e) => updateDisplaySettings({ showTagVotes: e.target.checked })}
                               className="rounded border-border w-3.5 h-3.5 text-primary"
                             />
@@ -616,7 +616,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
-                              checked={displaySettings.showTagPoints ?? true}
+                              checked={displaySettings.showTagPoints !== false}
                               onChange={(e) => updateDisplaySettings({ showTagPoints: e.target.checked })}
                               className="rounded border-border w-3.5 h-3.5 text-primary"
                             />
@@ -625,7 +625,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
-                              checked={displaySettings.showTagUses ?? true}
+                              checked={displaySettings.showTagUses !== false}
                               onChange={(e) => updateDisplaySettings({ showTagUses: e.target.checked })}
                               className="rounded border-border w-3.5 h-3.5 text-primary"
                             />
@@ -634,7 +634,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
-                              checked={displaySettings.showTagAutoDelete ?? true}
+                              checked={displaySettings.showTagAutoDelete !== false}
                               onChange={(e) => updateDisplaySettings({ showTagAutoDelete: e.target.checked })}
                               className="rounded border-border w-3.5 h-3.5 text-primary"
                             />
@@ -643,7 +643,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
-                              checked={displaySettings.showTagSeenAsRole ?? true}
+                              checked={displaySettings.showTagSeenAsRole !== false}
                               onChange={(e) => updateDisplaySettings({ showTagSeenAsRole: e.target.checked })}
                               className="rounded border-border w-3.5 h-3.5 text-primary"
                             />
@@ -652,11 +652,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
-                              checked={displaySettings.showTagSeenInTeam ?? true}
+                              checked={displaySettings.showTagSeenInTeam !== false}
                               onChange={(e) => updateDisplaySettings({ showTagSeenInTeam: e.target.checked })}
                               className="rounded border-border w-3.5 h-3.5 text-primary"
                             />
                             Equipe vue comme
+                          </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showTagDescription !== false}
+                              onChange={(e) => updateDisplaySettings({ showTagDescription: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Texte libre
                           </label>
                         </div>
                       )}
