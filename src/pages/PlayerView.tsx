@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { SyncStatePayload } from '../lib/supabase';
@@ -269,6 +269,26 @@ export const PlayerView: React.FC = () => {
     if (activeTab === 'room' && !showRoom) setActiveTab(showGame ? 'game' : 'players');
     if (activeTab === 'game' && !showGame) setActiveTab(showPlayers ? 'players' : 'room');
   }, [showGame, showPlayers, showRoom, activeTab]);
+
+  const smartphoneOptions = displaySettings?.smartphonePlayersOptions || { 
+    allowPrivateNotes: true, 
+    showDeadPlayers: true, 
+    includeSelf: true 
+  };
+
+  const filteredPlayers = useMemo(() => {
+    let list = [...roomPlayers];
+    
+    if (smartphoneOptions.showDeadPlayers === false) {
+      list = list.filter(p => !p.isDead);
+    }
+    
+    if (smartphoneOptions.includeSelf === false && localPlayer) {
+      list = list.filter(p => p.id !== localPlayer.id);
+    }
+    
+    return list;
+  }, [roomPlayers, localPlayer, smartphoneOptions.showDeadPlayers, smartphoneOptions.includeSelf]);
 
   return (
     <div className={`h-screen w-screen text-zinc-50 flex flex-col p-4 md:p-8 max-w-md mx-auto relative overflow-hidden transition-colors duration-1000 ${(isNight && cycleMode === 'dayNight') ? 'bg-zinc-950' : 'bg-zinc-900'}`}>
@@ -662,18 +682,20 @@ export const PlayerView: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex flex-col gap-1">
                   <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Joueurs en salle</h3>
-                  <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">{roomPlayers.length} joueurs connectés</p>
+                  <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">{filteredPlayers.length} joueurs connectés</p>
                 </div>
-                <button
-                  onClick={clearAllNotes}
-                  className="p-2 text-zinc-500 hover:text-red-400 transition-colors bg-zinc-900/50 rounded-lg border border-zinc-800"
-                  title="Effacer toutes vos notes"
-                >
-                  <Trash2 size={16} />
-                </button>
+                {smartphoneOptions.allowPrivateNotes !== false && (
+                  <button
+                    onClick={clearAllNotes}
+                    className="p-2 text-zinc-500 hover:text-red-400 transition-colors bg-zinc-900/50 rounded-lg border border-zinc-800"
+                    title="Effacer toutes vos notes"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
               <div className="flex flex-col gap-2.5">
-                {roomPlayers.map(p => {
+                {filteredPlayers.map(p => {
                   const isLocal = p.id === localPlayer?.id;
                   const isExpanded = expandedPlayerNotesId === p.id;
                   
@@ -685,8 +707,12 @@ export const PlayerView: React.FC = () => {
                       }`}
                     >
                       <div 
-                        className="flex items-center gap-4 p-4 cursor-pointer"
-                        onClick={() => setExpandedPlayerNotesId(isExpanded ? null : p.id)}
+                        className={`flex items-center gap-4 p-4 ${smartphoneOptions.allowPrivateNotes !== false ? 'cursor-pointer' : ''}`}
+                        onClick={() => {
+                          if (smartphoneOptions.allowPrivateNotes !== false) {
+                            setExpandedPlayerNotesId(isExpanded ? null : p.id);
+                          }
+                        }}
                       >
                         <div 
                           className={`w-12 h-12 rounded-full flex items-center justify-center border-2 shrink-0 ${p.isDead ? 'border-zinc-800 grayscale opacity-40' : 'shadow-lg shadow-zinc-950/50'}`} 
@@ -712,9 +738,11 @@ export const PlayerView: React.FC = () => {
                             <ShieldAlert size={18} className="text-red-900/40" />
                           </div>
                         ) : (
-                          <div className={`p-1.5 rounded-full transition-colors ${isExpanded ? 'bg-zinc-800 text-blue-400' : 'text-zinc-600'}`}>
-                            {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                          </div>
+                          smartphoneOptions.allowPrivateNotes !== false && (
+                            <div className={`p-1.5 rounded-full transition-colors ${isExpanded ? 'bg-zinc-800 text-blue-400' : 'text-zinc-600'}`}>
+                              {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            </div>
+                          )
                         )}
                       </div>
 

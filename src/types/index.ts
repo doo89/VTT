@@ -263,5 +263,10 @@ export interface GameState {
       players: boolean;
       room: boolean;
     };
+    smartphonePlayersOptions?: {
+      allowPrivateNotes: boolean;
+      showDeadPlayers: boolean;
+      includeSelf: boolean;
+    };
   };
 }

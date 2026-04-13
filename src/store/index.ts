@@ -216,6 +216,11 @@ export const initialState = {
       players: true,
       room: true,
     },
+    smartphonePlayersOptions: {
+      allowPrivateNotes: true,
+      showDeadPlayers: true,
+      includeSelf: true,
+    },
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,

@@ -504,6 +504,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                          />
                          Afficher l'onglet "Joueurs" (Liste des joueurs en jeu)
                        </label>
+
+                       {(displaySettings.smartphoneTabs?.players ?? true) && (
+                         <div className="pl-7 flex flex-col gap-2 border-l border-border/30 ml-2 mt-1">
+                           <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
+                             <input
+                               type="checkbox"
+                               checked={displaySettings.smartphonePlayersOptions?.allowPrivateNotes ?? true}
+                               onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true }), allowPrivateNotes: e.target.checked } })}
+                               className="rounded border-border w-3.5 h-3.5 text-primary"
+                             />
+                             Mettre des notes privés
+                           </label>
+                           <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
+                             <input
+                               type="checkbox"
+                               checked={displaySettings.smartphonePlayersOptions?.showDeadPlayers ?? true}
+                               onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true }), showDeadPlayers: e.target.checked } })}
+                               className="rounded border-border w-3.5 h-3.5 text-primary"
+                             />
+                             Afficher les morts
+                           </label>
+                           <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
+                             <input
+                               type="checkbox"
+                               checked={displaySettings.smartphonePlayersOptions?.includeSelf ?? true}
+                               onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true }), includeSelf: e.target.checked } })}
+                               className="rounded border-border w-3.5 h-3.5 text-primary"
+                             />
+                             Inclure le joueur du smartphone
+                           </label>
+                         </div>
+                       )}
+
                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
                          <input
                            type="checkbox"
