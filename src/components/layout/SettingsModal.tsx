@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Sun, UserCircle2 } from 'lucide-react';
+import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Sun, UserCircle2, Tag } from 'lucide-react';
 import { useVttStore } from '../../store';
 import { ColorPicker } from '../ColorPicker';
 import { ThemeToggle } from '../ThemeToggle';
@@ -13,7 +13,7 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
-  const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'smartphone' | 'outils'>('salle');
+  const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils'>('salle');
 
   const {
     room, setRoom,
@@ -74,6 +74,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'joueurs' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
           >
             <Users size={16} /> Joueurs
+          </button>
+          <button
+            onClick={() => setActiveTab('tags')}
+            className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'tags' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            <Tag size={16} /> Tags
           </button>
           <button
             onClick={() => setActiveTab('smartphone')}
@@ -569,6 +575,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                   )}
                  </div>
                </section>
+            </div>
+          )}
+
+          {/* TAB: TAGS */}
+          {activeTab === 'tags' && (
+            <div className="flex flex-col gap-6">
+              <section>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Gestion Globale des Tags</h3>
+                <div className="flex flex-col gap-4">
+                  <div className="bg-muted/10 border border-border/40 p-4 rounded-lg">
+                    <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
+                      <input
+                        type="checkbox"
+                        checked={displaySettings.autoMergeTags ?? false}
+                        onChange={(e) => updateDisplaySettings({ autoMergeTags: e.target.checked })}
+                        className="rounded border-border w-5 h-5 text-primary"
+                      />
+                      Fusionner automatiquement le tag au joueur
+                    </label>
+                    <p className="text-[11px] text-muted-foreground mt-2 pl-8 leading-relaxed">
+                      Si activé, le glisser-déposer d'un tag (marqueur) sur un joueur fusionnera automatiquement l'entité sans demander de confirmation.
+                    </p>
+                  </div>
+                </div>
+              </section>
             </div>
           )}
 

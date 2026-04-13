@@ -253,6 +253,7 @@ export interface GameState {
     playerNamePosition: 'none' | 'bottom' | 'top' | 'inside';
     showTagName: boolean;
     showOfflineStatus: boolean;
+    autoMergeTags: boolean;
     playerBadges: {
       topLeft: BadgeConfig;
       topRight: BadgeConfig;

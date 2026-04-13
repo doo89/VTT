@@ -273,7 +273,12 @@ export const Canvas: React.FC = () => {
         });
 
         if (hitPlayer) {
-          setMergeConfirm({ marker, hitPlayer, canvasX, canvasY });
+          if (displaySettings.autoMergeTags) {
+            applyTagToPlayer(hitPlayer, marker.tag);
+            deleteMarker(marker.id);
+          } else {
+            setMergeConfirm({ marker, hitPlayer, canvasX, canvasY });
+          }
           return;
         }
 
