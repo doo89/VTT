@@ -559,15 +559,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                          </div>
                        )}
 
-                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
-                         <input
-                           type="checkbox"
-                           checked={displaySettings.smartphoneTabs?.room ?? true}
-                           onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true }), room: e.target.checked } })}
-                           className="rounded border-border w-4 h-4 text-primary"
-                         />
-                         Afficher l'onglet "Salle" (Miniature globale)
-                       </label>
+                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.smartphoneTabs?.room ?? true}
+                            onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true, wiki: true }), room: e.target.checked } })}
+                            className="rounded border-border w-4 h-4 text-primary"
+                          />
+                          Afficher l'onglet "Salle" (Miniature globale)
+                        </label>
+                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.smartphoneTabs?.wiki ?? true}
+                            onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true, wiki: true }), wiki: e.target.checked } })}
+                            className="rounded border-border w-4 h-4 text-primary"
+                          />
+                          Afficher l'onglet "Wiki" (Notes & Rôles)
+                        </label>
                      </div>
                    </div>
 
