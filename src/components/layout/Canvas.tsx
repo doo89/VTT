@@ -909,7 +909,7 @@ export const Canvas: React.FC = () => {
                       width: player.size * 2,
                       height: player.size * 2,
                       backgroundColor: player.isDead ? '#27272a' : player.color, // zinc-800
-                      border: `4px solid ${player.isDead ? '#7f1d1d' : (role?.color || '#ffffff')}`, // red-900
+                      border: `4px solid ${player.isDead ? '#7f1d1d' : (displaySettings.showRoleColor && role?.color) ? role.color : player.color}`, // red-900 or role/player color
                       padding: imageToShow ? '2px' : '0' // Leave 2px border for color if image exists
                     }}
                   >

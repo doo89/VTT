@@ -248,6 +248,7 @@ export interface GameState {
     foregroundElement: 'players' | 'markers';
     showPlayerImage: boolean;
     showRoleImage: boolean;
+    showRoleColor: boolean;
     imagePriority: 'player' | 'role';
     playerNamePosition: 'none' | 'bottom' | 'top' | 'inside';
     showTagName: boolean;

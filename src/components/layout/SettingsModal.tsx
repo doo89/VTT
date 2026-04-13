@@ -355,15 +355,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           />
                           Afficher l'image du joueur (si définie)
                         </label>
-                        <label className="flex items-center gap-2 text-sm cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={displaySettings.showRoleImage}
-                            onChange={(e) => updateDisplaySettings({ showRoleImage: e.target.checked })}
-                            className="rounded border-border w-4 h-4 text-primary"
-                          />
-                          Afficher l'image du rôle (si définie)
-                        </label>
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                          <label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showRoleImage}
+                              onChange={(e) => updateDisplaySettings({ showRoleImage: e.target.checked })}
+                              className="rounded border-border w-4 h-4 text-primary"
+                            />
+                            Afficher l'image du rôle (si définie)
+                          </label>
+                          <label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showRoleColor}
+                              onChange={(e) => updateDisplaySettings({ showRoleColor: e.target.checked })}
+                              className="rounded border-border w-4 h-4 text-primary"
+                            />
+                            Afficher la couleur du rôle
+                          </label>
+                        </div>
                       </div>
 
                       {/* Selects */}

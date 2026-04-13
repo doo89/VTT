@@ -200,6 +200,7 @@ export const initialState = {
     foregroundElement: 'players' as const,
     showPlayerImage: true,
     showRoleImage: true,
+    showRoleColor: true,
     imagePriority: 'player' as const,
     playerNamePosition: 'bottom' as const,
     showTagName: false,
