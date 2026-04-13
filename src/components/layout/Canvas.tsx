@@ -1021,7 +1021,7 @@ export const Canvas: React.FC = () => {
                                       {displaySettings.showTagUses && t.uses !== null && <span>Uses: {t.uses}</span>}
                                       {displaySettings.showTagPoints && t.points !== null && <span>Pts: {t.points}</span>}
                                       {displaySettings.showTagVotes && t.votes !== null && <span>Votes: {t.votes === -1 ? 'Illimité' : t.votes}</span>}
-                                      {displaySettings.showTagAutoDelete && t.autoDeleteOnZeroUses && <Trash2 size={10} className="text-destructive shrink-0" title="Supprimé à 0 utilisation" />}
+                                      {displaySettings.showTagAutoDelete && t.autoDeleteOnZeroUses && <span title="Supprimé à 0 utilisation"><Trash2 size={10} className="text-destructive shrink-0" /></span>}
                                     </div>
                                   )}
                                   {(displaySettings.showTagSeenAsRole && t.seenAsRoleId) || (displaySettings.showTagSeenInTeam && t.seenInTeamId) ? (
@@ -1062,7 +1062,7 @@ export const Canvas: React.FC = () => {
                                       {displaySettings.showTagUses && t.uses !== null && <span>Uses: {t.uses}</span>}
                                       {displaySettings.showTagPoints && t.points !== null && <span>Pts: {t.points}</span>}
                                       {displaySettings.showTagVotes && t.votes !== null && <span>Votes: {t.votes === -1 ? 'Illimité' : t.votes}</span>}
-                                      {displaySettings.showTagAutoDelete && t.autoDeleteOnZeroUses && <Trash2 size={10} className="text-destructive shrink-0" title="Supprimé à 0 utilisation" />}
+                                      {displaySettings.showTagAutoDelete && t.autoDeleteOnZeroUses && <span title="Supprimé à 0 utilisation"><Trash2 size={10} className="text-destructive shrink-0" /></span>}
                                     </div>
                                   )}
                                   {(displaySettings.showTagSeenAsRole && t.seenAsRoleId) || (displaySettings.showTagSeenInTeam && t.seenInTeamId) ? (
