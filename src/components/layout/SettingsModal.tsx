@@ -380,14 +380,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           </select>
                          </div>
                          <div className="flex flex-col gap-1.5">
-                           <label className="text-xs text-muted-foreground">Position du nom (sans image) :</label>
+                           <label className="text-xs text-muted-foreground">Position du nom :</label>
                            <select
                             value={displaySettings.playerNamePosition}
-                            onChange={(e) => updateDisplaySettings({ playerNamePosition: e.target.value as 'inside' | 'bottom' })}
+                            onChange={(e) => updateDisplaySettings({ playerNamePosition: e.target.value as any })}
                             className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-fit"
                           >
-                            <option value="inside">À l'intérieur de la pastille</option>
-                            <option value="bottom">En dessous (texte flottant)</option>
+                            <option value="none">Aucun</option>
+                             <option value="bottom">En dessous</option>
+                             <option value="top">Au dessus</option>
+                             <option value="inside">À l'intérieur de la pastille</option>
                           </select>
                          </div>
                       </div>

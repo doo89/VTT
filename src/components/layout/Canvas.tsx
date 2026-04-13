@@ -925,10 +925,10 @@ export const Canvas: React.FC = () => {
                       <Skull size={player.size * 1.5} className="absolute text-red-900/60 pointer-events-none" />
                     )}
 
-                    {/* Show name inside circle ONLY if there's no image AND setting says 'inside' */}
-                    {!imageToShow && displaySettings.playerNamePosition === 'inside' && (
+                    {/* Name inside circle */}
+                    {displaySettings.playerNamePosition === 'inside' && (
                       <span className="font-bold text-white text-sm mix-blend-difference drop-shadow-md px-1 text-center leading-tight z-10 pointer-events-none flex flex-col items-center">
-                        {displaySettings.showPlayerName !== false && <span>{player.name}</span>}
+                        <span>{player.name}</span>
                         {roomCode && !onlinePlayerIds.includes(player.id) && displaySettings.showOfflineStatus && (
                           <span className="text-[9px] text-destructive opacity-90 -mt-1 drop-shadow-sm font-bold">(hors ligne)</span>
                         )}
@@ -936,9 +936,19 @@ export const Canvas: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Show name below the circle IF there IS an image OR setting says 'bottom' */}
-                  {(imageToShow || (!imageToShow && displaySettings.playerNamePosition === 'bottom')) && displaySettings.showPlayerName !== false && (
+                  {/* Name below the circle */}
+                  {displaySettings.playerNamePosition === 'bottom' && (
                     <div className="absolute top-full mt-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap border border-border pointer-events-none text-center flex flex-col items-center">
+                      <span>{player.name}</span>
+                      {roomCode && !onlinePlayerIds.includes(player.id) && displaySettings.showOfflineStatus && (
+                        <span className="text-[9px] text-destructive opacity-80 -mt-1 leading-tight">(hors ligne)</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Name above the circle */}
+                  {displaySettings.playerNamePosition === 'top' && (
+                    <div className="absolute bottom-full mb-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap border border-border pointer-events-none text-center flex flex-col items-center">
                       <span>{player.name}</span>
                       {roomCode && !onlinePlayerIds.includes(player.id) && displaySettings.showOfflineStatus && (
                         <span className="text-[9px] text-destructive opacity-80 -mt-1 leading-tight">(hors ligne)</span>
