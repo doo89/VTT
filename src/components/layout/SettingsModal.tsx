@@ -401,7 +401,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             onChange={(e) => updateDisplaySettings({ showTooltip: e.target.checked })}
                             className="rounded border-border w-4 h-4 text-primary"
                           />
-                          Afficher l'info-bulle au survol (Sur le plateau GM et l'écran Déporté)
+                          Afficher l'info-bulle au survol
                         </label>
                         {displaySettings.showTooltip && (
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 ml-6">
