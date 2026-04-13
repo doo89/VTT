@@ -239,6 +239,8 @@ export const initialState = {
     showWikiRoles: true,
     wikiOnlySelectedRoles: false,
     wikiOnlyInPlayRoles: false,
+    smartphoneImageBlur: 20,
+    smartphoneImageMinHeight: 400,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,

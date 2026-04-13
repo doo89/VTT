@@ -32,7 +32,7 @@ export interface PlayerTemplate {
   imageUrl?: string;
   roleId: EntityId | null;
   teamId: EntityId | null;
-  smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background';
+  smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background' | 'none';
 }
 
 export interface Role {
@@ -49,7 +49,7 @@ export interface Role {
   description?: string;
   isSelectableForDistribution?: boolean;
   distributionQuantity?: number;
-  smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background';
+  smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background' | 'none';
 }
 
 export interface TagCategory {
@@ -287,5 +287,7 @@ export interface GameState {
     showWikiRoles?: boolean;
     wikiOnlySelectedRoles?: boolean;
     wikiOnlyInPlayRoles?: boolean;
+    smartphoneImageBlur?: number;
+    smartphoneImageMinHeight?: number;
   };
 }

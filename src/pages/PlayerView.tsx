@@ -436,8 +436,14 @@ export const PlayerView: React.FC = () => {
           {/* Role Card */}
           {(() => {
             const effectiveStyle = localRole?.smartphoneImageStyle || localPlayer?.smartphoneImageStyle || displaySettings?.smartphoneImageStyle || 'circle';
+            const blur = displaySettings?.smartphoneImageBlur ?? 20;
+            const minHeight = displaySettings?.smartphoneImageMinHeight ?? 400;
+
             return (
-              <div className={`relative shrink-0 flex flex-col items-center border rounded-2xl p-6 shadow-2xl overflow-hidden mt-4 transition-colors duration-1000 ${(isNight && cycleMode === 'dayNight') ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-800 border-zinc-700'}`}>
+              <div 
+                className={`relative shrink-0 flex flex-col items-center border rounded-2xl p-6 shadow-2xl overflow-hidden mt-4 transition-all duration-1000 ${(isNight && cycleMode === 'dayNight') ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-800 border-zinc-700'}`}
+                style={{ minHeight: effectiveStyle === 'background' ? `${minHeight}px` : undefined }}
+              >
                 {localTeam && (
                   <div
                       className="absolute top-0 left-0 w-full h-1.5"
@@ -447,16 +453,17 @@ export const PlayerView: React.FC = () => {
 
                 {/* Background Image Style */}
                 {(effectiveStyle === 'background') && (localRole?.imageUrl || localPlayer?.imageUrl) && (
-                  <div className="absolute inset-0 z-0 opacity-20 overflow-hidden">
+                  <div className="absolute inset-0 z-0 opacity-40 overflow-hidden">
                     <img 
                       src={localRole?.imageUrl || localPlayer?.imageUrl} 
                       alt="" 
-                      className="w-full h-full object-cover blur-sm"
+                      className="w-full h-full object-cover transition-all duration-700"
+                      style={{ filter: `blur(${blur}px) brightness(0.6)` }}
                     />
                   </div>
                 )}
 
-                {effectiveStyle !== 'background' && (
+                {effectiveStyle !== 'background' && effectiveStyle !== 'none' && (
                   <div
                     className={`flex items-center justify-center shadow-xl mb-4 border-4 transition-all overflow-hidden z-10 ${localPlayer.isDead ? 'grayscale opacity-50 border-zinc-700 bg-zinc-800' : 'border-zinc-800 bg-zinc-950'} ${
                       effectiveStyle === 'square' ? 'w-28 h-28 rounded-2xl' :
