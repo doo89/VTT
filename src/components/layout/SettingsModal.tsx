@@ -495,6 +495,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                          />
                          Afficher l'onglet "Jeu" (Plateau principal, actions de base)
                        </label>
+                   <div className="flex flex-col gap-1.5 w-fit ml-7 mt-1">
+                    <label className="text-xs font-bold text-foreground">Style de l'image (Avatar / Rôle)</label>
+                    <p className="text-xs text-muted-foreground mb-1">Définit la forme de l'image affichée sur l'écran du smartphone des joueurs.</p>
+                    <select
+                      value={displaySettings.smartphoneImageStyle || 'circle'}
+                      onChange={(e) => updateDisplaySettings({ smartphoneImageStyle: e.target.value as any })}
+                      className="bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary min-w-[200px]"
+                    >
+                      <option value="circle">Pastille Ronde (Défaut, rognée)</option>
+                      <option value="square">Carré (Rognée)</option>
+                      <option value="original">Format Original (Entière, centrée)</option>
+                      <option value="background">Mettre en plein écran (Image de fond floutée)</option>
+                    </select>
+                   </div>
                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
                          <input
                            type="checkbox"
@@ -641,20 +655,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                      </div>
                    </div>
 
-                   <div className="flex flex-col gap-1.5 w-fit mt-2 pt-4 border-t border-border/30">
-                    <label className="text-xs font-bold text-foreground">Style de l'image (Avatar / Rôle)</label>
-                    <p className="text-xs text-muted-foreground mb-1">Définit la forme de l'image affichée sur l'écran du smartphone des joueurs.</p>
-                    <select
-                      value={displaySettings.smartphoneImageStyle || 'circle'}
-                      onChange={(e) => updateDisplaySettings({ smartphoneImageStyle: e.target.value as any })}
-                      className="bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary min-w-[200px]"
-                    >
-                      <option value="circle">Pastille Ronde (Défaut, rognée)</option>
-                      <option value="square">Carré (Rognée)</option>
-                      <option value="original">Format Original (Entière, centrée)</option>
-                      <option value="background">Mettre en plein écran (Image de fond floutée)</option>
-                    </select>
-                   </div>
 
                    <div className="flex flex-col gap-2 mt-2 pt-4 border-t border-border/30">
                     <div className="flex flex-col gap-1">
