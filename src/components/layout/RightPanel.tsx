@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2 } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Type, Image as ImageIcon } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -16,7 +16,8 @@ export const RightPanel: React.FC = () => {
     logs, clearLogs, addLog,
     scoreboard, setScoreboard,
     wiki: storeWiki, setWiki,
-    customPopups, addCustomPopup, updateCustomPopup, deleteCustomPopup, triggerCustomPopup
+    customPopups, addCustomPopup, updateCustomPopup, deleteCustomPopup, triggerCustomPopup,
+    checklist, setChecklist
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -788,6 +789,167 @@ export const RightPanel: React.FC = () => {
                       <p className="text-xs text-muted-foreground italic text-center py-2">Aucune popup créée.</p>
                     )}
                   </div>
+              </div>
+            )}
+          </section>
+        )}
+        {/* Checklist pour le MJ */}
+        {(displaySettings.panels?.checklist ?? true) && (
+          <section className="flex flex-col border border-border rounded-md bg-background">
+            <button
+              onClick={() => toggleSection('checklist')}
+              className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+            >
+              <div className={`flex items-center gap-2 ${activeSection === 'checklist' ? 'text-green-500' : ''}`}>
+                <CheckSquare size={16} /> Checklist pour le MJ ({checklist?.length || 0})
+              </div>
+              {activeSection === 'checklist' ? <ChevronDown size={16} className="text-green-500" /> : <ChevronRight size={16} />}
+            </button>
+            {activeSection === 'checklist' && (
+              <div className="p-3 flex flex-col gap-3 border-t border-border max-h-[500px] overflow-y-auto custom-scrollbar">
+                
+                {/* List of blocks */}
+                <div className="flex flex-col gap-2">
+                  {(checklist || []).map((item, index) => (
+                    <div key={item.id} className="flex gap-2 items-start w-full bg-muted/20 border border-border/50 rounded-md p-2">
+                      <div className="flex-1 flex flex-col gap-2">
+                        {item.type === 'text' && (
+                          <textarea
+                            value={item.content || ''}
+                            onChange={(e) => {
+                              const newChecklist = [...checklist];
+                              newChecklist[index].content = e.target.value;
+                              setChecklist(newChecklist);
+                            }}
+                            placeholder="Votre texte..."
+                            style={{ color: item.color || '#e4e4e7' }}
+                            className="w-full bg-transparent border-0 text-sm focus:outline-none focus:ring-0 resize-y min-h-[40px] p-0 m-0"
+                          />
+                        )}
+                        {item.type === 'checkbox' && (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={item.checked || false}
+                              onChange={(e) => {
+                                const newChecklist = [...checklist];
+                                newChecklist[index].checked = e.target.checked;
+                                setChecklist(newChecklist);
+                              }}
+                              className="w-4 h-4 rounded border-border"
+                            />
+                            <input
+                              type="text"
+                              value={item.content || ''}
+                              onChange={(e) => {
+                                const newChecklist = [...checklist];
+                                newChecklist[index].content = e.target.value;
+                                setChecklist(newChecklist);
+                              }}
+                              placeholder="Tâche..."
+                              style={{ color: item.color || '#e4e4e7' }}
+                              className="flex-1 bg-transparent border-0 text-sm focus:outline-none focus:ring-0 px-0 py-1 font-medium"
+                            />
+                          </div>
+                        )}
+                        {item.type === 'image' && (
+                          <div className="flex flex-col gap-2 w-full">
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl} alt="Checklist" className="w-full max-h-48 object-contain rounded border border-border bg-black/20" />
+                            ) : (
+                              <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-border/50 rounded-md cursor-pointer hover:bg-muted/30 transition-colors text-muted-foreground w-full">
+                                <Upload size={16} className="mb-1" />
+                                <span className="text-[10px]">Charger une image</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const url = await uploadImageToStorage(file);
+                                      if (url) {
+                                        const newChecklist = [...checklist];
+                                        newChecklist[index].imageUrl = url;
+                                        setChecklist(newChecklist);
+                                      }
+                                    }
+                                  }}
+                                />
+                              </label>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Controls for item */}
+                      <div className="flex flex-col gap-1 items-end shrink-0 pl-2 border-l border-border/30">
+                        <button
+                          onClick={() => {
+                            const newChecklist = checklist.filter((_, i) => i !== index);
+                            setChecklist(newChecklist);
+                          }}
+                          className="text-muted-foreground hover:text-white hover:bg-destructive p-1 rounded transition-colors"
+                          title="Supprimer ce bloc"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                        {(item.type === 'text' || item.type === 'checkbox') && (
+                          <div className="relative group">
+                            <button className="text-muted-foreground hover:text-primary p-1 rounded transition-colors" title="Couleur du texte">
+                              <Settings size={12} />
+                            </button>
+                            <div className="absolute right-0 top-full mt-1 hidden group-hover:flex flex-wrap w-32 bg-popover border border-border p-2 rounded shadow-lg z-50 gap-1">
+                              {['#ffffff', '#e4e4e7', '#a1a1aa', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'].map(c => (
+                                <button
+                                  key={c}
+                                  onClick={() => {
+                                    const newChecklist = [...checklist];
+                                    newChecklist[index].color = c;
+                                    setChecklist(newChecklist);
+                                  }}
+                                  className={`w-4 h-4 rounded-full border border-border/50 ${item.color === c ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}`}
+                                  style={{ backgroundColor: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {(!checklist || checklist.length === 0) && (
+                    <p className="text-xs text-muted-foreground italic text-center py-2">La checklist est vide.</p>
+                  )}
+                </div>
+
+                {/* Add buttons */}
+                <div className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-border">
+                  <button
+                    onClick={() => setChecklist([...(checklist || []), { id: Date.now().toString() + 't', type: 'text', content: '', color: '#e4e4e7' }])}
+                    className="flex flex-col items-center justify-center gap-1.5 p-2 bg-muted/40 hover:bg-accent rounded border border-border/50 transition-colors text-muted-foreground hover:text-foreground"
+                    title="Ajouter du texte"
+                  >
+                    <Type size={14} />
+                    <span className="text-[9px] uppercase font-bold">Texte</span>
+                  </button>
+                  <button
+                    onClick={() => setChecklist([...(checklist || []), { id: Date.now().toString() + 'c', type: 'checkbox', content: '', checked: false, color: '#e4e4e7' }])}
+                    className="flex flex-col items-center justify-center gap-1.5 p-2 bg-muted/40 hover:bg-accent rounded border border-border/50 transition-colors text-muted-foreground hover:text-foreground"
+                    title="Ajouter une tâche"
+                  >
+                    <CheckSquare size={14} />
+                    <span className="text-[9px] uppercase font-bold">Tâche</span>
+                  </button>
+                  <button
+                    onClick={() => setChecklist([...(checklist || []), { id: Date.now().toString() + 'i', type: 'image', imageUrl: null }])}
+                    className="flex flex-col items-center justify-center gap-1.5 p-2 bg-muted/40 hover:bg-accent rounded border border-border/50 transition-colors text-muted-foreground hover:text-foreground"
+                    title="Ajouter une image"
+                  >
+                    <ImageIcon size={14} />
+                    <span className="text-[9px] uppercase font-bold">Image</span>
+                  </button>
+                </div>
               </div>
             )}
           </section>

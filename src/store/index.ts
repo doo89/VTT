@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup } from '../types';
+import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, ChecklistItem } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface VttStore extends GameState {
@@ -112,6 +112,9 @@ interface VttStore extends GameState {
   // Logs
   addLog: (message: string, type: LogEvent['type']) => void;
   clearLogs: () => void;
+
+  // Checklist
+  setChecklist: (checklist: ChecklistItem[] | ((prev: ChecklistItem[]) => ChecklistItem[])) => void;
 }
 
 export const initialState = {
@@ -135,6 +138,7 @@ export const initialState = {
   recentColors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff', '#000000', '#6b7280'], // default colors
   customPopups: [],
   activeCustomPopupId: null,
+  checklist: [],
   isNight: false,
   cycleNumber: 1,
   cycleMode: 'dayNight' as const,
@@ -230,6 +234,7 @@ export const initialState = {
       system: true,
       wiki: true,
       popupCreator: true,
+      checklist: true,
     },
     recordLogs: true,
     smartphoneTabs: {
@@ -546,6 +551,11 @@ export const useVttStore = create<VttStore>()(
           };
         }),
         clearLogs: () => set({ logs: [] }),
+
+        // Checklist
+        setChecklist: (checklistPayload) => set((state) => ({
+          checklist: typeof checklistPayload === 'function' ? checklistPayload(state.checklist) : checklistPayload
+        })),
       }),
       {
         partialize: (state) => ({
@@ -560,6 +570,7 @@ export const useVttStore = create<VttStore>()(
           cycleNumber: state.cycleNumber,
           scoreboard: state.scoreboard,
           wiki: state.wiki,
+          checklist: state.checklist,
         }),
         limit: 50, // Keep last 50 states to prevent memory issues
         equality: (pastState, currentState) => {

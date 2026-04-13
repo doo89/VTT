@@ -174,6 +174,17 @@ export interface CustomPopup {
   autoCloseTimer: boolean;
 }
 
+export type ChecklistItemType = 'text' | 'checkbox' | 'image';
+
+export interface ChecklistItem {
+  id: string;
+  type: ChecklistItemType;
+  content?: string;
+  checked?: boolean;
+  color?: string;
+  imageUrl?: string | null;
+}
+
 export interface WikiState {
   isOpen: boolean;
   isDetached: boolean;
@@ -202,6 +213,7 @@ export interface GameState {
   recentColors: string[];
   customPopups: CustomPopup[];
   activeCustomPopupId: string | null;
+  checklist: ChecklistItem[];
   isNight: boolean;
   cycleNumber: number;
   cycleMode: 'dayNight' | 'turns' | 'none';
@@ -281,6 +293,7 @@ export interface GameState {
       system: boolean;
       wiki: boolean;
       popupCreator: boolean;
+      checklist: boolean;
     };
     recordLogs: boolean;
     smartphoneTabs: {
