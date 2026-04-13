@@ -1027,12 +1027,18 @@ export const Canvas: React.FC = () => {
                                   {(displaySettings.showTagSeenAsRole && t.seenAsRoleId) || (displaySettings.showTagSeenInTeam && t.seenInTeamId) ? (
                                     <div className="flex flex-col gap-0.5 mt-0.5">
                                       {displaySettings.showTagSeenAsRole && t.seenAsRoleId && (
-                                        <div className="text-[9px] text-muted-foreground pl-4 italic leading-tight">
+                                        <div 
+                                          className="text-[9px] pl-4 italic leading-tight"
+                                          style={{ color: roles.find(r => r.id === t.seenAsRoleId)?.color }}
+                                        >
                                           Vu comme : {roles.find(r => r.id === t.seenAsRoleId)?.name || 'Inconnu'}
                                         </div>
                                       )}
                                       {displaySettings.showTagSeenInTeam && t.seenInTeamId && (
-                                        <div className="text-[9px] text-muted-foreground pl-4 italic leading-tight">
+                                        <div 
+                                          className="text-[9px] pl-4 italic leading-tight"
+                                          style={{ color: teams.find(tm => tm.id === t.seenInTeamId)?.color }}
+                                        >
                                           Équipe vue : {teams.find(tm => tm.id === t.seenInTeamId)?.name || 'Inconnue'}
                                         </div>
                                       )}
@@ -1068,12 +1074,18 @@ export const Canvas: React.FC = () => {
                                   {(displaySettings.showTagSeenAsRole && t.seenAsRoleId) || (displaySettings.showTagSeenInTeam && t.seenInTeamId) ? (
                                     <div className="flex flex-col gap-0.5 mt-0.5">
                                       {displaySettings.showTagSeenAsRole && t.seenAsRoleId && (
-                                        <div className="text-[9px] text-muted-foreground pl-4 italic leading-tight">
+                                        <div 
+                                          className="text-[9px] pl-4 italic leading-tight"
+                                          style={{ color: roles.find(r => r.id === t.seenAsRoleId)?.color }}
+                                        >
                                           Vu comme : {roles.find(r => r.id === t.seenAsRoleId)?.name || 'Inconnu'}
                                         </div>
                                       )}
                                       {displaySettings.showTagSeenInTeam && t.seenInTeamId && (
-                                        <div className="text-[9px] text-muted-foreground pl-4 italic leading-tight">
+                                        <div 
+                                          className="text-[9px] pl-4 italic leading-tight"
+                                          style={{ color: teams.find(tm => tm.id === t.seenInTeamId)?.color }}
+                                        >
                                           Équipe vue : {teams.find(tm => tm.id === t.seenInTeamId)?.name || 'Inconnue'}
                                         </div>
                                       )}
@@ -1151,12 +1163,18 @@ export const Canvas: React.FC = () => {
                     {(displaySettings.showTagNameSeenAsRole && marker.tag.seenAsRoleId) || (displaySettings.showTagNameSeenInTeam && marker.tag.seenInTeamId) ? (
                       <div className="flex flex-col gap-0 border-t border-border/20 mt-0.5 pt-0.5 w-full">
                         {displaySettings.showTagNameSeenAsRole && marker.tag.seenAsRoleId && (
-                          <span className="text-[8px] opacity-80 italic font-medium leading-tight">
+                          <span 
+                            className="text-[8px] italic font-medium leading-tight"
+                            style={{ color: roles.find(r => r.id === marker.tag.seenAsRoleId)?.color }}
+                          >
                             {roles.find(r => r.id === marker.tag.seenAsRoleId)?.name || 'Inconnu'}
                           </span>
                         )}
                         {displaySettings.showTagNameSeenInTeam && marker.tag.seenInTeamId && (
-                          <span className="text-[8px] opacity-80 italic font-medium leading-tight">
+                          <span 
+                            className="text-[8px] italic font-medium leading-tight"
+                            style={{ color: teams.find(tm => tm.id === marker.tag.seenInTeamId)?.color }}
+                          >
                             {teams.find(tm => tm.id === marker.tag.seenInTeamId)?.name || 'Inconnue'}
                           </span>
                         )}
@@ -1180,12 +1198,18 @@ export const Canvas: React.FC = () => {
                   {(displaySettings.showTagSeenAsRole && marker.tag.seenAsRoleId) || (displaySettings.showTagSeenInTeam && marker.tag.seenInTeamId) ? (
                     <div className="mt-1 flex flex-col gap-0.5 border-t border-border/30 pt-1">
                       {displaySettings.showTagSeenAsRole && marker.tag.seenAsRoleId && (
-                        <div className="text-[9px] text-muted-foreground italic">
+                        <div 
+                          className="text-[9px] italic"
+                          style={{ color: roles.find(r => r.id === marker.tag.seenAsRoleId)?.color }}
+                        >
                           Vu comme : {roles.find(r => r.id === marker.tag.seenAsRoleId)?.name || 'Inconnu'}
                         </div>
                       )}
                       {displaySettings.showTagSeenInTeam && marker.tag.seenInTeamId && (
-                        <div className="text-[9px] text-muted-foreground italic">
+                        <div 
+                          className="text-[9px] italic"
+                          style={{ color: teams.find(tm => tm.id === marker.tag.seenInTeamId)?.color }}
+                        >
                           Équipe vue : {teams.find(tm => tm.id === marker.tag.seenInTeamId)?.name || 'Inconnue'}
                         </div>
                       )}
