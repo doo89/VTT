@@ -1021,8 +1021,23 @@ export const Canvas: React.FC = () => {
                                       {displaySettings.showTagUses && t.uses !== null && <span>Uses: {t.uses}</span>}
                                       {displaySettings.showTagPoints && t.points !== null && <span>Pts: {t.points}</span>}
                                       {displaySettings.showTagVotes && t.votes !== null && <span>Votes: {t.votes === -1 ? 'Illimité' : t.votes}</span>}
+                                      {displaySettings.showTagAutoDelete && t.autoDeleteOnZeroUses && <Trash2 size={10} className="text-destructive shrink-0" title="Supprimé à 0 utilisation" />}
                                     </div>
                                   )}
+                                  {(displaySettings.showTagSeenAsRole && t.seenAsRoleId) || (displaySettings.showTagSeenInTeam && t.seenInTeamId) ? (
+                                    <div className="flex flex-col gap-0.5 mt-0.5">
+                                      {displaySettings.showTagSeenAsRole && t.seenAsRoleId && (
+                                        <div className="text-[9px] text-muted-foreground pl-4 italic leading-tight">
+                                          Vu comme : {roles.find(r => r.id === t.seenAsRoleId)?.name || 'Inconnu'}
+                                        </div>
+                                      )}
+                                      {displaySettings.showTagSeenInTeam && t.seenInTeamId && (
+                                        <div className="text-[9px] text-muted-foreground pl-4 italic leading-tight">
+                                          Équipe vue : {teams.find(tm => tm.id === t.seenInTeamId)?.name || 'Inconnue'}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : null}
                                   {t.description && <div className="text-[9px] text-muted-foreground pl-4 italic whitespace-pre-wrap">{t.description}</div>}
                                 </li>
                               );
@@ -1047,8 +1062,23 @@ export const Canvas: React.FC = () => {
                                       {displaySettings.showTagUses && t.uses !== null && <span>Uses: {t.uses}</span>}
                                       {displaySettings.showTagPoints && t.points !== null && <span>Pts: {t.points}</span>}
                                       {displaySettings.showTagVotes && t.votes !== null && <span>Votes: {t.votes === -1 ? 'Illimité' : t.votes}</span>}
+                                      {displaySettings.showTagAutoDelete && t.autoDeleteOnZeroUses && <Trash2 size={10} className="text-destructive shrink-0" title="Supprimé à 0 utilisation" />}
                                     </div>
                                   )}
+                                  {(displaySettings.showTagSeenAsRole && t.seenAsRoleId) || (displaySettings.showTagSeenInTeam && t.seenInTeamId) ? (
+                                    <div className="flex flex-col gap-0.5 mt-0.5">
+                                      {displaySettings.showTagSeenAsRole && t.seenAsRoleId && (
+                                        <div className="text-[9px] text-muted-foreground pl-4 italic leading-tight">
+                                          Vu comme : {roles.find(r => r.id === t.seenAsRoleId)?.name || 'Inconnu'}
+                                        </div>
+                                      )}
+                                      {displaySettings.showTagSeenInTeam && t.seenInTeamId && (
+                                        <div className="text-[9px] text-muted-foreground pl-4 italic leading-tight">
+                                          Équipe vue : {teams.find(tm => tm.id === t.seenInTeamId)?.name || 'Inconnue'}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : null}
                                   {t.description && <div className="text-[9px] text-muted-foreground pl-4 italic whitespace-pre-wrap">{t.description}</div>}
                                 </li>
                               );
@@ -1107,6 +1137,11 @@ export const Canvas: React.FC = () => {
                   ) : (
                     <TagIconComponent size={20} style={{ color: marker.tag.color }} />
                   )}
+                  {displaySettings.showTagAutoDelete && marker.tag.autoDeleteOnZeroUses && (
+                    <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-destructive text-destructive-foreground rounded-full p-0.5 shadow-sm border border-background z-10">
+                      <Trash2 size={8} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Tag Name Label */}
@@ -1128,6 +1163,20 @@ export const Canvas: React.FC = () => {
                     {displaySettings.showTagPoints && marker.tag.points !== null && <span>Pts: {marker.tag.points}</span>}
                     {displaySettings.showTagVotes && marker.tag.votes !== null && <span>Votes: {marker.tag.votes === -1 ? 'Illimité' : marker.tag.votes}</span>}
                   </div>
+                  {(displaySettings.showTagSeenAsRole && marker.tag.seenAsRoleId) || (displaySettings.showTagSeenInTeam && marker.tag.seenInTeamId) ? (
+                    <div className="mt-1 flex flex-col gap-0.5 border-t border-border/30 pt-1">
+                      {displaySettings.showTagSeenAsRole && marker.tag.seenAsRoleId && (
+                        <div className="text-[9px] text-muted-foreground italic">
+                          Vu comme : {roles.find(r => r.id === marker.tag.seenAsRoleId)?.name || 'Inconnu'}
+                        </div>
+                      )}
+                      {displaySettings.showTagSeenInTeam && marker.tag.seenInTeamId && (
+                        <div className="text-[9px] text-muted-foreground italic">
+                          Équipe vue : {teams.find(tm => tm.id === marker.tag.seenInTeamId)?.name || 'Inconnue'}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
                   {marker.tag.description && <p className="text-[10px] text-muted-foreground italic mt-1 whitespace-pre-wrap">{marker.tag.description}</p>}
                   </div>
                 )}

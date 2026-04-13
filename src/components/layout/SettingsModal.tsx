@@ -631,6 +631,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             />
                             Afficher le nombre d'utilisation
                           </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showTagAutoDelete ?? true}
+                              onChange={(e) => updateDisplaySettings({ showTagAutoDelete: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Supprimé à 0 utilisation
+                          </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showTagSeenAsRole ?? true}
+                              onChange={(e) => updateDisplaySettings({ showTagSeenAsRole: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Rôle vu comme
+                          </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showTagSeenInTeam ?? true}
+                              onChange={(e) => updateDisplaySettings({ showTagSeenInTeam: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Equipe vue comme
+                          </label>
                         </div>
                       )}
                     </div>
