@@ -576,7 +576,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         Affiche les informations détaillées lors du survol d'un marqueur ou d'un tag.
                       </p>
                       {displaySettings.showTagTooltip !== false && (
-                        <div className="pl-8 mt-4 flex flex-col gap-3 border-l-2 border-border/10 ml-2.5 anim-fade-down">
+                        <div className="pl-8 mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-l-2 border-border/10 ml-2.5 anim-fade-down">
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
