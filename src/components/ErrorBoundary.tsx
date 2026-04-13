@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -10,7 +10,7 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
+  public override state: State = {
     hasError: false,
     error: null
   };
@@ -19,22 +19,22 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
   }
 
-  public render() {
+  public override render() {
     if (this.state.hasError) {
       return (
-        <div className="fixed inset-0 bg-zinc-950 text-white p-8 flex flex-col items-center justify-center font-sans">
+        <div className="fixed inset-0 bg-zinc-950 text-white p-8 flex flex-col items-center justify-center font-sans z-[9999]">
           <h1 className="text-2xl font-bold text-red-500 mb-4">Oups ! Une erreur est survenue.</h1>
           <p className="text-muted-foreground mb-6 text-center max-w-md">
             L'application a rencontré un problème inattendu. Veuillez rafraîchir la page.
           </p>
           <div className="bg-zinc-900 border border-border p-4 rounded-md w-full max-w-2xl overflow-auto max-h-64 mb-6">
-            <code className="text-xs text-red-400">
+            <code className="text-xs text-red-400 whitespace-pre-wrap">
               {this.state.error?.toString()}
-              <br />
+              <br /><br />
               {this.state.error?.stack}
             </code>
           </div>
@@ -48,6 +48,6 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.children;
+    return this.props.children;
   }
 }
