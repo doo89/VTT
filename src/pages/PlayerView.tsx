@@ -29,6 +29,7 @@ export const PlayerView: React.FC = () => {
   const [selectedPlayersByTag, setSelectedPlayersByTag] = useState<Record<string, string[]>>({});
   const [displaySettings, setDisplaySettings] = useState<any>(null);
   const [wiki, setWiki] = useState<any>(null);
+  const [wikiLightMode, setWikiLightMode] = useState(false);
   const [expandedPlayerNotesId, setExpandedPlayerNotesId] = useState<string | null>(null);
   const [playerNotes, setPlayerNotes] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem(`vtt_player_notes_${roomId}`);
@@ -853,17 +854,26 @@ export const PlayerView: React.FC = () => {
             <div className="flex-1 flex flex-col gap-6 py-2 pb-10">
               {/* Part 1: MJ Wiki Content */}
               <section className="flex flex-col gap-3">
-                 <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
-                    <icons.Book size={18} className="text-blue-500" />
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Notes du Maître du Jeu</h3>
+                 <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                    <div className="flex items-center gap-2">
+                       <icons.Book size={18} className="text-blue-500" />
+                       <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Notes du Maître du Jeu</h3>
+                    </div>
+                    <button 
+                       onClick={() => setWikiLightMode(!wikiLightMode)}
+                       className={`p-1.5 rounded-lg border transition-all ${wikiLightMode ? 'bg-white text-zinc-900 border-zinc-300 shadow-sm' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}
+                       title={wikiLightMode ? "Passer en mode sombre" : "Passer en mode clair"}
+                    >
+                       {wikiLightMode ? <icons.Moon size={14} /> : <icons.Sun size={14} />}
+                    </button>
                  </div>
                  
                  <div 
-                    className={`bg-zinc-950/50 border border-zinc-800 rounded-2xl overflow-hidden p-5 transition-all duration-300 ${isNight && cycleMode === 'dayNight' ? 'shadow-blue-900/5' : 'shadow-black/5'}`}
+                    className={`border rounded-2xl overflow-hidden p-5 transition-all duration-300 ${wikiLightMode ? 'bg-white border-zinc-200' : (isNight && cycleMode === 'dayNight' ? 'bg-zinc-950/50 border-zinc-800 shadow-blue-900/5' : 'bg-zinc-900/50 border-zinc-800 shadow-black/5')}`}
                  >
                     {wiki?.content ? (
                        <div 
-                          className="wiki-content text-sm leading-relaxed text-zinc-300 pointer-events-none select-none"
+                          className={`wiki-content text-sm leading-relaxed pointer-events-none select-none ${wikiLightMode ? 'text-zinc-900' : 'text-zinc-300'}`}
                           dangerouslySetInnerHTML={{ __html: wiki.content }}
                        />
                     ) : (
