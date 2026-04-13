@@ -286,7 +286,7 @@ export const PlayerView: React.FC = () => {
     
     // Filter by selected roles
     if (displaySettings?.wikiOnlySelectedRoles) {
-      roles = roles.filter(r => (r.distributionQuantity || 0) > 0);
+      roles = roles.filter(r => r.isSelectableForDistribution);
     }
     
     // Filter by roles in play
