@@ -21,7 +21,7 @@ export interface Player {
   publicNotesNoticeBoard?: boolean;
   publicNotesTimestamp?: number;
   selectionPastilles?: { id: string, icon: string, color: string, name?: string }[];
-  smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background';
+  smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background' | 'none';
 }
 
 export interface PlayerTemplate {
@@ -257,7 +257,7 @@ export interface GameState {
       bottomLeft: BadgeConfig;
       bottomRight: BadgeConfig;
     };
-    smartphoneImageStyle: 'circle' | 'square' | 'original' | 'background';
+    smartphoneImageStyle: 'circle' | 'square' | 'original' | 'background' | 'none';
     panels: {
       distribution: boolean;
       chrono: boolean;
