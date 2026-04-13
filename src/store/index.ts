@@ -241,6 +241,8 @@ export const initialState = {
     wikiOnlyInPlayRoles: false,
     smartphoneImageBlur: 20,
     smartphoneImageMinHeight: 400,
+    roomMiniatureAnimation: true,
+    roomMiniatureDeadIconUrl: null,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
