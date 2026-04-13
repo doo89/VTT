@@ -861,6 +861,7 @@ export const PlayerView: React.FC = () => {
           {(activeTab === 'wiki' && showWiki) && (
             <div className="flex-1 flex flex-col gap-6 py-2 pb-10">
               {/* Part 1: MJ Wiki Content */}
+              {(displaySettings?.showWikiNotes !== false) && (
               <section className="flex flex-col gap-3">
                  <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
                     <button 
@@ -869,7 +870,7 @@ export const PlayerView: React.FC = () => {
                     >
                        <icons.Book size={18} className="text-blue-500" />
                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">
-                          {displaySettings?.wikiTitle || 'NOTE DU MAÎTRE DU JEU'}
+                          {displaySettings?.wikiTitle || 'Régles du jeu'}
                        </h3>
                        {isWikiNotesOpen ? <icons.ChevronUp size={16} className="text-zinc-600" /> : <icons.ChevronDown size={16} className="text-zinc-600" />}
                     </button>
@@ -902,8 +903,10 @@ export const PlayerView: React.FC = () => {
                    </div>
                  )}
               </section>
+              )}
 
               {/* Part 2: Roles Arborescence */}
+              {(displaySettings?.showWikiRoles !== false) && (
               <section className="flex flex-col gap-3 mt-4">
                  <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
                     <button 
@@ -976,6 +979,7 @@ export const PlayerView: React.FC = () => {
                  </div>
                  )}
               </section>
+              )}
             </div>
           )}
 

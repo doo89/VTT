@@ -283,5 +283,7 @@ export interface GameState {
     };
     wikiTitle?: string;
     wikiLightMode?: boolean;
+    showWikiNotes?: boolean;
+    showWikiRoles?: boolean;
   };
 }
