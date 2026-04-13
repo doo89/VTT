@@ -577,6 +577,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           />
                           Afficher l'onglet "Wiki" (Notes & Rôles)
                         </label>
+                        {(displaySettings.smartphoneTabs?.wiki ?? true) && (
                         <div className="flex flex-col gap-2 ml-7 mt-1">
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
@@ -636,6 +637,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             </label>
                           </div>
                         </div>
+                        )}
                      </div>
                    </div>
 
