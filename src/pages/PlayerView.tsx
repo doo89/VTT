@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { SyncStatePayload } from '../lib/supabase';
-import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock, Gamepad2, Users, Map, Power } from 'lucide-react';
+import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock, Gamepad2, Users, Map, Power, Trash2 } from 'lucide-react';
 import * as icons from 'lucide-react';
 import type { Player, Role, Team } from '../types';
 
@@ -27,6 +27,11 @@ export const PlayerView: React.FC = () => {
   const [roomPlayers, setRoomPlayers] = useState<Player[]>([]);
   const [selectedPlayersByTag, setSelectedPlayersByTag] = useState<Record<string, string[]>>({});
   const [displaySettings, setDisplaySettings] = useState<any>(null);
+  const [expandedPlayerNotesId, setExpandedPlayerNotesId] = useState<string | null>(null);
+  const [playerNotes, setPlayerNotes] = useState<Record<string, string>>(() => {
+    const saved = localStorage.getItem(`vtt_player_notes_${roomId}`);
+    return saved ? JSON.parse(saved) : {};
+  });
 
   // Track the actual player ID once found, so if GM renames them, they stay connected
   // Use a ref so changes don't cause the useEffect to tear down the WebSocket channel
@@ -88,6 +93,19 @@ export const PlayerView: React.FC = () => {
         return { ...prev, [tagInstanceId]: [...current, targetPlayerId] };
       }
     });
+  };
+
+  const updatePlayerNote = (playerId: string, note: string) => {
+    const newNotes = { ...playerNotes, [playerId]: note };
+    setPlayerNotes(newNotes);
+    localStorage.setItem(`vtt_player_notes_${roomId}`, JSON.stringify(newNotes));
+  };
+
+  const clearAllNotes = () => {
+    if (confirm('Effacer toutes vos notes privées sur les joueurs ?')) {
+      setPlayerNotes({});
+      localStorage.removeItem(`vtt_player_notes_${roomId}`);
+    }
   };
 
   useEffect(() => {
@@ -641,36 +659,85 @@ export const PlayerView: React.FC = () => {
 
           {(activeTab === 'players' && showPlayers) && (
             <div className="flex-1 flex flex-col gap-4 py-2">
-              <div className="flex flex-col gap-1">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Joueurs en salle</h3>
-                <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">{roomPlayers.length} joueurs connectés</p>
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Joueurs en salle</h3>
+                  <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">{roomPlayers.length} joueurs connectés</p>
+                </div>
+                <button
+                  onClick={clearAllNotes}
+                  className="p-2 text-zinc-500 hover:text-red-400 transition-colors bg-zinc-900/50 rounded-lg border border-zinc-800"
+                  title="Effacer toutes vos notes"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
               <div className="flex flex-col gap-2.5">
-                {roomPlayers.map(p => (
-                  <div key={p.id} className="flex items-center gap-4 bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800/50 backdrop-blur-sm">
+                {roomPlayers.map(p => {
+                  const isLocal = p.id === localPlayer?.id;
+                  const isExpanded = expandedPlayerNotesId === p.id;
+                  
+                  return (
                     <div 
-                      className={`w-12 h-12 rounded-full flex items-center justify-center border-2 shrink-0 ${p.isDead ? 'border-zinc-800 grayscale opacity-40' : 'shadow-lg shadow-zinc-950/50'}`} 
-                      style={{ borderColor: p.isDead ? undefined : p.color }}
+                      key={p.id} 
+                      className={`flex flex-col bg-zinc-900/40 rounded-2xl border transition-all duration-300 backdrop-blur-sm ${
+                        isLocal ? 'border-orange-500/50 bg-orange-500/5' : 'border-zinc-800/50'
+                      }`}
                     >
-                       {p.imageUrl ? (
-                         <img src={p.imageUrl} className="w-full h-full rounded-full object-cover" alt={p.name} />
-                       ) : (
-                         <UserCircle2 size={24} className={p.isDead ? 'text-zinc-800' : 'text-zinc-600'} />
-                       )}
-                    </div>
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className={`text-lg font-bold truncate ${p.isDead ? 'line-through text-zinc-600 opacity-50' : 'text-zinc-100'}`}>
-                        {p.name}
-                      </span>
-                      {p.isDead && <span className="text-[10px] font-bold text-red-900/70 uppercase tracking-widest leading-none">Mort</span>}
-                    </div>
-                    {p.isDead && (
-                      <div className="bg-red-950/20 p-2 rounded-full">
-                        <ShieldAlert size={18} className="text-red-900/40" />
+                      <div 
+                        className="flex items-center gap-4 p-4 cursor-pointer"
+                        onClick={() => setExpandedPlayerNotesId(isExpanded ? null : p.id)}
+                      >
+                        <div 
+                          className={`w-12 h-12 rounded-full flex items-center justify-center border-2 shrink-0 ${p.isDead ? 'border-zinc-800 grayscale opacity-40' : 'shadow-lg shadow-zinc-950/50'}`} 
+                          style={{ borderColor: p.isDead ? undefined : p.color }}
+                        >
+                          {p.imageUrl ? (
+                            <img src={p.imageUrl} className="w-full h-full rounded-full object-cover" alt={p.name} />
+                          ) : (
+                            <UserCircle2 size={24} className={p.isDead ? 'text-zinc-800' : 'text-zinc-600'} />
+                          )}
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className={`text-lg font-bold truncate ${p.isDead ? 'line-through text-zinc-600 opacity-50' : (isLocal ? 'text-orange-200' : 'text-zinc-100')}`}>
+                            {p.name} {isLocal && <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded ml-1 font-black">MOI</span>}
+                          </span>
+                          {p.isDead && <span className="text-[10px] font-bold text-red-900/70 uppercase tracking-widest leading-none">Mort</span>}
+                          {!p.isDead && playerNotes[p.id] && (
+                            <span className="text-[10px] text-zinc-500 truncate italic mt-1">Note: {playerNotes[p.id]}</span>
+                          )}
+                        </div>
+                        {p.isDead ? (
+                          <div className="bg-red-950/20 p-2 rounded-full">
+                            <ShieldAlert size={18} className="text-red-900/40" />
+                          </div>
+                        ) : (
+                          <div className={`p-1.5 rounded-full transition-colors ${isExpanded ? 'bg-zinc-800 text-blue-400' : 'text-zinc-600'}`}>
+                            {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {isExpanded && (
+                        <div className="px-4 pb-4 pt-0 animate-in slide-in-from-top-2 duration-200">
+                          <div className="bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-3 flex flex-col gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600 border-b border-zinc-800/50 pb-1 flex items-center justify-between">
+                              Note Privée
+                              <span className="text-[9px] font-medium lowercase">Seulement sur ce téléphone</span>
+                            </span>
+                            <textarea
+                              value={playerNotes[p.id] || ''}
+                              onChange={(e) => updatePlayerNote(p.id, e.target.value)}
+                              placeholder="Ajouter une note secrète sur ce joueur..."
+                              className="w-full bg-transparent text-sm text-zinc-300 outline-none resize-none min-h-[80px]"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
