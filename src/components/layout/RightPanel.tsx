@@ -1,7 +1,8 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2 } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
+import { uploadImageToStorage, deleteImageFromStorage } from '../../lib/supabase';
 import type { Role, Player } from '../../types';
 import { SettingsModal } from './SettingsModal';
 
@@ -15,7 +16,7 @@ export const RightPanel: React.FC = () => {
     logs, clearLogs, addLog,
     scoreboard, setScoreboard,
     wiki: storeWiki, setWiki,
-    customPopups, addCustomPopup, deleteCustomPopup, triggerCustomPopup
+    customPopups, addCustomPopup, updateCustomPopup, deleteCustomPopup, triggerCustomPopup
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -24,6 +25,7 @@ export const RightPanel: React.FC = () => {
   const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showPopupCreator, setShowPopupCreator] = useState(false);
+  const [editingPopupId, setEditingPopupId] = useState<string | null>(null);
   const [newPopupData, setNewPopupData] = useState({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
   const urlRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef<HTMLInputElement>(null);
@@ -736,7 +738,11 @@ export const RightPanel: React.FC = () => {
           {activeSection === 'popups' && (
             <div className="p-3 flex flex-col gap-3 border-t border-border">
                <button
-                  onClick={() => setShowPopupCreator(true)}
+                  onClick={() => {
+                    setEditingPopupId(null);
+                    setNewPopupData({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+                    setShowPopupCreator(true);
+                  }}
                   className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
                 >
                   <Plus size={14} /> Ajouter popup
@@ -747,9 +753,27 @@ export const RightPanel: React.FC = () => {
                     <div key={popup.id} className="flex flex-col gap-1 w-full bg-muted/20 border border-border/50 rounded-md p-2">
                       <div className="flex justify-between items-center w-full">
                         <span className="text-xs font-bold truncate pr-2">{popup.title}</span>
-                        <button onClick={() => deleteCustomPopup(popup.id)} className="text-destructive hover:text-white hover:bg-destructive p-1 rounded transition-colors" title="Supprimer">
-                          <Trash2 size={12} />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => {
+                            setEditingPopupId(popup.id);
+                            setNewPopupData({
+                              title: popup.title,
+                              imageUrl: popup.imageUrl || '',
+                              content: popup.content,
+                              showCloseButton: popup.showCloseButton,
+                              autoCloseTimer: popup.autoCloseTimer
+                            });
+                            setShowPopupCreator(true);
+                          }} className="text-muted-foreground hover:text-primary transition-colors p-1" title="Modifier">
+                            <Edit2 size={12} />
+                          </button>
+                          <button onClick={async () => {
+                            if (popup.imageUrl) await deleteImageFromStorage(popup.imageUrl);
+                            deleteCustomPopup(popup.id);
+                          }} className="text-destructive hover:text-white hover:bg-destructive p-1 rounded transition-colors" title="Supprimer">
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </div>
                       <button
                         onClick={() => triggerCustomPopup(popup.id)}
@@ -844,7 +868,10 @@ export const RightPanel: React.FC = () => {
                 Créateur de Popup
               </h2>
               <button 
-                onClick={() => setShowPopupCreator(false)} 
+                onClick={() => {
+                  setShowPopupCreator(false);
+                  setEditingPopupId(null);
+                }} 
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 title="Fermer"
               >
@@ -882,7 +909,12 @@ export const RightPanel: React.FC = () => {
                     />
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                       <button
-                        onClick={() => setNewPopupData({...newPopupData, imageUrl: ''})}
+                        onClick={async () => {
+                          if (newPopupData.imageUrl) {
+                            await deleteImageFromStorage(newPopupData.imageUrl);
+                          }
+                          setNewPopupData({...newPopupData, imageUrl: ''});
+                        }}
                         className="p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
                         title="Supprimer l'image"
                       >
@@ -896,14 +928,13 @@ export const RightPanel: React.FC = () => {
                   ref={popupImageInputRef} 
                   accept="image/*" 
                   className="hidden" 
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (evt) => {
-                        setNewPopupData({...newPopupData, imageUrl: evt.target?.result as string});
-                      };
-                      reader.readAsDataURL(file);
+                      const url = await uploadImageToStorage(file);
+                      if (url) {
+                        setNewPopupData({...newPopupData, imageUrl: url});
+                      }
                     }
                   }} 
                 />
@@ -948,6 +979,7 @@ export const RightPanel: React.FC = () => {
                 onClick={() => {
                   setNewPopupData({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
                   setShowPopupCreator(false);
+                  setEditingPopupId(null);
                 }} 
                 className="px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded font-medium transition-colors border border-destructive/20"
               >
@@ -956,9 +988,14 @@ export const RightPanel: React.FC = () => {
               <button 
                 onClick={() => {
                   if (newPopupData.title.trim()) {
-                    addCustomPopup(newPopupData);
+                    if (editingPopupId) {
+                      updateCustomPopup(editingPopupId, newPopupData);
+                    } else {
+                      addCustomPopup(newPopupData);
+                    }
                     setNewPopupData({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
                     setShowPopupCreator(false);
+                    setEditingPopupId(null);
                   }
                 }} 
                 disabled={!newPopupData.title.trim()}
