@@ -430,20 +430,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         <label className="flex items-center gap-2 text-sm cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={displaySettings.showOfflineStatus}
-                            onChange={(e) => updateDisplaySettings({ showOfflineStatus: e.target.checked })}
-                            className="rounded border-border w-4 h-4 text-primary"
-                          />
-                          Indiquer lorsqu'un joueur est Hors Ligne
-                        </label>
-                        <label className="flex items-center gap-2 text-sm cursor-pointer">
-                          <input
-                            type="checkbox"
                             checked={displaySettings.showPlayerImage}
                             onChange={(e) => updateDisplaySettings({ showPlayerImage: e.target.checked })}
                             className="rounded border-border w-4 h-4 text-primary"
                           />
                           Afficher l'image du joueur (si définie)
+                        </label>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showOfflineStatus}
+                            onChange={(e) => updateDisplaySettings({ showOfflineStatus: e.target.checked })}
+                            className="rounded border-border w-4 h-4 text-primary"
+                          />
+                          Indiquer lorsqu'un joueur est Hors Ligne
                         </label>
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                           <label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
