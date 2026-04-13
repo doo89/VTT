@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Sun, UserCircle2, Tag } from 'lucide-react';
+import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Sun, UserCircle2, Tag, ChevronDown, ChevronRight } from 'lucide-react';
 import { useVttStore } from '../../store';
 import { ColorPicker } from '../ColorPicker';
 import { ThemeToggle } from '../ThemeToggle';
@@ -14,6 +14,7 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils'>('salle');
+  const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ soundboard: true, scoreboard: true, logs: true });
 
   const {
     room, setRoom,
@@ -1067,9 +1068,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         })}
                         className="rounded border-border w-5 h-5 text-primary"
                       />
-                      <span className="font-semibold text-sm">{tool.label}</span>
+                      <span className="font-semibold text-sm flex-1">{tool.label}</span>
+                      {['soundboard', 'scoreboard', 'logs'].includes(tool.key) && (displaySettings.panels || {})[tool.key as keyof typeof displaySettings.panels] !== false && (
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setExpandedOutils(prev => ({ ...prev, [tool.key]: !prev[tool.key] }));
+                          }}
+                          className="p-1 hover:bg-accent rounded-full transition-colors text-muted-foreground"
+                        >
+                          {expandedOutils[tool.key as keyof typeof expandedOutils] ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                        </button>
+                      )}
                     </label>
-                    {tool.key === 'soundboard' && (displaySettings.panels?.soundboard ?? true) && (
+                    {tool.key === 'soundboard' && (displaySettings.panels?.soundboard ?? true) && expandedOutils.soundboard && (
                       <div className="ml-8 flex flex-col gap-4 p-4 bg-muted/20 rounded-lg border border-border mt-1 mb-2">
                         <label className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">
                            <input
@@ -1098,7 +1111,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                          )}
                       </div>
                     )}
-                    {tool.key === 'scoreboard' && (displaySettings.panels?.scoreboard ?? true) && (
+                    {tool.key === 'scoreboard' && (displaySettings.panels?.scoreboard ?? true) && expandedOutils.scoreboard && (
                       <div className="ml-8 grid grid-cols-2 gap-2 p-3 bg-muted/10 border-l-2 border-yellow-500/30 rounded-r-lg">
                         {[
                           { key: 'showRoles', label: 'Afficher le rôle' },
@@ -1125,7 +1138,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         ))}
                       </div>
                     )}
-                    {tool.key === 'logs' && (displaySettings.panels?.logs ?? true) && (
+                    {tool.key === 'logs' && (displaySettings.panels?.logs ?? true) && expandedOutils.logs && (
                       <div className="ml-8 flex items-center gap-3 p-2 bg-muted/10 border-l-2 border-primary/30">
                         <label className="flex items-center gap-2 cursor-pointer group">
                           <input
