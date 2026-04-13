@@ -172,6 +172,7 @@ export interface CustomPopup {
   content: string;
   showCloseButton: boolean;
   autoCloseTimer: boolean;
+  soundUrl?: string | null;
 }
 
 export type ChecklistItemType = 'text' | 'checkbox' | 'image';

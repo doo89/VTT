@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2 } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -29,10 +29,11 @@ export const RightPanel: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showPopupCreator, setShowPopupCreator] = useState(false);
   const [editingPopupId, setEditingPopupId] = useState<string | null>(null);
-  const [newPopupData, setNewPopupData] = useState({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+  const [newPopupData, setNewPopupData] = useState({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
   const urlRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef<HTMLInputElement>(null);
   const popupImageInputRef = useRef<HTMLInputElement>(null);
+  const popupSoundInputRef = useRef<HTMLInputElement>(null);
 
   const saveSupabaseConfig = () => {
     if (urlRef.current && keyRef.current) {
@@ -744,7 +745,7 @@ export const RightPanel: React.FC = () => {
                  <button
                     onClick={() => {
                       setEditingPopupId(null);
-                      setNewPopupData({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+                      setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
                       setShowPopupCreator(true);
                     }}
                     className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
@@ -763,6 +764,7 @@ export const RightPanel: React.FC = () => {
                               setNewPopupData({
                                 title: popup.title,
                                 imageUrl: popup.imageUrl || '',
+                                soundUrl: popup.soundUrl || '',
                                 content: popup.content,
                                 showCloseButton: popup.showCloseButton,
                                 autoCloseTimer: popup.autoCloseTimer
@@ -991,6 +993,54 @@ export const RightPanel: React.FC = () => {
                 />
               </div>
 
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold flex items-center gap-2">
+                  <Volume2 size={16} className="text-blue-500" />
+                  <span>Son au déclenchement (Optionnel)</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newPopupData.soundUrl || ''}
+                    onChange={e => setNewPopupData({...newPopupData, soundUrl: e.target.value})}
+                    placeholder="URL du son ou charger un fichier..."
+                    className="flex-1 bg-background border border-border rounded p-2 text-sm focus:outline-none focus:border-primary"
+                  />
+                  <button
+                    onClick={() => popupSoundInputRef.current?.click()}
+                    className="p-2 bg-muted hover:bg-muted/80 rounded border border-border transition-colors"
+                    title="Charger un son"
+                  >
+                    <Upload size={16} />
+                  </button>
+                  {newPopupData.soundUrl && (
+                    <button
+                      onClick={() => setNewPopupData({...newPopupData, soundUrl: ''})}
+                      className="p-2 bg-destructive/10 hover:bg-destructive/20 text-destructive rounded border border-destructive/20 transition-colors"
+                      title="Supprimer le son"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+                <input 
+                  ref={popupSoundInputRef}
+                  type="file" 
+                  accept="audio/*" 
+                  className="hidden" 
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const url = await uploadImageToStorage(file);
+                      if (url) {
+                        setNewPopupData({...newPopupData, soundUrl: url});
+                      }
+                    }
+                  }} 
+                />
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold flex justify-between items-end">
                   <span>Contenu (Texte riche WIKI)</span>
@@ -1028,7 +1078,7 @@ export const RightPanel: React.FC = () => {
             <div className="p-4 bg-muted/50 border-t border-border flex justify-between items-center shrink-0">
               <button 
                 onClick={() => {
-                  setNewPopupData({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+                  setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
                   setShowPopupCreator(false);
                   setEditingPopupId(null);
                 }} 
@@ -1044,7 +1094,7 @@ export const RightPanel: React.FC = () => {
                     } else {
                       addCustomPopup(newPopupData);
                     }
-                    setNewPopupData({ title: '', imageUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+                    setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
                     setShowPopupCreator(false);
                     setEditingPopupId(null);
                   }

@@ -16,6 +16,15 @@ export const CustomPopupOverlay: React.FC = () => {
     }
   }, [activePopup, triggerCustomPopup]);
 
+  // Sound playback logic
+  useEffect(() => {
+    if (activePopup?.soundUrl) {
+      const audio = new Audio(activePopup.soundUrl);
+      audio.volume = 0.5;
+      audio.play().catch(e => console.error("Failed to play popup sound:", e));
+    }
+  }, [activeCustomPopupId]); // only re-run when ID changes
+
   if (!activePopup) return null;
 
   return (
