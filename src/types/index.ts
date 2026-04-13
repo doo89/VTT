@@ -294,5 +294,11 @@ export interface GameState {
     smartphoneImageMinHeight?: number;
     roomMiniatureAnimation?: boolean;
     roomMiniatureDeadIconUrl?: string | null;
+    showTagCallOrderDay?: boolean;
+    showTagCallOrderNight?: boolean;
+    showTagLives?: boolean;
+    showTagVotes?: boolean;
+    showTagPoints?: boolean;
+    showTagUses?: boolean;
   };
 }

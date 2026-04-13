@@ -1013,11 +1013,14 @@ export const Canvas: React.FC = () => {
                                     )}
                                     <span className="font-medium">{t.name} (Rôle)</span>
                                   </div>
-                                  {(t.uses !== null || t.points !== null || t.votes !== null) && (
-                                    <div className="text-[9px] text-muted-foreground pl-4">
-                                      {t.uses !== null && <span>Uses: {t.uses} </span>}
-                                      {t.points !== null && <span>Pts: {t.points} </span>}
-                                      {t.votes !== null && <span>Votes: {t.votes === -1 ? 'Illimité' : t.votes}</span>}
+                                  {(t.uses !== null || t.points !== null || t.votes !== null || t.lives !== null || t.callOrderDay !== null || t.callOrderNight !== null) && (
+                                    <div className="text-[9px] text-muted-foreground pl-4 flex flex-wrap gap-x-2">
+                                      {displaySettings.showTagCallOrderDay && t.callOrderDay !== null && t.callOrderDay !== '' && <span>J:{t.callOrderDay}</span>}
+                                      {displaySettings.showTagCallOrderNight && t.callOrderNight !== null && t.callOrderNight !== '' && <span>N:{t.callOrderNight}</span>}
+                                      {displaySettings.showTagLives && t.lives !== null && <span>V:{t.lives}</span>}
+                                      {displaySettings.showTagUses && t.uses !== null && <span>Uses: {t.uses}</span>}
+                                      {displaySettings.showTagPoints && t.points !== null && <span>Pts: {t.points}</span>}
+                                      {displaySettings.showTagVotes && t.votes !== null && <span>Votes: {t.votes === -1 ? 'Illimité' : t.votes}</span>}
                                     </div>
                                   )}
                                   {t.description && <div className="text-[9px] text-muted-foreground pl-4 italic whitespace-pre-wrap">{t.description}</div>}
@@ -1036,11 +1039,14 @@ export const Canvas: React.FC = () => {
                                     )}
                                     <span className="font-medium">{t.name}</span>
                                   </div>
-                                  {(t.uses !== null || t.points !== null || t.votes !== null) && (
-                                    <div className="text-[9px] text-muted-foreground pl-4">
-                                      {t.uses !== null && <span>Uses: {t.uses} </span>}
-                                      {t.points !== null && <span>Pts: {t.points} </span>}
-                                      {t.votes !== null && <span>Votes: {t.votes === -1 ? 'Illimité' : t.votes}</span>}
+                                  {(t.uses !== null || t.points !== null || t.votes !== null || t.lives !== null || t.callOrderDay !== null || t.callOrderNight !== null) && (
+                                    <div className="text-[9px] text-muted-foreground pl-4 flex flex-wrap gap-x-2">
+                                      {displaySettings.showTagCallOrderDay && t.callOrderDay !== null && t.callOrderDay !== '' && <span>J:{t.callOrderDay}</span>}
+                                      {displaySettings.showTagCallOrderNight && t.callOrderNight !== null && t.callOrderNight !== '' && <span>N:{t.callOrderNight}</span>}
+                                      {displaySettings.showTagLives && t.lives !== null && <span>V:{t.lives}</span>}
+                                      {displaySettings.showTagUses && t.uses !== null && <span>Uses: {t.uses}</span>}
+                                      {displaySettings.showTagPoints && t.points !== null && <span>Pts: {t.points}</span>}
+                                      {displaySettings.showTagVotes && t.votes !== null && <span>Votes: {t.votes === -1 ? 'Illimité' : t.votes}</span>}
                                     </div>
                                   )}
                                   {t.description && <div className="text-[9px] text-muted-foreground pl-4 italic whitespace-pre-wrap">{t.description}</div>}
@@ -1105,18 +1111,41 @@ export const Canvas: React.FC = () => {
 
                 {/* Tag Name Label */}
                 {displaySettings.showTagName && (
-                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap border border-border pointer-events-none text-center">
-                    <span>{marker.tag.name}</span>
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap border border-border pointer-events-none text-center flex flex-col items-center">
+                    <span className="text-xs">{marker.tag.name}</span>
+                    <div className="flex gap-1.5 mt-0.5 opacity-90 text-[9px] font-black">
+                      {displaySettings.showTagCallOrderDay && marker.tag.callOrderDay !== null && marker.tag.callOrderDay !== '' && (
+                        <span className="text-amber-500">J:{marker.tag.callOrderDay}</span>
+                      )}
+                      {displaySettings.showTagCallOrderNight && marker.tag.callOrderNight !== null && marker.tag.callOrderNight !== '' && (
+                        <span className="text-slate-400">N:{marker.tag.callOrderNight}</span>
+                      )}
+                      {displaySettings.showTagLives && marker.tag.lives !== null && (
+                        <span className="text-red-500">V:{marker.tag.lives}</span>
+                      )}
+                      {displaySettings.showTagVotes && marker.tag.votes !== null && (
+                        <span className="text-purple-500">Voix:{marker.tag.votes === -1 ? '∞' : marker.tag.votes}</span>
+                      )}
+                      {displaySettings.showTagPoints && marker.tag.points !== null && (
+                        <span className="text-blue-400">Pts:{marker.tag.points}</span>
+                      )}
+                      {displaySettings.showTagUses && marker.tag.uses !== null && (
+                        <span className="text-emerald-500">Uses:{marker.tag.uses}</span>
+                      )}
+                    </div>
                   </div>
                 )}
 
                 {/* Tooltip */}
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-7 w-max max-w-[200px] bg-popover text-popover-foreground text-xs p-2 rounded shadow-xl border border-border opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                   <p className="font-bold" style={{ color: marker.tag.color }}>{marker.tag.name}</p>
-                  <div className="text-[10px] text-muted-foreground mt-1">
-                    {marker.tag.uses !== null && <span>Uses: {marker.tag.uses} </span>}
-                    {marker.tag.points !== null && <span>Pts: {marker.tag.points} </span>}
-                    {marker.tag.votes !== null && <span>Votes: {marker.tag.votes === -1 ? 'Illimité' : marker.tag.votes}</span>}
+                  <div className="text-[10px] text-muted-foreground mt-1 flex flex-wrap gap-x-2">
+                    {displaySettings.showTagCallOrderDay && marker.tag.callOrderDay !== null && marker.tag.callOrderDay !== '' && <span>J:{marker.tag.callOrderDay}</span>}
+                    {displaySettings.showTagCallOrderNight && marker.tag.callOrderNight !== null && marker.tag.callOrderNight !== '' && <span>N:{marker.tag.callOrderNight}</span>}
+                    {displaySettings.showTagLives && marker.tag.lives !== null && <span>V:{marker.tag.lives}</span>}
+                    {displaySettings.showTagUses && marker.tag.uses !== null && <span>Uses: {marker.tag.uses}</span>}
+                    {displaySettings.showTagPoints && marker.tag.points !== null && <span>Pts: {marker.tag.points}</span>}
+                    {displaySettings.showTagVotes && marker.tag.votes !== null && <span>Votes: {marker.tag.votes === -1 ? 'Illimité' : marker.tag.votes}</span>}
                   </div>
                   {marker.tag.description && <p className="text-[10px] text-muted-foreground italic mt-1 whitespace-pre-wrap">{marker.tag.description}</p>}
                 </div>
