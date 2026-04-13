@@ -675,6 +675,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     { key: 'soundboard', label: 'Boîte à Sons (Soundboard)' },
                     { key: 'scoreboard', label: 'Tableau des Scores' },
                     { key: 'logs', label: 'Log / Historique' },
+                    { key: 'wiki', label: 'Wiki / Notes GM' },
                     { key: 'system', label: 'Système & Connexion' }
                   ].map(tool => (
                     <div key={tool.key} className="flex flex-col gap-2">

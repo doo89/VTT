@@ -165,6 +165,14 @@ export interface SoundboardState {
   remotePlayTrigger?: { index: number, timestamp: number } | null;
 }
 
+export interface WikiState {
+  isOpen: boolean;
+  isDetached: boolean;
+  x: number;
+  y: number;
+  content: string;
+}
+
 export interface GameState {
   roomName: string;
   roomCode: string | null;
@@ -196,6 +204,7 @@ export interface GameState {
     y: number;
   };
   soundboard: SoundboardState;
+  wiki: WikiState;
   scoreboard: {
     isDetached: boolean;
     x: number;
@@ -256,6 +265,7 @@ export interface GameState {
       scoreboard: boolean;
       logs: boolean;
       system: boolean;
+      wiki: boolean;
     };
     recordLogs: boolean;
     smartphoneTabs: {

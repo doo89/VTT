@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -13,7 +13,8 @@ export const RightPanel: React.FC = () => {
     soundboard, setSoundboard,
     roles, updateRole, players, updatePlayers,
     logs, clearLogs, addLog,
-    scoreboard, setScoreboard
+    scoreboard, setScoreboard,
+    wiki, setWiki
   } = useVttStore();
 
   const [activeSection, setActiveSection] = useState<string | null>('distribution');
@@ -600,6 +601,59 @@ export const RightPanel: React.FC = () => {
                   </>
                 )}
               </div>
+            </div>
+          )}
+        </section>
+        )}
+
+        {/* Wiki */}
+        {displaySettings.panels?.wiki !== false && (
+        <section className="flex flex-col border border-border rounded-md bg-background">
+          <button
+            onClick={() => toggleSection('wiki')}
+            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+          >
+            <div className={`flex items-center gap-2 ${activeSection === 'wiki' ? 'text-blue-400' : ''}`}>
+              <Book size={16} /> Wiki
+            </div>
+            {activeSection === 'wiki' ? <ChevronDown size={16} className="text-blue-400" /> : <ChevronRight size={16} />}
+          </button>
+          {activeSection === 'wiki' && (
+            <div className="flex flex-col p-3 border-t border-border gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Mode détaché</span>
+                <button
+                  onClick={() => setWiki({ isDetached: !wiki.isDetached })}
+                  className={`w-10 h-5 rounded-full transition-colors relative ${wiki.isDetached ? 'bg-primary' : 'bg-muted'}`}
+                >
+                  <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${wiki.isDetached ? 'left-6' : 'left-1'}`} />
+                </button>
+              </div>
+
+              {!wiki.isDetached && wiki.isOpen ? (
+                <div className="flex flex-col gap-2">
+                   <p className="text-[10px] text-muted-foreground italic text-center py-2 bg-muted/20 rounded">
+                     Le Wiki est intégré ci-dessous (lecture seule ici, détachez-le pour éditer).
+                   </p>
+                   <div 
+                      className="p-3 bg-zinc-950/50 border border-border rounded-lg min-h-[100px] max-h-[300px] overflow-y-auto custom-scrollbar prose prose-invert max-w-none text-xs leading-relaxed text-foreground"
+                      dangerouslySetInnerHTML={{ __html: wiki.content || '<em class="opacity-30">Aucun contenu...</em>' }}
+                   />
+                    <button
+                      onClick={() => setWiki({ isOpen: false })}
+                      className="w-full bg-muted text-muted-foreground text-[10px] py-1.5 rounded font-bold hover:bg-accent transition-colors uppercase tracking-wider"
+                    >
+                      Fermer l'aperçu
+                    </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setWiki({ isOpen: !wiki.isOpen, isDetached: true })}
+                  className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Book size={14} /> {wiki.isOpen && wiki.isDetached ? 'Wiki Ouvert' : 'Ouvrir la Fenêtre Wiki'}
+                </button>
+              )}
             </div>
           )}
         </section>
