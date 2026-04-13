@@ -133,7 +133,7 @@ export const WikiWindow: React.FC = () => {
         ref={editorRef}
         contentEditable
         onInput={onInput}
-        className="flex-1 p-4 overflow-y-auto custom-scrollbar focus:outline-none text-sm leading-relaxed text-foreground"
+        className="flex-1 p-4 overflow-y-auto custom-scrollbar focus:outline-none text-sm leading-relaxed text-foreground wiki-content"
         style={{ minHeight: '100px' }}
       />
     </div>
