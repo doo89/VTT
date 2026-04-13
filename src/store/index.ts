@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent } from '../types';
+import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface VttStore extends GameState {
@@ -523,7 +523,7 @@ export const useVttStore = create<VttStore>()(
 
         // Custom Popups
         addCustomPopup: (popup) => set((state) => ({
-          customPopups: [...state.customPopups, { ...popup, id: uuidv4() }]
+          customPopups: [...state.customPopups, { ...popup, id: uuidv4() } as CustomPopup]
         })),
         updateCustomPopup: (id, updates) => set((state) => ({
           customPopups: state.customPopups.map(p => p.id === id ? { ...p, ...updates } : p)
