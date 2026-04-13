@@ -139,15 +139,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     />
                     Afficher le réticule du centre de la salle
                   </label>
-                   <label className="flex items-center gap-2 text-sm cursor-pointer md:col-span-2">
-                    <input
-                      type="checkbox"
-                      checked={displaySettings.showTagName}
-                      onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
-                      className="rounded border-border w-4 h-4 text-primary"
-                    />
-                    Toujours afficher le nom des tags/marqueurs
-                  </label>
+
                    {cycleMode !== 'none' && (
                     <label className="flex items-center gap-2 text-sm cursor-pointer md:col-span-2">
                       <input
@@ -556,7 +548,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
               <section>
                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Gestion Globale des Tags</h3>
                 <div className="flex flex-col gap-4">
-                  <div className="bg-muted/10 border border-border/40 p-4 rounded-lg">
+                  <div className="bg-muted/10 border border-border/40 p-4 rounded-lg flex flex-col gap-4">
                     <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
                       <input
                         type="checkbox"
@@ -566,9 +558,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       />
                       Fusionner automatiquement le tag au joueur
                     </label>
-                    <p className="text-[11px] text-muted-foreground mt-2 pl-8 leading-relaxed">
+                    <p className="text-[11px] text-muted-foreground pl-8 leading-relaxed -mt-2">
                       Si activé, le glisser-déposer d'un tag (marqueur) sur un joueur fusionnera automatiquement l'entité sans demander de confirmation.
                     </p>
+                    
+                    <div className="border-t border-border/20 pt-4 mt-2">
+                      <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
+                        <input
+                          type="checkbox"
+                          checked={displaySettings.showTagName}
+                          onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
+                          className="rounded border-border w-5 h-5 text-primary"
+                        />
+                        Toujours afficher le nom des tags/marqueurs
+                      </label>
+                      <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
+                        Affiche le nom du marqueur en permanence sur le plateau, même sans survoler l'élément.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </section>
