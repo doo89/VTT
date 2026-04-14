@@ -14,8 +14,11 @@ export const PlayerJoin: React.FC = () => {
     // Pour l'instant, on redirige simplement vers une vue joueur fictive avec le nom
     // Plus tard, cela se connectera à la base de données pour vérifier le code et créer l'entrée
     const cleanRoomCode = roomCode.trim().toUpperCase();
-    const cleanName = playerName.trim(); // No more aggressive stripping
-    navigate(`/player/${cleanRoomCode}/${encodeURIComponent(cleanName)}`);
+    const cleanName = playerName.trim();
+    
+    // Transmettre les paramètres de l'URL s'ils existent
+    const search = window.location.search;
+    navigate(`/player/${cleanRoomCode}/${encodeURIComponent(cleanName)}${search}`);
   };
 
   return (

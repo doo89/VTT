@@ -2,12 +2,32 @@ import { createClient } from '@supabase/supabase-js';
 
 export const getEnvUrl = () => {
   try {
+    const params = new URLSearchParams(window.location.search);
+    let url = params.get('sburl');
+    if (url) {
+      try { url = atob(decodeURIComponent(url)); } catch(e) {}
+      sessionStorage.setItem('VTT_SB_URL_OVERRIDE', url);
+      return url;
+    }
+    const sessionUrl = sessionStorage.getItem('VTT_SB_URL_OVERRIDE');
+    if (sessionUrl) return sessionUrl;
+    
     return localStorage.getItem('VTT_SUPABASE_URL') || import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
   } catch(e) { return null; }
 };
 
 export const getEnvKey = () => {
   try {
+    const params = new URLSearchParams(window.location.search);
+    let key = params.get('sbkey');
+    if (key) {
+      try { key = atob(decodeURIComponent(key)); } catch(e) {}
+      sessionStorage.setItem('VTT_SB_KEY_OVERRIDE', key);
+      return key;
+    }
+    const sessionKey = sessionStorage.getItem('VTT_SB_KEY_OVERRIDE');
+    if (sessionKey) return sessionKey;
+
     return localStorage.getItem('VTT_SUPABASE_ANON_KEY') || import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   } catch(e) { return null; }
 };
