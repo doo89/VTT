@@ -721,6 +721,13 @@ export const EditingModal: React.FC = () => {
                   />
                   Visible dans l'onglet Jeu (sous le joueur)
                 </label>
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={tag.showOnSmartphone || false}
+                    onChange={(e) => updateTagModel(tag.id, { showOnSmartphone: e.target.checked })}
+                    className="rounded border-border w-4 h-4"
+                  />
                   Visible sur smartphone (version joueur)
                 </label>
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
