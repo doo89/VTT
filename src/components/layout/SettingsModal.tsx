@@ -155,123 +155,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                        )}
                      </div>
 
-                     <div className="flex flex-col">
-                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
-                          <input
-                            type="checkbox"
-                            checked={displaySettings.showTagTooltip !== false}
-                            onChange={(e) => updateDisplaySettings({ showTagTooltip: e.target.checked })}
-                            className="rounded border-border w-5 h-5 text-primary"
-                          />
-                          Afficher l'info bulle des tags
-                        </label>
-                        <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
-                          Détails au survol d'un tag.
-                        </p>
-                        {displaySettings.showTagTooltip !== false && (
-                          <div className="pl-6 mt-3 grid grid-cols-1 gap-y-2 border-l border-border/10 ml-2.5 anim-fade-down">
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={!!displaySettings.showTagNameInTooltip}
-                                onChange={(e) => updateDisplaySettings({ showTagNameInTooltip: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Nom du Tag
-                            </label>
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={displaySettings.showTagCallOrderDay !== false}
-                                onChange={(e) => updateDisplaySettings({ showTagCallOrderDay: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Appel jour
-                            </label>
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={displaySettings.showTagCallOrderNight !== false}
-                                onChange={(e) => updateDisplaySettings({ showTagCallOrderNight: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Appel nuit
-                            </label>
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={displaySettings.showTagLives !== false}
-                                onChange={(e) => updateDisplaySettings({ showTagLives: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Vie
-                            </label>
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={displaySettings.showTagVotes !== false}
-                                onChange={(e) => updateDisplaySettings({ showTagVotes: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Votes
-                            </label>
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={displaySettings.showTagPoints !== false}
-                                onChange={(e) => updateDisplaySettings({ showTagPoints: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Points
-                            </label>
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={displaySettings.showTagUses !== false}
-                                onChange={(e) => updateDisplaySettings({ showTagUses: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Utilisations
-                            </label>
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={displaySettings.showTagAutoDelete !== false}
-                                onChange={(e) => updateDisplaySettings({ showTagAutoDelete: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Suppression auto
-                            </label>
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={displaySettings.showTagSeenAsRole !== false}
-                                onChange={(e) => updateDisplaySettings({ showTagSeenAsRole: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Rôle vu
-                            </label>
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={displaySettings.showTagSeenInTeam !== false}
-                                onChange={(e) => updateDisplaySettings({ showTagSeenInTeam: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Équipe vue
-                            </label>
-                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
-                              <input
-                                type="checkbox"
-                                checked={displaySettings.showTagDescription !== false}
-                                onChange={(e) => updateDisplaySettings({ showTagDescription: e.target.checked })}
-                                className="rounded border-border w-3 h-3 text-primary"
-                              />
-                              Texte libre
-                            </label>
-                          </div>
-                        )}
-                     </div>
+
                  </div>
                </section>
 
@@ -718,6 +602,124 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                 className="rounded border-border w-3.5 h-3.5 text-primary"
                               />
                               Equipe vue comme
+                            </label>
+                          </div>
+                        )}
+                    </div>
+
+                    <div className="border-t border-border/20 pt-4 mt-2">
+                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showTagTooltip !== false}
+                            onChange={(e) => updateDisplaySettings({ showTagTooltip: e.target.checked })}
+                            className="rounded border-border w-5 h-5 text-primary"
+                          />
+                          Afficher l'info bulle des tags
+                        </label>
+                        <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
+                          Détails au survol d'un tag.
+                        </p>
+                        {displaySettings.showTagTooltip !== false && (
+                          <div className="pl-6 mt-3 grid grid-cols-1 gap-y-2 border-l border-border/10 ml-2.5 anim-fade-down">
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={!!displaySettings.showTagNameInTooltip}
+                                onChange={(e) => updateDisplaySettings({ showTagNameInTooltip: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Nom du Tag
+                            </label>
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTagCallOrderDay !== false}
+                                onChange={(e) => updateDisplaySettings({ showTagCallOrderDay: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Appel jour
+                            </label>
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTagCallOrderNight !== false}
+                                onChange={(e) => updateDisplaySettings({ showTagCallOrderNight: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Appel nuit
+                            </label>
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTagLives !== false}
+                                onChange={(e) => updateDisplaySettings({ showTagLives: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Vie
+                            </label>
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTagVotes !== false}
+                                onChange={(e) => updateDisplaySettings({ showTagVotes: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Votes
+                            </label>
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTagPoints !== false}
+                                onChange={(e) => updateDisplaySettings({ showTagPoints: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Points
+                            </label>
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTagUses !== false}
+                                onChange={(e) => updateDisplaySettings({ showTagUses: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Utilisations
+                            </label>
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTagAutoDelete !== false}
+                                onChange={(e) => updateDisplaySettings({ showTagAutoDelete: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Suppression auto
+                            </label>
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTagSeenAsRole !== false}
+                                onChange={(e) => updateDisplaySettings({ showTagSeenAsRole: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Rôle vu
+                            </label>
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTagSeenInTeam !== false}
+                                onChange={(e) => updateDisplaySettings({ showTagSeenInTeam: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Équipe vue
+                            </label>
+                            <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.showTagDescription !== false}
+                                onChange={(e) => updateDisplaySettings({ showTagDescription: e.target.checked })}
+                                className="rounded border-border w-3 h-3 text-primary"
+                              />
+                              Texte libre
                             </label>
                           </div>
                         )}
