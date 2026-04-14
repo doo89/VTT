@@ -1205,7 +1205,7 @@ export const EditingModal: React.FC = () => {
                 </label>
 
                 <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-medium text-muted-foreground">Fusionner ce Tag</label>
+                  <label className="text-xs font-medium text-muted-foreground">Fusionner ce Tag aux joueurs sélectionnés</label>
                   <select
                     value={tag.smartphoneMergeTagId || ''}
                     onChange={(e) => updateTagModel(tag.id, { smartphoneMergeTagId: e.target.value || null })}
@@ -1669,7 +1669,7 @@ export const EditingModal: React.FC = () => {
                 </label>
 
                 <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-medium text-muted-foreground">Fusionner ce Tag</label>
+                  <label className="text-xs font-medium text-muted-foreground">Fusionner ce Tag aux joueurs sélectionnés</label>
                   <select
                     value={tag.smartphoneMergeTagId || ''}
                     onChange={(e) => updateTagInstance({ smartphoneMergeTagId: e.target.value || null })}
