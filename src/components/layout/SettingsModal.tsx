@@ -1074,6 +1074,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     { key: 'soundboard', label: 'Boîte à Sons (Soundboard)' },
                     { key: 'scoreboard', label: 'Tableau des Scores' },
                     { key: 'logs', label: 'Log / Historique' },
+                    { key: 'tagDistributor', label: 'Distributeur de Tags' },
                     { key: 'wiki', label: 'Wiki / Notes GM' },
                     { key: 'popupCreator', label: 'Créateur de Popup' },
                     { key: 'checklist', label: 'Checklist pour le MJ' },
