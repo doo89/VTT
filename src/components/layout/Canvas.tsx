@@ -4,6 +4,7 @@ import { useVttStore } from '../../store';
 import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, Sun, Moon, Copy, Heart, icons, Users, Hand, MousePointer2, Undo2, Redo2, Radio, Lock, Globe, Bell, Check, X, WifiOff, FileText, FastForward, Smartphone } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Marker, Player } from '../../types';
+import { supabase } from '../../lib/supabase';
 
 export const Canvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -519,71 +520,74 @@ export const Canvas: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="text-xs text-muted-foreground font-medium">
-            <span className="mr-2 border-r border-border pr-2">v0.709</span>
-            {onlinePlayerIds.length} Joueur(s)
-          </div>
-          {!roomCode ? (
-            <button
-              onClick={generateRoomCode}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-semibold transition-colors shadow-sm"
-              title="Créer un code pour que les joueurs vous rejoignent avec leur smartphone"
-            >
-              <Radio size={16} /> Héberger
-            </button>
-          ) : (
-            <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded px-3 py-1 shadow-inner relative">
+          {supabase && (
+            <>
+              <div className="text-xs text-muted-foreground font-medium">
+                {onlinePlayerIds.length} Joueur(s)
+              </div>
+              {!roomCode ? (
+                <button
+                  onClick={generateRoomCode}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-semibold transition-colors shadow-sm"
+                  title="Créer un code pour que les joueurs vous rejoignent avec leur smartphone"
+                >
+                  <Radio size={16} /> Héberger
+                </button>
+              ) : (
+                <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded px-3 py-1 shadow-inner relative">
 
-              {/* Join Requests Notification Dropdown */}
-              {joinRequests.length > 0 && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-popover border border-border rounded-md shadow-2xl z-50 animate-in fade-in slide-in-from-top-2">
-                  <div className="px-3 py-2 border-b border-border bg-muted flex items-center justify-between">
-                    <span className="text-xs font-semibold flex items-center gap-2 text-primary">
-                      <Bell size={12} className="animate-pulse" />
-                      Demandes de connexion
-                    </span>
-                    <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                      {joinRequests.length}
-                    </span>
-                  </div>
-                  <div className="max-h-60 overflow-y-auto custom-scrollbar p-1">
-                    {joinRequests.map(req => (
-                      <div key={req} className="flex items-center justify-between p-2 hover:bg-accent rounded-sm group">
-                        <span className="text-sm font-medium truncate pr-2">{req}</span>
-                        <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => handleAcceptJoin(req)} className="p-1 bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded transition-colors" title="Accepter">
-                            <Check size={14} />
-                          </button>
-                          <button onClick={() => handleRejectJoin(req)} className="p-1 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors" title="Refuser">
-                            <X size={14} />
-                          </button>
-                        </div>
+                  {/* Join Requests Notification Dropdown */}
+                  {joinRequests.length > 0 && (
+                    <div className="absolute right-0 top-full mt-2 w-64 bg-popover border border-border rounded-md shadow-2xl z-50 animate-in fade-in slide-in-from-top-2">
+                      <div className="px-3 py-2 border-b border-border bg-muted flex items-center justify-between">
+                        <span className="text-xs font-semibold flex items-center gap-2 text-primary">
+                          <Bell size={12} className="animate-pulse" />
+                          Demandes de connexion
+                        </span>
+                        <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                          {joinRequests.length}
+                        </span>
                       </div>
-                    ))}
+                      <div className="max-h-60 overflow-y-auto custom-scrollbar p-1">
+                        {joinRequests.map(req => (
+                          <div key={req} className="flex items-center justify-between p-2 hover:bg-accent rounded-sm group">
+                            <span className="text-sm font-medium truncate pr-2">{req}</span>
+                            <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => handleAcceptJoin(req)} className="p-1 bg-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded transition-colors" title="Accepter">
+                                <Check size={14} />
+                              </button>
+                              <button onClick={() => handleRejectJoin(req)} className="p-1 bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded transition-colors" title="Refuser">
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-zinc-400 uppercase tracking-widest font-bold">Code :</span>
+                    <span className="text-lg font-black tracking-widest text-blue-400 select-all">{roomCode}</span>
                   </div>
+                  <div className="h-4 w-px bg-zinc-700" />
+                  <button
+                    onClick={toggleRoomPublic}
+                    className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded transition-colors ${isRoomPublic ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'}`}
+                    title={isRoomPublic ? "Les joueurs apparaissent directement sur le plateau" : "Vous devrez valider l'entrée des joueurs"}
+                  >
+                    {isRoomPublic ? <><Globe size={12} /> Publique</> : <><Lock size={12} /> Privée</>}
+                  </button>
+                  <button
+                    onClick={clearRoomCode}
+                    className="ml-1 p-1 text-zinc-500 hover:text-red-400 hover:bg-zinc-800 rounded transition-colors"
+                    title="Fermer la connexion (Déconnecter tous les joueurs)"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               )}
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-400 uppercase tracking-widest font-bold">Code :</span>
-                <span className="text-lg font-black tracking-widest text-blue-400 select-all">{roomCode}</span>
-              </div>
-              <div className="h-4 w-px bg-zinc-700" />
-              <button
-                onClick={toggleRoomPublic}
-                className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded transition-colors ${isRoomPublic ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'}`}
-                title={isRoomPublic ? "Les joueurs apparaissent directement sur le plateau" : "Vous devrez valider l'entrée des joueurs"}
-              >
-                {isRoomPublic ? <><Globe size={12} /> Publique</> : <><Lock size={12} /> Privée</>}
-              </button>
-              <button
-                onClick={clearRoomCode}
-                className="ml-1 p-1 text-zinc-500 hover:text-red-400 hover:bg-zinc-800 rounded transition-colors"
-                title="Fermer la connexion (Déconnecter tous les joueurs)"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
+            </>
           )}
         </div>
       </div>
