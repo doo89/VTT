@@ -269,6 +269,7 @@ export const initialState = {
     wikiLightMode: true,
     showWikiNotes: true,
     showWikiRoles: true,
+    showWikiTags: true,
     wikiOnlySelectedRoles: false,
     wikiOnlyInPlayRoles: false,
     smartphoneImageBlur: 20,

@@ -1037,6 +1037,7 @@ export const PlayerView: React.FC = () => {
               )}
 
               {/* Part 3: Tags Guide */}
+              {(displaySettings?.showWikiTags !== false) && (
               <section className="flex flex-col gap-3 mt-4">
                  <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
                     <button 
@@ -1089,6 +1090,7 @@ export const PlayerView: React.FC = () => {
                    </div>
                  )}
               </section>
+              )}
             </div>
           )}
 

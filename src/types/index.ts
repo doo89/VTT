@@ -333,6 +333,7 @@ export interface GameState {
     wikiLightMode?: boolean;
     showWikiNotes?: boolean;
     showWikiRoles?: boolean;
+    showWikiTags?: boolean;
     wikiOnlySelectedRoles?: boolean;
     wikiOnlyInPlayRoles?: boolean;
     smartphoneImageBlur?: number;

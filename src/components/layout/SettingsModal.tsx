@@ -1043,6 +1043,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                               Seulement les rôles en jeu
                             </label>
                           </div>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showWikiTags ?? true}
+                              onChange={(e) => updateDisplaySettings({ showWikiTags: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Afficher les Tags
+                          </label>
                         </div>
                         )}
                      </div>
