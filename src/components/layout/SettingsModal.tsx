@@ -4,8 +4,6 @@ import { useVttStore } from '../../store';
 import { ColorPicker } from '../ColorPicker';
 import { ThemeToggle } from '../ThemeToggle';
 import type { BadgeConfig, BadgeType } from '../../types';
-import { QRCodeSVG } from 'qrcode.react';
-import { getEnvUrl, getEnvKey } from '../../lib/supabase';
 
 
 interface SettingsModalProps {
