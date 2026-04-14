@@ -228,18 +228,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs text-muted-foreground">Image de fond</label>
+                    <label className="text-xs text-muted-foreground">Image de fond (URL ou Fichier)</label>
+                    
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Coller l'URL d'une image (https://...)"
+                        value={room.backgroundImage && !room.backgroundImage.startsWith('data:') ? room.backgroundImage : ''}
+                        onChange={(e) => setRoom({ backgroundImage: e.target.value })}
+                        className="flex-1 bg-input border border-border rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <button
+                        onClick={() => imageInputRef.current?.click()}
+                        className="px-3 py-1.5 bg-muted border border-border rounded text-xs font-medium hover:bg-accent transition-colors flex items-center gap-2 shrink-0"
+                        title="Charger un fichier"
+                      >
+                        <ImageIcon size={14} />
+                        Fichier
+                      </button>
+                    </div>
 
                     {!room.backgroundImage ? (
                       <div
                         onClick={() => imageInputRef.current?.click()}
-                        className="w-full h-32 border-2 border-dashed border-border rounded-md flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-colors"
+                        className="w-full h-32 border-2 border-dashed border-border rounded-md flex flex-col items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-colors mt-1"
                       >
                         <ImageIcon size={28} className="mb-2 opacity-50" />
-                        <span className="text-sm font-medium">Charger une image depuis votre appareil</span>
+                        <span className="text-sm font-medium">Ou glisser un fichier ici</span>
                       </div>
                     ) : (
-                      <div className="flex flex-col md:flex-row gap-4 items-start">
+                      <div className="flex flex-col md:flex-row gap-4 items-start mt-1">
                         <div className="relative w-full md:w-48 h-32 rounded-md overflow-hidden border border-border group shrink-0">
                           <div
                             className="absolute inset-0 bg-contain bg-center bg-no-repeat"
@@ -267,6 +285,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             <option value="center">Centrer (Taille réelle)</option>
                             <option value="stretch">Étendre (Occuper tout l'espace)</option>
                           </select>
+                          <p className="text-[10px] text-muted-foreground mt-2 italic">
+                            {room.backgroundImage.startsWith('data:') ? "Image chargée localement" : "Image chargée via URL"}
+                          </p>
                         </div>
                       </div>
                     )}
