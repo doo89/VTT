@@ -9,7 +9,6 @@ import { QRCodeSVG } from 'qrcode.react';
 
 export const Canvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [showExportModal, setShowExportModal] = useState(false);
   const [showConnectionPopup, setShowConnectionPopup] = useState(false);
   const {
     roomName, setRoomName, roomCode, generateRoomCode, clearRoomCode, isRoomPublic, toggleRoomPublic,
