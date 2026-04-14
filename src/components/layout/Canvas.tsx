@@ -1,13 +1,16 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useStore } from 'zustand';
 import { useVttStore } from '../../store';
-import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, Sun, Moon, Copy, Heart, icons, Users, Hand, MousePointer2, Undo2, Redo2, Radio, Lock, Globe, Bell, Check, X, WifiOff, FileText, FastForward, Smartphone } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, Sun, Moon, Copy, Heart, icons, Users, Hand, MousePointer2, Undo2, Redo2, Radio, Lock, Globe, Bell, Check, X, WifiOff, FileText, FastForward, Smartphone, QrCode } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Marker, Player } from '../../types';
-import { supabase } from '../../lib/supabase';
+import { supabase, getEnvUrl, getEnvKey } from '../../lib/supabase';
+import { QRCodeSVG } from 'qrcode.react';
 
 export const Canvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showConnectionPopup, setShowConnectionPopup] = useState(false);
   const {
     roomName, setRoomName, roomCode, generateRoomCode, clearRoomCode, isRoomPublic, toggleRoomPublic,
     joinRequests, removeJoinRequest, onlinePlayerIds,
@@ -587,6 +590,14 @@ export const Canvas: React.FC = () => {
                   </button>
                 </div>
               )}
+
+              <button
+                onClick={() => setShowConnectionPopup(true)}
+                className="p-1.5 text-muted-foreground hover:text-primary hover:bg-accent rounded-md transition-colors"
+                title="Afficher les QR Codes de connexion"
+              >
+                <QrCode size={18} />
+              </button>
             </>
           )}
         </div>
@@ -611,6 +622,109 @@ export const Canvas: React.FC = () => {
         tabIndex={0}
         style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
       >
+        {/* Connection QR Code Popup */}
+        {showConnectionPopup && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm anim-fade-in">
+            <div 
+              className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden anim-zoom-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-6 py-4 border-b border-border bg-muted/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                    <QrCode size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold leading-none">Liens rapides et de Connexion</h2>
+                    <p className="text-xs text-muted-foreground mt-1 tracking-tight">Partagez ces accès avec vos joueurs</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowConnectionPopup(false)}
+                  className="p-2 hover:bg-accent rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="p-6">
+                {(() => {
+                  let sbParams = '';
+                  const sbUrl = getEnvUrl();
+                  const sbKey = getEnvKey();
+                  if (!import.meta.env.VITE_SUPABASE_URL && sbUrl && sbKey) {
+                    sbParams = `?sburl=${encodeURIComponent(btoa(sbUrl))}&sbkey=${encodeURIComponent(btoa(sbKey))}`;
+                  }
+                  
+                  const joinHref = `${window.location.origin}/join${sbParams}`;
+                  const sbHref = `${window.location.origin}/soundboard${sbParams}`;
+                  
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Join Link */}
+                      <div className="flex flex-col gap-4 bg-muted/20 p-5 rounded-xl border border-border/50 group hover:border-blue-500/30 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 bg-blue-500/10 rounded text-blue-400">
+                             <Smartphone size={16} />
+                          </div>
+                          <h4 className="text-sm font-bold text-blue-400">Connexion Joueurs (Smartphone)</h4>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed h-12">
+                          Faites scanner ce QR Code ou partagez l'URL pour rejoindre la partie en tant que joueur.
+                        </p>
+                        <div className="mx-auto bg-white p-3 rounded-lg shadow-inner group-hover:scale-105 transition-transform duration-300">
+                          <QRCodeSVG value={joinHref} size={150} />
+                        </div>
+                        <a 
+                          href={joinHref} 
+                          target="_blank" 
+                          className="text-[10px] text-center break-all font-mono hover:text-blue-400 transition-colors bg-background/50 border border-border p-2.5 rounded-lg max-h-16 overflow-y-auto custom-scrollbar"
+                        >
+                          {joinHref}
+                        </a>
+                      </div>
+
+                      {/* Soundboard Link */}
+                      <div className="flex flex-col gap-4 bg-muted/20 p-5 rounded-xl border border-border/50 group hover:border-pink-500/30 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 bg-pink-500/10 rounded text-pink-400">
+                             <Radio size={16} />
+                          </div>
+                          <h4 className="text-sm font-bold text-pink-400">Soundboard Externe</h4>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed h-12">
+                          Faites scanner ce QR Code pour contrôler la boîte à sons depuis un autre appareil (Nécessite le code configuré).
+                        </p>
+                        <div className="mx-auto bg-white p-3 rounded-lg shadow-inner group-hover:scale-105 transition-transform duration-300">
+                          <QRCodeSVG value={sbHref} size={150} />
+                        </div>
+                        <a 
+                          href={sbHref} 
+                          target="_blank" 
+                          className="text-[10px] text-center break-all font-mono hover:text-pink-400 transition-colors bg-background/50 border border-border p-2.5 rounded-lg max-h-16 overflow-y-auto custom-scrollbar"
+                        >
+                          {sbHref}
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <div className="px-6 py-4 bg-muted/30 border-t border-border flex justify-end">
+                <button 
+                  onClick={() => setShowConnectionPopup(false)}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-bold hover:opacity-90 transition-opacity"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+            {/* Click outside to close */}
+            <div className="absolute inset-0 -z-10" onClick={() => setShowConnectionPopup(false)} />
+          </div>
+        )}
+
         {/* Cycle Icon */}
         {displaySettings.showCycleIcon && (
           <button
