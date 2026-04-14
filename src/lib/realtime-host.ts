@@ -166,7 +166,7 @@ export const initHostRealtime = (roomCode: string) => {
           }
         }
 
-        // 3. Handle Tag Merging (Fusionner ce Tag)
+        // 3. Handle Tag Merging (Fusionner ce Tag aux joueurs sélectionnés)
         if (tagData.smartphoneMergeTagId) {
           const mergeModel = state.tags.find(t => t.id === tagData.smartphoneMergeTagId);
           if (mergeModel) {
@@ -188,7 +188,23 @@ export const initHostRealtime = (roomCode: string) => {
           }
         }
 
-        // 4. Handle auto-delete of UI for this tag
+        // 4. Handle Self Tag Merging (Me fusionner ce Tag)
+        if (tagData.smartphoneSelfMergeTagId) {
+          const selfMergeModel = state.tags.find(t => t.id === tagData.smartphoneSelfMergeTagId);
+          if (selfMergeModel && payload.playerId) {
+            const sourcePlayer = state.players.find(p => p.id === payload.playerId);
+            if (sourcePlayer) {
+              const newInstanceId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+              const currentTags = getLatestPlayerTags(sourcePlayer.id);
+              playerUpdatesMap[sourcePlayer.id] = {
+                ...playerUpdatesMap[sourcePlayer.id],
+                tags: [...currentTags, { ...selfMergeModel, instanceId: newInstanceId }]
+              };
+            }
+          }
+        }
+
+        // 5. Handle auto-delete of UI for this tag
         if (payload.autoDeleteSmartphoneUI && payload.playerId && payload.tagInstanceId) {
           const player = state.players.find(p => p.id === payload.playerId);
           if (player) {

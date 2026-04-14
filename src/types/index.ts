@@ -85,6 +85,7 @@ export interface MarkerParameter {
   visibleInWiki?: boolean;
   smartphoneShowPastille?: boolean;
   smartphoneMergeTagId?: EntityId | null;
+  smartphoneSelfMergeTagId?: EntityId | null;
 }
 
 export interface Marker {
