@@ -615,7 +615,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             onChange={(e) => updateDisplaySettings({ showTagTooltip: e.target.checked })}
                             className="rounded border-border w-5 h-5 text-primary"
                           />
-                          Afficher l'info bulle des tags
+                          Afficher l'info bulle des tags {/* Trigger Vercel Update */}
                         </label>
                         <p className="text-[11px] text-muted-foreground pl-8 mt-1 leading-relaxed">
                           Détails au survol d'un tag.
