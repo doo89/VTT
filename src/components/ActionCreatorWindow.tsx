@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
-import { X, Zap, Save, Plus, Trash2 } from 'lucide-react';
+import { X, Zap, Save, Plus } from 'lucide-react';
 
 export const ActionCreatorWindow: React.FC = () => {
   const { 

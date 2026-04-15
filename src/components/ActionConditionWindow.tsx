@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
 import { X, Check } from 'lucide-react';
-import { ActionConditionType, ActionOperator } from '../types';
+import type { ActionConditionType, ActionOperator } from '../types';
 
 export const ActionConditionWindow: React.FC = () => {
   const { 
