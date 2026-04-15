@@ -254,6 +254,7 @@ export interface ActionConditionCreatorState {
   isOpen: boolean;
   x: number;
   y: number;
+  editingConditionId?: string | null;
 }
 
 export interface GameState {

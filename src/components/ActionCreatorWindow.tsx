@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
-import { X, Zap, Save, Plus } from 'lucide-react';
+import { X, Zap, Save, Plus, Edit2, Trash2 } from 'lucide-react';
 
 export const ActionCreatorWindow: React.FC = () => {
   const { 
@@ -137,6 +137,25 @@ export const ActionCreatorWindow: React.FC = () => {
                     </span>
                     <span className="font-mono font-bold text-muted-foreground">{condition.operator}</span>
                     <span className="font-bold">{condition.value}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setActionConditionCreatorState({ isOpen: true, editingConditionId: condition.id })}
+                      className="text-muted-foreground hover:text-primary transition-colors p-0.5"
+                    >
+                      <Edit2 size={12} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Import deletePendingCondition from store if not already there
+                        const store = useVttStore.getState();
+                        store.deletePendingCondition(condition.id);
+                      }}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                    >
+                      <Trash2 size={12} />
+                    </button>
                   </div>
                 </div>
               ))

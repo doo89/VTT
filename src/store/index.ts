@@ -98,6 +98,8 @@ interface VttStore extends GameState {
   deleteAction: (id: string) => void;
   setActionConditionCreatorState: (state: Partial<ActionConditionCreatorState>) => void;
   addPendingCondition: (condition: Omit<ActionCondition, 'id'>) => void;
+  updatePendingCondition: (id: string, updates: Partial<ActionCondition>) => void;
+  deletePendingCondition: (id: string) => void;
   clearPendingConditions: () => void;
 
   // Game Logic
@@ -213,6 +215,7 @@ export const initialState = {
     isOpen: false,
     x: 150,
     y: 150,
+    editingConditionId: null,
   },
   actions: [],
   pendingActionConditions: [],
@@ -617,6 +620,12 @@ export const useVttStore = create<VttStore>()(
         })),
         addPendingCondition: (conditionData) => set((state) => ({
           pendingActionConditions: [...state.pendingActionConditions, { ...conditionData, id: uuidv4() }]
+        })),
+        updatePendingCondition: (id, updates) => set((state) => ({
+          pendingActionConditions: state.pendingActionConditions.map(c => c.id === id ? { ...c, ...updates } : c)
+        })),
+        deletePendingCondition: (id) => set((state) => ({
+          pendingActionConditions: state.pendingActionConditions.filter(c => c.id !== id)
         })),
         clearPendingConditions: () => set({ pendingActionConditions: [] }),
       }),

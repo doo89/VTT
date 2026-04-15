@@ -7,12 +7,31 @@ export const ActionConditionWindow: React.FC = () => {
   const { 
     actionConditionCreatorState, 
     setActionConditionCreatorState, 
-    addPendingCondition 
+    addPendingCondition,
+    updatePendingCondition,
+    pendingActionConditions
   } = useVttStore();
   
   const [type, setType] = useState<ActionConditionType>('day');
   const [operator, setOperator] = useState<ActionOperator>('=');
   const [value, setValue] = useState(1);
+
+  const isEditing = !!actionConditionCreatorState.editingConditionId;
+
+  useEffect(() => {
+    if (isEditing) {
+      const condition = pendingActionConditions.find(c => c.id === actionConditionCreatorState.editingConditionId);
+      if (condition) {
+        setType(condition.type);
+        setOperator(condition.operator);
+        setValue(condition.value);
+      }
+    } else {
+      setType('day');
+      setOperator('=');
+      setValue(1);
+    }
+  }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions]);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -48,11 +67,15 @@ export const ActionConditionWindow: React.FC = () => {
   if (!actionConditionCreatorState.isOpen) return null;
 
   const handleClose = () => {
-    setActionConditionCreatorState({ isOpen: false });
+    setActionConditionCreatorState({ isOpen: false, editingConditionId: null });
   };
 
   const handleOK = () => {
-    addPendingCondition({ type, operator, value });
+    if (isEditing && actionConditionCreatorState.editingConditionId) {
+      updatePendingCondition(actionConditionCreatorState.editingConditionId, { type, operator, value });
+    } else {
+      addPendingCondition({ type, operator, value });
+    }
     handleClose();
   };
 
