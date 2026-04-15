@@ -86,6 +86,14 @@ export interface MarkerParameter {
   smartphoneShowPastille?: boolean;
   smartphoneMergeTagId?: EntityId | null;
   smartphoneSelfMergeTagId?: EntityId | null;
+  // Filters for selector
+  smartphoneFilterAlive?: boolean;
+  smartphoneFilterDead?: boolean;
+  smartphoneFilterMyRole?: boolean;
+  smartphoneFilterNotMe?: boolean;
+  smartphoneFilterNotMyRole?: boolean;
+  smartphoneFilterMyTeam?: boolean;
+  smartphoneFilterNotMyTeam?: boolean;
 }
 
 export interface Marker {

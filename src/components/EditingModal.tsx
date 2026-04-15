@@ -1131,6 +1131,42 @@ export const EditingModal: React.FC = () => {
                       Sélecteur multi-joueurs (le joueur choisit PLUSIEURS joueurs)
                     </label>
                   </div>
+
+                  {(tag.isSinglePlayerSelector || tag.isMultiPlayerSelector) && (
+                    <div className="flex flex-col gap-2 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Filtres du sélecteur</span>
+                      <div className="grid grid-cols-1 gap-2">
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterAlive || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterAlive: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Tout les joueurs vivants</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterDead || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterDead: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Tout les joueurs morts</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterMyRole || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterMyRole: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Tout les joueurs ayant mon rôle</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterNotMe || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotMe: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Sauf moi</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterNotMyRole || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotMyRole: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant mon rôle</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterMyTeam || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterMyTeam: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Tout les joueurs de mon équipes</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterNotMyTeam || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotMyTeam: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Sauf les joueurs de mon équipe</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -1608,6 +1644,42 @@ export const EditingModal: React.FC = () => {
                       Sélecteur multi-joueurs (le joueur choisit PLUSIEURS joueurs)
                     </label>
                   </div>
+
+                  {(tag.isSinglePlayerSelector || tag.isMultiPlayerSelector) && (
+                    <div className="flex flex-col gap-2 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Filtres du sélecteur</span>
+                      <div className="grid grid-cols-1 gap-2">
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterAlive || false} onChange={e => updateTagInstance({ smartphoneFilterAlive: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Tout les joueurs vivants</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterDead || false} onChange={e => updateTagInstance({ smartphoneFilterDead: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Tout les joueurs morts</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterMyRole || false} onChange={e => updateTagInstance({ smartphoneFilterMyRole: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Tout les joueurs ayant mon rôle</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterNotMe || false} onChange={e => updateTagInstance({ smartphoneFilterNotMe: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Sauf moi</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterNotMyRole || false} onChange={e => updateTagInstance({ smartphoneFilterNotMyRole: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant mon rôle</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterMyTeam || false} onChange={e => updateTagInstance({ smartphoneFilterMyTeam: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Tout les joueurs de mon équipes</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
+                          <input type="checkbox" checked={tag.smartphoneFilterNotMyTeam || false} onChange={e => updateTagInstance({ smartphoneFilterNotMyTeam: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                          <span className="group-hover:text-primary transition-colors">Sauf les joueurs de mon équipe</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1">
