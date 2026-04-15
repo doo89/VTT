@@ -1182,7 +1182,7 @@ export const EditingModal: React.FC = () => {
                             <select 
                               value={tag.smartphoneFilterExcludeTagId || ''} 
                               onChange={e => updateTagModel(tag.id, { smartphoneFilterExcludeTagId: e.target.value || null })}
-                              className="bg-zinc-900 border border-zinc-700/50 rounded-md px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1 h-6 text-foreground"
+                              className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
                               disabled={!tag.smartphoneFilterNotThisTag}
                             >
                               <option value="">Sélectionner un tag...</option>
@@ -1721,7 +1721,7 @@ export const EditingModal: React.FC = () => {
                             <select 
                               value={tag.smartphoneFilterExcludeTagId || ''} 
                               onChange={e => updateTagInstance({ smartphoneFilterExcludeTagId: e.target.value || null })}
-                              className="bg-zinc-900 border border-zinc-700/50 rounded-md px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1 h-6 text-foreground"
+                              className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
                               disabled={!tag.smartphoneFilterNotThisTag}
                             >
                               <option value="">Sélectionner un tag...</option>
