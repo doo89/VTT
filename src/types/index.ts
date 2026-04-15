@@ -236,7 +236,7 @@ export interface Action {
 
 export interface ActionEffect {
   id: string;
-  type: 'deleteAllTags';
+  type: 'deleteAllTags' | 'nextPhase';
   enabled: boolean;
 }
 

@@ -636,15 +636,30 @@ export const useVttStore = create<VttStore>()(
           if (!action) return {};
           
           let nextMarkers = [...state.markers];
+          let shouldNextCycle = false;
           
           action.effects?.forEach(effect => {
             if (!effect.enabled) return;
             if (effect.type === 'deleteAllTags') {
               nextMarkers = [];
             }
+            if (effect.type === 'nextPhase') {
+              shouldNextCycle = true;
+            }
           });
           
-          return { markers: nextMarkers };
+          const newState: any = { markers: nextMarkers };
+          
+          if (shouldNextCycle) {
+            // Re-use logic from nextCycle
+            const nextDay = !state.isNight;
+            newState.isNight = nextDay;
+            if (!nextDay) {
+              newState.turn = state.turn + 1;
+            }
+          }
+          
+          return newState;
         }),
         setActionConditionCreatorState: (update) => set((state) => ({ 
           actionConditionCreatorState: { ...state.actionConditionCreatorState, ...update } 

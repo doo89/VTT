@@ -11,7 +11,8 @@ export const ActionEffectWindow: React.FC = () => {
     pendingActionEffects
   } = useVttStore();
   
-  const [deleteAllTags, setDeleteAllTags] = useState(true);
+  const [type, setType] = useState<'deleteAllTags' | 'nextPhase'>('deleteAllTags');
+  const [enabled, setEnabled] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -21,10 +22,12 @@ export const ActionEffectWindow: React.FC = () => {
     if (isEditing) {
       const effect = pendingActionEffects.find(e => e.id === actionEffectCreatorState.editingEffectId);
       if (effect) {
-        setDeleteAllTags(effect.enabled);
+        setType(effect.type);
+        setEnabled(effect.enabled);
       }
     } else {
-      setDeleteAllTags(true);
+      setType('deleteAllTags');
+      setEnabled(true);
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects]);
 
@@ -65,9 +68,9 @@ export const ActionEffectWindow: React.FC = () => {
 
   const handleOK = () => {
     if (isEditing && actionEffectCreatorState.editingEffectId) {
-      updatePendingEffect(actionEffectCreatorState.editingEffectId, { type: 'deleteAllTags', enabled: deleteAllTags });
+      updatePendingEffect(actionEffectCreatorState.editingEffectId, { type, enabled });
     } else {
-      addPendingEffect({ type: 'deleteAllTags', enabled: deleteAllTags });
+      addPendingEffect({ type, enabled });
     }
     handleClose();
   };
@@ -104,19 +107,33 @@ export const ActionEffectWindow: React.FC = () => {
         </button>
       </div>
 
-      <div className="p-5 flex flex-col gap-4 bg-background/50">
-        <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
-          <input
-            type="checkbox"
-            checked={deleteAllTags}
-            onChange={(e) => setDeleteAllTags(e.target.checked)}
-            className="w-5 h-5 rounded border-border text-indigo-500 focus:ring-indigo-500 transition-all"
-          />
-          <div className="flex flex-col">
-            <span className="text-sm font-bold">Supprimer tous les tags dans la salle</span>
-            <span className="text-xs text-muted-foreground italic">Efface l'intégralité des tags présents sur le plateau</span>
+      <div className="p-5 flex flex-col gap-5 bg-background/50">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type d'action</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as any)}
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-sm focus:border-indigo-500/50"
+            >
+              <option value="deleteAllTags">Supprimer tous les tags dans la salle</option>
+              <option value="nextPhase">Passer à la phase suivante</option>
+            </select>
           </div>
-        </label>
+
+          <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={(e) => setEnabled(e.target.checked)}
+              className="w-5 h-5 rounded border-border text-indigo-500 focus:ring-indigo-500 transition-all"
+            />
+            <div className="flex flex-col">
+              <span className="text-sm font-bold">Activer cette action</span>
+              <span className="text-[10px] text-muted-foreground italic">Définit si cette action spécifique sera exécutée</span>
+            </div>
+          </label>
+        </div>
 
         <div className="flex items-center gap-2 pt-2">
           <button

@@ -228,7 +228,9 @@ export const ActionCreatorWindow: React.FC = () => {
                       Effect
                     </span>
                     <span className="font-bold">
-                      {effect.type === 'deleteAllTags' ? 'Supprimer tous les tags' : effect.type}
+                      {effect.type === 'deleteAllTags' ? 'Supprimer tous les tags' : 
+                       effect.type === 'nextPhase' ? 'Passer à la phase suivante' : 
+                       effect.type}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
