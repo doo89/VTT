@@ -230,11 +230,28 @@ export interface WikiState {
 export interface Action {
   id: string;
   name: string;
+  conditions?: ActionCondition[];
+}
+
+export type ActionConditionType = 'day' | 'night' | 'turn';
+export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=';
+
+export interface ActionCondition {
+  id: string;
+  type: ActionConditionType;
+  operator: ActionOperator;
+  value: number;
 }
 
 export interface ActionCreatorState {
   isOpen: boolean;
   isDetached: boolean;
+  x: number;
+  y: number;
+}
+
+export interface ActionConditionCreatorState {
+  isOpen: boolean;
   x: number;
   y: number;
 }
@@ -277,7 +294,9 @@ export interface GameState {
   checklistState: ChecklistState;
   tagDistributorState: TagDistributorState;
   actionCreatorState: ActionCreatorState;
+  actionConditionCreatorState: ActionConditionCreatorState;
   actions: Action[];
+  pendingActionConditions: ActionCondition[];
   scoreboard: {
     isDetached: boolean;
     x: number;

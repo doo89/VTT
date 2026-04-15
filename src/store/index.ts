@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, ChecklistItem, Action, ActionCreatorState } from '../types';
+import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface VttStore extends GameState {
@@ -96,6 +96,9 @@ interface VttStore extends GameState {
   addAction: (action: Omit<Action, 'id'>) => void;
   updateAction: (id: string, updates: Partial<Action>) => void;
   deleteAction: (id: string) => void;
+  setActionConditionCreatorState: (state: Partial<ActionConditionCreatorState>) => void;
+  addPendingCondition: (condition: Omit<ActionCondition, 'id'>) => void;
+  clearPendingConditions: () => void;
 
   // Game Logic
   setNight: (isNight: boolean) => void;
@@ -206,7 +209,13 @@ export const initialState = {
     x: 100,
     y: 100,
   },
+  actionConditionCreatorState: {
+    isOpen: false,
+    x: 150,
+    y: 150,
+  },
   actions: [],
+  pendingActionConditions: [],
   activeLeftTab: 'players' as const,
   editingEntity: null,
   smartphoneActionMessage: null,
@@ -603,6 +612,13 @@ export const useVttStore = create<VttStore>()(
         deleteAction: (id) => set((state) => ({
           actions: state.actions.filter(a => a.id !== id)
         })),
+        setActionConditionCreatorState: (update) => set((state) => ({ 
+          actionConditionCreatorState: { ...state.actionConditionCreatorState, ...update } 
+        })),
+        addPendingCondition: (conditionData) => set((state) => ({
+          pendingActionConditions: [...state.pendingActionConditions, { ...conditionData, id: uuidv4() }]
+        })),
+        clearPendingConditions: () => set({ pendingActionConditions: [] }),
       }),
       {
         partialize: (state) => ({
