@@ -166,6 +166,29 @@ export const initHostRealtime = (roomCode: string) => {
           }
         }
 
+        // 2.5 Handle Role Check
+        if (tagData.smartphoneIsCheckRoleEnabled && tagData.smartphoneCheckRoleId && payload.selectedPlayerIds?.length > 0) {
+          const checkRole = state.roles.find(r => r.id === tagData.smartphoneCheckRoleId);
+          const checkMsg = payload.selectedPlayerIds.map((pid: string) => {
+            const target = state.players.find(p => p.id === pid);
+            if (!target) return null;
+            
+            if (target.roleId === tagData.smartphoneCheckRoleId) {
+               return tagData.smartphonePlayerFeedback || "C'est exact !";
+            } else {
+               return `Non, le joueur ${target.name} n'est pas ${checkRole?.name || 'ce rôle'}.`;
+            }
+          }).filter(Boolean).join('\n');
+
+          if (checkMsg && currentChannel) {
+            currentChannel.send({
+              type: 'broadcast',
+              event: 'feedback_popup',
+              payload: { playerId: payload.playerId, message: checkMsg }
+            });
+          }
+        }
+
         // 3. Handle Tag Merging (Fusionner ce Tag aux joueurs sélectionnés)
         if (tagData.smartphoneMergeTagId) {
           const mergeModel = state.tags.find(t => t.id === tagData.smartphoneMergeTagId);

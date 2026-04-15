@@ -97,6 +97,8 @@ export interface MarkerParameter {
   smartphoneFilterNotThisTag?: boolean;
   smartphoneFilterExcludeTagId?: EntityId | null;
   smartphonePopupId?: EntityId | null;
+  smartphoneIsCheckRoleEnabled?: boolean;
+  smartphoneCheckRoleId?: EntityId | null;
 }
 
 export interface Marker {

@@ -1208,6 +1208,29 @@ export const EditingModal: React.FC = () => {
                               ))}
                             </div>
                           </div>
+
+                          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
+                            <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer group shrink-0">
+                              <input 
+                                type="checkbox" 
+                                checked={tag.smartphoneIsCheckRoleEnabled || false} 
+                                onChange={e => updateTagModel(tag.id, { smartphoneIsCheckRoleEnabled: e.target.checked })} 
+                                className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" 
+                              />
+                              <span className="group-hover:text-primary transition-colors">A bien le rôle de :</span>
+                            </label>
+                            <select 
+                              value={tag.smartphoneCheckRoleId || ''} 
+                              onChange={e => updateTagModel(tag.id, { smartphoneCheckRoleId: e.target.value || null })}
+                              className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
+                              disabled={!tag.smartphoneIsCheckRoleEnabled}
+                            >
+                              <option value="">Sélectionner un rôle...</option>
+                              {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(r => (
+                                <option key={r.id} value={r.id}>{r.name}</option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1781,6 +1804,29 @@ export const EditingModal: React.FC = () => {
                                 </label>
                               ))}
                             </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
+                            <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer group shrink-0">
+                              <input 
+                                type="checkbox" 
+                                checked={tag.smartphoneIsCheckRoleEnabled || false} 
+                                onChange={e => updateTagInstance({ smartphoneIsCheckRoleEnabled: e.target.checked })} 
+                                className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" 
+                              />
+                              <span className="group-hover:text-primary transition-colors">A bien le rôle de :</span>
+                            </label>
+                            <select 
+                              value={tag.smartphoneCheckRoleId || ''} 
+                              onChange={e => updateTagInstance({ smartphoneCheckRoleId: e.target.value || null })}
+                              className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
+                              disabled={!tag.smartphoneIsCheckRoleEnabled}
+                            >
+                              <option value="">Sélectionner un rôle...</option>
+                              {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(r => (
+                                <option key={r.id} value={r.id}>{r.name}</option>
+                              ))}
+                            </select>
                           </div>
                         </div>
                       )}
