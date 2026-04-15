@@ -99,6 +99,8 @@ export interface MarkerParameter {
   smartphonePopupId?: EntityId | null;
   smartphoneIsCheckRoleEnabled?: boolean;
   smartphoneCheckRoleId?: EntityId | null;
+  smartphoneCheckRoleVague?: boolean;
+  smartphoneCheckRoleCount?: boolean;
 }
 
 export interface Marker {

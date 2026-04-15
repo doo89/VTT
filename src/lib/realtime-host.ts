@@ -169,16 +169,36 @@ export const initHostRealtime = (roomCode: string) => {
         // 2.5 Handle Role Check
         if (tagData.smartphoneIsCheckRoleEnabled && tagData.smartphoneCheckRoleId && payload.selectedPlayerIds?.length > 0) {
           const checkRole = state.roles.find(r => r.id === tagData.smartphoneCheckRoleId);
-          const checkMsg = payload.selectedPlayerIds.map((pid: string) => {
-            const target = state.players.find(p => p.id === pid);
-            if (!target) return null;
-            
-            if (target.roleId === tagData.smartphoneCheckRoleId) {
-               return tagData.smartphonePlayerFeedback || "C'est exact !";
-            } else {
-               return `Non, le joueur ${target.name} n'est pas ${checkRole?.name || 'ce rôle'}.`;
+          const roleName = checkRole?.name || 'ce rôle';
+          let checkMsg = '';
+
+          const matchingTargets = payload.selectedPlayerIds.map((pid: string) => state.players.find(p => p.id === pid))
+            .filter((p: any) => p && p.roleId === tagData.smartphoneCheckRoleId);
+          
+          if (tagData.isMultiPlayerSelector) {
+             if (tagData.smartphoneCheckRoleCount) {
+               checkMsg = `${matchingTargets.length} joueur(s) possède(nt) le rôle ${roleName}.`;
+             } else if (tagData.smartphoneCheckRoleVague) {
+               checkMsg = matchingTargets.length > 0 
+                 ? `Oui, un ou plusieurs joueurs ont le rôle ${roleName} dans cette sélection.` 
+                 : `Non, aucun joueur n'a le rôle ${roleName} dans cette sélection.`;
+             } else {
+               checkMsg = payload.selectedPlayerIds.map((pid: string) => {
+                 const target = state.players.find(p => p.id === pid);
+                 if (!target) return null;
+                 return target.roleId === tagData.smartphoneCheckRoleId 
+                   ? (tagData.smartphonePlayerFeedback || "C'est exact !") 
+                   : `Non, le joueur ${target.name} n'est pas ${roleName}.`;
+               }).filter(Boolean).join('\n');
+             }
+          } else {
+            const target = state.players.find(p => p.id === payload.selectedPlayerIds[0]);
+            if (target) {
+              checkMsg = target.roleId === tagData.smartphoneCheckRoleId 
+                ? (tagData.smartphonePlayerFeedback || "C'est exact !") 
+                : `Non, le joueur ${target.name} n'est pas ${roleName}.`;
             }
-          }).filter(Boolean).join('\n');
+          }
 
           if (checkMsg && currentChannel) {
             currentChannel.send({

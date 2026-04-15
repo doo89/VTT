@@ -1231,6 +1231,29 @@ export const EditingModal: React.FC = () => {
                               ))}
                             </select>
                           </div>
+
+                          {(tag.isMultiPlayerSelector || false) && tag.smartphoneIsCheckRoleEnabled && (
+                            <div className="flex items-center gap-4 mt-1 ml-6">
+                              <label className="flex items-center gap-2 text-[10px] text-foreground cursor-pointer group">
+                                <input 
+                                  type="checkbox" 
+                                  checked={tag.smartphoneCheckRoleVague || false} 
+                                  onChange={e => updateTagModel(tag.id, { smartphoneCheckRoleVague: e.target.checked })} 
+                                  className="w-3 h-3 rounded border-border text-primary focus:ring-ring" 
+                                />
+                                <span className="group-hover:text-primary transition-colors">Réponse vague</span>
+                              </label>
+                              <label className="flex items-center gap-2 text-[10px] text-foreground cursor-pointer group">
+                                <input 
+                                  type="checkbox" 
+                                  checked={tag.smartphoneCheckRoleCount || false} 
+                                  onChange={e => updateTagModel(tag.id, { smartphoneCheckRoleCount: e.target.checked })} 
+                                  className="w-3 h-3 rounded border-border text-primary focus:ring-ring" 
+                                />
+                                <span className="group-hover:text-primary transition-colors">Combien</span>
+                              </label>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1828,6 +1851,29 @@ export const EditingModal: React.FC = () => {
                               ))}
                             </select>
                           </div>
+
+                          {(tag.isMultiPlayerSelector || false) && tag.smartphoneIsCheckRoleEnabled && (
+                            <div className="flex items-center gap-4 mt-1 ml-6">
+                              <label className="flex items-center gap-2 text-[10px] text-foreground cursor-pointer group">
+                                <input 
+                                  type="checkbox" 
+                                  checked={tag.smartphoneCheckRoleVague || false} 
+                                  onChange={e => updateTagInstance({ smartphoneCheckRoleVague: e.target.checked })} 
+                                  className="w-3 h-3 rounded border-border text-primary focus:ring-ring" 
+                                />
+                                <span className="group-hover:text-primary transition-colors">Réponse vague</span>
+                              </label>
+                              <label className="flex items-center gap-2 text-[10px] text-foreground cursor-pointer group">
+                                <input 
+                                  type="checkbox" 
+                                  checked={tag.smartphoneCheckRoleCount || false} 
+                                  onChange={e => updateTagInstance({ smartphoneCheckRoleCount: e.target.checked })} 
+                                  className="w-3 h-3 rounded border-border text-primary focus:ring-ring" 
+                                />
+                                <span className="group-hover:text-primary transition-colors">Combien</span>
+                              </label>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
