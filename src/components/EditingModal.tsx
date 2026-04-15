@@ -1277,32 +1277,34 @@ export const EditingModal: React.FC = () => {
                   Afficher la pastille tag au dessus du joueur
                 </label>
 
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-medium text-muted-foreground">Fusionner ce Tag aux joueurs sélectionnés</label>
-                  <select
-                    value={tag.smartphoneMergeTagId || ''}
-                    onChange={(e) => updateTagModel(tag.id, { smartphoneMergeTagId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">-- Aucun --</option>
-                    {tags.filter(t => t.id !== tag.id).map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Fusionner aux joueurs</label>
+                    <select
+                      value={tag.smartphoneMergeTagId || ''}
+                      onChange={(e) => updateTagModel(tag.id, { smartphoneMergeTagId: e.target.value || null })}
+                      className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
+                    >
+                      <option value="">-- Aucun --</option>
+                      {[...tags].filter(t => t.id !== tag.id).sort((a,b) => a.name.localeCompare(b.name)).map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-medium text-muted-foreground">Me fusionner ce Tag</label>
-                  <select
-                    value={tag.smartphoneSelfMergeTagId || ''}
-                    onChange={(e) => updateTagModel(tag.id, { smartphoneSelfMergeTagId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">-- Aucun --</option>
-                    {tags.filter(t => t.id !== tag.id).map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Me fusionner ce Tag</label>
+                    <select
+                      value={tag.smartphoneSelfMergeTagId || ''}
+                      onChange={(e) => updateTagModel(tag.id, { smartphoneSelfMergeTagId: e.target.value || null })}
+                      className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
+                    >
+                      <option value="">-- Aucun --</option>
+                      {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
@@ -1826,32 +1828,34 @@ export const EditingModal: React.FC = () => {
                   Afficher la pastille tag au dessus du joueur
                 </label>
 
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-medium text-muted-foreground">Fusionner ce Tag aux joueurs sélectionnés</label>
-                  <select
-                    value={tag.smartphoneMergeTagId || ''}
-                    onChange={(e) => updateTagInstance({ smartphoneMergeTagId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">-- Aucun --</option>
-                    {tags.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Fusionner aux joueurs</label>
+                    <select
+                      value={tag.smartphoneMergeTagId || ''}
+                      onChange={(e) => updateTagInstance({ smartphoneMergeTagId: e.target.value || null })}
+                      className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
+                    >
+                      <option value="">-- Aucun --</option>
+                      {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-medium text-muted-foreground">Me fusionner ce Tag</label>
-                  <select
-                    value={tag.smartphoneSelfMergeTagId || ''}
-                    onChange={(e) => updateTagInstance({ smartphoneSelfMergeTagId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">-- Aucun --</option>
-                    {tags.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Me fusionner ce Tag</label>
+                    <select
+                      value={tag.smartphoneSelfMergeTagId || ''}
+                      onChange={(e) => updateTagInstance({ smartphoneSelfMergeTagId: e.target.value || null })}
+                      className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
+                    >
+                      <option value="">-- Aucun --</option>
+                      {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
