@@ -1192,13 +1192,24 @@ export const EditingModal: React.FC = () => {
 
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-muted-foreground">Texte du bouton d'action</label>
-                  <input
-                    type="text"
-                    value={tag.smartphoneButtonText || ''}
-                    onChange={(e) => updateTagModel(tag.id, { smartphoneButtonText: e.target.value })}
-                    placeholder="Ex: Utiliser la potion"
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring w-1/2"
-                  />
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="text"
+                      value={tag.smartphoneButtonText || ''}
+                      onChange={(e) => updateTagModel(tag.id, { smartphoneButtonText: e.target.value })}
+                      placeholder="Ex: Utiliser la potion"
+                      className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring w-1/2"
+                    />
+                    <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer hover:text-primary transition-colors whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={tag.smartphoneShowPastille || false}
+                        onChange={(e) => updateTagModel(tag.id, { smartphoneShowPastille: e.target.checked })}
+                        className="rounded border-border w-3.5 h-3.5 text-primary"
+                      />
+                      Afficher la pastille tag au dessus du joueur
+                    </label>
+                  </div>
                   {tag.smartphoneButtonText && (
                     <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer mt-1 ml-1 hover:text-primary transition-colors">
                       <input
@@ -1251,15 +1262,6 @@ export const EditingModal: React.FC = () => {
                   )}
                 </div>
 
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1 ml-4">
-                  <input
-                    type="checkbox"
-                    checked={tag.smartphoneShowPastille || false}
-                    onChange={(e) => updateTagModel(tag.id, { smartphoneShowPastille: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Afficher la pastille tag au dessus du joueur
-                </label>
 
                 <div className="flex flex-col gap-1 mt-2">
                   <label className="text-xs font-medium text-muted-foreground">Message retour au MJ (popup)</label>
@@ -1766,13 +1768,24 @@ export const EditingModal: React.FC = () => {
 
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-muted-foreground">Texte du bouton d'action</label>
-                  <input
-                    type="text"
-                    value={tag.smartphoneButtonText || ''}
-                    onChange={(e) => updateTagInstance({ smartphoneButtonText: e.target.value })}
-                    placeholder="Ex: Utiliser la potion…"
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring w-1/2"
-                  />
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="text"
+                      value={tag.smartphoneButtonText || ''}
+                      onChange={(e) => updateTagInstance({ smartphoneButtonText: e.target.value })}
+                      placeholder="Ex: Utiliser la potion…"
+                      className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring w-1/2"
+                    />
+                    <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer hover:text-primary transition-colors whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={tag.smartphoneShowPastille || false}
+                        onChange={(e) => updateTagInstance({ smartphoneShowPastille: e.target.checked })}
+                        className="rounded border-border w-3.5 h-3.5 text-primary"
+                      />
+                      Afficher la pastille tag au dessus du joueur
+                    </label>
+                  </div>
                   {tag.smartphoneButtonText && (
                     <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer mt-1 ml-1 hover:text-primary transition-colors">
                       <input
@@ -1826,15 +1839,6 @@ export const EditingModal: React.FC = () => {
                   )}
                 </div>
 
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1 ml-4">
-                  <input
-                    type="checkbox"
-                    checked={tag.smartphoneShowPastille || false}
-                    onChange={(e) => updateTagInstance({ smartphoneShowPastille: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Afficher la pastille tag au dessus du joueur
-                </label>
 
                 <div className="flex flex-col gap-1 mt-2">
                   <label className="text-xs font-medium text-muted-foreground">Message retour au MJ (popup)</label>
