@@ -130,7 +130,7 @@ export const ActionCreatorWindow: React.FC = () => {
               <p className="text-[10px] text-muted-foreground italic text-center py-2">Aucune condition définie.</p>
             ) : (
               pendingActionConditions.map((condition) => (
-                <div key={condition.id} className="flex items-center justify-between gap-2 bg-background border border-border/50 rounded p-1.5 shadow-sm text-[10px] font-medium animate-in slide-in-from-left-2 duration-200">
+                <div key={condition.id} className={`flex items-center justify-between gap-2 bg-background border border-border/50 rounded p-1.5 shadow-sm text-[10px] font-medium animate-in slide-in-from-left-2 duration-200 ${!condition.enabled ? 'opacity-50 grayscale' : ''}`}>
                   <div className="flex items-center gap-2">
                     <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase font-bold text-[9px]">
                       {condition.type === 'day' ? 'Jour' : condition.type === 'night' ? 'Nuit' : 'Tour'}

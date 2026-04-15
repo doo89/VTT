@@ -15,6 +15,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [type, setType] = useState<ActionConditionType>('day');
   const [operator, setOperator] = useState<ActionOperator>('=');
   const [value, setValue] = useState(1);
+  const [enabled, setEnabled] = useState(true);
 
   const isEditing = !!actionConditionCreatorState.editingConditionId;
 
@@ -25,11 +26,13 @@ export const ActionConditionWindow: React.FC = () => {
         setType(condition.type);
         setOperator(condition.operator);
         setValue(condition.value);
+        setEnabled(condition.enabled ?? true);
       }
     } else {
       setType('day');
       setOperator('=');
       setValue(1);
+      setEnabled(true);
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions]);
   const [isDragging, setIsDragging] = useState(false);
@@ -72,9 +75,9 @@ export const ActionConditionWindow: React.FC = () => {
 
   const handleOK = () => {
     if (isEditing && actionConditionCreatorState.editingConditionId) {
-      updatePendingCondition(actionConditionCreatorState.editingConditionId, { type, operator, value });
+      updatePendingCondition(actionConditionCreatorState.editingConditionId, { type, operator, value, enabled });
     } else {
-      addPendingCondition({ type, operator, value });
+      addPendingCondition({ type, operator, value, enabled });
     }
     handleClose();
   };
@@ -112,13 +115,26 @@ export const ActionConditionWindow: React.FC = () => {
       </div>
 
       <div className="p-5 flex flex-col gap-4 bg-background/50">
-        <div className="flex items-center gap-2">
+        <div className="flex items-end gap-3">
+          <div className="flex flex-col gap-1.5 pb-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+            <div className="flex items-center h-[38px] justify-center">
+              <input
+                type="checkbox"
+                checked={enabled}
+                onChange={(e) => setEnabled(e.target.checked)}
+                className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+              />
+            </div>
+          </div>
+
           <div className="flex flex-col gap-1.5 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cycle</label>
             <select
+              disabled={!enabled}
               value={type}
               onChange={(e) => setType(e.target.value as ActionConditionType)}
-              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all"
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="day">Jour</option>
               <option value="night">Nuit</option>
@@ -129,9 +145,10 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
+              disabled={!enabled}
               value={operator}
               onChange={(e) => setOperator(e.target.value as ActionOperator)}
-              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold"
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="=">=</option>
               <option value="<">&lt;</option>
@@ -145,10 +162,11 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-[0.7]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
             <input
+              disabled={!enabled}
               type="number"
               value={value}
               onChange={(e) => setValue(parseInt(e.target.value) || 0)}
-              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner"
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         </div>

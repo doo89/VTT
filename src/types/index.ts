@@ -241,6 +241,7 @@ export interface ActionCondition {
   type: ActionConditionType;
   operator: ActionOperator;
   value: number;
+  enabled: boolean;
 }
 
 export interface ActionCreatorState {
