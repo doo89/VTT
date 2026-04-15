@@ -1191,14 +1191,25 @@ export const EditingModal: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground">Texte du bouton</label>
+                  <label className="text-xs font-medium text-muted-foreground">Texte du bouton d'action</label>
                   <input
                     type="text"
                     value={tag.smartphoneButtonText || ''}
                     onChange={(e) => updateTagModel(tag.id, { smartphoneButtonText: e.target.value })}
                     placeholder="Ex: Utiliser la potion"
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring w-1/2"
                   />
+                  {tag.smartphoneButtonText && (
+                    <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer mt-1 ml-1 hover:text-primary transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={tag.smartphoneAutoDelete || false}
+                        onChange={(e) => updateTagModel(tag.id, { smartphoneAutoDelete: e.target.checked })}
+                        className="rounded border-border w-3.5 h-3.5 text-primary"
+                      />
+                      Suppression automatique (efface le tag après clic)
+                    </label>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -1291,15 +1302,6 @@ export const EditingModal: React.FC = () => {
                   </div>
                 </div>
 
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
-                  <input
-                    type="checkbox"
-                    checked={tag.smartphoneAutoDelete || false}
-                    onChange={(e) => updateTagModel(tag.id, { smartphoneAutoDelete: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Suppression automatique (efface le tag après clic)
-                </label>
 
                 <div className="flex flex-col gap-1 mt-4 pt-4 border-t border-border/10">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">
@@ -1751,8 +1753,19 @@ export const EditingModal: React.FC = () => {
                     value={tag.smartphoneButtonText || ''}
                     onChange={(e) => updateTagInstance({ smartphoneButtonText: e.target.value })}
                     placeholder="Ex: Utiliser la potion…"
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring w-1/2"
                   />
+                  {tag.smartphoneButtonText && (
+                    <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer mt-1 ml-1 hover:text-primary transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={tag.smartphoneAutoDelete || false}
+                        onChange={(e) => updateTagInstance({ smartphoneAutoDelete: e.target.checked })}
+                        className="rounded border-border w-3.5 h-3.5 text-primary"
+                      />
+                      Suppression automatique (efface le tag après clic)
+                    </label>
+                  )}
                   <p className="text-[10px] text-muted-foreground leading-tight">Si rempli, un bouton apparaît sur le smartphone du joueur possédant ce tag.</p>
                 </div>
 
@@ -1846,15 +1859,6 @@ export const EditingModal: React.FC = () => {
                   </div>
                 </div>
 
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer mt-1">
-                  <input
-                    type="checkbox"
-                    checked={tag.smartphoneAutoDelete || false}
-                    onChange={(e) => updateTagInstance({ smartphoneAutoDelete: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Suppression automatique (efface le tag après clic)
-                </label>
 
                 <div className="flex flex-col gap-1 mt-4 pt-4 border-t border-border/10">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">
