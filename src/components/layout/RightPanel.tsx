@@ -21,7 +21,7 @@ export const RightPanel: React.FC = () => {
     checklist,
     checklistState, setChecklistState,
     tagDistributorState, setTagDistributorState,
-    actionCreatorState, setActionCreatorState,
+    actionCreatorState: _, setActionCreatorState,
     actions, deleteAction
   } = useVttStore();
 

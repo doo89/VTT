@@ -335,17 +335,17 @@ export interface GameState {
     };
     smartphoneImageStyle: 'circle' | 'square' | 'original' | 'background' | 'none';
     panels: {
-      distribution: boolean;
-      chrono: boolean;
-      soundboard: boolean;
-      scoreboard: boolean;
-      logs: boolean;
-      system: boolean;
-      wiki: boolean;
-      popupCreator: boolean;
-      actionCreator: boolean;
-      checklist: boolean;
-      tagDistributor: boolean;
+      distribution?: boolean;
+      chrono?: boolean;
+      soundboard?: boolean;
+      scoreboard?: boolean;
+      logs?: boolean;
+      system?: boolean;
+      wiki?: boolean;
+      popupCreator?: boolean;
+      actionCreator?: boolean;
+      checklist?: boolean;
+      tagDistributor?: boolean;
     };
     recordLogs: boolean;
     smartphoneTabs: {
