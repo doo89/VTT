@@ -1087,6 +1087,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     { key: 'tagDistributor', label: 'Distributeur de Tags' },
                     { key: 'wiki', label: 'Wiki / Notes GM' },
                     { key: 'popupCreator', label: 'Créateur de Popup' },
+                    { key: 'actionCreator', label: "Créateur d'Actions" },
                     { key: 'checklist', label: 'Checklist pour le MJ' },
                     { key: 'system', label: 'Système & Connexion' }
                   ].map(tool => (

@@ -227,6 +227,18 @@ export interface WikiState {
   content: string;
 }
 
+export interface Action {
+  id: string;
+  name: string;
+}
+
+export interface ActionCreatorState {
+  isOpen: boolean;
+  isDetached: boolean;
+  x: number;
+  y: number;
+}
+
 export interface GameState {
   roomName: string;
   roomCode: string | null;
@@ -264,6 +276,8 @@ export interface GameState {
   wiki: WikiState;
   checklistState: ChecklistState;
   tagDistributorState: TagDistributorState;
+  actionCreatorState: ActionCreatorState;
+  actions: Action[];
   scoreboard: {
     isDetached: boolean;
     x: number;
@@ -329,6 +343,7 @@ export interface GameState {
       system: boolean;
       wiki: boolean;
       popupCreator: boolean;
+      actionCreator: boolean;
       checklist: boolean;
       tagDistributor: boolean;
     };

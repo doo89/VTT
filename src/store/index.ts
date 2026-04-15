@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, ChecklistItem } from '../types';
+import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, ChecklistItem, Action, ActionCreatorState } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface VttStore extends GameState {
@@ -90,6 +90,12 @@ interface VttStore extends GameState {
   updateHandout: (id: EntityId, updates: Partial<Handout>) => void;
   deleteHandout: (id: EntityId) => void;
   toggleHandout: (id: EntityId) => void;
+
+  // Action Creator
+  setActionCreatorState: (state: Partial<ActionCreatorState>) => void;
+  addAction: (action: Omit<Action, 'id'>) => void;
+  updateAction: (id: string, updates: Partial<Action>) => void;
+  deleteAction: (id: string) => void;
 
   // Game Logic
   setNight: (isNight: boolean) => void;
@@ -194,6 +200,13 @@ export const initialState = {
     x: 100,
     y: 100,
   },
+  actionCreatorState: {
+    isOpen: false,
+    isDetached: false,
+    x: 100,
+    y: 100,
+  },
+  actions: [],
   activeLeftTab: 'players' as const,
   editingEntity: null,
   smartphoneActionMessage: null,
@@ -577,6 +590,18 @@ export const useVttStore = create<VttStore>()(
         // Checklist
         setChecklist: (checklistPayload) => set((state) => ({
           checklist: typeof checklistPayload === 'function' ? checklistPayload(state.checklist) : checklistPayload
+        })),
+
+        // Action Creator
+        setActionCreatorState: (update) => set((state) => ({ actionCreatorState: { ...state.actionCreatorState, ...update } })),
+        addAction: (actionData) => set((state) => ({
+          actions: [...state.actions, { ...actionData, id: uuidv4() }]
+        })),
+        updateAction: (id, updates) => set((state) => ({
+          actions: state.actions.map(a => a.id === id ? { ...a, ...updates } : a)
+        })),
+        deleteAction: (id) => set((state) => ({
+          actions: state.actions.filter(a => a.id !== id)
         })),
       }),
       {

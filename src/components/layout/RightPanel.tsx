@@ -20,7 +20,9 @@ export const RightPanel: React.FC = () => {
     customPopups, addCustomPopup, updateCustomPopup, deleteCustomPopup, triggerCustomPopup,
     checklist,
     checklistState, setChecklistState,
-    tagDistributorState, setTagDistributorState
+    tagDistributorState, setTagDistributorState,
+    actionCreatorState, setActionCreatorState,
+    actions, deleteAction
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -792,6 +794,46 @@ export const RightPanel: React.FC = () => {
                     ))}
                     {customPopups.length === 0 && (
                       <p className="text-xs text-muted-foreground italic text-center py-2">Aucune popup créée.</p>
+                    )}
+                  </div>
+              </div>
+            )}
+          </section>
+        )}
+        {/* Créateur d'Actions */}
+        {(displaySettings.panels?.actionCreator ?? true) && (
+          <section className="flex flex-col border border-border rounded-md bg-background">
+            <button
+              onClick={() => toggleSection('actions')}
+              className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+            >
+              <div className={`flex items-center gap-2 ${activeSection === 'actions' ? 'text-orange-400' : ''}`}>
+                <Zap size={16} /> Créateur d'Actions ({actions.length})
+              </div>
+              {activeSection === 'actions' ? <ChevronDown size={16} className="text-orange-400" /> : <ChevronRight size={16} />}
+            </button>
+            {activeSection === 'actions' && (
+              <div className="p-3 flex flex-col gap-3 border-t border-border">
+                 <button
+                    onClick={() => setActionCreatorState({ isOpen: true, isDetached: true })}
+                    className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <Plus size={14} /> Ajouter Action
+                  </button>
+  
+                  <div className="flex flex-col gap-2 mt-2">
+                    {actions.map(action => (
+                      <div key={action.id} className="flex justify-between items-center w-full bg-muted/20 border border-border/50 rounded-md p-2">
+                        <span className="text-xs font-bold truncate pr-2">{action.name}</span>
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => deleteAction(action.id)} className="text-destructive hover:text-white hover:bg-destructive p-1 rounded transition-colors" title="Supprimer">
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {actions.length === 0 && (
+                      <p className="text-xs text-muted-foreground italic text-center py-2">Aucune action créée.</p>
                     )}
                   </div>
               </div>

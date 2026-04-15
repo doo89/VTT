@@ -10,6 +10,7 @@ import { ScoreboardWindow } from '../components/ScoreboardWindow';
 import { WikiWindow } from '../components/WikiWindow';
 import { ChecklistWindow } from '../components/ChecklistWindow';
 import { TagDistributorWindow } from '../components/TagDistributorWindow';
+import { ActionCreatorWindow } from '../components/ActionCreatorWindow';
 import { useVttStore } from '../store';
 import { setupHostRealtimeSubscription, cleanupHostRealtime } from '../lib/realtime-host';
 import { X, MessageSquareWarning } from 'lucide-react';
@@ -43,6 +44,7 @@ export const GmView: React.FC = () => {
       <WikiWindow />
       <ChecklistWindow />
       <TagDistributorWindow />
+      <ActionCreatorWindow />
 
       {/* Smartphone Action Popup */}
       {smartphoneActionMessage && (
