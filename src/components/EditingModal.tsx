@@ -1076,22 +1076,6 @@ export const EditingModal: React.FC = () => {
 
           {activeTagTab === 'smartphone' && (
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1 mt-4">
-                <label className="text-sm font-medium text-muted-foreground">Associer une Aide de Jeu</label>
-                <select
-                  value={tag.handoutId || ''}
-                  onChange={(e) => updateTagModel(tag.id, { handoutId: e.target.value || null })}
-                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  <option value="">Aucune (Optionnel)</option>
-                  {handouts.map(h => (
-                    <option key={h.id} value={h.id}>{h.name}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  L'image de cette aide s'affichera dans une galerie sur le smartphone du joueur possédant ce tag.
-                </p>
-              </div>
 
               <div className="flex flex-col gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
                 <h4 className="text-sm font-semibold flex items-center gap-2">
@@ -1316,6 +1300,26 @@ export const EditingModal: React.FC = () => {
                   />
                   Suppression automatique (efface le tag après clic)
                 </label>
+
+                <div className="flex flex-col gap-1 mt-4 pt-4 border-t border-border/10">
+                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">
+                    <icons.BookOpen size={12} className="text-primary/50" />
+                    Associer une Aide de Jeu
+                  </label>
+                  <select
+                    value={tag.handoutId || ''}
+                    onChange={(e) => updateTagModel(tag.id, { handoutId: e.target.value || null })}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">Aucune (Optionnel)</option>
+                    {[...handouts].sort((a,b) => a.name.localeCompare(b.name)).map(h => (
+                      <option key={h.id} value={h.id}>{h.name}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-muted-foreground leading-tight mt-1 bg-primary/5 p-2 rounded border border-primary/10 italic">
+                    L'image de cette aide s'affichera dans une galerie sur le smartphone du joueur possédant ce tag.
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -1626,22 +1630,6 @@ export const EditingModal: React.FC = () => {
 
           {activeTagTab === 'smartphone' && (
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1 mt-4">
-                <label className="text-sm font-medium text-muted-foreground">Associer une Aide de Jeu</label>
-                <select
-                  value={tag.handoutId || ''}
-                  onChange={(e) => updateTagInstance({ handoutId: e.target.value || null })}
-                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  <option value="">Aucune (Optionnel)</option>
-                  {handouts.map(h => (
-                    <option key={h.id} value={h.id}>{h.name}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  L'image de cette aide s'affichera dans une galerie sur le smartphone du joueur possédant ce tag.
-                </p>
-              </div>
 
               <div className="flex flex-col gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
                 <h4 className="text-sm font-semibold flex items-center gap-2">
@@ -1867,6 +1855,26 @@ export const EditingModal: React.FC = () => {
                   />
                   Suppression automatique (efface le tag après clic)
                 </label>
+
+                <div className="flex flex-col gap-1 mt-4 pt-4 border-t border-border/10">
+                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">
+                    <icons.BookOpen size={12} className="text-primary/50" />
+                    Associer une Aide de Jeu
+                  </label>
+                  <select
+                    value={tag.handoutId || ''}
+                    onChange={(e) => updateTagInstance({ handoutId: e.target.value || null })}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">Aucune (Optionnel)</option>
+                    {[...handouts].sort((a,b) => a.name.localeCompare(b.name)).map(h => (
+                      <option key={h.id} value={h.id}>{h.name}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-muted-foreground leading-tight mt-1 bg-primary/5 p-2 rounded border border-primary/10 italic">
+                    L'image de cette aide s'affichera dans une galerie sur le smartphone du joueur possédant ce tag.
+                  </p>
+                </div>
               </div>
             </div>
           )}
