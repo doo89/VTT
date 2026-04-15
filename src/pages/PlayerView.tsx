@@ -639,7 +639,10 @@ export const PlayerView: React.FC = () => {
                                   if (tag.smartphoneFilterNotMe && p.id === localPlayer.id) return false;
                                   if (tag.smartphoneFilterNotMyRole && p.roleId === localPlayer.roleId) return false;
                                   if (tag.smartphoneFilterNotMyTeam && p.teamId === localPlayer.teamId) return false;
-                                  if (tag.smartphoneFilterNotThisTag && p.tags.some(t => t.id === tag.id)) return false;
+                                  if (tag.smartphoneFilterNotThisTag) {
+                                    const targetExcludeId = tag.smartphoneFilterExcludeTagId || tag.id;
+                                    if (p.tags.some(t => t.id === targetExcludeId)) return false;
+                                  }
 
                                   return true;
                                 }).map(p => (

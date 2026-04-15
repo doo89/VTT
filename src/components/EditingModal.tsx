@@ -1174,10 +1174,23 @@ export const EditingModal: React.FC = () => {
                             <input type="checkbox" checked={tag.smartphoneFilterNotMyTeam || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotMyTeam: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
                             <span className="group-hover:text-primary transition-colors">Sauf les joueurs de mon équipe</span>
                           </label>
-                          <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                            <input type="checkbox" checked={tag.smartphoneFilterNotThisTag || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotThisTag: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                            <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant la pastille de ce tag</span>
-                          </label>
+                          <div className="flex items-center gap-2 w-full">
+                            <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group shrink-0">
+                              <input type="checkbox" checked={tag.smartphoneFilterNotThisTag || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotThisTag: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                              <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant ce tag :</span>
+                            </label>
+                            <select 
+                              value={tag.smartphoneFilterExcludeTagId || ''} 
+                              onChange={e => updateTagModel(tag.id, { smartphoneFilterExcludeTagId: e.target.value || null })}
+                              className="bg-zinc-900 border border-zinc-700/50 rounded-md px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1 h-6 text-foreground"
+                              disabled={!tag.smartphoneFilterNotThisTag}
+                            >
+                              <option value="">Sélectionner un tag...</option>
+                              {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1700,10 +1713,23 @@ export const EditingModal: React.FC = () => {
                             <input type="checkbox" checked={tag.smartphoneFilterNotMyTeam || false} onChange={e => updateTagInstance({ smartphoneFilterNotMyTeam: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
                             <span className="group-hover:text-primary transition-colors">Sauf les joueurs de mon équipe</span>
                           </label>
-                          <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                            <input type="checkbox" checked={tag.smartphoneFilterNotThisTag || false} onChange={e => updateTagInstance({ smartphoneFilterNotThisTag: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                            <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant la pastille de ce tag</span>
-                          </label>
+                          <div className="flex items-center gap-2 w-full">
+                            <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group shrink-0">
+                              <input type="checkbox" checked={tag.smartphoneFilterNotThisTag || false} onChange={e => updateTagInstance({ smartphoneFilterNotThisTag: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
+                              <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant ce tag :</span>
+                            </label>
+                            <select 
+                              value={tag.smartphoneFilterExcludeTagId || ''} 
+                              onChange={e => updateTagInstance({ smartphoneFilterExcludeTagId: e.target.value || null })}
+                              className="bg-zinc-900 border border-zinc-700/50 rounded-md px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1 h-6 text-foreground"
+                              disabled={!tag.smartphoneFilterNotThisTag}
+                            >
+                              <option value="">Sélectionner un tag...</option>
+                              {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                       )}
                     </div>

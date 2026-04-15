@@ -95,6 +95,7 @@ export interface MarkerParameter {
   smartphoneFilterMyTeam?: boolean;
   smartphoneFilterNotMyTeam?: boolean;
   smartphoneFilterNotThisTag?: boolean;
+  smartphoneFilterExcludeTagId?: EntityId | null;
 }
 
 export interface Marker {
