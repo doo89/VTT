@@ -388,15 +388,19 @@ export const useVttStore = create<VttStore>()(
   })),
 
   // Players
-  addPlayer: (playerData) => set((state) => ({
-    players: [...state.players, { 
-      points: undefined,
-      votes: undefined,
-      lives: undefined,
-      ...playerData, 
-      id: uuidv4() 
-    }]
-  })),
+  addPlayer: (playerData) => set((state) => {
+    const maxOrder = state.players.reduce((max, p) => Math.max(max, p.creationOrder || 0), 0);
+    return {
+      players: [...state.players, { 
+        points: undefined,
+        votes: undefined,
+        lives: undefined,
+        ...playerData, 
+        id: uuidv4(),
+        creationOrder: maxOrder + 1
+      }]
+    };
+  }),
   updatePlayer: (id, updates) => set((state) => {
     // Check if the player exists, if not, do nothing to avoid unnecessary re-renders
     const playerIndex = state.players.findIndex(p => p.id === id);

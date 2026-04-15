@@ -482,6 +482,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                     {config.type === 'points' && '10'}
                                     {config.type === 'uses' && '2'}
                                     {config.type === 'callOrderDay' && '1'}
+                                    {config.type === 'callOrderNight' && '2'}
+                                    {config.type === 'creationOrder' && '1'}
                                     {config.type === 'connection' && <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
                                   </div>
                                 );
@@ -529,6 +531,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                       <option value="callOrderDay">Appel J</option>
                                       <option value="callOrderNight">Appel N</option>
                                       <option value="connection">Status</option>
+                                      <option value="creationOrder">Classement</option>
                                     </select>
 
                                     {badge.type !== 'none' && badge.type !== 'team' && badge.type !== 'connection' && (

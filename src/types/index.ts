@@ -22,6 +22,7 @@ export interface Player {
   publicNotesTimestamp?: number;
   selectionPastilles?: { id: string, icon: string, color: string, name?: string }[];
   smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background' | 'none';
+  creationOrder?: number;
 }
 
 export interface PlayerTemplate {
@@ -134,7 +135,7 @@ export interface Team {
   color: string;
 }
 
-export type BadgeType = 'none' | 'team' | 'lives' | 'votes' | 'points' | 'uses' | 'callOrderDay' | 'callOrderNight' | 'connection';
+export type BadgeType = 'none' | 'team' | 'lives' | 'votes' | 'points' | 'uses' | 'callOrderDay' | 'callOrderNight' | 'connection' | 'creationOrder';
 
 export interface BadgeConfig {
   type: BadgeType;

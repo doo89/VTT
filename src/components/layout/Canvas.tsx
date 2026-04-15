@@ -906,6 +906,7 @@ export const Canvas: React.FC = () => {
               uses: getAggregatedValue('uses'),
               callOrderDay: getMinOrder('callOrderDay'),
               callOrderNight: getMinOrder('callOrderNight'),
+              creationOrder: player.creationOrder || (players.indexOf(player) + 1),
             };
 
             const renderBadge = (position: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight') => {
