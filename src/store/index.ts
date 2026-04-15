@@ -654,8 +654,8 @@ export const useVttStore = create<VttStore>()(
             // Re-use logic from nextCycle
             const nextDay = !state.isNight;
             newState.isNight = nextDay;
-            if (!nextDay) {
-              newState.turn = state.turn + 1;
+            if (nextDay) {
+              newState.cycleNumber = state.cycleNumber + 1;
             }
           }
           
