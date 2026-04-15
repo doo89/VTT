@@ -624,13 +624,23 @@ export const PlayerView: React.FC = () => {
                              </span>
                              <div className="flex flex-col gap-1 max-h-32 overflow-y-auto custom-scrollbar pr-1 bg-zinc-950/30 p-2 rounded-lg border border-zinc-800/50">
                                 {roomPlayers.filter(p => {
-                                  if (tag.smartphoneFilterAlive && p.isDead) return false;
-                                  if (tag.smartphoneFilterDead && !p.isDead) return false;
-                                  if (tag.smartphoneFilterMyRole && p.roleId !== localPlayer.roleId) return false;
+                                  // Inclusion filters (OR)
+                                  const matchAlive = tag.smartphoneFilterAlive ? !p.isDead : false;
+                                  const matchDead = tag.smartphoneFilterDead ? p.isDead : false;
+                                  const matchMyRole = tag.smartphoneFilterMyRole ? p.roleId === localPlayer.roleId : false;
+                                  const matchMyTeam = tag.smartphoneFilterMyTeam ? p.teamId === localPlayer.teamId : false;
+
+                                  const hasInclusionFilters = tag.smartphoneFilterAlive || tag.smartphoneFilterDead || tag.smartphoneFilterMyRole || tag.smartphoneFilterMyTeam;
+                                  const passesInclusion = !hasInclusionFilters || matchAlive || matchDead || matchMyRole || matchMyTeam;
+
+                                  if (!passesInclusion) return false;
+
+                                  // Exclusion filters (AND)
                                   if (tag.smartphoneFilterNotMe && p.id === localPlayer.id) return false;
                                   if (tag.smartphoneFilterNotMyRole && p.roleId === localPlayer.roleId) return false;
-                                  if (tag.smartphoneFilterMyTeam && p.teamId !== localPlayer.teamId) return false;
                                   if (tag.smartphoneFilterNotMyTeam && p.teamId === localPlayer.teamId) return false;
+                                  if (tag.smartphoneFilterNotThisTag && p.tags.some(t => t.id === tag.id)) return false;
+
                                   return true;
                                 }).map(p => (
                                   <label key={p.id} className={`flex items-center gap-2 p-1.5 rounded transition-colors ${p.isDead && !tag.smartphoneFilterDead ? 'hover:bg-transparent opacity-50 cursor-not-allowed' : 'hover:bg-zinc-800/50 cursor-pointer'}`}>
