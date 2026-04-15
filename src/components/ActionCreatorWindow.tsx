@@ -11,7 +11,11 @@ export const ActionCreatorWindow: React.FC = () => {
     pendingActionConditions,
     clearPendingConditions,
     updatePendingCondition,
-    deletePendingCondition
+    deletePendingCondition,
+    setActionEffectCreatorState,
+    pendingActionEffects,
+    clearPendingEffects,
+    deletePendingEffect
   } = useVttStore();
   
   const [actionName, setActionName] = useState('');
@@ -53,13 +57,15 @@ export const ActionCreatorWindow: React.FC = () => {
     setActionCreatorState({ isOpen: false });
     setActionName('');
     clearPendingConditions();
+    clearPendingEffects();
   };
 
   const handleSave = () => {
     if (!actionName.trim()) return;
     addAction({ 
       name: actionName,
-      conditions: [...pendingActionConditions]
+      conditions: [...pendingActionConditions],
+      effects: [...pendingActionEffects]
     });
     handleClose();
   };
@@ -172,6 +178,53 @@ export const ActionCreatorWindow: React.FC = () => {
                     </div>
                   </div>
                 </React.Fragment>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Effects Section */}
+        <div className="flex flex-col gap-3 pt-1">
+          <div className="flex items-center justify-between px-1">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Actions</label>
+            <button
+              onClick={() => setActionEffectCreatorState({ isOpen: true })}
+              className="group flex gap-1.5 items-center text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-tight"
+            >
+              <Plus size={12} className="group-hover:rotate-90 transition-transform duration-200" />
+              + Ajouter une action
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-1.5 min-h-[40px] max-h-[160px] overflow-y-auto custom-scrollbar bg-indigo-500/5 border border-indigo-500/20 rounded-lg p-2">
+            {pendingActionEffects.length === 0 ? (
+              <p className="text-[10px] text-muted-foreground italic text-center py-2">Aucune action définie.</p>
+            ) : (
+              pendingActionEffects.map((effect) => (
+                <div key={effect.id} className="flex items-center justify-between gap-2 bg-background border border-indigo-500/20 rounded p-1.5 shadow-sm text-[10px] font-medium animate-in slide-in-from-left-2 duration-200">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded uppercase font-bold text-[9px]">
+                      Effect
+                    </span>
+                    <span className="font-bold">
+                      {effect.type === 'deleteAllTags' ? 'Supprimer tous les tags' : effect.type}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setActionEffectCreatorState({ isOpen: true, editingEffectId: effect.id })}
+                      className="text-muted-foreground hover:text-indigo-400 transition-colors p-0.5"
+                    >
+                      <Edit2 size={12} />
+                    </button>
+                    <button
+                      onClick={() => deletePendingEffect(effect.id)}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                </div>
               ))
             )}
           </div>

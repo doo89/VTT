@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState } from '../types';
+import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState, ActionEffect, ActionEffectCreatorState } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface VttStore extends GameState {
@@ -101,6 +101,11 @@ interface VttStore extends GameState {
   updatePendingCondition: (id: string, updates: Partial<ActionCondition>) => void;
   deletePendingCondition: (id: string) => void;
   clearPendingConditions: () => void;
+  setActionEffectCreatorState: (state: Partial<ActionEffectCreatorState>) => void;
+  addPendingEffect: (effect: Omit<ActionEffect, 'id'>) => void;
+  updatePendingEffect: (id: string, updates: Partial<ActionEffect>) => void;
+  deletePendingEffect: (id: string) => void;
+  clearPendingEffects: () => void;
 
   // Game Logic
   setNight: (isNight: boolean) => void;
@@ -217,8 +222,15 @@ export const initialState = {
     y: 150,
     editingConditionId: null,
   },
+  actionEffectCreatorState: {
+    isOpen: false,
+    x: 200,
+    y: 200,
+    editingEffectId: null,
+  },
   actions: [],
   pendingActionConditions: [],
+  pendingActionEffects: [],
   activeLeftTab: 'players' as const,
   editingEntity: null,
   smartphoneActionMessage: null,
@@ -628,6 +640,19 @@ export const useVttStore = create<VttStore>()(
           pendingActionConditions: state.pendingActionConditions.filter(c => c.id !== id)
         })),
         clearPendingConditions: () => set({ pendingActionConditions: [] }),
+        setActionEffectCreatorState: (update) => set((state) => ({ 
+          actionEffectCreatorState: { ...state.actionEffectCreatorState, ...update } 
+        })),
+        addPendingEffect: (effectData) => set((state) => ({
+          pendingActionEffects: [...state.pendingActionEffects, { ...effectData, id: uuidv4() }]
+        })),
+        updatePendingEffect: (id, updates) => set((state) => ({
+          pendingActionEffects: state.pendingActionEffects.map(e => e.id === id ? { ...e, ...updates } : e)
+        })),
+        deletePendingEffect: (id) => set((state) => ({
+          pendingActionEffects: state.pendingActionEffects.filter(e => e.id !== id)
+        })),
+        clearPendingEffects: () => set({ pendingActionEffects: [] }),
       }),
       {
         partialize: (state) => ({

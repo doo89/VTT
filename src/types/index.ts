@@ -231,6 +231,13 @@ export interface Action {
   id: string;
   name: string;
   conditions?: ActionCondition[];
+  effects?: ActionEffect[];
+}
+
+export interface ActionEffect {
+  id: string;
+  type: 'deleteAllTags';
+  enabled: boolean;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn';
@@ -257,6 +264,13 @@ export interface ActionConditionCreatorState {
   x: number;
   y: number;
   editingConditionId?: string | null;
+}
+
+export interface ActionEffectCreatorState {
+  isOpen: boolean;
+  x: number;
+  y: number;
+  editingEffectId?: string | null;
 }
 
 export interface GameState {
@@ -298,8 +312,10 @@ export interface GameState {
   tagDistributorState: TagDistributorState;
   actionCreatorState: ActionCreatorState;
   actionConditionCreatorState: ActionConditionCreatorState;
+  actionEffectCreatorState: ActionEffectCreatorState;
   actions: Action[];
   pendingActionConditions: ActionCondition[];
+  pendingActionEffects: ActionEffect[];
   scoreboard: {
     isDetached: boolean;
     x: number;
