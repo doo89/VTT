@@ -242,6 +242,7 @@ export interface ActionCondition {
   operator: ActionOperator;
   value: number;
   enabled: boolean;
+  logic?: 'AND' | 'OR';
 }
 
 export interface ActionCreatorState {

@@ -9,7 +9,9 @@ export const ActionCreatorWindow: React.FC = () => {
     addAction,
     setActionConditionCreatorState,
     pendingActionConditions,
-    clearPendingConditions
+    clearPendingConditions,
+    updatePendingCondition,
+    deletePendingCondition
   } = useVttStore();
   
   const [actionName, setActionName] = useState('');
@@ -125,39 +127,51 @@ export const ActionCreatorWindow: React.FC = () => {
             </button>
           </div>
 
-          <div className="flex flex-col gap-1.5 min-h-[40px] max-h-[160px] overflow-y-auto custom-scrollbar bg-muted/20 border border-border/50 rounded-lg p-2">
+          <div className="flex flex-col gap-1.5 min-h-[40px] max-h-[220px] overflow-y-auto custom-scrollbar bg-muted/20 border border-border/50 rounded-lg p-2">
             {pendingActionConditions.length === 0 ? (
               <p className="text-[10px] text-muted-foreground italic text-center py-2">Aucune condition définie.</p>
             ) : (
-              pendingActionConditions.map((condition) => (
-                <div key={condition.id} className={`flex items-center justify-between gap-2 bg-background border border-border/50 rounded p-1.5 shadow-sm text-[10px] font-medium animate-in slide-in-from-left-2 duration-200 ${!condition.enabled ? 'opacity-50 grayscale' : ''}`}>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase font-bold text-[9px]">
-                      {condition.type === 'day' ? 'Jour' : condition.type === 'night' ? 'Nuit' : 'Tour'}
-                    </span>
-                    <span className="font-mono font-bold text-muted-foreground">{condition.operator}</span>
-                    <span className="font-bold">{condition.value}</span>
+              pendingActionConditions.map((condition, index) => (
+                <React.Fragment key={condition.id}>
+                  {index > 0 && (
+                    <div className="flex justify-center -my-1 relative z-10">
+                      <select
+                        value={condition.logic || 'AND'}
+                        onChange={(e) => updatePendingCondition(condition.id, { logic: e.target.value as 'AND' | 'OR' })}
+                        className="bg-card border border-border rounded px-1 py-0.5 text-[9px] font-bold uppercase cursor-pointer hover:border-primary transition-colors outline-none shadow-sm"
+                      >
+                        <option value="AND">Et</option>
+                        <option value="OR">Ou</option>
+                      </select>
+                    </div>
+                  )}
+                  <div key={condition.id} className={`flex items-center justify-between gap-2 bg-background border border-border/50 rounded p-1.5 shadow-sm text-[10px] font-medium animate-in slide-in-from-left-2 duration-200 ${!condition.enabled ? 'opacity-50 grayscale' : ''}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase font-bold text-[9px]">
+                        {condition.type === 'day' ? 'Jour' : condition.type === 'night' ? 'Nuit' : 'Tour'}
+                      </span>
+                      <span className="font-mono font-bold text-muted-foreground">{condition.operator}</span>
+                      <span className="font-bold">{condition.value}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setActionConditionCreatorState({ isOpen: true, editingConditionId: condition.id })}
+                        className="text-muted-foreground hover:text-primary transition-colors p-0.5"
+                      >
+                        <Edit2 size={12} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deletePendingCondition(condition.id);
+                        }}
+                        className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => setActionConditionCreatorState({ isOpen: true, editingConditionId: condition.id })}
-                      className="text-muted-foreground hover:text-primary transition-colors p-0.5"
-                    >
-                      <Edit2 size={12} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Import deletePendingCondition from store if not already there
-                        const store = useVttStore.getState();
-                        store.deletePendingCondition(condition.id);
-                      }}
-                      className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                </div>
+                </React.Fragment>
               ))
             )}
           </div>
