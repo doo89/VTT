@@ -633,11 +633,11 @@ export const PlayerView: React.FC = () => {
                                   if (tag.smartphoneFilterNotMyTeam && p.teamId === localPlayer.teamId) return false;
                                   return true;
                                 }).map(p => (
-                                  <label key={p.id} className={`flex items-center gap-2 p-1.5 rounded cursor-pointer transition-colors ${p.isDead ? 'hover:bg-transparent opacity-50' : 'hover:bg-zinc-800/50'}`}>
+                                  <label key={p.id} className={`flex items-center gap-2 p-1.5 rounded transition-colors ${p.isDead && !tag.smartphoneFilterDead ? 'hover:bg-transparent opacity-50 cursor-not-allowed' : 'hover:bg-zinc-800/50 cursor-pointer'}`}>
                                       <input 
                                         type={tag.isSinglePlayerSelector ? "radio" : "checkbox"}
                                         name={tag.isSinglePlayerSelector ? `selector-${tagId}` : undefined}
-                                        disabled={p.isDead}
+                                        disabled={p.isDead && !tag.smartphoneFilterDead}
                                         checked={(selectedPlayersByTag[tagId] || []).includes(p.id)}
                                         onChange={() => {
                                           if (tag.isSinglePlayerSelector) {
