@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -22,7 +22,7 @@ export const RightPanel: React.FC = () => {
     checklistState, setChecklistState,
     tagDistributorState, setTagDistributorState,
     actionCreatorState: _, setActionCreatorState,
-    actions, deleteAction
+    actions, deleteAction, executeAction, setPendingConditions, setPendingEffects
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -823,13 +823,31 @@ export const RightPanel: React.FC = () => {
   
                   <div className="flex flex-col gap-2 mt-2">
                     {actions.map(action => (
-                      <div key={action.id} className="flex justify-between items-center w-full bg-muted/20 border border-border/50 rounded-md p-2">
-                        <span className="text-xs font-bold truncate pr-2">{action.name}</span>
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => deleteAction(action.id)} className="text-destructive hover:text-white hover:bg-destructive p-1 rounded transition-colors" title="Supprimer">
-                            <Trash2 size={12} />
-                          </button>
+                      <div key={action.id} className="flex flex-col gap-2 w-full bg-muted/20 border border-border/50 rounded-md p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold truncate pr-2">{action.name}</span>
+                          <div className="flex items-center gap-1">
+                            <button 
+                              onClick={() => {
+                                setPendingConditions(action.conditions || []);
+                                setPendingEffects(action.effects || []);
+                                setActionCreatorState({ isOpen: true, isDetached: true, editingActionId: action.id });
+                              }}
+                              className="text-muted-foreground hover:text-primary p-1 rounded transition-colors" title="Modifier"
+                            >
+                              <Edit2 size={12} />
+                            </button>
+                            <button onClick={() => deleteAction(action.id)} className="text-muted-foreground hover:text-destructive p-1 rounded transition-colors" title="Supprimer">
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
                         </div>
+                        <button
+                          onClick={() => executeAction(action.id)}
+                          className="w-full bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded text-[10px] uppercase font-bold py-1.5 transition-colors border border-green-500/30 flex justify-center items-center gap-1.5"
+                        >
+                          <Play size={12} /> Lancer l'action
+                        </button>
                       </div>
                     ))}
                     {actions.length === 0 && (

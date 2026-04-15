@@ -257,6 +257,7 @@ export interface ActionCreatorState {
   isDetached: boolean;
   x: number;
   y: number;
+  editingActionId?: string | null;
 }
 
 export interface ActionConditionCreatorState {

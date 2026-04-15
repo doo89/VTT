@@ -96,15 +96,18 @@ interface VttStore extends GameState {
   addAction: (action: Omit<Action, 'id'>) => void;
   updateAction: (id: string, updates: Partial<Action>) => void;
   deleteAction: (id: string) => void;
+  executeAction: (id: string) => void;
   setActionConditionCreatorState: (state: Partial<ActionConditionCreatorState>) => void;
   addPendingCondition: (condition: Omit<ActionCondition, 'id'>) => void;
   updatePendingCondition: (id: string, updates: Partial<ActionCondition>) => void;
   deletePendingCondition: (id: string) => void;
+  setPendingConditions: (conditions: ActionCondition[]) => void;
   clearPendingConditions: () => void;
   setActionEffectCreatorState: (state: Partial<ActionEffectCreatorState>) => void;
   addPendingEffect: (effect: Omit<ActionEffect, 'id'>) => void;
   updatePendingEffect: (id: string, updates: Partial<ActionEffect>) => void;
   deletePendingEffect: (id: string) => void;
+  setPendingEffects: (effects: ActionEffect[]) => void;
   clearPendingEffects: () => void;
 
   // Game Logic
@@ -215,6 +218,7 @@ export const initialState = {
     isDetached: false,
     x: 100,
     y: 100,
+    editingActionId: null,
   },
   actionConditionCreatorState: {
     isOpen: false,
@@ -627,6 +631,21 @@ export const useVttStore = create<VttStore>()(
         deleteAction: (id) => set((state) => ({
           actions: state.actions.filter(a => a.id !== id)
         })),
+        executeAction: (id) => set((state) => {
+          const action = state.actions.find(a => a.id === id);
+          if (!action) return {};
+          
+          let nextMarkers = [...state.markers];
+          
+          action.effects?.forEach(effect => {
+            if (!effect.enabled) return;
+            if (effect.type === 'deleteAllTags') {
+              nextMarkers = [];
+            }
+          });
+          
+          return { markers: nextMarkers };
+        }),
         setActionConditionCreatorState: (update) => set((state) => ({ 
           actionConditionCreatorState: { ...state.actionConditionCreatorState, ...update } 
         })),
@@ -639,6 +658,7 @@ export const useVttStore = create<VttStore>()(
         deletePendingCondition: (id) => set((state) => ({
           pendingActionConditions: state.pendingActionConditions.filter(c => c.id !== id)
         })),
+        setPendingConditions: (conditions) => set({ pendingActionConditions: conditions }),
         clearPendingConditions: () => set({ pendingActionConditions: [] }),
         setActionEffectCreatorState: (update) => set((state) => ({ 
           actionEffectCreatorState: { ...state.actionEffectCreatorState, ...update } 
@@ -652,6 +672,7 @@ export const useVttStore = create<VttStore>()(
         deletePendingEffect: (id) => set((state) => ({
           pendingActionEffects: state.pendingActionEffects.filter(e => e.id !== id)
         })),
+        setPendingEffects: (effects) => set({ pendingActionEffects: effects }),
         clearPendingEffects: () => set({ pendingActionEffects: [] }),
       }),
       {

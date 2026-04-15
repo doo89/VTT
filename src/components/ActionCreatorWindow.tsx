@@ -7,6 +7,8 @@ export const ActionCreatorWindow: React.FC = () => {
     actionCreatorState, 
     setActionCreatorState, 
     addAction,
+    updateAction,
+    actions,
     setActionConditionCreatorState,
     pendingActionConditions,
     clearPendingConditions,
@@ -19,6 +21,17 @@ export const ActionCreatorWindow: React.FC = () => {
   } = useVttStore();
   
   const [actionName, setActionName] = useState('');
+  const isEditingAction = !!actionCreatorState.editingActionId;
+
+  useEffect(() => {
+    if (isEditingAction) {
+      const action = actions.find(a => a.id === actionCreatorState.editingActionId);
+      if (action) {
+        setActionName(action.name);
+      }
+    }
+  }, [isEditingAction, actionCreatorState.editingActionId, actions]);
+
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -54,7 +67,7 @@ export const ActionCreatorWindow: React.FC = () => {
   if (!actionCreatorState.isOpen || !actionCreatorState.isDetached) return null;
 
   const handleClose = () => {
-    setActionCreatorState({ isOpen: false });
+    setActionCreatorState({ isOpen: false, editingActionId: null });
     setActionName('');
     clearPendingConditions();
     clearPendingEffects();
@@ -62,11 +75,17 @@ export const ActionCreatorWindow: React.FC = () => {
 
   const handleSave = () => {
     if (!actionName.trim()) return;
-    addAction({ 
+    const actionData = { 
       name: actionName,
       conditions: [...pendingActionConditions],
       effects: [...pendingActionEffects]
-    });
+    };
+
+    if (isEditingAction && actionCreatorState.editingActionId) {
+      updateAction(actionCreatorState.editingActionId, actionData);
+    } else {
+      addAction(actionData);
+    }
     handleClose();
   };
 
@@ -92,7 +111,9 @@ export const ActionCreatorWindow: React.FC = () => {
       >
         <div className="flex items-center gap-2">
           <Zap size={18} className="text-primary animate-pulse" />
-          <span className="font-bold text-sm tracking-tight text-foreground">Ajouter Action</span>
+          <span className="font-bold text-sm tracking-tight text-foreground">
+            {isEditingAction ? 'Modifier l\'action' : 'Ajouter Action'}
+          </span>
         </div>
         <button 
           onClick={handleClose}
