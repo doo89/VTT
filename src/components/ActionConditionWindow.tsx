@@ -9,13 +9,15 @@ export const ActionConditionWindow: React.FC = () => {
     setActionConditionCreatorState, 
     addPendingCondition,
     updatePendingCondition,
-    pendingActionConditions
+    pendingActionConditions,
+    roles
   } = useVttStore();
   
   const [type, setType] = useState<ActionConditionType>('day');
   const [operator, setOperator] = useState<ActionOperator>('=');
   const [value, setValue] = useState(1);
   const [enabled, setEnabled] = useState(true);
+  const [roleId, setRoleId] = useState<string | null>(null);
 
   const isEditing = !!actionConditionCreatorState.editingConditionId;
 
@@ -27,14 +29,16 @@ export const ActionConditionWindow: React.FC = () => {
         setOperator(condition.operator);
         setValue(condition.value);
         setEnabled(condition.enabled ?? true);
+        setRoleId(condition.roleId || (roles[0]?.id || null));
       }
     } else {
       setType('day');
       setOperator('=');
       setValue(1);
       setEnabled(true);
+      setRoleId(roles[0]?.id || null);
     }
-  }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions]);
+  }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles]);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -74,10 +78,17 @@ export const ActionConditionWindow: React.FC = () => {
   };
 
   const handleOK = () => {
+    const conditionData = { 
+      type, 
+      operator, 
+      value, 
+      enabled, 
+      roleId: type === 'playerRole' ? roleId : null 
+    };
     if (isEditing && actionConditionCreatorState.editingConditionId) {
-      updatePendingCondition(actionConditionCreatorState.editingConditionId, { type, operator, value, enabled });
+      updatePendingCondition(actionConditionCreatorState.editingConditionId, conditionData);
     } else {
-      addPendingCondition({ type, operator, value, enabled });
+      addPendingCondition(conditionData);
     }
     handleClose();
   };
@@ -114,15 +125,23 @@ export const ActionConditionWindow: React.FC = () => {
         </button>
       </div>
 
-      <div className="p-5 flex flex-col gap-4 bg-background/50">
-        <div className="flex items-end gap-3">
+      <div className="p-5 flex flex-col gap-6 bg-background/50">
+        {/* Cycle Row */}
+        <div className={`flex items-end gap-3 transition-all duration-300 ${type === 'playerRole' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
             <div className="flex items-center h-[38px] justify-center">
               <input
                 type="checkbox"
-                checked={enabled}
-                onChange={(e) => setEnabled(e.target.checked)}
+                checked={type !== 'playerRole' && enabled}
+                onChange={() => {
+                  if (type === 'playerRole') {
+                    setType('day');
+                    setEnabled(true);
+                  } else {
+                    setEnabled(!enabled);
+                  }
+                }}
                 className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
               />
             </div>
@@ -131,8 +150,8 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cycle</label>
             <select
-              disabled={!enabled}
-              value={type}
+              disabled={type === 'playerRole' || !enabled}
+              value={type === 'playerRole' ? 'day' : type}
               onChange={(e) => setType(e.target.value as ActionConditionType)}
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -145,7 +164,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
-              disabled={!enabled}
+              disabled={type === 'playerRole' || !enabled}
               value={operator}
               onChange={(e) => setOperator(e.target.value as ActionOperator)}
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -162,12 +181,77 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-[0.7]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
             <input
-              disabled={!enabled}
+              disabled={type === 'playerRole' || !enabled}
               type="number"
               value={value}
               onChange={(e) => setValue(parseInt(e.target.value) || 0)}
               className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
             />
+          </div>
+        </div>
+
+        <div className="h-px bg-border/50" />
+
+        {/* Player Role Row */}
+        <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerRole' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+          <div className="flex flex-col gap-1.5 pb-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+            <div className="flex items-center h-[38px] justify-center">
+              <input
+                type="checkbox"
+                checked={type === 'playerRole' && enabled}
+                onChange={() => {
+                  if (type !== 'playerRole') {
+                    setType('playerRole');
+                    setEnabled(true);
+                    setOperator('=');
+                  } else {
+                    setEnabled(!enabled);
+                  }
+                }}
+                className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-[0.6]">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
+            <input
+              disabled={type !== 'playerRole' || !enabled}
+              type="number"
+              min="1"
+              value={type === 'playerRole' ? value : 1}
+              onChange={(e) => setValue(parseInt(e.target.value) || 1)}
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-[0.5]">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
+            <select
+              disabled={type !== 'playerRole' || !enabled}
+              value={operator}
+              onChange={(e) => setOperator(e.target.value as ActionOperator)}
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="=">=</option>
+              <option value="!=">!=</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
+            <select
+              disabled={type !== 'playerRole' || !enabled}
+              value={roleId || ''}
+              onChange={(e) => setRoleId(e.target.value)}
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {roles.map(role => (
+                <option key={role.id} value={role.id}>{role.name}</option>
+              ))}
+              {roles.length === 0 && <option value="">Aucun rôle</option>}
+            </select>
           </div>
         </div>
 

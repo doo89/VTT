@@ -641,6 +641,18 @@ export const useVttStore = create<VttStore>()(
             if (activeConditions.length === 0) return true;
 
             const checkSingle = (c: ActionCondition): boolean => {
+              if (c.type === 'playerRole') {
+                const player = state.players.find(p => (p.creationOrder || 0) === c.value);
+                if (!player) return false;
+                
+                if (c.operator === '=') {
+                  return player.roleId === c.roleId;
+                } else if (c.operator === '!=') {
+                  return player.roleId !== c.roleId;
+                }
+                return false;
+              }
+
               let compareVal = 0;
               if (c.type === 'day') {
                 if (state.isNight) return false;

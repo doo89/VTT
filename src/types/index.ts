@@ -240,7 +240,7 @@ export interface ActionEffect {
   enabled: boolean;
 }
 
-export type ActionConditionType = 'day' | 'night' | 'turn';
+export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole';
 export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=';
 
 export interface ActionCondition {
@@ -248,6 +248,7 @@ export interface ActionCondition {
   type: ActionConditionType;
   operator: ActionOperator;
   value: number;
+  roleId?: string | null;
   enabled: boolean;
   logic?: 'AND' | 'OR';
 }
