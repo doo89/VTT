@@ -682,7 +682,7 @@ export const useVttStore = create<VttStore>()(
           
           let nextMarkers = [...state.markers];
           let nextPlayers = [...state.players];
-          let shouldNextCycle = false;
+          let skipPhases = 0;
           
           action.effects?.forEach(effect => {
             if (!effect.enabled) return;
@@ -690,7 +690,7 @@ export const useVttStore = create<VttStore>()(
               nextMarkers = [];
             }
             if (effect.type === 'nextPhase') {
-              shouldNextCycle = true;
+              skipPhases++;
             }
             if (effect.type === 'deleteSelectionPastilles') {
               nextPlayers = nextPlayers.map(p => ({ ...p, selectionPastilles: [] }));
@@ -699,13 +699,19 @@ export const useVttStore = create<VttStore>()(
           
           const newState: any = { markers: nextMarkers, players: nextPlayers };
           
-          if (shouldNextCycle) {
-            // Re-use logic from nextCycle
-            const nextDay = !state.isNight;
-            newState.isNight = nextDay;
-            if (nextDay) {
-              newState.cycleNumber = state.cycleNumber + 1;
+          if (skipPhases > 0) {
+            let currentIsNight = state.isNight;
+            let currentCycle = state.cycleNumber;
+            
+            for (let i = 0; i < skipPhases; i++) {
+              const goingToDay = currentIsNight; // If currently night, going to day
+              currentIsNight = !currentIsNight;
+              if (goingToDay) {
+                currentCycle++;
+              }
             }
+            newState.isNight = currentIsNight;
+            newState.cycleNumber = currentCycle;
           }
           
           return newState;
