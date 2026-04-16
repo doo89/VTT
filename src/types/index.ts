@@ -236,7 +236,19 @@ export interface Action {
 
 export interface ActionEffect {
   id: string;
-  type: 'deleteAllTags' | 'nextPhase' | 'previousPhase' | 'deleteSelectionPastilles' | 'deleteAllPlayerTags';
+  type: 
+    | 'deleteAllTags' 
+    | 'nextPhase' 
+    | 'previousPhase' 
+    | 'resetCycle'
+    | 'resetCycleZero'
+    | 'distributeRoles'
+    | 'showPlayerImage'
+    | 'hidePlayerImage'
+    | 'showRoleImage'
+    | 'hideRoleImage'
+    | 'deleteSelectionPastilles' 
+    | 'deleteAllPlayerTags';
   enabled: boolean;
 }
 

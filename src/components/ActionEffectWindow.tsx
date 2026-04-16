@@ -11,7 +11,20 @@ export const ActionEffectWindow: React.FC = () => {
     pendingActionEffects
   } = useVttStore();
   
-  const [type, setType] = useState<'deleteAllTags' | 'nextPhase' | 'previousPhase' | 'deleteSelectionPastilles' | 'deleteAllPlayerTags'>('deleteAllTags');
+  const [type, setType] = useState<
+    | 'deleteAllTags' 
+    | 'nextPhase' 
+    | 'previousPhase' 
+    | 'resetCycle'
+    | 'resetCycleZero'
+    | 'distributeRoles'
+    | 'showPlayerImage'
+    | 'hidePlayerImage'
+    | 'showRoleImage'
+    | 'hideRoleImage'
+    | 'deleteSelectionPastilles' 
+    | 'deleteAllPlayerTags'
+  >('deleteAllTags');
   const [enabled, setEnabled] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
@@ -121,6 +134,13 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
               <option value="nextPhase">Passer à la phase suivante</option>
               <option value="previousPhase">Revenir à la phase précédente</option>
+              <option value="resetCycle">Réinitialiser au Jour 1</option>
+              <option value="resetCycleZero">Réinitialiser au Jour 0</option>
+              <option value="distributeRoles">Distribuer (Rôles)</option>
+              <option value="showPlayerImage">Afficher l'image du joueur</option>
+              <option value="hidePlayerImage">Cacher l'image du joueur</option>
+              <option value="showRoleImage">Afficher l'image du Rôle</option>
+              <option value="hideRoleImage">Cacher l'image du Rôle</option>
             </select>
           </div>
 

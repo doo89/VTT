@@ -715,6 +715,8 @@ export const useVttStore = create<VttStore>()(
           let nextMarkers = [...state.markers];
           let nextPlayers = [...state.players];
           let phaseShift = 0;
+          let resetValue: number | null = null;
+          let nextDisplaySettings = { ...state.displaySettings };
           
           action.effects?.forEach(effect => {
             if (!effect.enabled) return;
@@ -727,17 +729,56 @@ export const useVttStore = create<VttStore>()(
             if (effect.type === 'previousPhase') {
               phaseShift--;
             }
+            if (effect.type === 'resetCycle') {
+              resetValue = 1;
+              phaseShift = 0;
+            }
+            if (effect.type === 'resetCycleZero') {
+              resetValue = 0;
+              phaseShift = 0;
+            }
             if (effect.type === 'deleteSelectionPastilles') {
               nextPlayers = nextPlayers.map(p => ({ ...p, selectionPastilles: [] }));
             }
             if (effect.type === 'deleteAllPlayerTags') {
               nextPlayers = nextPlayers.map(p => ({ ...p, tags: [] }));
             }
+            if (effect.type === 'showPlayerImage') nextDisplaySettings.showPlayerImage = true;
+            if (effect.type === 'hidePlayerImage') nextDisplaySettings.showPlayerImage = false;
+            if (effect.type === 'showRoleImage') nextDisplaySettings.showRoleImage = true;
+            if (effect.type === 'hideRoleImage') nextDisplaySettings.showRoleImage = false;
+            
+            if (effect.type === 'distributeRoles') {
+              const rolesToDistribute = state.roles.filter(r => r.isSelectableForDistribution);
+              if (rolesToDistribute.length > 0) {
+                let rolePool: string[] = [];
+                rolesToDistribute.forEach(role => {
+                  const qty = role.distributionQuantity || 1;
+                  for (let i = 0; i < qty; i++) { rolePool.push(role.id); }
+                });
+                // Shuffle pool
+                for (let i = rolePool.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [rolePool[i], rolePool[j]] = [rolePool[j], rolePool[i]];
+                }
+                nextPlayers = nextPlayers.map((player, idx) => {
+                  if (idx < rolePool.length) return { ...player, roleId: rolePool[idx] };
+                  return player;
+                });
+              }
+            }
           });
           
-          const newState: any = { markers: nextMarkers, players: nextPlayers };
+          const newState: any = { 
+            markers: nextMarkers, 
+            players: nextPlayers, 
+            displaySettings: nextDisplaySettings 
+          };
           
-          if (phaseShift !== 0) {
+          if (resetValue !== null) {
+            newState.isNight = false;
+            newState.cycleNumber = resetValue;
+          } else if (phaseShift !== 0) {
             let currentIsNight = state.isNight;
             let currentCycle = state.cycleNumber;
             const absoluteShift = Math.abs(phaseShift);
@@ -754,8 +795,7 @@ export const useVttStore = create<VttStore>()(
               } else {
                 // Previous
                 const goingToNight = !currentIsNight;
-                if (goingToNight && currentCycle <= 1) {
-                   // Cannot go back before Day 1
+                if (goingToNight && currentCycle <= 0) {
                    break;
                 }
                 currentIsNight = !currentIsNight;
