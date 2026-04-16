@@ -11,7 +11,7 @@ export const ActionEffectWindow: React.FC = () => {
     pendingActionEffects
   } = useVttStore();
   
-  const [type, setType] = useState<'deleteAllTags' | 'nextPhase'>('deleteAllTags');
+  const [type, setType] = useState<'deleteAllTags' | 'nextPhase' | 'deleteSelectionPastilles'>('deleteAllTags');
   const [enabled, setEnabled] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
@@ -118,6 +118,7 @@ export const ActionEffectWindow: React.FC = () => {
             >
               <option value="deleteAllTags">Supprimer tous les tags dans la salle</option>
               <option value="nextPhase">Passer à la phase suivante</option>
+              <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
             </select>
           </div>
 

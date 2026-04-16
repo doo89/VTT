@@ -230,6 +230,7 @@ export const ActionCreatorWindow: React.FC = () => {
                     <span className="font-bold">
                       {effect.type === 'deleteAllTags' ? 'Supprimer tous les tags' : 
                        effect.type === 'nextPhase' ? 'Passer à la phase suivante' : 
+                       effect.type === 'deleteSelectionPastilles' ? 'Supprimer les pastilles tags' :
                        effect.type}
                     </span>
                   </div>

@@ -636,6 +636,7 @@ export const useVttStore = create<VttStore>()(
           if (!action) return {};
           
           let nextMarkers = [...state.markers];
+          let nextPlayers = [...state.players];
           let shouldNextCycle = false;
           
           action.effects?.forEach(effect => {
@@ -646,9 +647,12 @@ export const useVttStore = create<VttStore>()(
             if (effect.type === 'nextPhase') {
               shouldNextCycle = true;
             }
+            if (effect.type === 'deleteSelectionPastilles') {
+              nextPlayers = nextPlayers.map(p => ({ ...p, selectionPastilles: [] }));
+            }
           });
           
-          const newState: any = { markers: nextMarkers };
+          const newState: any = { markers: nextMarkers, players: nextPlayers };
           
           if (shouldNextCycle) {
             // Re-use logic from nextCycle
