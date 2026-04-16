@@ -178,7 +178,7 @@ export const GameTab: React.FC = () => {
                       {item.order}
                     </span>
                     <span className="font-medium text-sm">
-                      {item.type === 'player' ? (item.entity as Player).name : `Marqueur: ${(item.entity as Marker).tag.name}`}
+                      {item.type === 'player' ? `${(item.entity as Player).name} #${(item.entity as Player).creationOrder || '?'}` : `Marqueur: ${(item.entity as Marker).tag.name}`}
                     </span>
                   </div>
                   <span className="text-[10px] text-muted-foreground bg-accent px-1.5 py-0.5 rounded">
@@ -311,7 +311,7 @@ export const GameTab: React.FC = () => {
                 <div key={`other-${index}`} className="flex flex-col p-1.5 rounded bg-muted/30">
                   <div className="flex items-center justify-between text-xs">
                      <span className="truncate flex-1 font-medium">
-                        {item.type === 'player' ? (item.entity as Player).name : `Marqueur: ${(item.entity as Marker).tag.name}`}
+                        {item.type === 'player' ? `${(item.entity as Player).name} #${(item.entity as Player).creationOrder || '?'}` : `Marqueur: ${(item.entity as Marker).tag.name}`}
                      </span>
                      <span className="text-[10px] text-muted-foreground w-12 text-right">
                        {item.type === 'player' && (item.entity as Player).isDead ? '(Mort)' : ''}

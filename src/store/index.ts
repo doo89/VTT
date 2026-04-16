@@ -636,13 +636,16 @@ export const useVttStore = create<VttStore>()(
           if (!action) return {};
           
           // Evaluate conditions
-          const evaluate = (conditions: ActionCondition[]): boolean => {
+          const evaluate = (conditions: ActionCondition[]): { success: boolean, failReason?: string } => {
             const activeConditions = (conditions || []).filter(c => c.enabled);
-            if (activeConditions.length === 0) return true;
+            if (activeConditions.length === 0) return { success: true };
 
             const checkSingle = (c: ActionCondition): boolean => {
               if (c.type === 'playerRole') {
-                const player = state.players.find(p => (p.creationOrder || 0) === c.value);
+                // Find by creationOrder, fallback to index
+                const player = state.players.find(p => (p.creationOrder || 0) === c.value) 
+                               || state.players[c.value - 1];
+                
                 if (!player) return false;
                 
                 if (c.operator === '=') {
@@ -675,20 +678,38 @@ export const useVttStore = create<VttStore>()(
               }
             };
 
+            const getConditionLabel = (c: ActionCondition): string => {
+              if (c.type === 'playerRole') {
+                const roleName = state.roles.find(r => r.id === c.roleId)?.name || 'Inconnu';
+                return `Joueur ${c.value} ${c.operator} ${roleName}`;
+              }
+              const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
+              return `${typeLabel} ${c.operator} ${c.value}`;
+            };
+
             let result = checkSingle(activeConditions[0]);
+            let firstFail = result ? '' : getConditionLabel(activeConditions[0]);
+
             for (let i = 1; i < activeConditions.length; i++) {
               const c = activeConditions[i];
               const currentResult = checkSingle(c);
+              
               if (c.logic === 'OR') {
+                const prevResult = result;
                 result = result || currentResult;
+                if (!result) firstFail = `${firstFail} OU ${getConditionLabel(c)}`;
               } else {
                 result = result && currentResult;
+                if (!result && !firstFail) firstFail = getConditionLabel(c);
               }
             }
-            return result;
+
+            return { success: result, failReason: result ? undefined : firstFail };
           };
 
-          if (!evaluate(action.conditions || [])) {
+          const evaluation = evaluate(action.conditions || []);
+          if (!evaluation.success) {
+            state.addLog(`Action "${action.name}" annulée : condition non remplie (${evaluation.failReason})`, 'system');
             return {};
           }
           
