@@ -635,6 +635,51 @@ export const useVttStore = create<VttStore>()(
           const action = state.actions.find(a => a.id === id);
           if (!action) return {};
           
+          // Evaluate conditions
+          const evaluate = (conditions: ActionCondition[]): boolean => {
+            const activeConditions = (conditions || []).filter(c => c.enabled);
+            if (activeConditions.length === 0) return true;
+
+            const checkSingle = (c: ActionCondition): boolean => {
+              let compareVal = 0;
+              if (c.type === 'day') {
+                if (state.isNight) return false;
+                compareVal = state.cycleNumber;
+              } else if (c.type === 'night') {
+                if (!state.isNight) return false;
+                compareVal = state.cycleNumber;
+              } else if (c.type === 'turn') {
+                compareVal = state.cycleNumber;
+              }
+
+              switch (c.operator) {
+                case '=': return compareVal === c.value;
+                case '<': return compareVal < c.value;
+                case '>': return compareVal > c.value;
+                case '!=': return compareVal !== c.value;
+                case '<=': return compareVal <= c.value;
+                case '>=': return compareVal >= c.value;
+                default: return false;
+              }
+            };
+
+            let result = checkSingle(activeConditions[0]);
+            for (let i = 1; i < activeConditions.length; i++) {
+              const c = activeConditions[i];
+              const currentResult = checkSingle(c);
+              if (c.logic === 'OR') {
+                result = result || currentResult;
+              } else {
+                result = result && currentResult;
+              }
+            }
+            return result;
+          };
+
+          if (!evaluate(action.conditions || [])) {
+            return {};
+          }
+          
           let nextMarkers = [...state.markers];
           let nextPlayers = [...state.players];
           let shouldNextCycle = false;
