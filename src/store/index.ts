@@ -695,7 +695,6 @@ export const useVttStore = create<VttStore>()(
               const currentResult = checkSingle(c);
               
               if (c.logic === 'OR') {
-                const prevResult = result;
                 result = result || currentResult;
                 if (!result) firstFail = `${firstFail} OU ${getConditionLabel(c)}`;
               } else {
