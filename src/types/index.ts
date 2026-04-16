@@ -236,7 +236,7 @@ export interface Action {
 
 export interface ActionEffect {
   id: string;
-  type: 'deleteAllTags' | 'nextPhase' | 'deleteSelectionPastilles';
+  type: 'deleteAllTags' | 'nextPhase' | 'previousPhase' | 'deleteSelectionPastilles' | 'deleteAllPlayerTags';
   enabled: boolean;
 }
 

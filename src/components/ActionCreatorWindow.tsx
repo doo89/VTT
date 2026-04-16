@@ -230,6 +230,8 @@ export const ActionCreatorWindow: React.FC = () => {
                     <span className="font-bold">
                       {effect.type === 'deleteAllTags' ? 'Supprimer tous les tags' : 
                        effect.type === 'nextPhase' ? 'Passer à la phase suivante' : 
+                       effect.type === 'previousPhase' ? 'Revenir à la phase précédente' : 
+                       effect.type === 'deleteAllPlayerTags' ? 'Supprimer tous les tags des joueurs' : 
                        effect.type === 'deleteSelectionPastilles' ? 'Supprimer les pastilles tags' :
                        effect.type}
                     </span>

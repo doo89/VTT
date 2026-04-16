@@ -682,7 +682,7 @@ export const useVttStore = create<VttStore>()(
           
           let nextMarkers = [...state.markers];
           let nextPlayers = [...state.players];
-          let skipPhases = 0;
+          let phaseShift = 0;
           
           action.effects?.forEach(effect => {
             if (!effect.enabled) return;
@@ -690,24 +690,46 @@ export const useVttStore = create<VttStore>()(
               nextMarkers = [];
             }
             if (effect.type === 'nextPhase') {
-              skipPhases++;
+              phaseShift++;
+            }
+            if (effect.type === 'previousPhase') {
+              phaseShift--;
             }
             if (effect.type === 'deleteSelectionPastilles') {
               nextPlayers = nextPlayers.map(p => ({ ...p, selectionPastilles: [] }));
+            }
+            if (effect.type === 'deleteAllPlayerTags') {
+              nextPlayers = nextPlayers.map(p => ({ ...p, tags: [] }));
             }
           });
           
           const newState: any = { markers: nextMarkers, players: nextPlayers };
           
-          if (skipPhases > 0) {
+          if (phaseShift !== 0) {
             let currentIsNight = state.isNight;
             let currentCycle = state.cycleNumber;
+            const absoluteShift = Math.abs(phaseShift);
+            const direction = phaseShift > 0 ? 1 : -1;
             
-            for (let i = 0; i < skipPhases; i++) {
-              const goingToDay = currentIsNight; // If currently night, going to day
-              currentIsNight = !currentIsNight;
-              if (goingToDay) {
-                currentCycle++;
+            for (let i = 0; i < absoluteShift; i++) {
+              if (direction === 1) {
+                // Next
+                const goingToDay = currentIsNight;
+                currentIsNight = !currentIsNight;
+                if (goingToDay) {
+                  currentCycle++;
+                }
+              } else {
+                // Previous
+                const goingToNight = !currentIsNight;
+                if (goingToNight && currentCycle <= 1) {
+                   // Cannot go back before Day 1
+                   break;
+                }
+                currentIsNight = !currentIsNight;
+                if (goingToNight) {
+                  currentCycle--;
+                }
               }
             }
             newState.isNight = currentIsNight;

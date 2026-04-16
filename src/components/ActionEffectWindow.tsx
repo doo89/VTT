@@ -11,7 +11,7 @@ export const ActionEffectWindow: React.FC = () => {
     pendingActionEffects
   } = useVttStore();
   
-  const [type, setType] = useState<'deleteAllTags' | 'nextPhase' | 'deleteSelectionPastilles'>('deleteAllTags');
+  const [type, setType] = useState<'deleteAllTags' | 'nextPhase' | 'previousPhase' | 'deleteSelectionPastilles' | 'deleteAllPlayerTags'>('deleteAllTags');
   const [enabled, setEnabled] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
@@ -117,8 +117,10 @@ export const ActionEffectWindow: React.FC = () => {
               className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-sm focus:border-indigo-500/50"
             >
               <option value="deleteAllTags">Supprimer tous les tags dans la salle</option>
-              <option value="nextPhase">Passer à la phase suivante</option>
+              <option value="deleteAllPlayerTags">Supprimer tous les tags des joueurs</option>
               <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
+              <option value="nextPhase">Passer à la phase suivante</option>
+              <option value="previousPhase">Revenir à la phase précédente</option>
             </select>
           </div>
 
