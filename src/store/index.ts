@@ -650,6 +650,12 @@ export const useVttStore = create<VttStore>()(
               const action = state.actions.find((a: any) => a.id === id);
               if (!action) return {};
               
+              // Check for cancellation signal (0 currentRepeatExecution when steps remain)
+              const totalSteps = action.isRecurring ? (action.repeatCount || 2) : 1;
+              if (remaining < totalSteps && action.currentRepeatExecution === 0) {
+                return {};
+              }
+              
               if (action.enabled === false) return {};
               
               
@@ -899,7 +905,17 @@ export const useVttStore = create<VttStore>()(
           };
 
           const initialAction = (get() as any).actions.find((a: any) => a.id === id);
-          if (initialAction?.isRecurring) {
+          if (!initialAction) return;
+
+          // Cancellation logic: if already executing, stop it
+          if (initialAction.currentRepeatExecution && initialAction.currentRepeatExecution > 0) {
+            set((state: any) => ({
+              actions: state.actions.map((a: any) => a.id === id ? { ...a, currentRepeatExecution: 0 } : a)
+            }));
+            return;
+          }
+
+          if (initialAction.isRecurring) {
             set((state: any) => ({
               actions: state.actions.map((a: any) => a.id === id ? { ...a, currentRepeatExecution: initialAction.repeatCount || 2 } : a)
             }));
