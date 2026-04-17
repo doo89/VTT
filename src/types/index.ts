@@ -240,23 +240,25 @@ export interface Action {
   currentRepeatExecution?: number;
 }
 
+export type ActionEffectType = 
+  | 'deleteAllTags' 
+  | 'nextPhase' 
+  | 'previousPhase' 
+  | 'resetCycle'
+  | 'distributeRoles'
+  | 'showPlayerImage'
+  | 'hidePlayerImage'
+  | 'showRoleImage'
+  | 'hideRoleImage'
+  | 'deleteSelectionPastilles' 
+  | 'deleteAllPlayerTags'
+  | 'setCycleDayNight'
+  | 'setCycleTurn'
+  | 'setCycleNone';
+
 export interface ActionEffect {
   id: string;
-  type: 
-    | 'deleteAllTags' 
-    | 'nextPhase' 
-    | 'previousPhase' 
-    | 'resetCycle'
-    | 'distributeRoles'
-    | 'showPlayerImage'
-    | 'hidePlayerImage'
-    | 'showRoleImage'
-    | 'hideRoleImage'
-    | 'deleteSelectionPastilles' 
-    | 'deleteAllPlayerTags'
-    | 'setCycleDayNight'
-    | 'setCycleTurn'
-    | 'setCycleNone';
+  type: ActionEffectType;
   enabled: boolean;
 }
 

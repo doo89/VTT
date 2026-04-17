@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
 import { X, Check } from 'lucide-react';
+import { ActionEffectType } from '../types';
 
 export const ActionEffectWindow: React.FC = () => {
   const { 
@@ -11,20 +12,7 @@ export const ActionEffectWindow: React.FC = () => {
     pendingActionEffects
   } = useVttStore();
   
-  const [type, setType] = useState<
-    | 'deleteAllTags' 
-    | 'nextPhase' 
-    | 'previousPhase' 
-    | 'resetCycle'
-    | 'resetCycleZero'
-    | 'distributeRoles'
-    | 'showPlayerImage'
-    | 'hidePlayerImage'
-    | 'showRoleImage'
-    | 'hideRoleImage'
-    | 'deleteSelectionPastilles' 
-    | 'deleteAllPlayerTags'
-  >('deleteAllTags');
+  const [type, setType] = useState<ActionEffectType>('deleteAllTags');
   const [enabled, setEnabled] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
