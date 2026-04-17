@@ -247,14 +247,16 @@ export interface ActionEffect {
     | 'nextPhase' 
     | 'previousPhase' 
     | 'resetCycle'
-    | 'resetCycleZero'
     | 'distributeRoles'
     | 'showPlayerImage'
     | 'hidePlayerImage'
     | 'showRoleImage'
     | 'hideRoleImage'
     | 'deleteSelectionPastilles' 
-    | 'deleteAllPlayerTags';
+    | 'deleteAllPlayerTags'
+    | 'setCycleDayNight'
+    | 'setCycleTurn'
+    | 'setCycleNone';
   enabled: boolean;
 }
 

@@ -134,8 +134,10 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
               <option value="nextPhase">Passer à la phase suivante</option>
               <option value="previousPhase">Revenir à la phase précédente</option>
-              <option value="resetCycle">Réinitialiser au Jour 1</option>
-              <option value="resetCycleZero">Réinitialiser au Jour 0</option>
+              <option value="resetCycle">Réinitialiser le Cycle (Jour 1)</option>
+              <option value="setCycleDayNight">Cycle : Jour/Nuit</option>
+              <option value="setCycleTurn">Cycle : par Tour</option>
+              <option value="setCycleNone">Cycle : Aucun</option>
               <option value="distributeRoles">Distribuer (Rôles)</option>
               <option value="showPlayerImage">Afficher l'image du joueur</option>
               <option value="hidePlayerImage">Cacher l'image du joueur</option>

@@ -751,13 +751,17 @@ export const useVttStore = create<VttStore>()(
               let resetValue: number | null = null;
               let nextDisplaySettings = { ...state.displaySettings };
               
+              let nextCycleMode = state.cycleMode;
+              
               action.effects?.forEach((effect: any) => {
                 if (!effect.enabled) return;
                 if (effect.type === 'deleteAllTags') nextMarkers = [];
                 if (effect.type === 'nextPhase') phaseShift++;
                 if (effect.type === 'previousPhase') phaseShift--;
                 if (effect.type === 'resetCycle') { resetValue = 1; phaseShift = 0; }
-                if (effect.type === 'resetCycleZero') { resetValue = 0; phaseShift = 0; }
+                if (effect.type === 'setCycleDayNight') nextCycleMode = 'dayNight';
+                if (effect.type === 'setCycleTurn') nextCycleMode = 'turn';
+                if (effect.type === 'setCycleNone') nextCycleMode = 'none';
                 if (effect.type === 'deleteSelectionPastilles') nextPlayers = nextPlayers.map(p => ({ ...p, selectionPastilles: [] }));
                 if (effect.type === 'deleteAllPlayerTags') nextPlayers = nextPlayers.map(p => ({ ...p, tags: [] }));
                 if (effect.type === 'showPlayerImage') nextDisplaySettings.showPlayerImage = true;
@@ -784,7 +788,12 @@ export const useVttStore = create<VttStore>()(
                 }
               });
               
-              const newState: any = { markers: nextMarkers, players: nextPlayers, displaySettings: nextDisplaySettings };
+              const newState: any = { 
+                markers: nextMarkers, 
+                players: nextPlayers, 
+                displaySettings: nextDisplaySettings,
+                cycleMode: nextCycleMode 
+              };
               if (resetValue !== null) {
                 newState.isNight = false;
                 newState.cycleNumber = resetValue;

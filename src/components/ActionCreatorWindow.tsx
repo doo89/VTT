@@ -250,8 +250,10 @@ export const ActionCreatorWindow: React.FC = () => {
                       {effect.type === 'deleteAllTags' ? 'Supprimer tous les tags' : 
                        effect.type === 'nextPhase' ? 'Passer à la phase suivante' : 
                        effect.type === 'previousPhase' ? 'Revenir à la phase précédente' : 
-                       effect.type === 'resetCycle' ? 'Réinitialiser au Jour 1' :
-                       effect.type === 'resetCycleZero' ? 'Réinitialiser au Jour 0' :
+                       effect.type === 'resetCycle' ? 'Réinitialiser le Cycle (Jour 1)' :
+                       effect.type === 'setCycleDayNight' ? 'Cycle : Jour/Nuit' :
+                       effect.type === 'setCycleTurn' ? 'Cycle : par Tour' :
+                       effect.type === 'setCycleNone' ? 'Cycle : Aucun' :
                        effect.type === 'distributeRoles' ? 'Distribuer (Rôles)' :
                        effect.type === 'showPlayerImage' ? "Afficher l'image du joueur" :
                        effect.type === 'hidePlayerImage' ? "Cacher l'image du joueur" :
