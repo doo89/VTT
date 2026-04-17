@@ -78,6 +78,8 @@ export const ActionCreatorWindow: React.FC = () => {
 
   const handleClose = () => {
     setActionCreatorState({ isOpen: false, editingActionId: null });
+    setActionConditionCreatorState({ isOpen: false, editingConditionId: null });
+    setActionEffectCreatorState({ isOpen: false, editingEffectId: null });
     setActionName('');
     clearPendingConditions();
     clearPendingEffects();
