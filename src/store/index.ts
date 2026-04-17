@@ -815,6 +815,8 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'hidePlayerTooltip') nextDisplaySettings.showTooltip = false;
                 if (effect.type === 'showTagTooltip') nextDisplaySettings.showTagTooltip = true;
                 if (effect.type === 'hideTagTooltip') nextDisplaySettings.showTagTooltip = false;
+                if (effect.type === 'showRoleColor') nextDisplaySettings.showRoleColor = true;
+                if (effect.type === 'hideRoleColor') nextDisplaySettings.showRoleColor = false;
                 if (effect.type === 'distributeRoles') {
                   const rolesToDistribute = state.roles.filter((r: any) => r.isSelectableForDistribution);
                   if (rolesToDistribute.length > 0) {

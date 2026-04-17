@@ -136,6 +136,8 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="hidePlayerTooltip">Masquer l'info bulle des joueurs</option>
               <option value="showTagTooltip">Afficher l'info bulle des tags</option>
               <option value="hideTagTooltip">Masquer l'info bulle des tags</option>
+              <option value="showRoleColor">Afficher la couleur du rôle</option>
+              <option value="hideRoleColor">Masquer la couleur du rôle</option>
             </select>
           </div>
 

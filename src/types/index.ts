@@ -260,7 +260,9 @@ export type ActionEffectType =
   | 'showPlayerTooltip'
   | 'hidePlayerTooltip'
   | 'showTagTooltip'
-  | 'hideTagTooltip';
+  | 'hideTagTooltip'
+  | 'showRoleColor'
+  | 'hideRoleColor';
 
 export interface ActionEffect {
   id: string;
