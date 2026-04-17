@@ -878,9 +878,17 @@ export const useVttStore = create<VttStore>()(
                 newState.cycleNumber = currentCycle;
               }
               
-              if (action.once && remaining === 1) {
-                newState.actions = state.actions.map((a: any) => a.id === id ? { ...a, isExecuted: true, enabled: false } : a);
-              }
+              newState.actions = state.actions.map((a: any) => {
+                if (a.id === id) {
+                  return { 
+                    ...a, 
+                    currentRepeatExecution: remaining > 1 ? remaining - 1 : 0,
+                    enabled: (action.once && remaining === 1) ? false : a.enabled,
+                    isExecuted: (action.once && remaining === 1) ? true : a.isExecuted
+                  };
+                }
+                return a;
+              });
               
               if (remaining > 1) {
                 setTimeout(() => run(remaining - 1), (action.intervalSeconds || 5) * 1000);
@@ -892,6 +900,9 @@ export const useVttStore = create<VttStore>()(
 
           const initialAction = (get() as any).actions.find((a: any) => a.id === id);
           if (initialAction?.isRecurring) {
+            set((state: any) => ({
+              actions: state.actions.map((a: any) => a.id === id ? { ...a, currentRepeatExecution: initialAction.repeatCount || 2 } : a)
+            }));
             run(initialAction.repeatCount || 2);
           } else {
             run(1);
