@@ -234,6 +234,10 @@ export interface Action {
   effects?: ActionEffect[];
   once?: boolean;
   isExecuted?: boolean;
+  isRecurring?: boolean;
+  intervalSeconds?: number;
+  repeatCount?: number;
+  currentRepeatExecution?: number;
 }
 
 export interface ActionEffect {

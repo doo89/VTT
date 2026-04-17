@@ -12,6 +12,10 @@ export const ActionConditionWindow: React.FC = () => {
     pendingActionConditions,
     pendingActionOnce,
     setPendingOnce,
+    pendingActionIsRecurring,
+    pendingActionIntervalSeconds,
+    pendingActionRepeatCount,
+    setPendingRecurring,
     roles,
     tags
   } = useVttStore();
@@ -144,17 +148,51 @@ export const ActionConditionWindow: React.FC = () => {
       </div>
 
       <div className="p-5 flex flex-col gap-6 bg-background/50">
-        <div className="flex items-center justify-between bg-orange-500/5 p-3 rounded-xl border border-orange-500/10">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-bold text-foreground">Une seule fois</span>
-            <span className="text-[10px] text-muted-foreground">L'action se désactivera après sa première exécution réussie</span>
+        <div className="flex flex-col gap-2 bg-orange-500/5 p-3 rounded-xl border border-orange-500/10">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-bold text-foreground">Une seule fois</span>
+              <span className="text-[10px] text-muted-foreground">L'action se désactivera après sa première exécution réussie</span>
+            </div>
+            <input
+              type="checkbox"
+              checked={pendingActionOnce}
+              onChange={(e) => setPendingOnce(e.target.checked)}
+              className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+            />
           </div>
-          <input
-            type="checkbox"
-            checked={pendingActionOnce}
-            onChange={(e) => setPendingOnce(e.target.checked)}
-            className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-          />
+
+          <div className="h-px bg-border/20 my-1" />
+
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={pendingActionIsRecurring}
+              onChange={(e) => setPendingRecurring(e.target.checked, pendingActionIntervalSeconds, pendingActionRepeatCount)}
+              className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer shrink-0"
+            />
+            <div className={`flex items-center gap-1.5 text-xs transition-opacity duration-200 ${!pendingActionIsRecurring ? 'opacity-50 grayscale' : 'opacity-100'}`}>
+              <span className="font-medium">Exécuter toutes les</span>
+              <input
+                disabled={!pendingActionIsRecurring}
+                type="number"
+                min="1"
+                value={pendingActionIntervalSeconds}
+                onChange={(e) => setPendingRecurring(pendingActionIsRecurring, parseInt(e.target.value) || 1, pendingActionRepeatCount)}
+                className="w-12 bg-input border border-border rounded-lg px-2 py-1 text-center font-bold outline-none"
+              />
+              <span className="font-medium">secondes,</span>
+              <input
+                disabled={!pendingActionIsRecurring}
+                type="number"
+                min="1"
+                value={pendingActionRepeatCount}
+                onChange={(e) => setPendingRecurring(pendingActionIsRecurring, pendingActionIntervalSeconds, parseInt(e.target.value) || 1)}
+                className="w-12 bg-input border border-border rounded-lg px-2 py-1 text-center font-bold outline-none"
+              />
+              <span className="font-medium">fois.</span>
+            </div>
+          </div>
         </div>
 
         <div className="h-px bg-border/30 -mt-2" />

@@ -16,6 +16,10 @@ export const ActionCreatorWindow: React.FC = () => {
     deletePendingCondition,
     pendingActionOnce,
     setPendingOnce,
+    pendingActionIsRecurring,
+    pendingActionIntervalSeconds,
+    pendingActionRepeatCount,
+    setPendingRecurring,
     setActionEffectCreatorState,
     pendingActionEffects,
     clearPendingEffects,
@@ -33,6 +37,7 @@ export const ActionCreatorWindow: React.FC = () => {
       if (action) {
         setActionName(action.name);
         setPendingOnce(action.once || false);
+        setPendingRecurring(action.isRecurring || false, action.intervalSeconds || 5, action.repeatCount || 2);
       }
     }
   }, [isEditingAction, actionCreatorState.editingActionId, actions]);
@@ -84,7 +89,10 @@ export const ActionCreatorWindow: React.FC = () => {
       name: actionName,
       conditions: [...pendingActionConditions],
       effects: [...pendingActionEffects],
-      once: pendingActionOnce
+      once: pendingActionOnce,
+      isRecurring: pendingActionIsRecurring,
+      intervalSeconds: pendingActionIntervalSeconds,
+      repeatCount: pendingActionRepeatCount
     };
 
     if (isEditingAction && actionCreatorState.editingActionId) {

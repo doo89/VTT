@@ -105,6 +105,10 @@ interface VttStore extends GameState {
   clearPendingConditions: () => void;
   pendingActionOnce: boolean;
   setPendingOnce: (once: boolean) => void;
+  pendingActionIsRecurring: boolean;
+  pendingActionIntervalSeconds: number;
+  pendingActionRepeatCount: number;
+  setPendingRecurring: (recurring: boolean, interval: number, count: number) => void;
   setActionEffectCreatorState: (state: Partial<ActionEffectCreatorState>) => void;
   addPendingEffect: (effect: Omit<ActionEffect, 'id'>) => void;
   updatePendingEffect: (id: string, updates: Partial<ActionEffect>) => void;
@@ -238,6 +242,9 @@ export const initialState = {
   pendingActionConditions: [],
   pendingActionEffects: [],
   pendingActionOnce: false,
+  pendingActionIsRecurring: false,
+  pendingActionIntervalSeconds: 5,
+  pendingActionRepeatCount: 2,
   activeLeftTab: 'players' as const,
   editingEntity: null,
   smartphoneActionMessage: null,
@@ -633,232 +640,193 @@ export const useVttStore = create<VttStore>()(
         })),
         deleteAction: (id) => set((state) => ({
           actions: state.actions.filter(a => a.id !== id)
-        })),
-        executeAction: (id) => set((state) => {
-          const action = state.actions.find(a => a.id === id);
-          if (!action) return {};
-          
-          if (action.once && action.isExecuted) {
-            state.addLog(`Action "${action.name}" déjà exécutée (Action unique)`, 'system');
-            return {};
-          }
-          
-          // Evaluate conditions
-          const evaluate = (conditions: ActionCondition[]): { success: boolean, failReason?: string } => {
-            const activeConditions = (conditions || []).filter(c => c.enabled);
-            if (activeConditions.length === 0) return { success: true };
-
-            const checkSingle = (c: ActionCondition): boolean => {
-              if (c.type === 'playerRole') {
-                // Find by creationOrder, fallback to index
-                const player = state.players.find(p => (p.creationOrder || 0) === c.value) 
-                               || state.players[c.value - 1];
-                
-                if (!player) return false;
-                
-                if (c.operator === '=') {
-                  return player.roleId === c.roleId;
-                } else if (c.operator === '!=') {
-                  return player.roleId !== c.roleId;
-                }
-                return false;
-              }
-
-              if (c.type === 'playerTag') {
-                const player = state.players.find(p => (p.creationOrder || 0) === c.value) 
-                               || state.players[c.value - 1];
-                
-                if (!player) return false;
-                
-                const hasTag = player.tags.some(t => t.id === c.tagId);
-                if (c.operator === '=') {
-                  return hasTag;
-                } else if (c.operator === '!=') {
-                  return !hasTag;
-                }
-                return false;
-              }
-
-              if (c.type === 'playerPastille') {
-                const player = state.players.find(p => (p.creationOrder || 0) === c.value) 
-                               || state.players[c.value - 1];
-                
-                if (!player) return false;
-                
-                const hasPastille = (player.selectionPastilles || []).some(p => p.icon === c.pastilleIcon);
-                if (c.operator === '=') {
-                  return hasPastille;
-                } else if (c.operator === '!=') {
-                  return !hasPastille;
-                }
-                return false;
-              }
-
-              let compareVal = 0;
-              if (c.type === 'day') {
-                if (state.isNight) return false;
-                compareVal = state.cycleNumber;
-              } else if (c.type === 'night') {
-                if (!state.isNight) return false;
-                compareVal = state.cycleNumber;
-              } else if (c.type === 'turn') {
-                compareVal = state.cycleNumber;
-              }
-
-              switch (c.operator) {
-                case '=': return compareVal === c.value;
-                case '<': return compareVal < c.value;
-                case '>': return compareVal > c.value;
-                case '!=': return compareVal !== c.value;
-                case '<=': return compareVal <= c.value;
-                case '>=': return compareVal >= c.value;
-                default: return false;
-              }
-            };
-
-            const getConditionLabel = (c: ActionCondition): string => {
-              if (c.type === 'playerRole') {
-                const roleName = state.roles.find(r => r.id === c.roleId)?.name || 'Inconnu';
-                return `Joueur ${c.value} ${c.operator} ${roleName}`;
-              }
-              if (c.type === 'playerTag') {
-                const tagName = state.tags.find(t => t.id === c.tagId)?.name || 'Inconnu';
-                return `Joueur ${c.value} ${c.operator} ${tagName}`;
-              }
-              if (c.type === 'playerPastille') {
-                return `Joueur ${c.value} ${c.operator} Pastille ${c.pastilleIcon}`;
-              }
-              const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
-              return `${typeLabel} ${c.operator} ${c.value}`;
-            };
-
-            let result = checkSingle(activeConditions[0]);
-            let firstFail = result ? '' : getConditionLabel(activeConditions[0]);
-
-            for (let i = 1; i < activeConditions.length; i++) {
-              const c = activeConditions[i];
-              const currentResult = checkSingle(c);
+        })),        executeAction: (id) => {
+          const run = (remaining: number) => {
+            set((state: any) => {
+              const action = state.actions.find((a: any) => a.id === id);
+              if (!action) return {};
               
-              if (c.logic === 'OR') {
-                result = result || currentResult;
-                if (!result) firstFail = `${firstFail} OU ${getConditionLabel(c)}`;
-              } else {
-                result = result && currentResult;
-                if (!result && !firstFail) firstFail = getConditionLabel(c);
+              if (action.once && action.isExecuted) {
+                state.addLog(`Action "${action.name}" déjà exécutée (Action unique)`, 'system');
+                return {};
               }
-            }
+              
+              // Evaluate conditions
+              const evaluate = (conditions: ActionCondition[]): { success: boolean, failReason?: string } => {
+                const activeConditions = (conditions || []).filter(c => c.enabled);
+                if (activeConditions.length === 0) return { success: true };
 
-            return { success: result, failReason: result ? undefined : firstFail };
+                const checkSingle = (c: ActionCondition): boolean => {
+                  if (c.type === 'playerRole') {
+                    const player = state.players.find((p: any) => (p.creationOrder || 0) === c.value) 
+                                   || state.players[c.value - 1];
+                    if (!player) return false;
+                    if (c.operator === '=') return player.roleId === c.roleId;
+                    if (c.operator === '!=') return player.roleId !== c.roleId;
+                    return false;
+                  }
+                  if (c.type === 'playerTag') {
+                    const player = state.players.find((p: any) => (p.creationOrder || 0) === c.value) 
+                                   || state.players[c.value - 1];
+                    if (!player) return false;
+                    const hasTag = player.tags.some((t: any) => t.id === c.tagId);
+                    if (c.operator === '=') return hasTag;
+                    if (c.operator === '!=') return !hasTag;
+                    return false;
+                  }
+                  if (c.type === 'playerPastille') {
+                    const player = state.players.find((p: any) => (p.creationOrder || 0) === c.value) 
+                                   || state.players[c.value - 1];
+                    if (!player) return false;
+                    const hasPastille = (player.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon);
+                    if (c.operator === '=') return hasPastille;
+                    if (c.operator === '!=') return !hasPastille;
+                    return false;
+                  }
+
+                  let compareVal = 0;
+                  if (c.type === 'day') {
+                    if (state.isNight) return false;
+                    compareVal = state.cycleNumber;
+                  } else if (c.type === 'night') {
+                    if (!state.isNight) return false;
+                    compareVal = state.cycleNumber;
+                  } else if (c.type === 'turn') {
+                    compareVal = state.cycleNumber;
+                  }
+
+                  switch (c.operator) {
+                    case '=': return compareVal === c.value;
+                    case '<': return compareVal < c.value;
+                    case '>': return compareVal > c.value;
+                    case '!=': return compareVal !== c.value;
+                    case '<=': return compareVal <= c.value;
+                    case '>=': return compareVal >= c.value;
+                    default: return false;
+                  }
+                };
+
+                const getConditionLabel = (c: ActionCondition): string => {
+                  if (c.type === 'playerRole') {
+                    const roleName = state.roles.find((r: any) => r.id === c.roleId)?.name || 'Inconnu';
+                    return `Joueur ${c.value} ${c.operator} ${roleName}`;
+                  }
+                  if (c.type === 'playerTag') {
+                    const tagName = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
+                    return `Joueur ${c.value} ${c.operator} ${tagName}`;
+                  }
+                  if (c.type === 'playerPastille') {
+                    return `Joueur ${c.value} ${c.operator} Pastille ${c.pastilleIcon}`;
+                  }
+                  const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
+                  return `${typeLabel} ${c.operator} ${c.value}`;
+                };
+
+                let result = checkSingle(activeConditions[0]);
+                let firstFail = result ? '' : getConditionLabel(activeConditions[0]);
+
+                for (let i = 1; i < activeConditions.length; i++) {
+                  const c = activeConditions[i];
+                  const currentResult = checkSingle(c);
+                  if (c.logic === 'OR') {
+                    result = result || currentResult;
+                    if (!result) firstFail = `${firstFail} OU ${getConditionLabel(c)}`;
+                  } else {
+                    result = result && currentResult;
+                    if (!result && !firstFail) firstFail = getConditionLabel(c);
+                  }
+                }
+                return { success: result, failReason: result ? undefined : firstFail };
+              };
+
+              const evaluation = evaluate(action.conditions || []);
+              if (!evaluation.success) {
+                state.addLog(`Action "${action.name}" annulée : condition non remplie (${evaluation.failReason})`, 'system');
+                return {};
+              }
+              
+              let nextMarkers = [...state.markers];
+              let nextPlayers = [...state.players];
+              let phaseShift = 0;
+              let resetValue: number | null = null;
+              let nextDisplaySettings = { ...state.displaySettings };
+              
+              action.effects?.forEach((effect: any) => {
+                if (!effect.enabled) return;
+                if (effect.type === 'deleteAllTags') nextMarkers = [];
+                if (effect.type === 'nextPhase') phaseShift++;
+                if (effect.type === 'previousPhase') phaseShift--;
+                if (effect.type === 'resetCycle') { resetValue = 1; phaseShift = 0; }
+                if (effect.type === 'resetCycleZero') { resetValue = 0; phaseShift = 0; }
+                if (effect.type === 'deleteSelectionPastilles') nextPlayers = nextPlayers.map(p => ({ ...p, selectionPastilles: [] }));
+                if (effect.type === 'deleteAllPlayerTags') nextPlayers = nextPlayers.map(p => ({ ...p, tags: [] }));
+                if (effect.type === 'showPlayerImage') nextDisplaySettings.showPlayerImage = true;
+                if (effect.type === 'hidePlayerImage') nextDisplaySettings.showPlayerImage = false;
+                if (effect.type === 'showRoleImage') nextDisplaySettings.showRoleImage = true;
+                if (effect.type === 'hideRoleImage') nextDisplaySettings.showRoleImage = false;
+                if (effect.type === 'distributeRoles') {
+                  const rolesToDistribute = state.roles.filter((r: any) => r.isSelectableForDistribution);
+                  if (rolesToDistribute.length > 0) {
+                    let rolePool: string[] = [];
+                    rolesToDistribute.forEach((role: any) => {
+                      const qty = role.distributionQuantity || 1;
+                      for (let i = 0; i < qty; i++) { rolePool.push(role.id); }
+                    });
+                    for (let i = rolePool.length - 1; i > 0; i--) {
+                      const j = Math.floor(Math.random() * (i + 1));
+                      [rolePool[i], rolePool[j]] = [rolePool[j], rolePool[i]];
+                    }
+                    nextPlayers = nextPlayers.map((player, idx) => {
+                      if (idx < rolePool.length) return { ...player, roleId: rolePool[idx] };
+                      return player;
+                    });
+                  }
+                }
+              });
+              
+              const newState: any = { markers: nextMarkers, players: nextPlayers, displaySettings: nextDisplaySettings };
+              if (resetValue !== null) {
+                newState.isNight = false;
+                newState.cycleNumber = resetValue;
+              } else if (phaseShift !== 0) {
+                let currentIsNight = state.isNight, currentCycle = state.cycleNumber;
+                const absoluteShift = Math.abs(phaseShift), direction = phaseShift > 0 ? 1 : -1;
+                for (let i = 0; i < absoluteShift; i++) {
+                  if (direction === 1) {
+                    const goingToDay = currentIsNight;
+                    currentIsNight = !currentIsNight;
+                    if (goingToDay) currentCycle++;
+                  } else {
+                    const goingToNight = !currentIsNight;
+                    if (goingToNight && currentCycle <= 0) break;
+                    currentIsNight = !currentIsNight;
+                    if (goingToNight) currentCycle--;
+                  }
+                }
+                newState.isNight = currentIsNight;
+                newState.cycleNumber = currentCycle;
+              }
+              
+              if (action.once) {
+                newState.actions = state.actions.map((a: any) => a.id === id ? { ...a, isExecuted: true } : a);
+              }
+              
+              if (remaining > 1) {
+                setTimeout(() => run(remaining - 1), (action.intervalSeconds || 5) * 1000);
+              }
+              
+              return newState;
+            });
           };
 
-          const evaluation = evaluate(action.conditions || []);
-          if (!evaluation.success) {
-            state.addLog(`Action "${action.name}" annulée : condition non remplie (${evaluation.failReason})`, 'system');
-            return {};
+          const initialAction = (get() as any).actions.find((a: any) => a.id === id);
+          if (initialAction?.isRecurring) {
+            run(initialAction.repeatCount || 2);
+          } else {
+            run(1);
           }
-          
-          let nextMarkers = [...state.markers];
-          let nextPlayers = [...state.players];
-          let phaseShift = 0;
-          let resetValue: number | null = null;
-          let nextDisplaySettings = { ...state.displaySettings };
-          
-          action.effects?.forEach(effect => {
-            if (!effect.enabled) return;
-            if (effect.type === 'deleteAllTags') {
-              nextMarkers = [];
-            }
-            if (effect.type === 'nextPhase') {
-              phaseShift++;
-            }
-            if (effect.type === 'previousPhase') {
-              phaseShift--;
-            }
-            if (effect.type === 'resetCycle') {
-              resetValue = 1;
-              phaseShift = 0;
-            }
-            if (effect.type === 'resetCycleZero') {
-              resetValue = 0;
-              phaseShift = 0;
-            }
-            if (effect.type === 'deleteSelectionPastilles') {
-              nextPlayers = nextPlayers.map(p => ({ ...p, selectionPastilles: [] }));
-            }
-            if (effect.type === 'deleteAllPlayerTags') {
-              nextPlayers = nextPlayers.map(p => ({ ...p, tags: [] }));
-            }
-            if (effect.type === 'showPlayerImage') nextDisplaySettings.showPlayerImage = true;
-            if (effect.type === 'hidePlayerImage') nextDisplaySettings.showPlayerImage = false;
-            if (effect.type === 'showRoleImage') nextDisplaySettings.showRoleImage = true;
-            if (effect.type === 'hideRoleImage') nextDisplaySettings.showRoleImage = false;
-            
-            if (effect.type === 'distributeRoles') {
-              const rolesToDistribute = state.roles.filter(r => r.isSelectableForDistribution);
-              if (rolesToDistribute.length > 0) {
-                let rolePool: string[] = [];
-                rolesToDistribute.forEach(role => {
-                  const qty = role.distributionQuantity || 1;
-                  for (let i = 0; i < qty; i++) { rolePool.push(role.id); }
-                });
-                // Shuffle pool
-                for (let i = rolePool.length - 1; i > 0; i--) {
-                  const j = Math.floor(Math.random() * (i + 1));
-                  [rolePool[i], rolePool[j]] = [rolePool[j], rolePool[i]];
-                }
-                nextPlayers = nextPlayers.map((player, idx) => {
-                  if (idx < rolePool.length) return { ...player, roleId: rolePool[idx] };
-                  return player;
-                });
-              }
-            }
-          });
-          
-          const newState: any = { 
-            markers: nextMarkers, 
-            players: nextPlayers, 
-            displaySettings: nextDisplaySettings 
-          };
-          
-          if (resetValue !== null) {
-            newState.isNight = false;
-            newState.cycleNumber = resetValue;
-          } else if (phaseShift !== 0) {
-            let currentIsNight = state.isNight;
-            let currentCycle = state.cycleNumber;
-            const absoluteShift = Math.abs(phaseShift);
-            const direction = phaseShift > 0 ? 1 : -1;
-            
-            for (let i = 0; i < absoluteShift; i++) {
-              if (direction === 1) {
-                // Next
-                const goingToDay = currentIsNight;
-                currentIsNight = !currentIsNight;
-                if (goingToDay) {
-                  currentCycle++;
-                }
-              } else {
-                // Previous
-                const goingToNight = !currentIsNight;
-                if (goingToNight && currentCycle <= 0) {
-                   break;
-                }
-                currentIsNight = !currentIsNight;
-                if (goingToNight) {
-                  currentCycle--;
-                }
-              }
-            }
-            newState.isNight = currentIsNight;
-            newState.cycleNumber = currentCycle;
-          }
-
-          if (action.once) {
-            newState.actions = state.actions.map(a => a.id === id ? { ...a, isExecuted: true } : a);
-          }
-          
-          return newState;
-        }),
+        },
+  }),
         setActionConditionCreatorState: (update) => set((state) => ({ 
           actionConditionCreatorState: { ...state.actionConditionCreatorState, ...update } 
         })),
@@ -872,8 +840,19 @@ export const useVttStore = create<VttStore>()(
           pendingActionConditions: state.pendingActionConditions.filter(c => c.id !== id)
         })),
         setPendingConditions: (conditions) => set({ pendingActionConditions: conditions }),
-        clearPendingConditions: () => set({ pendingActionConditions: [], pendingActionOnce: false }),
+        clearPendingConditions: () => set({ 
+          pendingActionConditions: [], 
+          pendingActionOnce: false,
+          pendingActionIsRecurring: false,
+          pendingActionIntervalSeconds: 5,
+          pendingActionRepeatCount: 2
+        }),
         setPendingOnce: (once) => set({ pendingActionOnce: once }),
+        setPendingRecurring: (recurring, interval, count) => set({ 
+          pendingActionIsRecurring: recurring,
+          pendingActionIntervalSeconds: interval,
+          pendingActionRepeatCount: count
+        }),
         setActionEffectCreatorState: (update) => set((state) => ({ 
           actionEffectCreatorState: { ...state.actionEffectCreatorState, ...update } 
         })),
