@@ -721,6 +721,32 @@ export const useVttStore = create<VttStore>()(
                     return false;
                   }
 
+                  if (c.type === 'playerDistance') {
+                    let sourcePlayer = null;
+                    if (c.distanceFromPlayerId === '$Joueur') {
+                      sourcePlayer = actionContext['$Joueur'];
+                    } else {
+                      sourcePlayer = state.players.find(p => p.id === c.distanceFromPlayerId);
+                    }
+
+                    if (!sourcePlayer) return false;
+
+                    const sortedPlayers = [...state.players].sort((a,b) => (a.creationOrder || 0) - (b.creationOrder || 0));
+                    const totalPlayers = sortedPlayers.length;
+                    if (totalPlayers === 0) return false;
+
+                    const sourceIndex = sortedPlayers.findIndex(p => p.id === sourcePlayer.id);
+                    if (sourceIndex === -1) return false;
+
+                    let targetIndex = (sourceIndex + c.value) % totalPlayers;
+                    while (targetIndex < 0) targetIndex += totalPlayers;
+
+                    const targetPlayer = sortedPlayers[targetIndex];
+                    if (!targetPlayer) return false;
+
+                    return targetPlayer.roleId === c.distanceTargetRoleId;
+                  }
+
                   let compareVal = 0;
                   if (c.type === 'day') {
                     if (state.isNight) return false;
@@ -768,21 +794,29 @@ export const useVttStore = create<VttStore>()(
                   return `${typeLabel} ${c.operator} ${c.value}`;
                 };
 
-                let result = checkSingle(activeConditions[0]);
-                let firstFail = result ? '' : getConditionLabel(activeConditions[0]);
+                  // Logic with precedence (AND before OR)
+                  const andGroups: { result: boolean, label: string }[] = [];
+                  let currentGroupResult = checkSingle(activeConditions[0]);
+                  let currentGroupLabel = getConditionLabel(activeConditions[0]);
 
-                for (let i = 1; i < activeConditions.length; i++) {
-                  const c = activeConditions[i];
-                  const currentResult = checkSingle(c);
-                  if (c.logic === 'OR') {
-                    result = result || currentResult;
-                    if (!result) firstFail = `${firstFail} OU ${getConditionLabel(c)}`;
-                  } else {
-                    result = result && currentResult;
-                    if (!result && !firstFail) firstFail = getConditionLabel(c);
+                  for (let i = 1; i < activeConditions.length; i++) {
+                    const c = activeConditions[i];
+                    const val = checkSingle(c);
+                    const label = getConditionLabel(c);
+
+                    if (c.logic === 'OR') {
+                      andGroups.push({ result: currentGroupResult, label: currentGroupLabel });
+                      currentGroupResult = val;
+                      currentGroupLabel = label;
+                    } else {
+                      currentGroupResult = currentGroupResult && val;
+                      currentGroupLabel = `${currentGroupLabel} ET ${label}`;
+                    }
                   }
-                }
-                return { success: result, failReason: result ? undefined : firstFail };
+                  andGroups.push({ result: currentGroupResult, label: currentGroupLabel });
+
+                  const finalResult = andGroups.some(g => g.result);
+                  return { success: finalResult, failReason: finalResult ? undefined : andGroups.map(g => `(${g.label})`).join(' OU ') };
               };
 
               const evaluation = evaluate(action.conditions || []);
