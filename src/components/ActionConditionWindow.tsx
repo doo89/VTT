@@ -197,8 +197,7 @@ export const ActionConditionWindow: React.FC = () => {
 
         <div className="h-px bg-border/50" />
 
-        {/* Player Role Row */}
-        <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'playerRole' || type === 'playerTag') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+        <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerRole' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
             <div className="flex items-center h-[38px] justify-center">

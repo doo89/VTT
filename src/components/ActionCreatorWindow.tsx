@@ -18,7 +18,8 @@ export const ActionCreatorWindow: React.FC = () => {
     pendingActionEffects,
     clearPendingEffects,
     deletePendingEffect,
-    roles
+    roles,
+    tags
   } = useVttStore();
   
   const [actionName, setActionName] = useState('');
@@ -181,7 +182,7 @@ export const ActionCreatorWindow: React.FC = () => {
                       <span className="font-mono font-bold text-muted-foreground">{condition.operator}</span>
                       <span className="font-bold">
                         {condition.type === 'playerRole' ? (roles.find(r => r.id === condition.roleId)?.name || 'Inconnu') : 
-                         condition.type === 'playerTag' ? (tags.find(t => t.id === condition.tagId)?.name || 'Inconnu') :
+                         condition.type === 'playerTag' ? (tags.find((t: any) => t.id === condition.tagId)?.name || 'Inconnu') :
                          condition.value}
                       </span>
                     </div>
