@@ -207,7 +207,9 @@ export const ActionConditionWindow: React.FC = () => {
           </div>
         </div>
 
-        <div className="h-px bg-border/30 -mt-2        {/* Cycle Row - Line 1 */}
+        <div className="h-px bg-border/30 -mt-2" />
+
+        {/* Cycle Row - Line 1 */}
         <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'day' && type !== 'night' && type !== 'turn') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
@@ -633,5 +635,6 @@ export const ActionConditionWindow: React.FC = () => {
         </button>
       </div>
     </div>
+  </div>
   );
 };
