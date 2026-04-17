@@ -103,6 +103,8 @@ interface VttStore extends GameState {
   deletePendingCondition: (id: string) => void;
   setPendingConditions: (conditions: ActionCondition[]) => void;
   clearPendingConditions: () => void;
+  pendingActionOnce: boolean;
+  setPendingOnce: (once: boolean) => void;
   setActionEffectCreatorState: (state: Partial<ActionEffectCreatorState>) => void;
   addPendingEffect: (effect: Omit<ActionEffect, 'id'>) => void;
   updatePendingEffect: (id: string, updates: Partial<ActionEffect>) => void;
@@ -235,6 +237,7 @@ export const initialState = {
   actions: [],
   pendingActionConditions: [],
   pendingActionEffects: [],
+  pendingActionOnce: false,
   activeLeftTab: 'players' as const,
   editingEntity: null,
   smartphoneActionMessage: null,
@@ -635,6 +638,11 @@ export const useVttStore = create<VttStore>()(
           const action = state.actions.find(a => a.id === id);
           if (!action) return {};
           
+          if (action.once && action.isExecuted) {
+            state.addLog(`Action "${action.name}" déjà exécutée (Action unique)`, 'system');
+            return {};
+          }
+          
           // Evaluate conditions
           const evaluate = (conditions: ActionCondition[]): { success: boolean, failReason?: string } => {
             const activeConditions = (conditions || []).filter(c => c.enabled);
@@ -844,6 +852,10 @@ export const useVttStore = create<VttStore>()(
             newState.isNight = currentIsNight;
             newState.cycleNumber = currentCycle;
           }
+
+          if (action.once) {
+            newState.actions = state.actions.map(a => a.id === id ? { ...a, isExecuted: true } : a);
+          }
           
           return newState;
         }),
@@ -860,7 +872,8 @@ export const useVttStore = create<VttStore>()(
           pendingActionConditions: state.pendingActionConditions.filter(c => c.id !== id)
         })),
         setPendingConditions: (conditions) => set({ pendingActionConditions: conditions }),
-        clearPendingConditions: () => set({ pendingActionConditions: [] }),
+        clearPendingConditions: () => set({ pendingActionConditions: [], pendingActionOnce: false }),
+        setPendingOnce: (once) => set({ pendingActionOnce: once }),
         setActionEffectCreatorState: (update) => set((state) => ({ 
           actionEffectCreatorState: { ...state.actionEffectCreatorState, ...update } 
         })),

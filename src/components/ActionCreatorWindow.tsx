@@ -14,6 +14,8 @@ export const ActionCreatorWindow: React.FC = () => {
     clearPendingConditions,
     updatePendingCondition,
     deletePendingCondition,
+    pendingActionOnce,
+    setPendingOnce,
     setActionEffectCreatorState,
     pendingActionEffects,
     clearPendingEffects,
@@ -30,6 +32,7 @@ export const ActionCreatorWindow: React.FC = () => {
       const action = actions.find(a => a.id === actionCreatorState.editingActionId);
       if (action) {
         setActionName(action.name);
+        setPendingOnce(action.once || false);
       }
     }
   }, [isEditingAction, actionCreatorState.editingActionId, actions]);
@@ -80,7 +83,8 @@ export const ActionCreatorWindow: React.FC = () => {
     const actionData = { 
       name: actionName,
       conditions: [...pendingActionConditions],
-      effects: [...pendingActionEffects]
+      effects: [...pendingActionEffects],
+      once: pendingActionOnce
     };
 
     if (isEditingAction && actionCreatorState.editingActionId) {

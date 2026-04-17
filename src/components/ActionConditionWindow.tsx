@@ -10,6 +10,8 @@ export const ActionConditionWindow: React.FC = () => {
     addPendingCondition,
     updatePendingCondition,
     pendingActionConditions,
+    pendingActionOnce,
+    setPendingOnce,
     roles,
     tags
   } = useVttStore();
@@ -142,6 +144,21 @@ export const ActionConditionWindow: React.FC = () => {
       </div>
 
       <div className="p-5 flex flex-col gap-6 bg-background/50">
+        <div className="flex items-center justify-between bg-orange-500/5 p-3 rounded-xl border border-orange-500/10">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-bold text-foreground">Une seule fois</span>
+            <span className="text-[10px] text-muted-foreground">L'action se désactivera après sa première exécution réussie</span>
+          </div>
+          <input
+            type="checkbox"
+            checked={pendingActionOnce}
+            onChange={(e) => setPendingOnce(e.target.checked)}
+            className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+          />
+        </div>
+
+        <div className="h-px bg-border/30 -mt-2" />
+
         {/* Cycle Row */}
         <div className={`flex items-end gap-3 transition-all duration-300 ${(type === 'playerRole' || type === 'playerTag') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
           <div className="flex flex-col gap-1.5 pb-2">

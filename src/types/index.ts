@@ -232,6 +232,8 @@ export interface Action {
   name: string;
   conditions?: ActionCondition[];
   effects?: ActionEffect[];
+  once?: boolean;
+  isExecuted?: boolean;
 }
 
 export interface ActionEffect {
