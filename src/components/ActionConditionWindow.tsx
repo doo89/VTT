@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useVttStore } from '../store';
-import { X, Check } from 'lucide-react';
+import { X, icons } from 'lucide-react';
 import type { ActionConditionType, ActionOperator } from '../types';
 
 export const ActionConditionWindow: React.FC = () => {
@@ -392,12 +392,9 @@ export const ActionConditionWindow: React.FC = () => {
               onChange={(e) => setPastilleIcon(e.target.value)}
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {allIcons.map(icon => {
-                const LucideIcon = (icons as any)[icon];
-                return (
-                  <option key={icon} value={icon}>{icon}</option>
-                );
-              })}
+              {allIcons.map((icon: string) => (
+                <option key={icon} value={icon}>{icon}</option>
+              ))}
             </select>
           </div>
         </div>
