@@ -206,15 +206,15 @@ export const ActionConditionWindow: React.FC = () => {
         <div className="h-px bg-border/30 -mt-2" />
 
         {/* Cycle Row */}
-        <div className={`flex items-end gap-3 transition-all duration-300 ${(type === 'playerRole' || type === 'playerTag') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+        <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'day' && type !== 'night' && type !== 'turn') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
             <div className="flex items-center h-[38px] justify-center">
               <input
                 type="checkbox"
-                checked={type !== 'playerRole' && type !== 'playerTag' && type !== 'playerPastille' && enabled}
+                checked={(type === 'day' || type === 'night' || type === 'turn') && enabled}
                 onChange={() => {
-                  if (type === 'playerRole' || type === 'playerTag' || type === 'playerPastille') {
+                  if (type !== 'day' && type !== 'night' && type !== 'turn') {
                     setType('day');
                     setEnabled(true);
                   } else {
@@ -229,8 +229,8 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cycle</label>
             <select
-              disabled={type === 'playerRole' || type === 'playerTag' || type === 'playerPastille' || !enabled}
-              value={(type === 'playerRole' || type === 'playerTag' || type === 'playerPastille') ? 'day' : type}
+              disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
+              value={(type !== 'day' && type !== 'night' && type !== 'turn') ? 'day' : type}
               onChange={(e) => setType(e.target.value as ActionConditionType)}
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -243,7 +243,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
-              disabled={type === 'playerRole' || type === 'playerTag' || type === 'playerPastille' || !enabled}
+              disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
               value={operator}
               onChange={(e) => setOperator(e.target.value as ActionOperator)}
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -260,7 +260,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-[0.7]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
             <input
-              disabled={type === 'playerRole' || type === 'playerTag' || type === 'playerPastille' || !enabled}
+              disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
               type="number"
               value={value}
               onChange={(e) => setValue(parseInt(e.target.value) || 0)}
