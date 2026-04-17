@@ -45,7 +45,7 @@ export const TAG_ICONS = [
 ];
 
 export const EditingModal: React.FC = () => {
-  const { editingEntity, setEditingEntity, players, playerTemplates, roles, teams, tags, tagCategories, markers, soundboard, handouts, customPopups, updatePlayer, updatePlayerTemplate, updateRole, updateTeam, updateTagModel, updateTagCategory, updateMarker, updateSoundButton, removeSoundButton, addLog } = useVttStore();
+  const { editingEntity, setEditingEntity, players, playerTemplates, roles, teams, tags, tagCategories, markers, soundboard, handouts, customPopups, actions, executeAction, updatePlayer, updatePlayerTemplate, updateRole, updateTeam, updateTagModel, updateTagCategory, updateMarker, updateSoundButton, removeSoundButton, addLog } = useVttStore();
   const [activeTagTab, setActiveTagTab] = React.useState<'general' | 'appearance' | 'fields' | 'container' | 'smartphone'>('general');
   const [expandedContainerCategories, setExpandedContainerCategories] = React.useState<Record<string, boolean>>({});
   const [isSmartphoneFiltersExpanded, setIsSmartphoneFiltersExpanded] = React.useState(false);
@@ -1349,6 +1349,20 @@ export const EditingModal: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="flex flex-col gap-1 mt-2">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Déclencher une Action</label>
+                  <select
+                    value={tag.smartphoneActionId || ''}
+                    onChange={(e) => updateTagModel(tag.id, { smartphoneActionId: e.target.value || null })}
+                    className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
+                  >
+                    <option value="">-- Aucune --</option>
+                    {[...actions].sort((a,b) => a.name.localeCompare(b.name)).map(a => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+
 
                 <div className="flex flex-col gap-1 mt-4 pt-4 border-t border-border/10">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">
@@ -1968,6 +1982,20 @@ export const EditingModal: React.FC = () => {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                <div className="flex flex-col gap-1 mt-2">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Déclencher une Action</label>
+                  <select
+                    value={tag.smartphoneActionId || ''}
+                    onChange={(e) => updateTagInstance({ smartphoneActionId: e.target.value || null })}
+                    className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
+                  >
+                    <option value="">-- Aucune --</option>
+                    {[...actions].sort((a,b) => a.name.localeCompare(b.name)).map(a => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
                 </div>
 
 

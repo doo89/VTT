@@ -247,6 +247,18 @@ export const initHostRealtime = (roomCode: string) => {
           }
         }
 
+        // 4.5 Handle Action triggering
+        if (tagData.smartphoneActionId) {
+          const actionInitialContext: any = {};
+          if (payload.playerId) {
+            actionInitialContext['$Joueur'] = state.players.find(p => p.id === payload.playerId);
+          }
+          if (payload.selectedPlayerIds && payload.selectedPlayerIds.length > 0) {
+            actionInitialContext['$Cible'] = state.players.find(p => p.id === payload.selectedPlayerIds[0]);
+          }
+          state.executeAction(tagData.smartphoneActionId, actionInitialContext);
+        }
+
         // 5. Handle auto-delete of UI for this tag
         if (payload.autoDeleteSmartphoneUI && payload.playerId && payload.tagInstanceId) {
           const player = state.players.find(p => p.id === payload.playerId);

@@ -87,6 +87,7 @@ export interface MarkerParameter {
   smartphoneShowPastille?: boolean;
   smartphoneMergeTagId?: EntityId | null;
   smartphoneSelfMergeTagId?: EntityId | null;
+  smartphoneActionId?: EntityId | null;
   // Filters for selector
   smartphoneFilterAlive?: boolean;
   smartphoneFilterDead?: boolean;

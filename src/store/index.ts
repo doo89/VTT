@@ -96,7 +96,7 @@ interface VttStore extends GameState {
   addAction: (action: Omit<Action, 'id'>) => void;
   updateAction: (id: string, updates: Partial<Action>) => void;
   deleteAction: (id: string) => void;
-  executeAction: (id: string) => void;
+  executeAction: (id: string, initialContext?: Record<string, any>) => void;
   setActionConditionCreatorState: (state: Partial<ActionConditionCreatorState>) => void;
   addPendingCondition: (condition: Omit<ActionCondition, 'id'>) => void;
   updatePendingCondition: (id: string, updates: Partial<ActionCondition>) => void;
@@ -644,7 +644,7 @@ export const useVttStore = create<VttStore>()(
           actions: state.actions.filter(a => a.id !== id)
         })),
         setPendingActionEnabled: (enabled: boolean) => set({ pendingActionEnabled: enabled }),
-        executeAction: (id) => {
+        executeAction: (id, initialContext) => {
           const run = (remaining: number) => {
             set((state: any) => {
               const action = state.actions.find((a: any) => a.id === id);
@@ -660,7 +660,7 @@ export const useVttStore = create<VttStore>()(
               
               
                 // Evaluation and Context
-                let actionContext: { [key: string]: any } = {};
+                let actionContext: { [key: string]: any } = initialContext ? { ...initialContext } : {};
 
                 const evaluate = (conditions: ActionCondition[]): { success: boolean, failReason?: string } => {
                   const activeConditions = (conditions || []).filter(c => c.enabled);
