@@ -254,7 +254,8 @@ export type ActionEffectType =
   | 'deleteAllPlayerTags'
   | 'setCycleDayNight'
   | 'setCycleTurn'
-  | 'setCycleNone';
+  | 'setCycleNone'
+  | 'popupPlayer';
 
 export interface ActionEffect {
   id: string;

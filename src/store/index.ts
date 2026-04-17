@@ -773,6 +773,7 @@ export const useVttStore = create<VttStore>()(
               let nextDisplaySettings = { ...state.displaySettings };
               
               let nextCycleMode = state.cycleMode;
+              let effectUpdates: any = {};
               
               action.effects?.forEach((effect: any) => {
                 if (!effect.enabled) return;
@@ -807,9 +808,34 @@ export const useVttStore = create<VttStore>()(
                     });
                   }
                 }
+                if (effect.type === 'popupPlayer') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const role = state.roles.find((r: any) => r.id === player.roleId);
+                    const playerName = player.name;
+                    const roleName = role?.name || 'Sans Rôle';
+                    const imageUrl = role?.imageUrl || player.imageUrl || '';
+                    
+                    const dynamicPopup = {
+                      id: `dynamic-joueur-${Date.now()}`,
+                      title: `Résultat : ${playerName}`,
+                      content: `<div class="flex flex-col items-center text-center gap-4">
+                        <div class="text-lg">Le joueur <strong>${playerName}</strong> est :</div>
+                        <div class="text-3xl font-black text-primary uppercase tracking-tighter">${roleName}</div>
+                      </div>`,
+                      imageUrl: imageUrl,
+                      showCloseButton: true,
+                      autoCloseTimer: true
+                    };
+                    
+                    effectUpdates.customPopups = [...(effectUpdates.customPopups || state.customPopups), dynamicPopup];
+                    effectUpdates.activeCustomPopupId = dynamicPopup.id;
+                  }
+                }
               });
-              
+
               const newState: any = { 
+                ...effectUpdates,
                 markers: nextMarkers, 
                 players: nextPlayers, 
                 displaySettings: nextDisplaySettings,

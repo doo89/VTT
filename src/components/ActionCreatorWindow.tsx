@@ -264,6 +264,7 @@ export const ActionCreatorWindow: React.FC = () => {
                        effect.type === 'hideRoleImage' ? "Cacher l'image du Rôle" :
                        effect.type === 'deleteAllPlayerTags' ? 'Supprimer tous les tags des joueurs' : 
                        effect.type === 'deleteSelectionPastilles' ? 'Supprimer les pastilles tags' :
+                       effect.type === 'popupPlayer' ? 'Popup $Joueur' :
                        effect.type}
                     </span>
                   </div>
