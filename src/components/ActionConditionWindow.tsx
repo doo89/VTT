@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useVttStore } from '../store';
 import { X, Check, icons } from 'lucide-react';
 import type { ActionConditionType, ActionOperator } from '../types';
+import { TAG_ICONS } from './EditingModal';
 
 export const ActionConditionWindow: React.FC = () => {
   const { 
@@ -32,12 +33,7 @@ export const ActionConditionWindow: React.FC = () => {
 
   const isEditing = !!actionConditionCreatorState.editingConditionId;
 
-  const allIcons = useMemo(() => {
-    const iconSet = new Set<string>(['User', 'Shield', 'Ghost', 'Heal', 'Skull', 'Target', 'Star', 'Heart', 'Coffee', 'Trash2', 'Zap', 'Eye', 'XCircle', 'CheckCircle']);
-    tags.forEach(t => { if (t.icon) iconSet.add(t.icon); });
-    // Also include any markers/icons that might be relevant
-    return Array.from(iconSet).sort();
-  }, [tags]);
+  const allIcons = TAG_ICONS;
 
   useEffect(() => {
     if (isEditing) {

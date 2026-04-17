@@ -24,7 +24,7 @@ const TEAM_ICONS = [
   'Volcano', 'Wallet', 'Watch', 'Wrench', 'YingYang'
 ];
 
-const TAG_ICONS = [
+export const TAG_ICONS = [
   'Tag', 'Shield', 'Sword', 'Heart', 'Star', 'Flag', 'Skull', 'Ghost',
   'Crown', 'Flame', 'Zap', 'Droplet', 'Sun', 'Moon', 'Eye', 'Feather',
   'Key', 'Anchor', 'Axe', 'Castle', 'Crosshair', 'Hexagon', 'Sprout', 'Target', 'Gem',
