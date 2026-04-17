@@ -285,10 +285,6 @@ export const initHostRealtime = (roomCode: string) => {
           state.updatePlayers(finalUpdates as any);
         }
 
-        // 6. Handle Smartphone Popup Trigger
-        if (payload.smartphonePopupId) {
-          state.triggerCustomPopup(payload.smartphonePopupId);
-        }
       }
     })
     .on('broadcast', { event: 'soundboard_action' }, ({ payload }) => {

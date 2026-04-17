@@ -1364,22 +1364,6 @@ export const EditingModal: React.FC = () => {
                 </div>
 
 
-                <div className="flex flex-col gap-1 mt-4 pt-4 border-t border-border/10">
-                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">
-                    <icons.MessageSquare size={12} className="text-indigo-400/70" />
-                    Déclencher une Popup
-                  </label>
-                  <select
-                    value={tag.smartphonePopupId || ''}
-                    onChange={(e) => updateTagModel(tag.id, { smartphonePopupId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">-- Aucune --</option>
-                    {[...customPopups].sort((a,b) => a.title.localeCompare(b.title)).map(p => (
-                      <option key={p.id} value={p.id}>{p.title}</option>
-                    ))}
-                  </select>
-                </div>
 
                 <div className="flex flex-col gap-1 mt-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">
@@ -1999,22 +1983,6 @@ export const EditingModal: React.FC = () => {
                 </div>
 
 
-                <div className="flex flex-col gap-1 mt-4 pt-4 border-t border-border/10">
-                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">
-                    <icons.BookOpen size={12} className="text-primary/50" />
-                    Déclencher une Popup
-                  </label>
-                  <select
-                    value={tag.smartphonePopupId || ''}
-                    onChange={(e) => updateTagInstance({ smartphonePopupId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">-- Aucune --</option>
-                    {[...customPopups].sort((a,b) => a.title.localeCompare(b.title)).map(p => (
-                      <option key={p.id} value={p.id}>{p.title}</option>
-                    ))}
-                  </select>
-                </div>
 
                 <div className="flex flex-col gap-1 mt-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">

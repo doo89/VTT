@@ -57,7 +57,7 @@ export const PlayerView: React.FC = () => {
     }).catch(console.error);
   };
 
-  const handleSmartphoneAction = (tagInstanceId: string, buttonFeedback: string, isSelector: boolean, autoDelete: boolean, playerFeedback?: string, returnInfo?: string, smartphonePopupId?: string | null) => {
+  const handleSmartphoneAction = (tagInstanceId: string, buttonFeedback: string, isSelector: boolean, autoDelete: boolean, playerFeedback?: string, returnInfo?: string) => {
     if (!localPlayer || !channelRef.current) return;
     
     let feedbackAddon = '';
@@ -79,8 +79,7 @@ export const PlayerView: React.FC = () => {
         feedbackMessage: buttonFeedback + feedbackAddon,
         autoDeleteSmartphoneUI: autoDelete,
         selectedPlayerIds: isSelector ? (selectedPlayersByTag[tagInstanceId] || []) : [],
-        smartphoneReturnInfo: returnInfo,
-        smartphonePopupId: smartphonePopupId
+        smartphoneReturnInfo: returnInfo
       }
     }).catch(console.error);
 
@@ -671,7 +670,7 @@ export const PlayerView: React.FC = () => {
                           )}
                           {tag.smartphoneButtonText && (
                             <button
-                              onClick={() => handleSmartphoneAction(tagId, tag.smartphoneButtonFeedback || '', (!!tag.isMultiPlayerSelector || !!tag.isSinglePlayerSelector), !!tag.smartphoneAutoDelete, tag.smartphonePlayerFeedback, tag.smartphoneReturnInfo, tag.smartphonePopupId)}
+                              onClick={() => handleSmartphoneAction(tagId, tag.smartphoneButtonFeedback || '', (!!tag.isMultiPlayerSelector || !!tag.isSinglePlayerSelector), !!tag.smartphoneAutoDelete, tag.smartphonePlayerFeedback, tag.smartphoneReturnInfo)}
                               className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors w-full uppercase tracking-wider shadow-lg shadow-blue-900/20 active:scale-95"
                             >
                               {tag.smartphoneButtonText}

@@ -98,7 +98,6 @@ export interface MarkerParameter {
   smartphoneFilterNotMyTeam?: boolean;
   smartphoneFilterNotThisTag?: boolean;
   smartphoneFilterExcludeTagId?: EntityId | null;
-  smartphonePopupId?: EntityId | null;
   smartphoneIsCheckRoleEnabled?: boolean;
   smartphoneCheckRoleId?: EntityId | null;
   smartphoneCheckRoleVague?: boolean;
