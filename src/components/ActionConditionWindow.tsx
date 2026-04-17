@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useVttStore } from '../store';
-import { X, Check } from 'lucide-react';
+import { X, Check, icons } from 'lucide-react';
 import type { ActionConditionType, ActionOperator } from '../types';
 
 export const ActionConditionWindow: React.FC = () => {
@@ -386,16 +386,23 @@ export const ActionConditionWindow: React.FC = () => {
 
           <div className="flex flex-col gap-1.5 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Pastille</label>
-            <select
-              disabled={type !== 'playerPastille' || !enabled}
-              value={pastilleIcon || ''}
-              onChange={(e) => setPastilleIcon(e.target.value)}
-              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {allIcons.map((icon: string) => (
-                <option key={icon} value={icon}>{icon}</option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <select
+                disabled={type !== 'playerPastille' || !enabled}
+                value={pastilleIcon || ''}
+                onChange={(e) => setPastilleIcon(e.target.value)}
+                className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {allIcons.map((icon: string) => (
+                  <option key={icon} value={icon}>{icon}</option>
+                ))}
+              </select>
+              {pastilleIcon && (icons as any)[pastilleIcon] && (
+                <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-lg border border-border p-1 shadow-inner shrink-0">
+                  {React.createElement((icons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
