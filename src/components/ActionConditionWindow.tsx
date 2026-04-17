@@ -27,7 +27,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [roleId, setRoleId] = useState<string | null>(null);
   const [tagId, setTagId] = useState<string | null>(null);
   const [pastilleIcon, setPastilleIcon] = useState<string | null>(null);
-  const [selectionType, setSelectionType] = useState<'first' | 'last' | null>('first');
+  const [selectionType, setSelectionType] = useState<'first' | 'last' | 'all' | null>('first');
   const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
 
   const isEditing = !!actionConditionCreatorState.editingConditionId;
@@ -362,11 +362,12 @@ export const ActionConditionWindow: React.FC = () => {
             <select
               disabled={type !== 'playerSelection' || !enabled}
               value={selectionType || 'first'}
-              onChange={(e) => setSelectionType(e.target.value as 'first' | 'last')}
+              onChange={(e) => setSelectionType(e.target.value as 'first' | 'last' | 'all')}
               className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="first">Le premier joueur (ordre croissant)</option>
               <option value="last">Le dernier joueur (ordre décroissant)</option>
+              <option value="all">Tous les joueurs</option>
             </select>
           </div>
 

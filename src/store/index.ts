@@ -686,6 +686,19 @@ export const useVttStore = create<VttStore>()(
                     return false;
                   }
                   if (c.type === 'playerSelection') {
+                    if (c.selectionType === 'all') {
+                      const matchingPlayers = state.players.filter((p: any) => {
+                        if (c.operator === '=') return p.roleId === c.selectionRoleId;
+                        if (c.operator === '!=') return p.roleId !== c.selectionRoleId;
+                        return false;
+                      });
+                      if (matchingPlayers.length > 0) {
+                        const names = matchingPlayers.map((p: any) => p.name).join(', ');
+                        actionContext['$Joueur'] = { ...matchingPlayers[0], name: names };
+                        return true;
+                      }
+                      return false;
+                    }
                     const sortedPlayers = [...state.players];
                     if (c.selectionType === 'last') sortedPlayers.reverse();
                     const foundPlayer = sortedPlayers.find(p => {

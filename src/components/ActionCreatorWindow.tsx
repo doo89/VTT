@@ -198,7 +198,7 @@ export const ActionCreatorWindow: React.FC = () => {
                          {condition.type === 'playerRole' ? (roles.find(r => r.id === condition.roleId)?.name || 'Inconnu') : 
                           condition.type === 'playerTag' ? (tags.find((t: any) => t.id === condition.tagId)?.name || 'Inconnu') :
                           condition.type === 'playerPastille' ? (condition.pastilleIcon || 'Icon') :
-                          condition.type === 'playerSelection' ? `${condition.selectionType === 'first' ? '1er' : 'Dernier'} : ${roles.find(r => r.id === condition.selectionRoleId)?.name || 'Inconnu'}` :
+                          condition.type === 'playerSelection' ? `${condition.selectionType === 'first' ? '1er' : condition.selectionType === 'last' ? 'Dernier' : 'Tous'} : ${roles.find(r => r.id === condition.selectionRoleId)?.name || 'Inconnu'}` :
                           condition.value}
                       </span>
                     </div>

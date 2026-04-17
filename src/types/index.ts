@@ -274,7 +274,7 @@ export interface ActionCondition {
   roleId?: string | null;
   tagId?: string | null;
   pastilleIcon?: string | null;
-  selectionType?: 'first' | 'last' | null;
+  selectionType?: 'first' | 'last' | 'all' | null;
   selectionRoleId?: string | null;
   enabled: boolean;
   logic?: 'AND' | 'OR';
