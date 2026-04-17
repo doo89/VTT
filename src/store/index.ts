@@ -245,6 +245,7 @@ export const initialState = {
   pendingActionIsRecurring: false,
   pendingActionIntervalSeconds: 5,
   pendingActionRepeatCount: 2,
+  pendingActionEnabled: true,
   activeLeftTab: 'players' as const,
   editingEntity: null,
   smartphoneActionMessage: null,
@@ -640,11 +641,15 @@ export const useVttStore = create<VttStore>()(
         })),
         deleteAction: (id) => set((state) => ({
           actions: state.actions.filter(a => a.id !== id)
-        })),        executeAction: (id) => {
+        })),
+        setPendingActionEnabled: (enabled) => set({ pendingActionEnabled: enabled }),
+        executeAction: (id) => {
           const run = (remaining: number) => {
             set((state: any) => {
               const action = state.actions.find((a: any) => a.id === id);
               if (!action) return {};
+              
+              if (action.enabled === false) return {};
               
               if (action.once && action.isExecuted) {
                 state.addLog(`Action "${action.name}" déjà exécutée (Action unique)`, 'system');

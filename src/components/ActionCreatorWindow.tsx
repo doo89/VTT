@@ -20,6 +20,8 @@ export const ActionCreatorWindow: React.FC = () => {
     pendingActionIntervalSeconds,
     pendingActionRepeatCount,
     setPendingRecurring,
+    pendingActionEnabled,
+    setPendingActionEnabled,
     setActionEffectCreatorState,
     pendingActionEffects,
     clearPendingEffects,
@@ -38,6 +40,7 @@ export const ActionCreatorWindow: React.FC = () => {
         setActionName(action.name);
         setPendingOnce(action.once || false);
         setPendingRecurring(action.isRecurring || false, action.intervalSeconds || 5, action.repeatCount || 2);
+        setPendingActionEnabled(action.enabled !== false);
       }
     }
   }, [isEditingAction, actionCreatorState.editingActionId, actions]);
@@ -81,6 +84,7 @@ export const ActionCreatorWindow: React.FC = () => {
     setActionConditionCreatorState({ isOpen: false, editingConditionId: null });
     setActionEffectCreatorState({ isOpen: false, editingEffectId: null });
     setActionName('');
+    setPendingActionEnabled(true);
     clearPendingConditions();
     clearPendingEffects();
   };
@@ -94,7 +98,8 @@ export const ActionCreatorWindow: React.FC = () => {
       once: pendingActionOnce,
       isRecurring: pendingActionIsRecurring,
       intervalSeconds: pendingActionIntervalSeconds,
-      repeatCount: pendingActionRepeatCount
+      repeatCount: pendingActionRepeatCount,
+      enabled: pendingActionEnabled
     };
 
     if (isEditingAction && actionCreatorState.editingActionId) {
@@ -154,6 +159,19 @@ export const ActionCreatorWindow: React.FC = () => {
               if (e.key === 'Enter' && actionName.trim()) handleSave();
               if (e.key === 'Escape') handleClose();
             }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between bg-zinc-800/10 p-2.5 rounded-lg border border-border/20">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-bold text-foreground">Action active</span>
+            <span className="text-[10px] text-muted-foreground">Désactiver pour griser le bouton dans les outils</span>
+          </div>
+          <input
+            type="checkbox"
+            checked={pendingActionEnabled}
+            onChange={(e) => setPendingActionEnabled(e.target.checked)}
+            className="w-5 h-5 rounded border-border text-primary focus:ring-primary transition-all cursor-pointer"
           />
         </div>
 

@@ -826,7 +826,12 @@ export const RightPanel: React.FC = () => {
                       <div key={action.id} className="flex items-center gap-1.5 w-full group animate-in slide-in-from-right-2 duration-200">
                         <button
                           onClick={() => executeAction(action.id)}
-                          className="flex-1 bg-green-600/10 hover:bg-green-600/20 text-green-400 rounded-md text-[10px] uppercase font-bold py-2 px-3 transition-all border border-green-500/20 flex items-center gap-2 shadow-sm truncate"
+                          disabled={action.enabled === false}
+                          className={`flex-1 rounded-md text-[10px] uppercase font-bold py-2 px-3 transition-all border flex items-center gap-2 shadow-sm truncate ${
+                            action.enabled !== false 
+                              ? 'bg-green-600/10 hover:bg-green-600/20 text-green-400 border-green-500/20' 
+                              : 'bg-muted/30 text-muted-foreground border-border/10 cursor-not-allowed opacity-60'
+                          }`}
                         >
                           <Play size={10} className="shrink-0" />
                           <span className="truncate">{action.name}</span>

@@ -238,6 +238,7 @@ export interface Action {
   intervalSeconds?: number;
   repeatCount?: number;
   currentRepeatExecution?: number;
+  enabled?: boolean;
 }
 
 export type ActionEffectType = 
