@@ -132,6 +132,10 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="showRoleImage">Afficher l'image du Rôle</option>
               <option value="hideRoleImage">Cacher l'image du Rôle</option>
               <option value="popupPlayer">Popup $Joueur</option>
+              <option value="showPlayerTooltip">Afficher l'info bulle des joueurs</option>
+              <option value="hidePlayerTooltip">Masquer l'info bulle des joueurs</option>
+              <option value="showTagTooltip">Afficher l'info bulle des tags</option>
+              <option value="hideTagTooltip">Masquer l'info bulle des tags</option>
             </select>
           </div>
 

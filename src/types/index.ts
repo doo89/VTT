@@ -256,7 +256,11 @@ export type ActionEffectType =
   | 'setCycleDayNight'
   | 'setCycleTurn'
   | 'setCycleNone'
-  | 'popupPlayer';
+  | 'popupPlayer'
+  | 'showPlayerTooltip'
+  | 'hidePlayerTooltip'
+  | 'showTagTooltip'
+  | 'hideTagTooltip';
 
 export interface ActionEffect {
   id: string;
