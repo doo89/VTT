@@ -826,7 +826,6 @@ export const useVttStore = create<VttStore>()(
             run(1);
           }
         },
-  }),
         setActionConditionCreatorState: (update) => set((state) => ({ 
           actionConditionCreatorState: { ...state.actionConditionCreatorState, ...update } 
         })),
