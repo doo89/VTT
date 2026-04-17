@@ -214,6 +214,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
             <div className="flex items-center h-[38px] justify-center">
+              <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">1.</span>
               <input
                 type="checkbox"
                 checked={(type === 'day' || type === 'night' || type === 'turn') && enabled}
@@ -279,6 +280,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
             <div className="flex items-center h-[38px] justify-center">
+              <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">2.</span>
               <input
                 type="checkbox"
                 checked={type === 'playerRole' && enabled}
@@ -344,6 +346,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
             <div className="flex items-center h-[38px] justify-center">
+              <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">3.</span>
               <input
                 type="checkbox"
                 checked={type === 'playerSelection' && enabled}
@@ -411,6 +414,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
             <div className="flex items-center h-[38px] justify-center">
+              <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">4.</span>
               <input
                 type="checkbox"
                 checked={type === 'playerTag' && enabled}
@@ -476,6 +480,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
             <div className="flex items-center h-[38px] justify-center">
+              <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">5.</span>
               <input
                 type="checkbox"
                 checked={type === 'playerDistance' && enabled}
@@ -542,6 +547,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
             <div className="flex items-center h-[38px] justify-center">
+              <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">6.</span>
               <input
                 type="checkbox"
                 checked={type === 'playerPastille' && enabled}
