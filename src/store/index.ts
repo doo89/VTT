@@ -651,10 +651,12 @@ export const useVttStore = create<VttStore>()(
                 return {};
               }
               
-              // Evaluate conditions
-              const evaluate = (conditions: ActionCondition[]): { success: boolean, failReason?: string } => {
-                const activeConditions = (conditions || []).filter(c => c.enabled);
-                if (activeConditions.length === 0) return { success: true };
+                // Evaluation and Context
+                let actionContext: { [key: string]: any } = {};
+
+                const evaluate = (conditions: ActionCondition[]): { success: boolean, failReason?: string } => {
+                  const activeConditions = (conditions || []).filter(c => c.enabled);
+                  if (activeConditions.length === 0) return { success: true };
 
                 const checkSingle = (c: ActionCondition): boolean => {
                   if (c.type === 'playerRole') {
@@ -681,6 +683,20 @@ export const useVttStore = create<VttStore>()(
                     const hasPastille = (player.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon);
                     if (c.operator === '=') return hasPastille;
                     if (c.operator === '!=') return !hasPastille;
+                    return false;
+                  }
+                  if (c.type === 'playerSelection') {
+                    const sortedPlayers = [...state.players];
+                    if (c.selectionType === 'last') sortedPlayers.reverse();
+                    const foundPlayer = sortedPlayers.find(p => {
+                      if (c.operator === '=') return p.roleId === c.selectionRoleId;
+                      if (c.operator === '!=') return p.roleId !== c.selectionRoleId;
+                      return false;
+                    });
+                    if (foundPlayer) {
+                      actionContext['$Joueur'] = foundPlayer;
+                      return true;
+                    }
                     return false;
                   }
 
@@ -717,6 +733,11 @@ export const useVttStore = create<VttStore>()(
                   }
                   if (c.type === 'playerPastille') {
                     return `Joueur ${c.value} ${c.operator} Pastille ${c.pastilleIcon}`;
+                  }
+                  if (c.type === 'playerSelection') {
+                    const roleName = state.roles.find((r: any) => r.id === c.selectionRoleId)?.name || 'Inconnu';
+                    const selectionLabel = c.selectionType === 'first' ? '1er Joueur' : 'Dernier Joueur';
+                    return `${selectionLabel} ${c.operator} ${roleName}`;
                   }
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
                   return `${typeLabel} ${c.operator} ${c.value}`;

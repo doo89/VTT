@@ -27,6 +27,8 @@ export const ActionConditionWindow: React.FC = () => {
   const [roleId, setRoleId] = useState<string | null>(null);
   const [tagId, setTagId] = useState<string | null>(null);
   const [pastilleIcon, setPastilleIcon] = useState<string | null>(null);
+  const [selectionType, setSelectionType] = useState<'first' | 'last' | null>('first');
+  const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
 
   const isEditing = !!actionConditionCreatorState.editingConditionId;
 
@@ -48,6 +50,8 @@ export const ActionConditionWindow: React.FC = () => {
         setRoleId(condition.roleId || (roles[0]?.id || null));
         setTagId(condition.tagId || (tags[0]?.id || null));
         setPastilleIcon(condition.pastilleIcon || allIcons[0]);
+        setSelectionType(condition.selectionType || 'first');
+        setSelectionRoleId(condition.selectionRoleId || (roles[0]?.id || null));
       }
     } else {
       setType('day');
@@ -57,6 +61,8 @@ export const ActionConditionWindow: React.FC = () => {
       setRoleId(roles[0]?.id || null);
       setTagId(tags[0]?.id || null);
       setPastilleIcon(allIcons[0]);
+      setSelectionType('first');
+      setSelectionRoleId(roles[0]?.id || null);
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
   const [isDragging, setIsDragging] = useState(false);
@@ -105,7 +111,9 @@ export const ActionConditionWindow: React.FC = () => {
       enabled, 
       roleId: type === 'playerRole' ? roleId : null,
       tagId: type === 'playerTag' ? tagId : null,
-      pastilleIcon: type === 'playerPastille' ? pastilleIcon : null
+      pastilleIcon: type === 'playerPastille' ? pastilleIcon : null,
+      selectionType: type === 'playerSelection' ? selectionType : null,
+      selectionRoleId: type === 'playerSelection' ? selectionRoleId : null
     };
     if (isEditing && actionConditionCreatorState.editingConditionId) {
       updatePendingCondition(actionConditionCreatorState.editingConditionId, conditionData);
@@ -117,7 +125,7 @@ export const ActionConditionWindow: React.FC = () => {
 
   return (
     <div 
-      className={`fixed z-[3100] w-96 bg-card border-2 border-orange-500/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''}`}
+      className={`fixed z-[3100] w-[576px] bg-card border-2 border-orange-500/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''}`}
       style={{
         left: actionConditionCreatorState.x,
         top: actionConditionCreatorState.y,
@@ -315,6 +323,72 @@ export const ActionConditionWindow: React.FC = () => {
               disabled={type !== 'playerRole' || !enabled}
               value={roleId || ''}
               onChange={(e) => setRoleId(e.target.value)}
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {roles.map(role => (
+                <option key={role.id} value={role.id}>{role.name}</option>
+              ))}
+              {roles.length === 0 && <option value="">Aucun rôle</option>}
+            </select>
+          </div>
+        </div>
+
+        <div className="h-px bg-border/50" />
+
+        {/* Player Selection Row */}
+        <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerSelection' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+          <div className="flex flex-col gap-1.5 pb-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+            <div className="flex items-center h-[38px] justify-center">
+              <input
+                type="checkbox"
+                checked={type === 'playerSelection' && enabled}
+                onChange={() => {
+                  if (type !== 'playerSelection') {
+                    setType('playerSelection');
+                    setEnabled(true);
+                    setOperator('=');
+                  } else {
+                    setEnabled(!enabled);
+                  }
+                }}
+                className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-[1.2]">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
+            <select
+              disabled={type !== 'playerSelection' || !enabled}
+              value={selectionType || 'first'}
+              onChange={(e) => setSelectionType(e.target.value as 'first' | 'last')}
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="first">Le premier joueur (ordre croissant)</option>
+              <option value="last">Le dernier joueur (ordre décroissant)</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-[0.5]">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
+            <select
+              disabled={type !== 'playerSelection' || !enabled}
+              value={operator}
+              onChange={(e) => setOperator(e.target.value as ActionOperator)}
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="=">=</option>
+              <option value="!=">!=</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
+            <select
+              disabled={type !== 'playerSelection' || !enabled}
+              value={selectionRoleId || ''}
+              onChange={(e) => setSelectionRoleId(e.target.value)}
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {roles.map(role => (
