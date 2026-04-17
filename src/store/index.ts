@@ -364,7 +364,7 @@ export const initialState = {
 export const useVttStore = create<VttStore>()(
   persist(
     temporal(
-      (set) => ({
+      (set, get) => ({
         ...initialState,
 
     // Selection & Interaction
