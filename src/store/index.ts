@@ -760,6 +760,10 @@ export const useVttStore = create<VttStore>()(
                     const selectionLabel = c.selectionType === 'first' ? '1er Joueur' : 'Dernier Joueur';
                     return `${selectionLabel} ${c.operator} ${roleName}`;
                   }
+                  if (c.type === 'playerDistance') {
+                    const roleName = state.roles.find((r: any) => r.id === c.distanceTargetRoleId)?.name || 'Inconnu';
+                    return `Distance ${c.value} de : ${c.distanceFromPlayerId} (${roleName})`;
+                  }
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
                   return `${typeLabel} ${c.operator} ${c.value}`;
                 };

@@ -30,6 +30,8 @@ export const ActionConditionWindow: React.FC = () => {
   const [pastilleIcon, setPastilleIcon] = useState<string | null>(null);
   const [selectionType, setSelectionType] = useState<'first' | 'last' | 'all' | null>('first');
   const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
+  const [distanceFromPlayerId, setDistanceFromPlayerId] = useState<string | null>('$Joueur');
+  const [distanceTargetRoleId, setDistanceTargetRoleId] = useState<string | null>(null);
 
   const isEditing = !!actionConditionCreatorState.editingConditionId;
 
@@ -48,6 +50,8 @@ export const ActionConditionWindow: React.FC = () => {
         setPastilleIcon(condition.pastilleIcon || allIcons[0]);
         setSelectionType(condition.selectionType || 'first');
         setSelectionRoleId(condition.selectionRoleId || (roles[0]?.id || null));
+        setDistanceFromPlayerId(condition.distanceFromPlayerId || '$Joueur');
+        setDistanceTargetRoleId(condition.distanceTargetRoleId || (roles[0]?.id || null));
       }
     } else {
       setType('day');
@@ -59,6 +63,8 @@ export const ActionConditionWindow: React.FC = () => {
       setPastilleIcon(allIcons[0]);
       setSelectionType('first');
       setSelectionRoleId(roles[0]?.id || null);
+      setDistanceFromPlayerId('$Joueur');
+      setDistanceTargetRoleId(roles[0]?.id || null);
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
   const [isDragging, setIsDragging] = useState(false);
@@ -109,7 +115,9 @@ export const ActionConditionWindow: React.FC = () => {
       tagId: type === 'playerTag' ? tagId : null,
       pastilleIcon: type === 'playerPastille' ? pastilleIcon : null,
       selectionType: type === 'playerSelection' ? selectionType : null,
-      selectionRoleId: type === 'playerSelection' ? selectionRoleId : null
+      selectionRoleId: type === 'playerSelection' ? selectionRoleId : null,
+      distanceFromPlayerId: type === 'playerDistance' ? distanceFromPlayerId : null,
+      distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null
     };
     if (isEditing && actionConditionCreatorState.editingConditionId) {
       updatePendingCondition(actionConditionCreatorState.editingConditionId, conditionData);
@@ -457,6 +465,72 @@ export const ActionConditionWindow: React.FC = () => {
                 <option key={tag.id} value={tag.id}>{tag.name}</option>
               ))}
               {tags.length === 0 && <option value="">Aucun tag</option>}
+            </select>
+          </div>
+        </div>
+
+        <div className="h-px bg-border/50" />
+
+        {/* Player Distance Row */}
+        <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerDistance' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+          <div className="flex flex-col gap-1.5 pb-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+            <div className="flex items-center h-[38px] justify-center">
+              <input
+                type="checkbox"
+                checked={type === 'playerDistance' && enabled}
+                onChange={() => {
+                  if (type !== 'playerDistance') {
+                    setType('playerDistance');
+                    setEnabled(true);
+                  } else {
+                    setEnabled(!enabled);
+                  }
+                }}
+                className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1 flex-[0.5]">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+            <input
+              disabled={type !== 'playerDistance' || !enabled}
+              type="number"
+              value={type === 'playerDistance' ? value : 0}
+              onChange={(e) => setValue(parseInt(e.target.value) || 0)}
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+             <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">de la position de :</span>
+          </div>
+
+          <div className="flex flex-col gap-1 flex-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
+            <select
+              disabled={type !== 'playerDistance' || !enabled}
+              value={distanceFromPlayerId || '$Joueur'}
+              onChange={(e) => setDistanceFromPlayerId(e.target.value)}
+              className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="$Joueur">$Joueur</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1 flex-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
+            <select
+              disabled={type !== 'playerDistance' || !enabled}
+              value={distanceTargetRoleId || ''}
+              onChange={(e) => setDistanceTargetRoleId(e.target.value)}
+              className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(role => (
+                <option key={role.id} value={role.id}>{role.name}</option>
+              ))}
+              {roles.length === 0 && <option value="">Aucun rôle</option>}
             </select>
           </div>
         </div>

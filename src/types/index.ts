@@ -270,7 +270,7 @@ export interface ActionEffect {
   enabled: boolean;
 }
 
-export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection';
+export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance';
 export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=';
 
 export interface ActionCondition {
@@ -283,6 +283,8 @@ export interface ActionCondition {
   pastilleIcon?: string | null;
   selectionType?: 'first' | 'last' | 'all' | null;
   selectionRoleId?: string | null;
+  distanceFromPlayerId?: string | null;
+  distanceTargetRoleId?: string | null;
   enabled: boolean;
   logic?: 'AND' | 'OR';
 }
