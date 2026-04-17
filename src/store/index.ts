@@ -858,17 +858,25 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'distributeRoles') {
                   const rolesToDistribute = state.roles.filter((r: any) => r.isSelectableForDistribution);
                   if (rolesToDistribute.length > 0) {
-                    let rolePool: string[] = [];
+                    let rolePool: { id: string, teamId: string | null }[] = [];
                     rolesToDistribute.forEach((role: any) => {
-                      const qty = role.distributionQuantity || 1;
-                      for (let i = 0; i < qty; i++) { rolePool.push(role.id); }
+                      const qty = role.isUnique ? 1 : (role.distributionQuantity || 1);
+                      for (let i = 0; i < qty; i++) { 
+                        rolePool.push({ id: role.id, teamId: role.teamId }); 
+                      }
                     });
                     for (let i = rolePool.length - 1; i > 0; i--) {
                       const j = Math.floor(Math.random() * (i + 1));
                       [rolePool[i], rolePool[j]] = [rolePool[j], rolePool[i]];
                     }
                     nextPlayers = nextPlayers.map((player, idx) => {
-                      if (idx < rolePool.length) return { ...player, roleId: rolePool[idx] };
+                      if (idx < rolePool.length) {
+                        return { 
+                          ...player, 
+                          roleId: rolePool[idx].id, 
+                          teamId: rolePool[idx].teamId 
+                        };
+                      }
                       return player;
                     });
                   }
