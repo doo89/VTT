@@ -177,13 +177,14 @@ export const ActionCreatorWindow: React.FC = () => {
                   <div key={condition.id} className={`flex items-center justify-between gap-2 bg-background border border-border/50 rounded p-1.5 shadow-sm text-[10px] font-medium animate-in slide-in-from-left-2 duration-200 ${!condition.enabled ? 'opacity-50 grayscale' : ''}`}>
                     <div className="flex items-center gap-2">
                       <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase font-bold text-[9px]">
-                        {condition.type === 'playerRole' || condition.type === 'playerTag' ? `Joueur ${condition.value}` : condition.type === 'day' ? 'Jour' : condition.type === 'night' ? 'Nuit' : 'Tour'}
+                        {condition.type === 'playerRole' || condition.type === 'playerTag' || condition.type === 'playerPastille' ? `Joueur ${condition.value}` : condition.type === 'day' ? 'Jour' : condition.type === 'night' ? 'Nuit' : 'Tour'}
                       </span>
                       <span className="font-mono font-bold text-muted-foreground">{condition.operator}</span>
                       <span className="font-bold">
-                        {condition.type === 'playerRole' ? (roles.find(r => r.id === condition.roleId)?.name || 'Inconnu') : 
-                         condition.type === 'playerTag' ? (tags.find((t: any) => t.id === condition.tagId)?.name || 'Inconnu') :
-                         condition.value}
+                         {condition.type === 'playerRole' ? (roles.find(r => r.id === condition.roleId)?.name || 'Inconnu') : 
+                          condition.type === 'playerTag' ? (tags.find((t: any) => t.id === condition.tagId)?.name || 'Inconnu') :
+                          condition.type === 'playerPastille' ? (condition.pastilleIcon || 'Icon') :
+                          condition.value}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">

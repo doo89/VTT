@@ -671,6 +671,21 @@ export const useVttStore = create<VttStore>()(
                 return false;
               }
 
+              if (c.type === 'playerPastille') {
+                const player = state.players.find(p => (p.creationOrder || 0) === c.value) 
+                               || state.players[c.value - 1];
+                
+                if (!player) return false;
+                
+                const hasPastille = (player.selectionPastilles || []).some(p => p.icon === c.pastilleIcon);
+                if (c.operator === '=') {
+                  return hasPastille;
+                } else if (c.operator === '!=') {
+                  return !hasPastille;
+                }
+                return false;
+              }
+
               let compareVal = 0;
               if (c.type === 'day') {
                 if (state.isNight) return false;
@@ -701,6 +716,9 @@ export const useVttStore = create<VttStore>()(
               if (c.type === 'playerTag') {
                 const tagName = state.tags.find(t => t.id === c.tagId)?.name || 'Inconnu';
                 return `Joueur ${c.value} ${c.operator} ${tagName}`;
+              }
+              if (c.type === 'playerPastille') {
+                return `Joueur ${c.value} ${c.operator} Pastille ${c.pastilleIcon}`;
               }
               const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
               return `${typeLabel} ${c.operator} ${c.value}`;

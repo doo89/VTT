@@ -20,8 +20,16 @@ export const ActionConditionWindow: React.FC = () => {
   const [enabled, setEnabled] = useState(true);
   const [roleId, setRoleId] = useState<string | null>(null);
   const [tagId, setTagId] = useState<string | null>(null);
+  const [pastilleIcon, setPastilleIcon] = useState<string | null>(null);
 
   const isEditing = !!actionConditionCreatorState.editingConditionId;
+
+  const allIcons = useMemo(() => {
+    const iconSet = new Set<string>(['User', 'Shield', 'Ghost', 'Heal', 'Skull', 'Target', 'Star', 'Heart', 'Coffee', 'Trash2', 'Zap', 'Eye', 'XCircle', 'CheckCircle']);
+    tags.forEach(t => { if (t.icon) iconSet.add(t.icon); });
+    // Also include any markers/icons that might be relevant
+    return Array.from(iconSet).sort();
+  }, [tags]);
 
   useEffect(() => {
     if (isEditing) {
@@ -33,6 +41,7 @@ export const ActionConditionWindow: React.FC = () => {
         setEnabled(condition.enabled ?? true);
         setRoleId(condition.roleId || (roles[0]?.id || null));
         setTagId(condition.tagId || (tags[0]?.id || null));
+        setPastilleIcon(condition.pastilleIcon || allIcons[0]);
       }
     } else {
       setType('day');
@@ -41,8 +50,9 @@ export const ActionConditionWindow: React.FC = () => {
       setEnabled(true);
       setRoleId(roles[0]?.id || null);
       setTagId(tags[0]?.id || null);
+      setPastilleIcon(allIcons[0]);
     }
-  }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags]);
+  }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -88,7 +98,8 @@ export const ActionConditionWindow: React.FC = () => {
       value, 
       enabled, 
       roleId: type === 'playerRole' ? roleId : null,
-      tagId: type === 'playerTag' ? tagId : null
+      tagId: type === 'playerTag' ? tagId : null,
+      pastilleIcon: type === 'playerPastille' ? pastilleIcon : null
     };
     if (isEditing && actionConditionCreatorState.editingConditionId) {
       updatePendingCondition(actionConditionCreatorState.editingConditionId, conditionData);
@@ -138,9 +149,9 @@ export const ActionConditionWindow: React.FC = () => {
             <div className="flex items-center h-[38px] justify-center">
               <input
                 type="checkbox"
-                checked={type !== 'playerRole' && type !== 'playerTag' && enabled}
+                checked={type !== 'playerRole' && type !== 'playerTag' && type !== 'playerPastille' && enabled}
                 onChange={() => {
-                  if (type === 'playerRole' || type === 'playerTag') {
+                  if (type === 'playerRole' || type === 'playerTag' || type === 'playerPastille') {
                     setType('day');
                     setEnabled(true);
                   } else {
@@ -155,8 +166,8 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cycle</label>
             <select
-              disabled={type === 'playerRole' || type === 'playerTag' || !enabled}
-              value={(type === 'playerRole' || type === 'playerTag') ? 'day' : type}
+              disabled={type === 'playerRole' || type === 'playerTag' || type === 'playerPastille' || !enabled}
+              value={(type === 'playerRole' || type === 'playerTag' || type === 'playerPastille') ? 'day' : type}
               onChange={(e) => setType(e.target.value as ActionConditionType)}
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -169,7 +180,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
-              disabled={type === 'playerRole' || type === 'playerTag' || !enabled}
+              disabled={type === 'playerRole' || type === 'playerTag' || type === 'playerPastille' || !enabled}
               value={operator}
               onChange={(e) => setOperator(e.target.value as ActionOperator)}
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -186,7 +197,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-[0.7]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
             <input
-              disabled={type === 'playerRole' || type === 'playerTag' || !enabled}
+              disabled={type === 'playerRole' || type === 'playerTag' || type === 'playerPastille' || !enabled}
               type="number"
               value={value}
               onChange={(e) => setValue(parseInt(e.target.value) || 0)}
@@ -320,6 +331,73 @@ export const ActionConditionWindow: React.FC = () => {
                 <option key={tag.id} value={tag.id}>{tag.name}</option>
               ))}
               {tags.length === 0 && <option value="">Aucun tag</option>}
+            </select>
+          </div>
+        </div>
+
+        <div className="h-px bg-border/50" />
+
+        {/* Player Pastille Row */}
+        <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerPastille' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+          <div className="flex flex-col gap-1.5 pb-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+            <div className="flex items-center h-[38px] justify-center">
+              <input
+                type="checkbox"
+                checked={type === 'playerPastille' && enabled}
+                onChange={() => {
+                  if (type !== 'playerPastille') {
+                    setType('playerPastille');
+                    setEnabled(true);
+                    setOperator('=');
+                  } else {
+                    setEnabled(!enabled);
+                  }
+                }}
+                className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-[0.6]">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
+            <input
+              disabled={type !== 'playerPastille' || !enabled}
+              type="number"
+              min="1"
+              value={type === 'playerPastille' ? value : 1}
+              onChange={(e) => setValue(parseInt(e.target.value) || 1)}
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-[0.5]">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
+            <select
+              disabled={type !== 'playerPastille' || !enabled}
+              value={operator}
+              onChange={(e) => setOperator(e.target.value as ActionOperator)}
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="=">=</option>
+              <option value="!=">!=</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Pastille</label>
+            <select
+              disabled={type !== 'playerPastille' || !enabled}
+              value={pastilleIcon || ''}
+              onChange={(e) => setPastilleIcon(e.target.value)}
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {allIcons.map(icon => {
+                const LucideIcon = (icons as any)[icon];
+                return (
+                  <option key={icon} value={icon}>{icon}</option>
+                );
+              })}
             </select>
           </div>
         </div>
