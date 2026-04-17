@@ -823,31 +823,35 @@ export const RightPanel: React.FC = () => {
   
                   <div className="flex flex-col gap-2 mt-2">
                     {actions.map(action => (
-                      <div key={action.id} className="flex flex-col gap-2 w-full bg-muted/20 border border-border/50 rounded-md p-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold truncate pr-2">{action.name}</span>
-                          <div className="flex items-center gap-1">
-                            <button 
-                              onClick={() => {
-                                setPendingConditions(action.conditions || []);
-                                setPendingEffects(action.effects || []);
-                                setActionCreatorState({ isOpen: true, isDetached: true, editingActionId: action.id });
-                              }}
-                              className="text-muted-foreground hover:text-primary p-1 rounded transition-colors" title="Modifier"
-                            >
-                              <Edit2 size={12} />
-                            </button>
-                            <button onClick={() => deleteAction(action.id)} className="text-muted-foreground hover:text-destructive p-1 rounded transition-colors" title="Supprimer">
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
-                        </div>
+                      <div key={action.id} className="flex items-center gap-1.5 w-full group animate-in slide-in-from-right-2 duration-200">
                         <button
                           onClick={() => executeAction(action.id)}
-                          className="w-full bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded text-[10px] uppercase font-bold py-1.5 transition-colors border border-green-500/30 flex justify-center items-center gap-1.5"
+                          className="flex-1 bg-green-600/10 hover:bg-green-600/20 text-green-400 rounded-md text-[10px] uppercase font-bold py-2 px-3 transition-all border border-green-500/20 flex items-center gap-2 shadow-sm truncate"
                         >
-                          <Play size={12} /> Lancer l'action
+                          <Play size={10} className="shrink-0" />
+                          <span className="truncate">{action.name}</span>
                         </button>
+                        
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button 
+                            onClick={() => {
+                              setPendingConditions(action.conditions || []);
+                              setPendingEffects(action.effects || []);
+                              setActionCreatorState({ isOpen: true, isDetached: true, editingActionId: action.id });
+                            }}
+                            className="p-1.5 bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary rounded-md transition-colors border border-border/50" 
+                            title="Modifier"
+                          >
+                            <Edit2 size={12} />
+                          </button>
+                          <button 
+                            onClick={() => deleteAction(action.id)} 
+                            className="p-1.5 bg-muted/50 hover:bg-destructive/20 text-muted-foreground hover:text-destructive rounded-md transition-colors border border-border/50" 
+                            title="Supprimer"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </div>
                     ))}
                     {actions.length === 0 && (
