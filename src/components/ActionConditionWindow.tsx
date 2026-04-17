@@ -132,7 +132,7 @@ export const ActionConditionWindow: React.FC = () => {
       }}
     >
       <div 
-        className="px-4 py-3 bg-orange-500/10 border-b border-orange-500/20 flex items-center justify-between cursor-move group select-none"
+        className="px-4 py-2 bg-orange-500/10 border-b border-orange-500/20 flex items-center justify-between cursor-move group select-none"
         onMouseDown={(e) => {
           setIsDragging(true);
           dragStartRef.current = {
@@ -155,8 +155,8 @@ export const ActionConditionWindow: React.FC = () => {
         </button>
       </div>
 
-      <div className="p-5 flex flex-col gap-6 bg-background/50">
-        <div className="flex flex-col gap-2 bg-orange-500/5 p-3 rounded-xl border border-orange-500/10">
+      <div className="p-3.5 flex flex-col gap-3.5 bg-background/50">
+        <div className="flex flex-col gap-1.5 bg-orange-500/5 p-2.5 rounded-xl border border-orange-500/10">
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-0.5">
               <span className="text-xs font-bold text-foreground">Une seule fois</span>
@@ -226,13 +226,13 @@ export const ActionConditionWindow: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-1">
+          <div className="flex flex-col gap-1 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cycle</label>
             <select
               disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
               value={(type !== 'day' && type !== 'night' && type !== 'turn') ? 'day' : type}
               onChange={(e) => setType(e.target.value as ActionConditionType)}
-              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="day">Jour</option>
               <option value="night">Nuit</option>
@@ -240,7 +240,7 @@ export const ActionConditionWindow: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-[0.5]">
+          <div className="flex flex-col gap-1 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
               disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
@@ -264,7 +264,7 @@ export const ActionConditionWindow: React.FC = () => {
               type="number"
               value={value}
               onChange={(e) => setValue(parseInt(e.target.value) || 0)}
-              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         </div>
@@ -292,7 +292,7 @@ export const ActionConditionWindow: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-[0.6]">
+          <div className="flex flex-col gap-1 flex-[0.6]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
             <input
               disabled={type !== 'playerRole' || !enabled}
@@ -300,11 +300,11 @@ export const ActionConditionWindow: React.FC = () => {
               min="1"
               value={type === 'playerRole' ? value : 1}
               onChange={(e) => setValue(parseInt(e.target.value) || 1)}
-              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-[0.5]">
+          <div className="flex flex-col gap-1 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
               disabled={type !== 'playerRole' || !enabled}
@@ -317,13 +317,13 @@ export const ActionConditionWindow: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-1">
+          <div className="flex flex-col gap-1 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
             <select
               disabled={type !== 'playerRole' || !enabled}
               value={roleId || ''}
               onChange={(e) => setRoleId(e.target.value)}
-              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {roles.map(role => (
                 <option key={role.id} value={role.id}>{role.name}</option>
@@ -357,20 +357,20 @@ export const ActionConditionWindow: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-[1.2]">
+          <div className="flex flex-col gap-1 flex-[1.2]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
             <select
               disabled={type !== 'playerSelection' || !enabled}
               value={selectionType || 'first'}
               onChange={(e) => setSelectionType(e.target.value as 'first' | 'last')}
-              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="first">Le premier joueur (ordre croissant)</option>
               <option value="last">Le dernier joueur (ordre décroissant)</option>
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-[0.5]">
+          <div className="flex flex-col gap-1 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
               disabled={type !== 'playerSelection' || !enabled}
@@ -383,13 +383,13 @@ export const ActionConditionWindow: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-1">
+          <div className="flex flex-col gap-1 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
             <select
               disabled={type !== 'playerSelection' || !enabled}
               value={selectionRoleId || ''}
               onChange={(e) => setSelectionRoleId(e.target.value)}
-              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {roles.map(role => (
                 <option key={role.id} value={role.id}>{role.name}</option>
@@ -423,7 +423,7 @@ export const ActionConditionWindow: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-[0.6]">
+          <div className="flex flex-col gap-1 flex-[0.6]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
             <input
               disabled={type !== 'playerTag' || !enabled}
@@ -435,7 +435,7 @@ export const ActionConditionWindow: React.FC = () => {
             />
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-[0.5]">
+          <div className="flex flex-col gap-1 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
               disabled={type !== 'playerTag' || !enabled}
@@ -448,13 +448,13 @@ export const ActionConditionWindow: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-1">
+          <div className="flex flex-col gap-1 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag</label>
             <select
               disabled={type !== 'playerTag' || !enabled}
               value={tagId || ''}
               onChange={(e) => setTagId(e.target.value)}
-              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
                 <option key={tag.id} value={tag.id}>{tag.name}</option>
@@ -488,7 +488,7 @@ export const ActionConditionWindow: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-[0.6]">
+          <div className="flex flex-col gap-1 flex-[0.6]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
             <input
               disabled={type !== 'playerPastille' || !enabled}
@@ -500,7 +500,7 @@ export const ActionConditionWindow: React.FC = () => {
             />
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-[0.5]">
+          <div className="flex flex-col gap-1 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
               disabled={type !== 'playerPastille' || !enabled}
@@ -513,7 +513,7 @@ export const ActionConditionWindow: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1.5 flex-1">
+          <div className="flex flex-col gap-1 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Pastille</label>
             <div className="flex items-center gap-2">
               <select
@@ -535,16 +535,16 @@ export const ActionConditionWindow: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 pt-2">
+        <div className="flex items-center gap-2 pt-1">
           <button
             onClick={handleClose}
-            className="flex-1 py-2 px-4 bg-muted hover:bg-accent text-foreground text-xs font-bold rounded-lg transition-colors border border-border"
+            className="flex-1 py-1.5 px-4 bg-muted hover:bg-accent text-foreground text-xs font-bold rounded-lg transition-colors border border-border"
           >
             Annuler
           </button>
           <button
             onClick={handleOK}
-            className="flex-1 py-2 px-4 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
+            className="flex-1 py-1.5 px-4 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-lg transition-colors shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
           >
             <Check size={14} />
             OK
