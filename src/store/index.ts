@@ -878,7 +878,7 @@ export const useVttStore = create<VttStore>()(
                 newState.cycleNumber = currentCycle;
               }
               
-              if (action.once) {
+              if (action.once && remaining === 1) {
                 newState.actions = state.actions.map((a: any) => a.id === id ? { ...a, isExecuted: true, enabled: false } : a);
               }
               
