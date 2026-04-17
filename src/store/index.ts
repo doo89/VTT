@@ -883,7 +883,7 @@ export const useVttStore = create<VttStore>()(
               }
               
               if (action.once) {
-                newState.actions = state.actions.map((a: any) => a.id === id ? { ...a, isExecuted: true } : a);
+                newState.actions = state.actions.map((a: any) => a.id === id ? { ...a, isExecuted: true, enabled: false } : a);
               }
               
               if (remaining > 1) {
