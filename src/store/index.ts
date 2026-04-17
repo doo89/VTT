@@ -109,6 +109,7 @@ interface VttStore extends GameState {
   pendingActionIntervalSeconds: number;
   pendingActionRepeatCount: number;
   setPendingRecurring: (recurring: boolean, interval: number, count: number) => void;
+  setPendingActionEnabled: (enabled: boolean) => void;
   setActionEffectCreatorState: (state: Partial<ActionEffectCreatorState>) => void;
   addPendingEffect: (effect: Omit<ActionEffect, 'id'>) => void;
   updatePendingEffect: (id: string, updates: Partial<ActionEffect>) => void;
@@ -642,7 +643,7 @@ export const useVttStore = create<VttStore>()(
         deleteAction: (id) => set((state) => ({
           actions: state.actions.filter(a => a.id !== id)
         })),
-        setPendingActionEnabled: (enabled) => set({ pendingActionEnabled: enabled }),
+        setPendingActionEnabled: (enabled: boolean) => set({ pendingActionEnabled: enabled }),
         executeAction: (id) => {
           const run = (remaining: number) => {
             set((state: any) => {

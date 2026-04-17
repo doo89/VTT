@@ -346,6 +346,11 @@ export interface GameState {
   actions: Action[];
   pendingActionConditions: ActionCondition[];
   pendingActionEffects: ActionEffect[];
+  pendingActionOnce: boolean;
+  pendingActionIsRecurring: boolean;
+  pendingActionIntervalSeconds: number;
+  pendingActionRepeatCount: number;
+  pendingActionEnabled: boolean;
   scoreboard: {
     isDetached: boolean;
     x: number;
