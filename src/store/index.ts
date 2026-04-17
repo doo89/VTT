@@ -652,10 +652,6 @@ export const useVttStore = create<VttStore>()(
               
               if (action.enabled === false) return {};
               
-              if (action.once && action.isExecuted) {
-                state.addLog(`Action "${action.name}" déjà exécutée (Action unique)`, 'system');
-                return {};
-              }
               
                 // Evaluation and Context
                 let actionContext: { [key: string]: any } = {};
