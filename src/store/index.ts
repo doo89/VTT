@@ -656,6 +656,21 @@ export const useVttStore = create<VttStore>()(
                 return false;
               }
 
+              if (c.type === 'playerTag') {
+                const player = state.players.find(p => (p.creationOrder || 0) === c.value) 
+                               || state.players[c.value - 1];
+                
+                if (!player) return false;
+                
+                const hasTag = player.tags.some(t => t.id === c.tagId);
+                if (c.operator === '=') {
+                  return hasTag;
+                } else if (c.operator === '!=') {
+                  return !hasTag;
+                }
+                return false;
+              }
+
               let compareVal = 0;
               if (c.type === 'day') {
                 if (state.isNight) return false;
@@ -682,6 +697,10 @@ export const useVttStore = create<VttStore>()(
               if (c.type === 'playerRole') {
                 const roleName = state.roles.find(r => r.id === c.roleId)?.name || 'Inconnu';
                 return `Joueur ${c.value} ${c.operator} ${roleName}`;
+              }
+              if (c.type === 'playerTag') {
+                const tagName = state.tags.find(t => t.id === c.tagId)?.name || 'Inconnu';
+                return `Joueur ${c.value} ${c.operator} ${tagName}`;
               }
               const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
               return `${typeLabel} ${c.operator} ${c.value}`;

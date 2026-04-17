@@ -10,7 +10,8 @@ export const ActionConditionWindow: React.FC = () => {
     addPendingCondition,
     updatePendingCondition,
     pendingActionConditions,
-    roles
+    roles,
+    tags
   } = useVttStore();
   
   const [type, setType] = useState<ActionConditionType>('day');
@@ -18,6 +19,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [value, setValue] = useState(1);
   const [enabled, setEnabled] = useState(true);
   const [roleId, setRoleId] = useState<string | null>(null);
+  const [tagId, setTagId] = useState<string | null>(null);
 
   const isEditing = !!actionConditionCreatorState.editingConditionId;
 
@@ -30,6 +32,7 @@ export const ActionConditionWindow: React.FC = () => {
         setValue(condition.value);
         setEnabled(condition.enabled ?? true);
         setRoleId(condition.roleId || (roles[0]?.id || null));
+        setTagId(condition.tagId || (tags[0]?.id || null));
       }
     } else {
       setType('day');
@@ -37,8 +40,9 @@ export const ActionConditionWindow: React.FC = () => {
       setValue(1);
       setEnabled(true);
       setRoleId(roles[0]?.id || null);
+      setTagId(tags[0]?.id || null);
     }
-  }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles]);
+  }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags]);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -83,7 +87,8 @@ export const ActionConditionWindow: React.FC = () => {
       operator, 
       value, 
       enabled, 
-      roleId: type === 'playerRole' ? roleId : null 
+      roleId: type === 'playerRole' ? roleId : null,
+      tagId: type === 'playerTag' ? tagId : null
     };
     if (isEditing && actionConditionCreatorState.editingConditionId) {
       updatePendingCondition(actionConditionCreatorState.editingConditionId, conditionData);
@@ -135,7 +140,7 @@ export const ActionConditionWindow: React.FC = () => {
                 type="checkbox"
                 checked={type !== 'playerRole' && enabled}
                 onChange={() => {
-                  if (type === 'playerRole') {
+                  if (type === 'playerRole' || type === 'playerTag') {
                     setType('day');
                     setEnabled(true);
                   } else {
@@ -150,8 +155,8 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cycle</label>
             <select
-              disabled={type === 'playerRole' || !enabled}
-              value={type === 'playerRole' ? 'day' : type}
+              disabled={type === 'playerRole' || type === 'playerTag' || !enabled}
+              value={(type === 'playerRole' || type === 'playerTag') ? 'day' : type}
               onChange={(e) => setType(e.target.value as ActionConditionType)}
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -164,7 +169,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
-              disabled={type === 'playerRole' || !enabled}
+              disabled={type === 'playerRole' || type === 'playerTag' || !enabled}
               value={operator}
               onChange={(e) => setOperator(e.target.value as ActionOperator)}
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -181,7 +186,7 @@ export const ActionConditionWindow: React.FC = () => {
           <div className="flex flex-col gap-1.5 flex-[0.7]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
             <input
-              disabled={type === 'playerRole' || !enabled}
+              disabled={type === 'playerRole' || type === 'playerTag' || !enabled}
               type="number"
               value={value}
               onChange={(e) => setValue(parseInt(e.target.value) || 0)}
@@ -193,7 +198,7 @@ export const ActionConditionWindow: React.FC = () => {
         <div className="h-px bg-border/50" />
 
         {/* Player Role Row */}
-        <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerRole' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+        <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'playerRole' || type === 'playerTag') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
           <div className="flex flex-col gap-1.5 pb-2">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
             <div className="flex items-center h-[38px] justify-center">
@@ -251,6 +256,71 @@ export const ActionConditionWindow: React.FC = () => {
                 <option key={role.id} value={role.id}>{role.name}</option>
               ))}
               {roles.length === 0 && <option value="">Aucun rôle</option>}
+            </select>
+          </div>
+        </div>
+
+        <div className="h-px bg-border/50" />
+
+        {/* Player Tag Row */}
+        <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerTag' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+          <div className="flex flex-col gap-1.5 pb-2">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+            <div className="flex items-center h-[38px] justify-center">
+              <input
+                type="checkbox"
+                checked={type === 'playerTag' && enabled}
+                onChange={() => {
+                  if (type !== 'playerTag') {
+                    setType('playerTag');
+                    setEnabled(true);
+                    setOperator('=');
+                  } else {
+                    setEnabled(!enabled);
+                  }
+                }}
+                className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-[0.6]">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
+            <input
+              disabled={type !== 'playerTag' || !enabled}
+              type="number"
+              min="1"
+              value={type === 'playerTag' ? value : 1}
+              onChange={(e) => setValue(parseInt(e.target.value) || 1)}
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-[0.5]">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
+            <select
+              disabled={type !== 'playerTag' || !enabled}
+              value={operator}
+              onChange={(e) => setOperator(e.target.value as ActionOperator)}
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="=">=</option>
+              <option value="!=">!=</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5 flex-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag</label>
+            <select
+              disabled={type !== 'playerTag' || !enabled}
+              value={tagId || ''}
+              onChange={(e) => setTagId(e.target.value)}
+              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
+                <option key={tag.id} value={tag.id}>{tag.name}</option>
+              ))}
+              {tags.length === 0 && <option value="">Aucun tag</option>}
             </select>
           </div>
         </div>
