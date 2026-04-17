@@ -726,16 +726,16 @@ export const useVttStore = create<VttStore>()(
                     if (c.distanceFromPlayerId === '$Joueur') {
                       sourcePlayer = actionContext['$Joueur'];
                     } else {
-                      sourcePlayer = state.players.find(p => p.id === c.distanceFromPlayerId);
+                      sourcePlayer = state.players.find((p: any) => p.id === c.distanceFromPlayerId);
                     }
 
                     if (!sourcePlayer) return false;
 
-                    const sortedPlayers = [...state.players].sort((a,b) => (a.creationOrder || 0) - (b.creationOrder || 0));
+                    const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
                     const totalPlayers = sortedPlayers.length;
                     if (totalPlayers === 0) return false;
 
-                    const sourceIndex = sortedPlayers.findIndex(p => p.id === sourcePlayer.id);
+                    const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
                     if (sourceIndex === -1) return false;
 
                     let targetIndex = (sourceIndex + c.value) % totalPlayers;
