@@ -248,11 +248,17 @@ export const ActionCreatorWindow: React.FC = () => {
                               }`
                             ) :
                             condition.type === 'playerDistance' || condition.type === 'playerDistanceTag' || condition.type === 'playerDistancePastille' ? (
-                              `${condition.value} de : ${condition.distanceFromPlayerId} (${
-                                condition.type === 'playerDistanceTag' ? (tags.find(t => t.id === condition.tagId)?.name || 'Inconnu') :
-                                (condition.type === 'playerDistancePastille' ? `Pastille ${condition.pastilleIcon}` :
-                                (roles.find(r => r.id === condition.distanceTargetRoleId)?.name || 'Inconnu'))
-                              })`
+                              (() => {
+                                const fromLabel = condition.distanceFromPlayerId === '$Joueur' ? '$Joueur' : (condition.distanceFromPlayerId === '$Selected' ? 'Joueur(s) Sél.' : 'Joueur');
+                                const rangeLabel = (condition.minValue !== undefined && condition.maxValue !== undefined) 
+                                  ? (condition.minValue === condition.maxValue ? `${condition.minValue}` : `[${condition.minValue} à ${condition.maxValue}]`)
+                                  : `${condition.value}`;
+                                return `${rangeLabel} de : ${fromLabel} (${
+                                  condition.type === 'playerDistanceTag' ? (tags.find(t => t.id === condition.tagId)?.name || 'Inconnu') :
+                                  (condition.type === 'playerDistancePastille' ? `Pastille ${condition.pastilleIcon}` :
+                                  (roles.find(r => r.id === condition.distanceTargetRoleId)?.name || 'Inconnu'))
+                                })`;
+                              })()
                             ) :
                             condition.value}
                         </span>
