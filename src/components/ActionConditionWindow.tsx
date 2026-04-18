@@ -141,7 +141,7 @@ export const ActionConditionWindow: React.FC = () => {
 
   return (
     <div 
-      className={`fixed z-[3100] w-[650px] bg-card border-2 border-orange-500/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''}`}
+      className={`fixed z-[3100] w-[780px] bg-card border-2 border-orange-500/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''}`}
       style={{
         left: actionConditionCreatorState.x,
         top: actionConditionCreatorState.y,
