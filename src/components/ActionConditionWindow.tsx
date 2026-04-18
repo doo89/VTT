@@ -348,6 +348,7 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="$Joueur">$Joueur</option>
+                  <option value="$Selected">Joueur(s) sélectionné(s)</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1 flex-1">
@@ -410,6 +411,7 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="$Joueur">$Joueur</option>
+                  <option value="$Selected">Joueur(s) sélectionné(s)</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1 flex-1">
@@ -472,6 +474,7 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="$Joueur">$Joueur</option>
+                  <option value="$Selected">Joueur(s) sélectionné(s)</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1 flex-1">

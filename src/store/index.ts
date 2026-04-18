@@ -733,6 +733,8 @@ export const useVttStore = create<VttStore>()(
                     let sourcePlayer = null;
                     if (c.distanceFromPlayerId === '$Joueur') {
                       sourcePlayer = actionContext['$Joueur'];
+                    } else if (c.distanceFromPlayerId === '$Selected') {
+                      sourcePlayer = state.players.find((p: any) => state.selectedEntityIds.includes(p.id));
                     } else {
                       sourcePlayer = state.players.find((p: any) => p.id === c.distanceFromPlayerId);
                     }
@@ -814,10 +816,11 @@ export const useVttStore = create<VttStore>()(
                       targetLabel = state.roles.find((r: any) => r.id === c.distanceTargetRoleId)?.name || 'Inconnu';
                     } else if (c.type === 'playerDistanceTag') {
                       targetLabel = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
-                    } else if (c.type === 'playerDistancePastille') {
+                    } else if (c.type === 'playerSelectionPastille' || c.type === 'playerDistancePastille') {
                       targetLabel = `Pastille ${c.pastilleIcon}`;
                     }
-                    return `Distance ${c.value} de : ${c.distanceFromPlayerId} (${targetLabel})`;
+                    const fromLabel = c.distanceFromPlayerId === '$Selected' ? 'Joueur(s) sélectionné(s)' : c.distanceFromPlayerId;
+                    return `Distance ${c.value} de : ${fromLabel} (${targetLabel})`;
                   }
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
                   return `${typeLabel} ${c.operator} ${c.value}`;
