@@ -657,39 +657,16 @@ export const useVttStore = create<VttStore>()(
               }
               
               if (action.enabled === false) return {};
-              
-              
-                // Evaluation and Context
-                let actionContext: { [key: string]: any } = initialContext ? { ...initialContext } : {};
 
-                const evaluate = (conditions: ActionCondition[]): { success: boolean, failReason?: string } => {
-                  const activeConditions = (conditions || []).filter(c => c.enabled);
-                  if (activeConditions.length === 0) return { success: true };
+              // Evaluation and Context
+              let actionContext: { [key: string]: any } = initialContext ? { ...initialContext } : {};
+
+              const evaluate = (conditions: ActionCondition[]): { success: boolean, failReason?: string } => {
+                const activeConditions = (conditions || []).filter(c => c.enabled);
+                if (activeConditions.length === 0) return { success: true };
 
                 const checkSingle = (c: ActionCondition): boolean => {
-                  if (c.type === 'playerRole') {
-                    const player = state.players.find((p: any) => (p.creationOrder || 0) === c.value) 
-                                   || state.players[c.value - 1];
-                    if (!player) return false;
-                    if (c.operator === '=') return player.roleId === c.roleId;
-                    if (c.operator === '!=') return player.roleId !== c.roleId;
-                    return false;
-                  }
-                  if (c.type === 'playerTag') {
-                    const player = state.players.find((p: any) => (p.creationOrder || 0) === c.value) 
-                                   || state.players[c.value - 1];
-                    if (!player) return false;
-                    const hasTag = player.tags.some((t: any) => t.id === c.tagId);
-                    if (c.operator === '=') return hasTag;
-                    if (c.operator === '!=') return !hasTag;
-                    return false;
-                  }
-                  if (c.type === 'playerPastille') {
-                    const player = state.players.find((p: any) => (p.creationOrder || 0) === c.value) 
-                                   || state.players[c.value - 1];
-                    if (!player) return false;
                   const checkMatching = (p: any): boolean => {
-                    // Consolidated tags (Support Role-attached tags as active tags)
                     const playerTags = p.tags || [];
                     const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
                     const allPlayerTags = [...playerTags, ...roleTags];
@@ -760,7 +737,6 @@ export const useVttStore = create<VttStore>()(
                     const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
                     if (sortedPlayers.length === 0) return false;
 
-                    // Condition passes if ANY source player has a target in range
                     return sources.some(sourcePlayer => {
                       const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
                       if (sourceIndex === -1) return false;
@@ -775,7 +751,6 @@ export const useVttStore = create<VttStore>()(
                         const targetPlayer = sortedPlayers[targetIndex];
                         if (!targetPlayer) continue;
 
-                        // Check target criteria (with role-appended tags)
                         const targetRoleTags = state.roles.find((r: any) => r.id === targetPlayer.roleId)?.tags || [];
                         const allTargetTags = [...(targetPlayer.tags || []), ...targetRoleTags];
 
@@ -856,29 +831,28 @@ export const useVttStore = create<VttStore>()(
                   return `${typeLabel} ${c.operator} ${c.value}`;
                 };
 
-                  // Logic with precedence (AND before OR)
-                  const andGroups: { result: boolean, label: string }[] = [];
-                  let currentGroupResult = checkSingle(activeConditions[0]);
-                  let currentGroupLabel = getConditionLabel(activeConditions[0]);
+                const andGroups: { result: boolean, label: string }[] = [];
+                let currentGroupResult = checkSingle(activeConditions[0]);
+                let currentGroupLabel = getConditionLabel(activeConditions[0]);
 
-                  for (let i = 1; i < activeConditions.length; i++) {
-                    const c = activeConditions[i];
-                    const val = checkSingle(c);
-                    const label = getConditionLabel(c);
+                for (let i = 1; i < activeConditions.length; i++) {
+                  const c = activeConditions[i];
+                  const val = checkSingle(c);
+                  const label = getConditionLabel(c);
 
-                    if (c.logic === 'OR') {
-                      andGroups.push({ result: currentGroupResult, label: currentGroupLabel });
-                      currentGroupResult = val;
-                      currentGroupLabel = label;
-                    } else {
-                      currentGroupResult = currentGroupResult && val;
-                      currentGroupLabel = `${currentGroupLabel} ET ${label}`;
-                    }
+                  if (c.logic === 'OR') {
+                    andGroups.push({ result: currentGroupResult, label: currentGroupLabel });
+                    currentGroupResult = val;
+                    currentGroupLabel = label;
+                  } else {
+                    currentGroupResult = currentGroupResult && val;
+                    currentGroupLabel = `${currentGroupLabel} ET ${label}`;
                   }
-                  andGroups.push({ result: currentGroupResult, label: currentGroupLabel });
+                }
+                andGroups.push({ result: currentGroupResult, label: currentGroupLabel });
 
-                  const finalResult = andGroups.some(g => g.result);
-                  return { success: finalResult, failReason: finalResult ? undefined : andGroups.map(g => `(${g.label})`).join(' OU ') };
+                const finalResult = andGroups.some(g => g.result);
+                return { success: finalResult, failReason: finalResult ? undefined : andGroups.map(g => `(${g.label})`).join(' OU ') };
               };
 
               const evaluation = evaluate(action.conditions || []);
@@ -892,7 +866,6 @@ export const useVttStore = create<VttStore>()(
               let phaseShift = 0;
               let resetValue: number | null = null;
               let nextDisplaySettings = { ...state.displaySettings };
-              
               let nextCycleMode = state.cycleMode;
               let effectUpdates: any = {};
               
@@ -1041,9 +1014,6 @@ export const useVttStore = create<VttStore>()(
             run(1);
           }
         },
-        setActionConditionCreatorState: (update) => set((state) => ({ 
-          actionConditionCreatorState: { ...state.actionConditionCreatorState, ...update } 
-        })),
         addPendingCondition: (conditionData) => set((state) => ({
           pendingActionConditions: [...state.pendingActionConditions, { ...conditionData, id: uuidv4() }]
         })),
