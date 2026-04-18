@@ -324,7 +324,7 @@ export interface GameState {
   markers: Marker[];
   markerParameters: MarkerParameter[];
   teams: Team[];
-  tags: TagModel[]; // Added tags property here
+  tags: TagModel[];
   tagCategories: TagCategory[];
   handouts: Handout[];
   logs: LogEvent[];
@@ -459,6 +459,7 @@ export interface GameState {
     showTagVotes?: boolean;
     showTagPoints?: boolean;
     showTagUses?: boolean;
+    showTagTooltip?: boolean;
     showTagAutoDelete?: boolean;
     showTagSeenAsRole?: boolean;
     showTagSeenInTeam?: boolean;
@@ -469,4 +470,3 @@ export interface GameState {
     showTagSmartphoneIcon?: boolean;
   };
 }
-鼓
