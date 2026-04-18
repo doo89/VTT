@@ -70,32 +70,28 @@ export const ActionConditionWindow: React.FC = () => {
       setDistanceTargetRoleId(roles[0]?.id || null);
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
+
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging || !dragStartRef.current) return;
-      
       const dx = e.clientX - dragStartRef.current.x;
       const dy = e.clientY - dragStartRef.current.y;
-      
       setActionConditionCreatorState({
         x: dragStartRef.current.startX + dx,
         y: dragStartRef.current.startY + dy
       });
     };
-
     const handleMouseUp = () => {
       setIsDragging(false);
       dragStartRef.current = null;
     };
-
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
-
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -163,7 +159,7 @@ export const ActionConditionWindow: React.FC = () => {
       </div>
 
       <div className="p-3.5 flex flex-col gap-3.5 bg-background/50 overflow-y-auto max-h-[75vh]">
-        {/* Group: Autre */}
+        {/* Groupe : Autre */}
         <div className="flex flex-col gap-1.5 bg-orange-500/5 p-2.5 rounded-xl border border-orange-500/10">
           <h4 className="text-[10px] font-black text-orange-500/60 uppercase tracking-[0.2em] pl-1 -mt-1 mb-1">Groupe : Autre</h4>
           <div className="flex items-center justify-between">
@@ -178,9 +174,7 @@ export const ActionConditionWindow: React.FC = () => {
               className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
             />
           </div>
-
           <div className="h-px bg-border/20 my-1" />
-
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -235,7 +229,6 @@ export const ActionConditionWindow: React.FC = () => {
               />
             </div>
           </div>
-
           <div className="flex flex-col gap-1 flex-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cycle</label>
             <select
@@ -249,7 +242,6 @@ export const ActionConditionWindow: React.FC = () => {
               <option value="turn">Tour</option>
             </select>
           </div>
-
           <div className="flex flex-col gap-1 flex-[0.5]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
             <select
@@ -259,14 +251,13 @@ export const ActionConditionWindow: React.FC = () => {
               className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="=">=</option>
-              <option value="<">&lt;</option>
-              <option value=">">&gt;</option>
+              <option value="&lt;">&lt;</option>
+              <option value="&gt;">&gt;</option>
               <option value="!=">!=</option>
-              <option value="<=">&lt;=</option>
-              <option value=">=">&gt;=</option>
+              <option value="&lt;=">&lt;=</option>
+              <option value="&gt;=">&gt;=</option>
             </select>
           </div>
-
           <div className="flex flex-col gap-1.5 flex-[0.7]">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
             <input
@@ -281,7 +272,7 @@ export const ActionConditionWindow: React.FC = () => {
 
         <div className="h-px bg-border/30" />
 
-        {/* Group: Distance - Contains Line 5 */}
+        {/* Groupe : Distance */}
         <div className="flex flex-col bg-blue-500/5 rounded-xl border border-blue-500/10 shadow-sm transition-all hover:bg-blue-500/[0.08]">
           <button 
             type="button"
@@ -291,7 +282,6 @@ export const ActionConditionWindow: React.FC = () => {
             <h4 className="text-[10px] font-black text-blue-500/60 uppercase tracking-[0.2em] pl-1">Groupe : Distance</h4>
             {isDistanceExpanded ? <ChevronDown size={14} className="text-blue-500/40" /> : <ChevronRight size={14} className="text-blue-500/40" />}
           </button>
-          
           <div className={`px-3 pb-3 transition-all duration-300 origin-top ${isDistanceExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
             <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerDistance' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
@@ -313,7 +303,6 @@ export const ActionConditionWindow: React.FC = () => {
                   />
                 </div>
               </div>
-
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
                 <input
@@ -324,11 +313,9 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
-
               <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">de la position de :</span>
               </div>
-
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
@@ -340,7 +327,6 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="$Joueur">$Joueur</option>
                 </select>
               </div>
-
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
                 <select
@@ -352,14 +338,13 @@ export const ActionConditionWindow: React.FC = () => {
                   {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(role => (
                     <option key={role.id} value={role.id}>{role.name}</option>
                   ))}
-                  {roles.length === 0 && <option value="">Aucun rôle</option>}
                 </select>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Group: Identité - Contains Lines 3, 2, 4, 6 */}
+        {/* Groupe : Identité */}
         <div className="flex flex-col bg-orange-500/5 rounded-xl border border-orange-500/10 shadow-sm transition-all hover:bg-orange-500/[0.08]">
           <button 
             type="button"
@@ -369,9 +354,7 @@ export const ActionConditionWindow: React.FC = () => {
             <h4 className="text-[10px] font-black text-orange-500/60 uppercase tracking-[0.2em] pl-1">Groupe : Identité</h4>
             {isIdentityExpanded ? <ChevronDown size={14} className="text-orange-500/40" /> : <ChevronRight size={14} className="text-orange-500/40" />}
           </button>
-
           <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-5 ${isIdentityExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
-            {/* Player Selection Row - Line 3 */}
             <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerSelection' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
@@ -393,7 +376,6 @@ export const ActionConditionWindow: React.FC = () => {
                   />
                 </div>
               </div>
-
               <div className="flex flex-col gap-1 flex-[1.2]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
@@ -407,7 +389,6 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="all">Tous les joueurs</option>
                 </select>
               </div>
-
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
                 <select
@@ -420,7 +401,6 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="!=">!=</option>
                 </select>
               </div>
-
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
                 <select
@@ -432,14 +412,10 @@ export const ActionConditionWindow: React.FC = () => {
                   {roles.map(role => (
                     <option key={role.id} value={role.id}>{role.name}</option>
                   ))}
-                  {roles.length === 0 && <option value="">Aucun rôle</option>}
                 </select>
               </div>
             </div>
-
             <div className="h-px bg-border/20 mx-2" />
-
-            {/* Player Role Row - Line 2 */}
             <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerRole' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
@@ -461,7 +437,6 @@ export const ActionConditionWindow: React.FC = () => {
                   />
                 </div>
               </div>
-
               <div className="flex flex-col gap-1 flex-[0.6]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
                 <input
@@ -473,7 +448,6 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
-
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
                 <select
@@ -486,7 +460,6 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="!=">!=</option>
                 </select>
               </div>
-
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
                 <select
@@ -498,14 +471,10 @@ export const ActionConditionWindow: React.FC = () => {
                   {roles.map(role => (
                     <option key={role.id} value={role.id}>{role.name}</option>
                   ))}
-                  {roles.length === 0 && <option value="">Aucun rôle</option>}
                 </select>
               </div>
             </div>
-
             <div className="h-px bg-border/20 mx-2" />
-
-            {/* Player Tag Row - Line 4 */}
             <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerTag' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
@@ -527,7 +496,6 @@ export const ActionConditionWindow: React.FC = () => {
                   />
                 </div>
               </div>
-
               <div className="flex flex-col gap-1 flex-[0.6]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
                 <input
@@ -539,7 +507,6 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
-
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
                 <select
@@ -552,7 +519,6 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="!=">!=</option>
                 </select>
               </div>
-
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag</label>
                 <select
@@ -564,14 +530,10 @@ export const ActionConditionWindow: React.FC = () => {
                   {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
                     <option key={tag.id} value={tag.id}>{tag.name}</option>
                   ))}
-                  {tags.length === 0 && <option value="">Aucun tag</option>}
                 </select>
               </div>
             </div>
-
             <div className="h-px bg-border/20 mx-2" />
-
-            {/* Player Pastille Row - Line 6 */}
             <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerPastille' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
@@ -593,7 +555,6 @@ export const ActionConditionWindow: React.FC = () => {
                   />
                 </div>
               </div>
-
               <div className="flex flex-col gap-1 flex-[0.6]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
                 <input
@@ -605,7 +566,6 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
-
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
                 <select
@@ -618,7 +578,6 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="!=">!=</option>
                 </select>
               </div>
-
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Pastille</label>
                 <div className="flex items-center gap-2">
@@ -644,7 +603,7 @@ export const ActionConditionWindow: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 pt-1">
+      <div className="flex items-center gap-2 pt-1 p-3.5">
         <button
           onClick={handleClose}
           className="flex-1 py-1.5 px-4 bg-muted hover:bg-accent text-foreground text-xs font-bold rounded-lg transition-colors border border-border"
@@ -660,6 +619,5 @@ export const ActionConditionWindow: React.FC = () => {
         </button>
       </div>
     </div>
-  </div>
   );
 };
