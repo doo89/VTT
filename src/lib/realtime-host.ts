@@ -254,6 +254,28 @@ export const initHostRealtime = (roomCode: string) => {
           }
         }
 
+        // 2.7 Handle Pastille Showing (Display pastille above target players)
+        if (tagData.smartphoneShowPastille && payload.selectedPlayerIds?.length > 0) {
+          payload.selectedPlayerIds.forEach((pid: string) => {
+            const target = state.players.find(p => p.id === pid);
+            if (target) {
+              const currentPastilles = [...(target.selectionPastilles || [])];
+              const alreadyHas = currentPastilles.some(past => past.icon === tagData.icon && past.color === tagData.color);
+              if (!alreadyHas) {
+                playerUpdatesMap[pid] = {
+                  ...(playerUpdatesMap[pid] || {}),
+                  selectionPastilles: [...currentPastilles, { 
+                    id: uuidv4(), 
+                    icon: tagData.icon, 
+                    color: tagData.color,
+                    name: tagData.name
+                  }]
+                };
+              }
+            }
+          });
+        }
+
         // 4.5 Handle Action triggering
         if (tagData.smartphoneActionId) {
           const actionInitialContext: any = {};

@@ -24,17 +24,17 @@ export const ActionConditionWindow: React.FC = () => {
   
   const [type, setType] = useState<ActionConditionType>('day');
   const [operator, setOperator] = useState<ActionOperator>('=');
-  const [value, setValue] = useState(1);
+  const [value, setValue] = useState(0);
+  const [minValue, setMinValue] = useState(0);
+  const [maxValue, setMaxValue] = useState(0);
   const [enabled, setEnabled] = useState(true);
   const [roleId, setRoleId] = useState<string | null>(null);
   const [tagId, setTagId] = useState<string | null>(null);
   const [pastilleIcon, setPastilleIcon] = useState<string | null>(null);
-  const [selectionType, setSelectionType] = useState<'first' | 'last' | 'all' | null>('first');
+  const [selectionType, setSelectionType] = useState<'first' | 'last' | 'all' | null>('all');
   const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
   const [distanceFromPlayerId, setDistanceFromPlayerId] = useState<string | null>('$Joueur');
   const [distanceTargetRoleId, setDistanceTargetRoleId] = useState<string | null>(null);
-  const [minValue, setMinValue] = useState(-1);
-  const [maxValue, setMaxValue] = useState(1);
 
   const [isDistanceExpanded, setIsDistanceExpanded] = useState(true);
   const [isIdentityExpanded, setIsIdentityExpanded] = useState(true);
@@ -52,31 +52,31 @@ export const ActionConditionWindow: React.FC = () => {
         setType(condition.type);
         setOperator(condition.operator);
         setValue(condition.value);
+        setMinValue(condition.minValue ?? condition.value);
+        setMaxValue(condition.maxValue ?? condition.value);
         setEnabled(condition.enabled ?? true);
         setRoleId(condition.roleId || (roles[0]?.id || null));
         setTagId(condition.tagId || (tags[0]?.id || null));
         setPastilleIcon(condition.pastilleIcon || allIcons[0]);
-        setSelectionType(condition.selectionType || 'first');
+        setSelectionType(condition.selectionType || 'all');
         setSelectionRoleId(condition.selectionRoleId || (roles[0]?.id || null));
         setDistanceFromPlayerId(condition.distanceFromPlayerId || '$Joueur');
         setDistanceTargetRoleId(condition.distanceTargetRoleId || (roles[0]?.id || null));
-        setMinValue(condition.minValue ?? -1);
-        setMaxValue(condition.maxValue ?? 1);
       }
     } else {
       setType('day');
       setOperator('=');
-      setValue(1);
+      setValue(0);
+      setMinValue(0);
+      setMaxValue(0);
       setEnabled(true);
       setRoleId(roles[0]?.id || null);
       setTagId(tags[0]?.id || null);
       setPastilleIcon(allIcons[0]);
-      setSelectionType('first');
+      setSelectionType('all');
       setSelectionRoleId(roles[0]?.id || null);
       setDistanceFromPlayerId('$Joueur');
       setDistanceTargetRoleId(roles[0]?.id || null);
-      setMinValue(-1);
-      setMaxValue(1);
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
 
@@ -114,21 +114,23 @@ export const ActionConditionWindow: React.FC = () => {
   };
 
   const handleOK = () => {
+    const isDist = type === 'playerDistance' || type === 'playerDistanceTag' || type === 'playerDistancePastille';
     const conditionData = { 
       type, 
       operator, 
-      value, 
+      value: isDist ? 0 : value,
+      minValue: isDist ? minValue : value,
+      maxValue: isDist ? maxValue : value,
       enabled, 
-      roleId: (type === 'playerRole' || type === 'playerSelection' || type === 'playerSelectionRole' || type === 'playerDistance') ? (type.startsWith('playerSelection') ? selectionRoleId : (type === 'playerDistance' ? distanceTargetRoleId : roleId)) : null,
+      roleId: (type === 'playerRole' || type === 'playerSelectionRole') ? roleId : null,
       tagId: (type === 'playerTag' || type === 'playerSelectionTag' || type === 'playerDistanceTag') ? tagId : null,
       pastilleIcon: (type === 'playerPastille' || type === 'playerSelectionPastille' || type === 'playerDistancePastille') ? pastilleIcon : null,
       selectionType: (type === 'playerSelection' || type === 'playerSelectionRole' || type === 'playerSelectionTag' || type === 'playerSelectionPastille') ? selectionType : null,
-      selectionRoleId: (type === 'playerSelection' || type === 'playerSelectionRole' || type === 'playerDistance') ? (type === 'playerDistance' ? distanceTargetRoleId : selectionRoleId) : null,
-      distanceFromPlayerId: (type === 'playerDistance' || type === 'playerDistanceTag' || type === 'playerDistancePastille') ? distanceFromPlayerId : null,
-      distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null,
-      minValue: (type === 'playerDistance' || type === 'playerDistanceTag' || type === 'playerDistancePastille') ? minValue : undefined,
-      maxValue: (type === 'playerDistance' || type === 'playerDistanceTag' || type === 'playerDistancePastille') ? maxValue : undefined
+      selectionRoleId: (type === 'playerSelectionRole') ? selectionRoleId : null,
+      distanceFromPlayerId: isDist ? distanceFromPlayerId : null,
+      distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null
     };
+
     if (isEditing && actionConditionCreatorState.editingConditionId) {
       updatePendingCondition(actionConditionCreatorState.editingConditionId, conditionData);
     } else {
@@ -139,7 +141,7 @@ export const ActionConditionWindow: React.FC = () => {
 
   return (
     <div 
-      className={`fixed z-[3100] w-[576px] bg-card border-2 border-orange-500/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''}`}
+      className={`fixed z-[3100] w-[650px] bg-card border-2 border-orange-500/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''}`}
       style={{
         left: actionConditionCreatorState.x,
         top: actionConditionCreatorState.y,
@@ -169,7 +171,8 @@ export const ActionConditionWindow: React.FC = () => {
         </button>
       </div>
 
-      <div className="p-3.5 flex flex-col gap-3.5 bg-background/50 overflow-y-auto max-h-[75vh]">
+      <div className="p-3.5 flex flex-col gap-3.5 bg-background/50 overflow-y-auto max-h-[75vh] custom-scrollbar">
+        
         {/* Groupe : Autre */}
         <div className="flex flex-col bg-orange-500/5 rounded-xl border border-orange-500/10 shadow-sm transition-all hover:bg-orange-500/[0.08]">
           <button 
@@ -181,7 +184,7 @@ export const ActionConditionWindow: React.FC = () => {
             {isAutreExpanded ? <ChevronDown size={14} className="text-orange-500/40" /> : <ChevronRight size={14} className="text-orange-500/40" />}
           </button>
           <div className={`px-2.5 pb-2.5 transition-all duration-300 origin-top flex flex-col gap-1.5 ${isAutreExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-2 py-1">
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs font-bold text-foreground">Une seule fois</span>
                 <span className="text-[10px] text-muted-foreground">L'action se désactivera après sa première exécution réussie</span>
@@ -194,7 +197,7 @@ export const ActionConditionWindow: React.FC = () => {
               />
             </div>
             <div className="h-px bg-border/20 my-1" />
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 px-2 py-1">
               <input
                 type="checkbox"
                 checked={pendingActionIsRecurring}
@@ -226,7 +229,7 @@ export const ActionConditionWindow: React.FC = () => {
           </div>
         </div>
 
-        <div className="h-px bg-border/30 -mt-2" />
+        <div className="h-px bg-border/30" />
 
         {/* Groupe : Cycle */}
         <div className="flex flex-col bg-orange-500/5 rounded-xl border border-orange-500/10 shadow-sm transition-all hover:bg-orange-500/[0.08]">
@@ -238,7 +241,7 @@ export const ActionConditionWindow: React.FC = () => {
             <h4 className="text-[10px] font-black text-orange-500/60 uppercase tracking-[0.2em] pl-1">Groupe : Cycle</h4>
             {isCycleExpanded ? <ChevronDown size={14} className="text-orange-500/40" /> : <ChevronRight size={14} className="text-orange-500/40" />}
           </button>
-          <div className={`px-2.5 pb-2.5 transition-all duration-300 origin-top flex flex-col gap-1.5 ${isCycleExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
+          <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-1.5 ${isCycleExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
             <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'day' && type !== 'night' && type !== 'turn') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
@@ -281,11 +284,11 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="=">=</option>
-                  <option value="&lt;">&lt;</option>
-                  <option value="&gt;">&gt;</option>
+                  <option value="<">&lt;</option>
+                  <option value=">">&gt;</option>
                   <option value="!=">!=</option>
-                  <option value="&lt;=">&lt;=</option>
-                  <option value="&gt;=">&gt;=</option>
+                  <option value="<=">&lt;=</option>
+                  <option value=">=">&gt;=</option>
                 </select>
               </div>
               <div className="flex flex-col gap-1.5 flex-[0.7]">
@@ -305,283 +308,297 @@ export const ActionConditionWindow: React.FC = () => {
         <div className="h-px bg-border/30" />
 
         {/* Groupe : Distance */}
-        <div className="flex flex-col bg-blue-500/5 rounded-xl border border-blue-500/10 shadow-sm transition-all hover:bg-blue-500/[0.08]">
+        <div className="flex flex-col bg-orange-500/5 rounded-xl border border-orange-500/10 shadow-sm transition-all hover:bg-orange-500/[0.08]">
           <button 
             type="button"
             onClick={() => setIsDistanceExpanded(!isDistanceExpanded)}
             className="flex items-center justify-between w-full p-3 text-left outline-none"
           >
-            <h4 className="text-[10px] font-black text-blue-500/60 uppercase tracking-[0.2em] pl-1">Groupe : Distance</h4>
-            {isDistanceExpanded ? <ChevronDown size={14} className="text-blue-500/40" /> : <ChevronRight size={14} className="text-blue-500/40" />}
+            <h4 className="text-[10px] font-black text-orange-500/60 uppercase tracking-[0.2em] pl-1">Groupe : Distance</h4>
+            {isDistanceExpanded ? <ChevronDown size={14} className="text-orange-500/40" /> : <ChevronRight size={14} className="text-orange-500/40" />}
           </button>
-          <div className={`px-3 pb-3 transition-all duration-300 origin-top flex flex-col gap-5 ${isDistanceExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerDistance' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">5.</span>
-                  <input
-                    type="checkbox"
-                    checked={type === 'playerDistance' && enabled}
-                    onChange={() => {
-                      if (type !== 'playerDistance') {
-                        setType('playerDistance');
-                        setEnabled(true);
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
+          
+          <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-6 ${isDistanceExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
+            
+            {/* Distance (Rôle) */}
+            <div className={`flex flex-col gap-3 transition-all duration-300 ${type !== 'playerDistance' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1.5 shrink-0">
+                  <div className="flex items-center h-[20px] justify-center">
+                    <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50 whitespace-nowrap">Dist. Rôle</span>
+                    <input
+                      type="checkbox"
+                      checked={type === 'playerDistance' && enabled}
+                      onChange={() => {
+                        if (type !== 'playerDistance') {
+                          setType('playerDistance');
+                          setEnabled(true);
+                        } else {
+                          setEnabled(!enabled);
+                        }
+                      }}
+                      className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
-                <select
-                  disabled={type !== 'playerDistance' || !enabled}
-                  value={distanceFromPlayerId || '$Joueur'}
-                  onChange={(e) => setDistanceFromPlayerId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="$Joueur">$Joueur</option>
-                  <option value="$Selected">Joueur(s) sélectionné(s)</option>
-                </select>
-              </div>
+                
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="flex flex-col gap-1 flex-1">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur Source</label>
+                    <select
+                      disabled={type !== 'playerDistance' || !enabled}
+                      value={distanceFromPlayerId || '$Joueur'}
+                      onChange={(e) => setDistanceFromPlayerId(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="$Joueur">$Joueur</option>
+                      <option value="$Selected">Joueur(s) sélectionné(s)</option>
+                    </select>
+                  </div>
 
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">a bien</span>
-              </div>
+                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                    <ChevronRight size={14} className="text-muted-foreground opacity-30 mt-4" />
+                  </div>
 
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
-                <select
-                  disabled={type !== 'playerDistance' || !enabled}
-                  value={distanceTargetRoleId || ''}
-                  onChange={(e) => setDistanceTargetRoleId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(role => (
-                    <option key={role.id} value={role.id}>{role.name}</option>
-                  ))}
-                </select>
-              </div>
+                  <div className="flex flex-col gap-1 flex-1">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle Cible</label>
+                    <select
+                      disabled={type !== 'playerDistance' || !enabled}
+                      value={distanceTargetRoleId || ''}
+                      onChange={(e) => setDistanceTargetRoleId(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(role => (
+                        <option key={role.id} value={role.id}>{role.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">entre</span>
-              </div>
+                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap mt-4">entre</span>
+                  </div>
 
-              <div className="flex flex-col gap-1 flex-[0.3]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                <input
-                  disabled={type !== 'playerDistance' || !enabled}
-                  type="number"
-                  value={type === 'playerDistance' ? minValue : 0}
-                  onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                />
-              </div>
+                  <div className="flex flex-col gap-1 flex-[0.3]">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                    <input
+                      disabled={type !== 'playerDistance' || !enabled}
+                      type="number"
+                      value={type === 'playerDistance' ? minValue : 0}
+                      onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
+                      className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                    />
+                  </div>
 
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">et</span>
-              </div>
+                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap mt-4">et</span>
+                  </div>
 
-              <div className="flex flex-col gap-1 flex-[0.3]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                <input
-                  disabled={type !== 'playerDistance' || !enabled}
-                  type="number"
-                  value={type === 'playerDistance' ? maxValue : 0}
-                  onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                />
+                  <div className="flex flex-col gap-1 flex-[0.3]">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                    <input
+                      disabled={type !== 'playerDistance' || !enabled}
+                      type="number"
+                      value={type === 'playerDistance' ? maxValue : 0}
+                      onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
+                      className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="h-px bg-border/10 mx-2" />
 
             {/* Distance (Tag) */}
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerDistanceTag' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">5.</span>
-                  <input
-                    type="checkbox"
-                    checked={type === 'playerDistanceTag' && enabled}
-                    onChange={() => {
-                      if (type !== 'playerDistanceTag') {
-                        setType('playerDistanceTag');
-                        setEnabled(true);
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
+            <div className={`flex flex-col gap-3 transition-all duration-300 ${type !== 'playerDistanceTag' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1.5 shrink-0">
+                  <div className="flex items-center h-[20px] justify-center">
+                    <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50 whitespace-nowrap">Dist. Tag</span>
+                    <input
+                      type="checkbox"
+                      checked={type === 'playerDistanceTag' && enabled}
+                      onChange={() => {
+                        if (type !== 'playerDistanceTag') {
+                          setType('playerDistanceTag');
+                          setEnabled(true);
+                        } else {
+                          setEnabled(!enabled);
+                        }
+                      }}
+                      className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
-                <select
-                  disabled={type !== 'playerDistanceTag' || !enabled}
-                  value={distanceFromPlayerId || '$Joueur'}
-                  onChange={(e) => setDistanceFromPlayerId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="$Joueur">$Joueur</option>
-                  <option value="$Selected">Joueur(s) sélectionné(s)</option>
-                </select>
-              </div>
+                
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="flex flex-col gap-1 flex-1">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur Source</label>
+                    <select
+                      disabled={type !== 'playerDistanceTag' || !enabled}
+                      value={distanceFromPlayerId || '$Joueur'}
+                      onChange={(e) => setDistanceFromPlayerId(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="$Joueur">$Joueur</option>
+                      <option value="$Selected">Joueur(s) sélectionné(s)</option>
+                    </select>
+                  </div>
 
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">a bien</span>
-              </div>
+                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                    <ChevronRight size={14} className="text-muted-foreground opacity-30 mt-4" />
+                  </div>
 
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag</label>
-                <select
-                  disabled={type !== 'playerDistanceTag' || !enabled}
-                  value={tagId || ''}
-                  onChange={(e) => setTagId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
-                    <option key={tag.id} value={tag.id}>{tag.name}</option>
-                  ))}
-                </select>
-              </div>
+                  <div className="flex flex-col gap-1 flex-1">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag Cible</label>
+                    <select
+                      disabled={type !== 'playerDistanceTag' || !enabled}
+                      value={tagId || ''}
+                      onChange={(e) => setTagId(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
+                        <option key={tag.id} value={tag.id}>{tag.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">entre</span>
-              </div>
+                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap mt-4">entre</span>
+                  </div>
 
-              <div className="flex flex-col gap-1 flex-[0.3]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                <input
-                  disabled={type !== 'playerDistanceTag' || !enabled}
-                  type="number"
-                  value={type === 'playerDistanceTag' ? minValue : 0}
-                  onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                />
-              </div>
+                  <div className="flex flex-col gap-1 flex-[0.3]">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                    <input
+                      disabled={type !== 'playerDistanceTag' || !enabled}
+                      type="number"
+                      value={type === 'playerDistanceTag' ? minValue : 0}
+                      onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
+                      className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                    />
+                  </div>
 
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">et</span>
-              </div>
+                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap mt-4">et</span>
+                  </div>
 
-              <div className="flex flex-col gap-1 flex-[0.3]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                <input
-                  disabled={type !== 'playerDistanceTag' || !enabled}
-                  type="number"
-                  value={type === 'playerDistanceTag' ? maxValue : 0}
-                  onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                />
+                  <div className="flex flex-col gap-1 flex-[0.3]">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                    <input
+                      disabled={type !== 'playerDistanceTag' || !enabled}
+                      type="number"
+                      value={type === 'playerDistanceTag' ? maxValue : 0}
+                      onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
+                      className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="h-px bg-border/10 mx-2" />
 
             {/* Distance (Pastille) */}
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerDistancePastille' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">5.</span>
-                  <input
-                    type="checkbox"
-                    checked={type === 'playerDistancePastille' && enabled}
-                    onChange={() => {
-                      if (type !== 'playerDistancePastille') {
-                        setType('playerDistancePastille');
-                        setEnabled(true);
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
+            <div className={`flex flex-col gap-3 transition-all duration-300 ${type !== 'playerDistancePastille' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1.5 shrink-0">
+                  <div className="flex items-center h-[20px] justify-center">
+                    <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50 whitespace-nowrap">Dist. Pastille</span>
+                    <input
+                      type="checkbox"
+                      checked={type === 'playerDistancePastille' && enabled}
+                      onChange={() => {
+                        if (type !== 'playerDistancePastille') {
+                          setType('playerDistancePastille');
+                          setEnabled(true);
+                        } else {
+                          setEnabled(!enabled);
+                        }
+                      }}
+                      className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
-                <select
-                  disabled={type !== 'playerDistancePastille' || !enabled}
-                  value={distanceFromPlayerId || '$Joueur'}
-                  onChange={(e) => setDistanceFromPlayerId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="$Joueur">$Joueur</option>
-                  <option value="$Selected">Joueur(s) sélectionné(s)</option>
-                </select>
-              </div>
+                
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="flex flex-col gap-1 flex-1">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur Source</label>
+                    <select
+                      disabled={type !== 'playerDistancePastille' || !enabled}
+                      value={distanceFromPlayerId || '$Joueur'}
+                      onChange={(e) => setDistanceFromPlayerId(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="$Joueur">$Joueur</option>
+                      <option value="$Selected">Joueur(s) sélectionné(s)</option>
+                    </select>
+                  </div>
 
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">a bien</span>
-              </div>
+                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                    <ChevronRight size={14} className="text-muted-foreground opacity-30 mt-4" />
+                  </div>
 
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Pastille</label>
-                <div className="flex flex-wrap gap-1 bg-input border border-border rounded-lg p-1 max-h-24 overflow-y-auto custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed">
-                  {allIcons.map((iconName: string) => {
-                    const IconComponent = (icons as any)[iconName];
-                    if (!IconComponent) return null;
-                    return (
-                      <button
-                        key={iconName}
-                        disabled={type !== 'playerDistancePastille' || !enabled}
-                        type="button"
-                        onClick={() => setPastilleIcon(iconName)}
-                        className={`p-1 rounded transition-colors flex items-center justify-center ${
-                          pastilleIcon === iconName
-                            ? 'bg-orange-500 text-white shadow-sm'
-                            : 'hover:bg-accent text-muted-foreground'
-                        }`}
-                      >
-                        <IconComponent size={14} />
-                      </button>
-                    );
-                  })}
+                  <div className="flex flex-col gap-1 flex-1">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Pastille Cible</label>
+                    <div className="flex flex-wrap gap-1 bg-input border border-border rounded-lg p-1 max-h-24 overflow-y-auto custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed">
+                      {allIcons.map((iconName: string) => {
+                        const IconComp = (icons as any)[iconName];
+                        if (!IconComp) return null;
+                        return (
+                          <button
+                            key={iconName}
+                            disabled={type !== 'playerDistancePastille' || !enabled}
+                            type="button"
+                            onClick={() => setPastilleIcon(iconName)}
+                            className={`p-1 rounded transition-colors flex items-center justify-center ${
+                              pastilleIcon === iconName
+                                ? 'bg-orange-500 text-white shadow-sm'
+                                : 'hover:bg-accent text-muted-foreground'
+                            }`}
+                          >
+                            <IconComp size={14} />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap mt-4">entre</span>
+                  </div>
+
+                  <div className="flex flex-col gap-1 flex-[0.3]">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                    <input
+                      disabled={type !== 'playerDistancePastille' || !enabled}
+                      type="number"
+                      value={type === 'playerDistancePastille' ? minValue : 0}
+                      onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
+                      className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                    />
+                  </div>
+
+                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap mt-4">et</span>
+                  </div>
+
+                  <div className="flex flex-col gap-1 flex-[0.3]">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                    <input
+                      disabled={type !== 'playerDistancePastille' || !enabled}
+                      type="number"
+                      value={type === 'playerDistancePastille' ? maxValue : 0}
+                      onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
+                      className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">entre</span>
-              </div>
-
-              <div className="flex flex-col gap-1 flex-[0.3]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                <input
-                  disabled={type !== 'playerDistancePastille' || !enabled}
-                  type="number"
-                  value={type === 'playerDistancePastille' ? minValue : 0}
-                  onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                />
-              </div>
-
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">et</span>
-              </div>
-
-              <div className="flex flex-col gap-1 flex-[0.3]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                <input
-                  disabled={type !== 'playerDistancePastille' || !enabled}
-                  type="number"
-                  value={type === 'playerDistancePastille' ? maxValue : 0}
-                  onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                />
               </div>
             </div>
           </div>
         </div>
+
+        <div className="h-px bg-border/30" />
 
         {/* Groupe : Identité */}
         <div className="flex flex-col bg-orange-500/5 rounded-xl border border-orange-500/10 shadow-sm transition-all hover:bg-orange-500/[0.08]">
@@ -593,7 +610,72 @@ export const ActionConditionWindow: React.FC = () => {
             <h4 className="text-[10px] font-black text-orange-500/60 uppercase tracking-[0.2em] pl-1">Groupe : Identité</h4>
             {isIdentityExpanded ? <ChevronDown size={14} className="text-orange-500/40" /> : <ChevronRight size={14} className="text-orange-500/40" />}
           </button>
+          
           <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-5 ${isIdentityExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
+            
+            {/* Player Role */}
+            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerRole' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+              <div className="flex flex-col gap-1.5 pb-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+                <div className="flex items-center h-[38px] justify-center">
+                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">2.</span>
+                  <input
+                    type="checkbox"
+                    checked={type === 'playerRole' && enabled}
+                    onChange={() => {
+                      if (type !== 'playerRole') {
+                        setType('playerRole');
+                        setEnabled(true);
+                        setOperator('=');
+                      } else {
+                        setEnabled(!enabled);
+                      }
+                    }}
+                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 flex-[0.6]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
+                <input
+                  disabled={type !== 'playerRole' || !enabled}
+                  type="number"
+                  min="1"
+                  value={type === 'playerRole' ? value : 1}
+                  onChange={(e) => setValue(parseInt(e.target.value) || 1)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+              <div className="flex flex-col gap-1 flex-[0.5]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
+                <select
+                  disabled={type !== 'playerRole' || !enabled}
+                  value={operator}
+                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="=">=</option>
+                  <option value="!=">!=</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
+                <select
+                  disabled={type !== 'playerRole' || !enabled}
+                  value={roleId || ''}
+                  onChange={(e) => setRoleId(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {roles.map(role => (
+                    <option key={role.id} value={role.id}>{role.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="h-px bg-border/20 mx-2" />
+
+            {/* Selection Role/Target */}
             <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'playerSelection' && type !== 'playerSelectionRole') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
@@ -619,7 +701,7 @@ export const ActionConditionWindow: React.FC = () => {
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
                   disabled={(type !== 'playerSelection' && type !== 'playerSelectionRole') || !enabled}
-                  value={selectionType || 'first'}
+                  value={selectionType || 'all'}
                   onChange={(e) => setSelectionType(e.target.value as 'first' | 'last' | 'all')}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -683,7 +765,7 @@ export const ActionConditionWindow: React.FC = () => {
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
                   disabled={type !== 'playerSelectionTag' || !enabled}
-                  value={selectionType || 'first'}
+                  value={selectionType || 'all'}
                   onChange={(e) => setSelectionType(e.target.value as 'first' | 'last' | 'all')}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -715,7 +797,6 @@ export const ActionConditionWindow: React.FC = () => {
                   {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
                     <option key={tag.id} value={tag.id}>{tag.name}</option>
                   ))}
-                  {tags.length === 0 && <option value="">Aucun tag</option>}
                 </select>
               </div>
             </div>
@@ -748,7 +829,7 @@ export const ActionConditionWindow: React.FC = () => {
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
                   disabled={type !== 'playerSelectionPastille' || !enabled}
-                  value={selectionType || 'first'}
+                  value={selectionType || 'all'}
                   onChange={(e) => setSelectionType(e.target.value as 'first' | 'last' | 'all')}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -790,198 +871,11 @@ export const ActionConditionWindow: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            <div className="h-px bg-border/20 mx-2" />
-
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerRole' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">2.</span>
-                  <input
-                    type="checkbox"
-                    checked={type === 'playerRole' && enabled}
-                    onChange={() => {
-                      if (type !== 'playerRole') {
-                        setType('playerRole');
-                        setEnabled(true);
-                        setOperator('=');
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.6]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
-                <input
-                  disabled={type !== 'playerRole' || !enabled}
-                  type="number"
-                  min="1"
-                  value={type === 'playerRole' ? value : 1}
-                  onChange={(e) => setValue(parseInt(e.target.value) || 1)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
-                <select
-                  disabled={type !== 'playerRole' || !enabled}
-                  value={operator}
-                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="=">=</option>
-                  <option value="!=">!=</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
-                <select
-                  disabled={type !== 'playerRole' || !enabled}
-                  value={roleId || ''}
-                  onChange={(e) => setRoleId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {roles.map(role => (
-                    <option key={role.id} value={role.id}>{role.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="h-px bg-border/20 mx-2" />
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerTag' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">4.</span>
-                  <input
-                    type="checkbox"
-                    checked={type === 'playerTag' && enabled}
-                    onChange={() => {
-                      if (type !== 'playerTag') {
-                        setType('playerTag');
-                        setEnabled(true);
-                        setOperator('=');
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.6]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
-                <input
-                  disabled={type !== 'playerTag' || !enabled}
-                  type="number"
-                  min="1"
-                  value={type === 'playerTag' ? value : 1}
-                  onChange={(e) => setValue(parseInt(e.target.value) || 1)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
-                <select
-                  disabled={type !== 'playerTag' || !enabled}
-                  value={operator}
-                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="=">=</option>
-                  <option value="!=">!=</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag</label>
-                <select
-                  disabled={type !== 'playerTag' || !enabled}
-                  value={tagId || ''}
-                  onChange={(e) => setTagId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
-                    <option key={tag.id} value={tag.id}>{tag.name}</option>
-                  ))}
-                  {tags.length === 0 && <option value="">Aucun tag</option>}
-                </select>
-              </div>
-            </div>
-            <div className="h-px bg-border/20 mx-2" />
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerPastille' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">6.</span>
-                  <input
-                    type="checkbox"
-                    checked={type === 'playerPastille' && enabled}
-                    onChange={() => {
-                      if (type !== 'playerPastille') {
-                        setType('playerPastille');
-                        setEnabled(true);
-                        setOperator('=');
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.6]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
-                <input
-                  disabled={type !== 'playerPastille' || !enabled}
-                  type="number"
-                  min="1"
-                  value={type === 'playerPastille' ? value : 1}
-                  onChange={(e) => setValue(parseInt(e.target.value) || 1)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
-                <select
-                  disabled={type !== 'playerPastille' || !enabled}
-                  value={operator}
-                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="=">=</option>
-                  <option value="!=">!=</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Pastille</label>
-                <div className="flex items-center gap-2">
-                  <select
-                    disabled={type !== 'playerPastille' || !enabled}
-                    value={pastilleIcon || ''}
-                    onChange={(e) => setPastilleIcon(e.target.value)}
-                    className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {allIcons.map((icon: string) => (
-                      <option key={icon} value={icon}>{icon}</option>
-                    ))}
-                  </select>
-                  {pastilleIcon && (icons as any)[pastilleIcon] && (
-                    <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-lg border border-border p-1 shadow-inner shrink-0">
-                      {React.createElement((icons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 pt-1 p-3.5">
+      <div className="flex items-center gap-2 pt-1 p-3.5 border-t border-border bg-card">
         <button
           onClick={handleClose}
           className="flex-1 py-1.5 px-4 bg-muted hover:bg-accent text-foreground text-xs font-bold rounded-lg transition-colors border border-border"

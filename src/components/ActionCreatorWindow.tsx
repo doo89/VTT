@@ -320,6 +320,15 @@ export const ActionCreatorWindow: React.FC = () => {
                        effect.type === 'hideRoleImage' ? "Cacher l'image du Rôle" :
                        effect.type === 'deleteAllPlayerTags' ? 'Supprimer tous les tags des joueurs' : 
                        effect.type === 'deleteSelectionPastilles' ? 'Supprimer les pastilles tags' :
+                       effect.type === 'resurrectAllPlayers' ? 'Ressusciter tous les joueurs' :
+                       effect.type === 'showAllPlayers' ? 'Afficher tous les joueurs' :
+                       effect.type === 'hideAllPlayers' ? 'Masquer tous les joueurs' :
+                       effect.type === 'showPlayerTooltip' ? 'Afficher info bulle joueurs' :
+                       effect.type === 'hidePlayerTooltip' ? 'Masquer info bulle joueurs' :
+                       effect.type === 'showTagTooltip' ? 'Afficher info bulle tags' :
+                       effect.type === 'hideTagTooltip' ? 'Masquer info bulle tags' :
+                       effect.type === 'showRoleColor' ? 'Afficher couleur rôle' :
+                       effect.type === 'hideRoleColor' ? 'Masquer couleur rôle' :
                        effect.type === 'popupPlayer' ? 'Popup $Joueur' :
                        effect.type}
                     </span>

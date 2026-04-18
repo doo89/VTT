@@ -679,9 +679,7 @@ export const useVttStore = create<VttStore>()(
                     const player = state.players.find((p: any) => (p.creationOrder || 0) === c.value) 
                                    || state.players[c.value - 1];
                     if (!player) return false;
-                    const role = state.roles.find((r: any) => r.id === player.roleId);
-                    const hasTag = player.tags.some((t: any) => t.id === c.tagId) || 
-                                   (role?.tags || []).some((t: any) => t.id === c.tagId);
+                    const hasTag = player.tags.some((t: any) => t.id === c.tagId);
                     if (c.operator === '=') return hasTag;
                     if (c.operator === '!=') return !hasTag;
                     return false;
@@ -690,29 +688,41 @@ export const useVttStore = create<VttStore>()(
                     const player = state.players.find((p: any) => (p.creationOrder || 0) === c.value) 
                                    || state.players[c.value - 1];
                     if (!player) return false;
-                    const hasPastille = (player.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon);
-                    if (c.operator === '=') return hasPastille;
-                    if (c.operator === '!=') return !hasPastille;
-                    return false;
-                  }                  if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
-                    const checkMatching = (p: any) => {
-                      if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
-                        if (c.operator === '=') return p.roleId === c.selectionRoleId;
-                        if (c.operator === '!=') return p.roleId !== c.selectionRoleId;
-                      } else if (c.type === 'playerSelectionTag') {
-                        const role = state.roles.find((r: any) => r.id === p.roleId);
-                        const hasTag = p.tags.some((t: any) => t.id === c.tagId) ||
-                                       (role?.tags || []).some((t: any) => t.id === c.tagId);
-                        if (c.operator === '=') return hasTag;
-                        if (c.operator === '!=') return !hasTag;
-                      } else if (c.type === 'playerSelectionPastille') {
-                        const hasPastille = (p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon);
-                        if (c.operator === '=') return hasPastille;
-                        if (c.operator === '!=') return !hasPastille;
-                      }
-                      return false;
-                    };
+                  const checkMatching = (p: any): boolean => {
+                    // Consolidated tags (Support Role-attached tags as active tags)
+                    const playerTags = p.tags || [];
+                    const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
+                    const allPlayerTags = [...playerTags, ...roleTags];
 
+                    if (c.type === 'playerRole') {
+                      const isRole = p.roleId === c.roleId;
+                      if (c.operator === '=') return isRole;
+                      if (c.operator === '!=') return !isRole;
+                    } else if (c.type === 'playerTag') {
+                      const hasTag = allPlayerTags.some((t: any) => t.id === c.tagId);
+                      if (c.operator === '=') return hasTag;
+                      if (c.operator === '!=') return !hasTag;
+                    } else if (c.type === 'playerPastille') {
+                      const hasPastille = (p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon);
+                      if (c.operator === '=') return hasPastille;
+                      if (c.operator === '!=') return !hasPastille;
+                    } else if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
+                      const isRole = p.roleId === (c.selectionRoleId || c.roleId);
+                      if (c.operator === '=') return isRole;
+                      if (c.operator === '!=') return !isRole;
+                    } else if (c.type === 'playerSelectionTag') {
+                      const hasTag = allPlayerTags.some((t: any) => t.id === c.tagId);
+                      if (c.operator === '=') return hasTag;
+                      if (c.operator === '!=') return !hasTag;
+                    } else if (c.type === 'playerSelectionPastille') {
+                      const hasPastille = (p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon);
+                      if (c.operator === '=') return hasPastille;
+                      if (c.operator === '!=') return !hasPastille;
+                    }
+                    return false;
+                  };
+
+                  if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
                     if (c.selectionType === 'all') {
                       const matchingPlayers = state.players.filter(checkMatching);
                       if (matchingPlayers.length > 0) {
@@ -723,7 +733,7 @@ export const useVttStore = create<VttStore>()(
                       return false;
                     }
                     
-                    const sortedPlayers = [...state.players];
+                    const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
                     if (c.selectionType === 'last') sortedPlayers.reverse();
                     const foundPlayer = sortedPlayers.find(checkMatching);
                     
@@ -733,51 +743,52 @@ export const useVttStore = create<VttStore>()(
                     }
                     return false;
                   }
+
                   if (c.type === 'playerDistance' || c.type === 'playerDistanceTag' || c.type === 'playerDistancePastille') {
-                    let sourcePlayer = null;
+                    let sources: any[] = [];
                     if (c.distanceFromPlayerId === '$Joueur') {
-                      sourcePlayer = actionContext['$Joueur'];
+                      if (actionContext['$Joueur']) sources = [actionContext['$Joueur']];
                     } else if (c.distanceFromPlayerId === '$Selected') {
-                      sourcePlayer = state.players.find((p: any) => state.selectedEntityIds.includes(p.id));
+                      sources = state.players.filter(p => state.selectedEntityIds.includes(p.id));
                     } else {
-                      sourcePlayer = state.players.find((p: any) => p.id === c.distanceFromPlayerId);
+                      const explicitPlayer = state.players.find((p: any) => p.id === c.distanceFromPlayerId);
+                      if (explicitPlayer) sources = [explicitPlayer];
                     }
 
-                    if (!sourcePlayer) return false;
+                    if (sources.length === 0) return false;
 
                     const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
-                    const totalPlayers = sortedPlayers.length;
-                    if (totalPlayers === 0) return false;
+                    if (sortedPlayers.length === 0) return false;
 
-                    const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
-                    if (sourceIndex === -1) return false;
+                    // Condition passes if ANY source player has a target in range
+                    return sources.some(sourcePlayer => {
+                      const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
+                      if (sourceIndex === -1) return false;
 
-                    const min = c.minValue ?? c.value;
-                    const max = c.maxValue ?? c.value;
+                      const min = c.minValue ?? 0;
+                      const max = c.maxValue ?? 0;
 
-                    for (let d = min; d <= max; d++) {
-                      if (d === 0) continue; 
+                      for (let dist = min; dist <= max; dist++) {
+                        let targetIndex = (sourceIndex + dist) % sortedPlayers.length;
+                        while (targetIndex < 0) targetIndex += sortedPlayers.length;
+                        
+                        const targetPlayer = sortedPlayers[targetIndex];
+                        if (!targetPlayer) continue;
 
-                      let targetIndex = (sourceIndex + d) % totalPlayers;
-                      while (targetIndex < 0) targetIndex += totalPlayers;
+                        // Check target criteria (with role-appended tags)
+                        const targetRoleTags = state.roles.find((r: any) => r.id === targetPlayer.roleId)?.tags || [];
+                        const allTargetTags = [...(targetPlayer.tags || []), ...targetRoleTags];
 
-                      const targetPlayer = sortedPlayers[targetIndex];
-                      if (!targetPlayer) continue;
-
-                      let match = false;
-                      if (c.type === 'playerDistance') {
-                        match = targetPlayer.roleId === c.distanceTargetRoleId;
-                      } else if (c.type === 'playerDistanceTag') {
-                        const targetRole = state.roles.find((r: any) => r.id === targetPlayer.roleId);
-                        match = targetPlayer.tags.some((t: any) => t.id === c.tagId) ||
-                                (targetRole?.tags || []).some((t: any) => t.id === c.tagId);
-                      } else if (c.type === 'playerDistancePastille') {
-                        match = (targetPlayer.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon);
+                        if (c.type === 'playerDistance') {
+                          if (targetPlayer.roleId === c.distanceTargetRoleId) return true;
+                        } else if (c.type === 'playerDistanceTag') {
+                          if (allTargetTags.some((t: any) => t.id === c.tagId)) return true;
+                        } else if (c.type === 'playerDistancePastille') {
+                          if ((targetPlayer.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon)) return true;
+                        }
                       }
-
-                      if (match) return true;
-                    }
-                    return false;
+                      return false;
+                    });
                   }
 
                   let compareVal = 0;
@@ -818,7 +829,7 @@ export const useVttStore = create<VttStore>()(
                     const selectionLabel = c.selectionType === 'all' ? 'Tous les Joueurs' : (c.selectionType === 'first' ? '1er Joueur' : 'Dernier Joueur');
                     let targetLabel = 'Inconnu';
                     if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
-                      targetLabel = state.roles.find((r: any) => r.id === c.selectionRoleId)?.name || 'Inconnu';
+                      targetLabel = state.roles.find((r: any) => r.id === (c.selectionRoleId || c.roleId))?.name || 'Inconnu';
                     } else if (c.type === 'playerSelectionTag') {
                       targetLabel = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
                     } else if (c.type === 'playerSelectionPastille') {
@@ -835,10 +846,10 @@ export const useVttStore = create<VttStore>()(
                     } else if (c.type === 'playerDistancePastille') {
                       targetLabel = `Pastille ${c.pastilleIcon}`;
                     }
-                    const fromLabel = c.distanceFromPlayerId === '$Selected' ? 'Joueur(s) sélectionné(s)' : c.distanceFromPlayerId;
-                    const min = c.minValue ?? c.value;
-                    const max = c.maxValue ?? c.value;
-                    const rangeLabel = min === max ? `${min}` : `${min} à ${max}`;
+                    const fromLabel = c.distanceFromPlayerId === '$Joueur' ? '$Joueur' : (c.distanceFromPlayerId === '$Selected' ? 'Joueur(s) sélectionné(s)' : 'Joueur');
+                    const rangeLabel = (c.minValue !== undefined && c.maxValue !== undefined) 
+                      ? (c.minValue === c.maxValue ? `${c.minValue}` : `${c.minValue} à ${c.maxValue}`)
+                      : `${c.value}`;
                     return `Dist. ${rangeLabel} de : ${fromLabel} (${targetLabel})`;
                   }
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
