@@ -112,11 +112,11 @@ export const ActionConditionWindow: React.FC = () => {
       operator, 
       value, 
       enabled, 
-      roleId: (type === 'playerRole' || type === 'playerSelectionRole') ? (type === 'playerSelectionRole' ? selectionRoleId : roleId) : (type === 'playerRole' ? roleId : null),
+      roleId: (type === 'playerRole' || type === 'playerSelection' || type === 'playerSelectionRole') ? (type.startsWith('playerSelection') ? selectionRoleId : roleId) : null,
       tagId: (type === 'playerTag' || type === 'playerSelectionTag') ? tagId : null,
       pastilleIcon: (type === 'playerPastille' || type === 'playerSelectionPastille') ? pastilleIcon : null,
-      selectionType: (type === 'playerSelection' || type === 'playerSelectionTag' || type === 'playerSelectionPastille') ? selectionType : null,
-      selectionRoleId: type === 'playerSelection' ? selectionRoleId : null,
+      selectionType: (type === 'playerSelection' || type === 'playerSelectionRole' || type === 'playerSelectionTag' || type === 'playerSelectionPastille') ? selectionType : null,
+      selectionRoleId: (type === 'playerSelection' || type === 'playerSelectionRole') ? selectionRoleId : null,
       distanceFromPlayerId: type === 'playerDistance' ? distanceFromPlayerId : null,
       distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null
     };
@@ -378,17 +378,17 @@ export const ActionConditionWindow: React.FC = () => {
             {isIdentityExpanded ? <ChevronDown size={14} className="text-orange-500/40" /> : <ChevronRight size={14} className="text-orange-500/40" />}
           </button>
           <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-5 ${isIdentityExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerSelection' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+            <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'playerSelection' && type !== 'playerSelectionRole') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
                 <div className="flex items-center h-[38px] justify-center">
                   <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">3.</span>
                   <input
                     type="checkbox"
-                    checked={type === 'playerSelection' && enabled}
+                    checked={(type === 'playerSelection' || type === 'playerSelectionRole') && enabled}
                     onChange={() => {
-                      if (type !== 'playerSelection') {
-                        setType('playerSelection');
+                      if (type !== 'playerSelection' && type !== 'playerSelectionRole') {
+                        setType('playerSelectionRole');
                         setEnabled(true);
                         setOperator('=');
                       } else {
@@ -402,7 +402,7 @@ export const ActionConditionWindow: React.FC = () => {
               <div className="flex flex-col gap-1 flex-[1.2]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
-                  disabled={type !== 'playerSelection' || !enabled}
+                  disabled={(type !== 'playerSelection' && type !== 'playerSelectionRole') || !enabled}
                   value={selectionType || 'first'}
                   onChange={(e) => setSelectionType(e.target.value as 'first' | 'last' | 'all')}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -415,7 +415,7 @@ export const ActionConditionWindow: React.FC = () => {
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
                 <select
-                  disabled={type !== 'playerSelection' || !enabled}
+                  disabled={(type !== 'playerSelection' && type !== 'playerSelectionRole') || !enabled}
                   value={operator}
                   onChange={(e) => setOperator(e.target.value as ActionOperator)}
                   className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -427,7 +427,7 @@ export const ActionConditionWindow: React.FC = () => {
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
                 <select
-                  disabled={type !== 'playerSelection' || !enabled}
+                  disabled={(type !== 'playerSelection' && type !== 'playerSelectionRole') || !enabled}
                   value={selectionRoleId || ''}
                   onChange={(e) => setSelectionRoleId(e.target.value)}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -783,4 +783,3 @@ export const ActionConditionWindow: React.FC = () => {
     </div>
   );
 };
-鼓

@@ -1,4 +1,4 @@
-export type EntityId = string;
+﻿export type EntityId = string;
 
 export interface Player {
   id: EntityId;
@@ -270,7 +270,7 @@ export interface ActionEffect {
   enabled: boolean;
 }
 
-export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille';
+export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole';
 export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=';
 
 export interface ActionCondition {
@@ -459,7 +459,6 @@ export interface GameState {
     showTagVotes?: boolean;
     showTagPoints?: boolean;
     showTagUses?: boolean;
-    showTagTooltip?: boolean;
     showTagAutoDelete?: boolean;
     showTagSeenAsRole?: boolean;
     showTagSeenInTeam?: boolean;
@@ -470,3 +469,4 @@ export interface GameState {
     showTagSmartphoneIcon?: boolean;
   };
 }
+鼓

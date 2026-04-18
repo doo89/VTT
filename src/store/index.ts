@@ -692,9 +692,9 @@ export const useVttStore = create<VttStore>()(
                     if (c.operator === '=') return hasPastille;
                     if (c.operator === '!=') return !hasPastille;
                     return false;
-                  }                  if (c.type === 'playerSelection' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
+                  }                  if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
                     const checkMatching = (p: any) => {
-                      if (c.type === 'playerSelection') {
+                      if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
                         if (c.operator === '=') return p.roleId === c.selectionRoleId;
                         if (c.operator === '!=') return p.roleId !== c.selectionRoleId;
                       } else if (c.type === 'playerSelectionTag') {
@@ -790,10 +790,10 @@ export const useVttStore = create<VttStore>()(
                   if (c.type === 'playerPastille') {
                     return `Joueur ${c.value} ${c.operator} Pastille ${c.pastilleIcon}`;
                   }
-                  if (c.type === 'playerSelection' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
+                  if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
                     const selectionLabel = c.selectionType === 'all' ? 'Tous les Joueurs' : (c.selectionType === 'first' ? '1er Joueur' : 'Dernier Joueur');
                     let targetLabel = 'Inconnu';
-                    if (c.type === 'playerSelection') {
+                    if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
                       targetLabel = state.roles.find((r: any) => r.id === c.selectionRoleId)?.name || 'Inconnu';
                     } else if (c.type === 'playerSelectionTag') {
                       targetLabel = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
