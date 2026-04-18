@@ -945,11 +945,11 @@ export const PlayerView: React.FC = () => {
                        onClick={() => setIsWikiNotesOpen(!isWikiNotesOpen)}
                        className="flex items-center gap-2 flex-1 text-left"
                     >
-                       <(icons as any).Book size={18} className="text-blue-500" />
+                       <icons.Book size={18} className="text-blue-500" />
                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">
                           {displaySettings?.wikiTitle || 'Régles du jeu'}
                        </h3>
-                       {isWikiNotesOpen ? <(icons as any).ChevronUp size={16} className="text-zinc-600" /> : <(icons as any).ChevronDown size={16} className="text-zinc-600" />}
+                       {isWikiNotesOpen ? <icons.ChevronUp size={16} className="text-zinc-600" /> : <icons.ChevronDown size={16} className="text-zinc-600" />}
                     </button>
                     {isWikiNotesOpen && (
                       <button 
@@ -957,7 +957,7 @@ export const PlayerView: React.FC = () => {
                          className={`p-1.5 rounded-lg border transition-all ${wikiLightMode ? 'bg-white text-zinc-900 border-zinc-300 shadow-sm' : 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}
                          title={wikiLightMode ? "Passer en mode sombre" : "Passer en mode clair"}
                       >
-                         {wikiLightMode ? <(icons as any).Moon size={14} /> : <(icons as any).Sun size={14} />}
+                         {wikiLightMode ? <icons.Moon size={14} /> : <icons.Sun size={14} />}
                       </button>
                     )}
                  </div>
@@ -973,7 +973,7 @@ export const PlayerView: React.FC = () => {
                          />
                       ) : (
                          <div className="flex flex-col items-center justify-center py-6 text-zinc-600 gap-2 grayscale">
-                            <(icons as any).FileText size={40} className="opacity-20" />
+                            <icons.FileText size={40} className="opacity-20" />
                             <p className="text-xs font-bold uppercase tracking-tighter opacity-30">Aucune information partagée...</p>
                          </div>
                       )}
@@ -990,9 +990,9 @@ export const PlayerView: React.FC = () => {
                        onClick={() => setIsWikiRolesOpen(!isWikiRolesOpen)}
                        className="flex items-center gap-2 flex-1 text-left"
                     >
-                       <(icons as any).Users size={18} className="text-indigo-400" />
+                       <icons.Users size={18} className="text-indigo-400" />
                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Guide des Rôles</h3>
-                       {isWikiRolesOpen ? <(icons as any).ChevronUp size={16} className="text-zinc-600" /> : <(icons as any).ChevronDown size={16} className="text-zinc-600" />}
+                       {isWikiRolesOpen ? <icons.ChevronUp size={16} className="text-zinc-600" /> : <icons.ChevronDown size={16} className="text-zinc-600" />}
                     </button>
                  </div>
 
@@ -1020,7 +1020,7 @@ export const PlayerView: React.FC = () => {
                                         {role.imageUrl ? (
                                            <img src={role.imageUrl} className="w-full h-full rounded-full object-cover" alt="" />
                                         ) : (
-                                           <(icons as any).Shield size={18} style={{ color: role.color }} />
+                                           <icons.Shield size={18} style={{ color: role.color }} />
                                         )}
                                      </div>
                                      <div className="flex flex-col min-w-0">
@@ -1066,9 +1066,9 @@ export const PlayerView: React.FC = () => {
                        onClick={() => setIsWikiTagsOpen(!isWikiTagsOpen)}
                        className="flex items-center gap-2 flex-1 text-left"
                     >
-                       <(icons as any).Tag size={18} className="text-emerald-400" />
+                       <icons.Tag size={18} className="text-emerald-400" />
                        <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Guide des Tags</h3>
-                       {isWikiTagsOpen ? <(icons as any).ChevronUp size={16} className="text-zinc-600" /> : <(icons as any).ChevronDown size={16} className="text-zinc-600" />}
+                       {isWikiTagsOpen ? <icons.ChevronUp size={16} className="text-zinc-600" /> : <icons.ChevronDown size={16} className="text-zinc-600" />}
                     </button>
                  </div>
 
@@ -1105,7 +1105,7 @@ export const PlayerView: React.FC = () => {
                        ))
                      ) : (
                        <div className="flex flex-col items-center justify-center py-6 text-zinc-600 gap-2 grayscale">
-                          <(icons as any).Tag size={40} className="opacity-20" />
+                          <icons.Tag size={40} className="opacity-20" />
                           <p className="text-xs font-bold uppercase tracking-tighter opacity-30">Aucun tag public défini...</p>
                        </div>
                      )}
@@ -1164,7 +1164,7 @@ export const PlayerView: React.FC = () => {
             className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'wiki' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
           >
             <div className={`p-2 rounded-xl transition-colors ${activeTab === 'wiki' ? 'bg-blue-500/10' : 'bg-transparent'}`}>
-              <(icons as any).Book size={22} strokeWidth={activeTab === 'wiki' ? 2.5 : 2} />
+              <icons.Book size={22} strokeWidth={activeTab === 'wiki' ? 2.5 : 2} />
             </div>
             <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'wiki' ? 'opacity-100' : 'opacity-40'}`}>Wiki</span>
           </button>
