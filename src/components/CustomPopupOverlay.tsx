@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
 import { useVttStore } from '../store';
 import { X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 export const CustomPopupOverlay: React.FC = () => {
   const { customPopups, activeCustomPopupId, triggerCustomPopup } = useVttStore();
+  const location = useLocation();
 
   const activePopup = customPopups?.find(p => p.id === activeCustomPopupId);
 
@@ -19,13 +21,27 @@ export const CustomPopupOverlay: React.FC = () => {
   // Sound playback logic
   useEffect(() => {
     if (activePopup?.soundUrl) {
-      const audio = new Audio(activePopup.soundUrl);
-      audio.volume = 0.5;
-      audio.play().catch(e => console.error("Failed to play popup sound:", e));
+      const isGM = location.pathname === '/';
+      const isSmartphone = location.pathname.startsWith('/player/') || location.pathname.startsWith('/soundboard/');
+      
+      const shouldShow = (isGM && (activePopup.showToGM !== false)) || (isSmartphone && (activePopup.showToSmartphone !== false));
+      
+      if (shouldShow) {
+        const audio = new Audio(activePopup.soundUrl);
+        audio.volume = 0.5;
+        audio.play().catch(e => console.error("Failed to play popup sound:", e));
+      }
     }
-  }, [activeCustomPopupId]); // only re-run when ID changes
+  }, [activeCustomPopupId, location.pathname]); // only re-run when ID or path changes
 
   if (!activePopup) return null;
+
+  const isGM = location.pathname === '/';
+  const isSmartphone = location.pathname.startsWith('/player/') || location.pathname.startsWith('/soundboard/');
+  
+  const shouldShow = (isGM && (activePopup.showToGM !== false)) || (isSmartphone && (activePopup.showToSmartphone !== false));
+
+  if (!shouldShow) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm shadow-2xl">

@@ -192,6 +192,8 @@ export interface CustomPopup {
   showCloseButton: boolean;
   autoCloseTimer: boolean;
   soundUrl?: string | null;
+  showToGM?: boolean;
+  showToSmartphone?: boolean;
 }
 
 export type ChecklistItemType = 'text' | 'checkbox' | 'image';

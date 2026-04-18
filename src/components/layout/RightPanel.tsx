@@ -32,7 +32,7 @@ export const RightPanel: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showPopupCreator, setShowPopupCreator] = useState(false);
   const [editingPopupId, setEditingPopupId] = useState<string | null>(null);
-  const [newPopupData, setNewPopupData] = useState({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+  const [newPopupData, setNewPopupData] = useState({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, showToGM: true, showToSmartphone: true });
   const urlRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef<HTMLInputElement>(null);
   const popupImageInputRef = useRef<HTMLInputElement>(null);
@@ -748,7 +748,7 @@ export const RightPanel: React.FC = () => {
                  <button
                     onClick={() => {
                       setEditingPopupId(null);
-                      setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+                      setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, showToGM: true, showToSmartphone: true });
                       setShowPopupCreator(true);
                     }}
                     className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
@@ -770,7 +770,9 @@ export const RightPanel: React.FC = () => {
                                 soundUrl: popup.soundUrl || '',
                                 content: popup.content,
                                 showCloseButton: popup.showCloseButton,
-                                autoCloseTimer: popup.autoCloseTimer
+                                autoCloseTimer: popup.autoCloseTimer,
+                                showToGM: popup.showToGM ?? true,
+                                showToSmartphone: popup.showToSmartphone ?? true
                               });
                               setShowPopupCreator(true);
                             }} className="text-muted-foreground hover:text-primary transition-colors p-1" title="Modifier">
@@ -1173,13 +1175,31 @@ export const RightPanel: React.FC = () => {
                   />
                   Fermeture automatique (10s)
                 </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={newPopupData.showToGM ?? true}
+                    onChange={e => setNewPopupData({...newPopupData, showToGM: e.target.checked})}
+                    className="rounded border-border text-primary focus:ring-primary w-4 h-4"
+                  />
+                  Vue par le MJ
+                </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={newPopupData.showToSmartphone ?? true}
+                    onChange={e => setNewPopupData({...newPopupData, showToSmartphone: e.target.checked})}
+                    className="rounded border-border text-primary focus:ring-primary w-4 h-4"
+                  />
+                  Vue sur smartphone
+                </label>
               </div>
             </div>
 
             <div className="p-4 bg-muted/50 border-t border-border flex justify-between items-center shrink-0">
               <button 
                 onClick={() => {
-                  setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+                  setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, showToGM: true, showToSmartphone: true });
                   setShowPopupCreator(false);
                   setEditingPopupId(null);
                 }} 
@@ -1195,7 +1215,7 @@ export const RightPanel: React.FC = () => {
                     } else {
                       addCustomPopup(newPopupData);
                     }
-                    setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false });
+                    setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, showToGM: true, showToSmartphone: true });
                     setShowPopupCreator(false);
                     setEditingPopupId(null);
                   }
