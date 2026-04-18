@@ -121,6 +121,8 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="deleteAllPlayerTags">Supprimer tous les tags des joueurs</option>
               <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
               <option value="resurrectAllPlayers">Ressusciter tous les joueurs</option>
+              <option value="showAllPlayers">Afficher tous les joueurs</option>
+              <option value="hideAllPlayers">Masquer tous les joueurs</option>
               <option value="nextPhase">Passer à la phase suivante</option>
               <option value="previousPhase">Revenir à la phase précédente</option>
               <option value="resetCycle">Réinitialiser le Cycle (Jour 1)</option>
