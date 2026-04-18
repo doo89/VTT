@@ -248,6 +248,7 @@ export type ActionEffectType =
   | 'nextPhase' 
   | 'previousPhase' 
   | 'resetCycle'
+  | 'resurrectAllPlayers'
   | 'distributeRoles'
   | 'showPlayerImage'
   | 'hidePlayerImage'

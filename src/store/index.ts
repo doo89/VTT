@@ -874,6 +874,7 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'setCycleNone') nextCycleMode = 'none';
                 if (effect.type === 'deleteSelectionPastilles') nextPlayers = nextPlayers.map(p => ({ ...p, selectionPastilles: [] }));
                 if (effect.type === 'deleteAllPlayerTags') nextPlayers = nextPlayers.map(p => ({ ...p, tags: [] }));
+                if (effect.type === 'resurrectAllPlayers') nextPlayers = nextPlayers.map(p => ({ ...p, isDead: false }));
                 if (effect.type === 'showPlayerImage') nextDisplaySettings.showPlayerImage = true;
                 if (effect.type === 'hidePlayerImage') nextDisplaySettings.showPlayerImage = false;
                 if (effect.type === 'showRoleImage') nextDisplaySettings.showRoleImage = true;
