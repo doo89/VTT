@@ -692,14 +692,25 @@ export const useVttStore = create<VttStore>()(
                     if (c.operator === '=') return hasPastille;
                     if (c.operator === '!=') return !hasPastille;
                     return false;
-                  }
-                  if (c.type === 'playerSelection') {
-                    if (c.selectionType === 'all') {
-                      const matchingPlayers = state.players.filter((p: any) => {
+                  }                  if (c.type === 'playerSelection' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
+                    const checkMatching = (p: any) => {
+                      if (c.type === 'playerSelection') {
                         if (c.operator === '=') return p.roleId === c.selectionRoleId;
                         if (c.operator === '!=') return p.roleId !== c.selectionRoleId;
-                        return false;
-                      });
+                      } else if (c.type === 'playerSelectionTag') {
+                        const hasTag = p.tags.some((t: any) => t.id === c.tagId);
+                        if (c.operator === '=') return hasTag;
+                        if (c.operator === '!=') return !hasTag;
+                      } else if (c.type === 'playerSelectionPastille') {
+                        const hasPastille = (p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon);
+                        if (c.operator === '=') return hasPastille;
+                        if (c.operator === '!=') return !hasPastille;
+                      }
+                      return false;
+                    };
+
+                    if (c.selectionType === 'all') {
+                      const matchingPlayers = state.players.filter(checkMatching);
                       if (matchingPlayers.length > 0) {
                         const names = matchingPlayers.map((p: any) => p.name).join(', ');
                         actionContext['$Joueur'] = { ...matchingPlayers[0], name: names };
@@ -707,13 +718,11 @@ export const useVttStore = create<VttStore>()(
                       }
                       return false;
                     }
+                    
                     const sortedPlayers = [...state.players];
                     if (c.selectionType === 'last') sortedPlayers.reverse();
-                    const foundPlayer = sortedPlayers.find(p => {
-                      if (c.operator === '=') return p.roleId === c.selectionRoleId;
-                      if (c.operator === '!=') return p.roleId !== c.selectionRoleId;
-                      return false;
-                    });
+                    const foundPlayer = sortedPlayers.find(checkMatching);
+                    
                     if (foundPlayer) {
                       actionContext['$Joueur'] = foundPlayer;
                       return true;
@@ -781,10 +790,17 @@ export const useVttStore = create<VttStore>()(
                   if (c.type === 'playerPastille') {
                     return `Joueur ${c.value} ${c.operator} Pastille ${c.pastilleIcon}`;
                   }
-                  if (c.type === 'playerSelection') {
-                    const roleName = state.roles.find((r: any) => r.id === c.selectionRoleId)?.name || 'Inconnu';
-                    const selectionLabel = c.selectionType === 'first' ? '1er Joueur' : 'Dernier Joueur';
-                    return `${selectionLabel} ${c.operator} ${roleName}`;
+                  if (c.type === 'playerSelection' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
+                    const selectionLabel = c.selectionType === 'all' ? 'Tous les Joueurs' : (c.selectionType === 'first' ? '1er Joueur' : 'Dernier Joueur');
+                    let targetLabel = 'Inconnu';
+                    if (c.type === 'playerSelection') {
+                      targetLabel = state.roles.find((r: any) => r.id === c.selectionRoleId)?.name || 'Inconnu';
+                    } else if (c.type === 'playerSelectionTag') {
+                      targetLabel = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
+                    } else if (c.type === 'playerSelectionPastille') {
+                      targetLabel = `Pastille ${c.pastilleIcon}`;
+                    }
+                    return `${selectionLabel} ${c.operator} ${targetLabel}`;
                   }
                   if (c.type === 'playerDistance') {
                     const roleName = state.roles.find((r: any) => r.id === c.distanceTargetRoleId)?.name || 'Inconnu';
