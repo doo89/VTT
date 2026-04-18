@@ -726,7 +726,7 @@ export const useVttStore = create<VttStore>()(
                     if (c.distanceFromPlayerId === '$Joueur') {
                       if (actionContext['$Joueur']) sources = [actionContext['$Joueur']];
                     } else if (c.distanceFromPlayerId === '$Selected') {
-                      sources = state.players.filter(p => state.selectedEntityIds.includes(p.id));
+                      sources = state.players.filter((p: any) => state.selectedEntityIds.includes(p.id));
                     } else {
                       const explicitPlayer = state.players.find((p: any) => p.id === c.distanceFromPlayerId);
                       if (explicitPlayer) sources = [explicitPlayer];
@@ -1017,6 +1017,10 @@ export const useVttStore = create<VttStore>()(
         addPendingCondition: (conditionData) => set((state) => ({
           pendingActionConditions: [...state.pendingActionConditions, { ...conditionData, id: uuidv4() }]
         })),
+        setActionConditionCreatorState: (update) => set((state) => ({ 
+          actionConditionCreatorState: { ...state.actionConditionCreatorState, ...update } 
+        })),
+
         updatePendingCondition: (id, updates) => set((state) => ({
           pendingActionConditions: state.pendingActionConditions.map(c => c.id === id ? { ...c, ...updates } : c)
         })),

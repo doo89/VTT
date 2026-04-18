@@ -199,7 +199,7 @@ export const DetachedSoundboard: React.FC = () => {
 
               {hasSound ? (
                 <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
-                  {React.createElement(IconComponent, { size: 20, className: "mb-1 drop-shadow-md", color: btn.color || 'currentColor' })}
+                  {React.createElement(IconComponent as any, { size: 20, className: "mb-1 drop-shadow-md", color: btn.color || 'currentColor' })}
                   <span className="text-[10px] font-bold leading-tight break-words w-full truncate px-1" style={{ color: btn.color || 'inherit' }}>
                     {btn.name || `Son ${i+1}`}
                   </span>

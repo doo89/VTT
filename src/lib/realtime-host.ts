@@ -1,6 +1,7 @@
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { useVttStore } from '../store';
+import { v4 as uuidv4 } from 'uuid';
 
 let currentChannel: RealtimeChannel | null = null;
 export const getChannel = () => currentChannel;

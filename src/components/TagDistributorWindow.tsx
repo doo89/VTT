@@ -96,7 +96,7 @@ export const TagDistributorWindow: React.FC = () => {
             >
               <div className="flex items-center gap-3 overflow-hidden flex-1 select-none pointer-events-none">
                 <div className="w-8 h-8 rounded flex items-center justify-center shrink-0 shadow-sm" style={{ backgroundColor: tag.color, color: '#fff' }}>
-                  <IconComponent size={16} />
+                  {React.createElement(IconComponent as any, { size: 16 })}
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold truncate leading-tight">{tag.name}</span>

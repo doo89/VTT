@@ -137,7 +137,7 @@ export const EditingModal: React.FC = () => {
                   }`}
                   title={iconName}
                 >
-                  {React.createElement(IconComponent, { size: 16 })}
+                  {React.createElement(IconComponent as any, { size: 16 })}
                 </button>
               );
             })}
@@ -607,7 +607,7 @@ export const EditingModal: React.FC = () => {
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Icône de l'équipe</label>
           <div className="flex flex-wrap gap-1.5 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto">
-            {TEAM_icons.map(iconName => {
+            {TEAM_ICONS.map((iconName: string) => {
               const IconComponent = icons[iconName as keyof typeof icons];
               if (!IconComponent) return null;
               return (
@@ -621,7 +621,7 @@ export const EditingModal: React.FC = () => {
                   }`}
                   title={iconName}
                 >
-                  {React.createElement(IconComponent, { size: 20 })}
+                  {React.createElement(IconComponent as any, { size: 20 })}
                 </button>
               );
             })}
@@ -771,7 +771,7 @@ export const EditingModal: React.FC = () => {
                       >
                         <div className="flex items-center gap-2 flex-1">
                           <div className="p-1 rounded bg-background shadow-sm" style={{ color: cat.color }}>
-                            <CatIcon size={14} />
+                            {React.createElement(CatIcon as any, { size: 14 })}
                           </div>
                           <span className="font-semibold text-sm flex-1">{cat.name}</span>
                           <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">
@@ -874,7 +874,7 @@ export const EditingModal: React.FC = () => {
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Icône du tag</label>
                 <div className="flex flex-wrap gap-1 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto custom-scrollbar">
-                  {TAG_icons.map(iconName => {
+                  {TAG_ICONS.map((iconName: string) => {
                     const IconComponent = icons[iconName as keyof typeof icons];
                     if (!IconComponent) return null;
                     return (
@@ -888,7 +888,7 @@ export const EditingModal: React.FC = () => {
                         }`}
                         title={iconName}
                       >
-                        {React.createElement(IconComponent, { size: 20 })}
+                        {React.createElement(IconComponent as any, { size: 20 })}
                       </button>
                     );
                   })}
@@ -1505,7 +1505,7 @@ export const EditingModal: React.FC = () => {
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Icône du tag</label>
                 <div className="flex flex-wrap gap-1 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto custom-scrollbar">
-                  {TAG_icons.map(iconName => {
+                  {TAG_ICONS.map((iconName: string) => {
                     const IconComponent = icons[iconName as keyof typeof icons];
                     if (!IconComponent) return null;
                     return (
@@ -1519,7 +1519,7 @@ export const EditingModal: React.FC = () => {
                         }`}
                         title={iconName}
                       >
-                        {React.createElement(IconComponent, { size: 20 })}
+                        {React.createElement(IconComponent as any, { size: 20 })}
                       </button>
                     );
                   })}
@@ -2033,7 +2033,7 @@ export const EditingModal: React.FC = () => {
                       >
                         <div className="flex items-center gap-2 flex-1">
                           <div className="p-1 rounded bg-background shadow-sm" style={{ color: cat.color }}>
-                            <CatIcon size={14} />
+                            {React.createElement(CatIcon as any, { size: 14 })}
                           </div>
                           <span className="font-semibold text-sm flex-1">{cat.name}</span>
                           <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">
@@ -2238,7 +2238,7 @@ export const EditingModal: React.FC = () => {
         <div className="flex flex-col gap-1 mt-2">
           <label className="text-sm font-medium">Icône</label>
           <div className="flex flex-wrap gap-1 bg-input border border-border rounded-md p-2 max-h-32 overflow-y-auto custom-scrollbar">
-            {TAG_icons.map(iconName => {
+            {TAG_ICONS.map((iconName: string) => {
               const IconComponent = icons[iconName as keyof typeof icons];
               if (!IconComponent) return null;
               return (
@@ -2252,7 +2252,7 @@ export const EditingModal: React.FC = () => {
                   }`}
                   title={iconName}
                 >
-                  {React.createElement(IconComponent, { size: 16 })}
+                  {React.createElement(IconComponent as any, { size: 16 })}
                 </button>
               );
             })}

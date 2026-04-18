@@ -1098,7 +1098,7 @@ export const Canvas: React.FC = () => {
                             style={{ borderColor: p.color }}
                             title="Sélectionné par smartphone"
                           >
-                            <PIcon size={10} style={{ color: p.color }} />
+                            {React.createElement(PIcon as any, { size: 10, style: { color: p.color } })}
                           </div>
                         );
                       })}
@@ -1128,7 +1128,7 @@ export const Canvas: React.FC = () => {
                                     {t.imageUrl ? (
                                       <img src={t.imageUrl} alt={t.name} className="w-3 h-3 rounded-full object-cover" />
                                     ) : (
-                                      <TIcon size={10} style={{ color: t.color }} />
+                                      React.createElement(TIcon as any, { size: 10, style: { color: t.color } })
                                     )}
                                     {displaySettings.showTagNameInTooltip && <span className="font-medium">{t.name} (Rôle)</span>}
                                     {displaySettings.showTagSmartphoneIcon !== false && t.showOnSmartphone && <Smartphone size={10} className="text-blue-500 shrink-0 ml-0.5" />}
@@ -1176,7 +1176,7 @@ export const Canvas: React.FC = () => {
                                     {t.imageUrl ? (
                                       <img src={t.imageUrl} alt={t.name} className="w-3 h-3 rounded-full object-cover" />
                                     ) : (
-                                      <TIcon size={10} style={{ color: t.color }} />
+                                      React.createElement(TIcon as any, { size: 10, style: { color: t.color } })
                                     )}
                                     {displaySettings.showTagNameInTooltip && <span className="font-medium">{t.name}</span>}
                                     {displaySettings.showTagSmartphoneIcon !== false && t.showOnSmartphone && <Smartphone size={10} className="text-blue-500 shrink-0 ml-0.5" />}
@@ -1286,7 +1286,7 @@ export const Canvas: React.FC = () => {
                   {marker.tag.imageUrl ? (
                     <img src={marker.tag.imageUrl} alt={marker.tag.name} className="w-full h-full object-cover" draggable={false} />
                   ) : (
-                    <TagIconComponent size={20} style={{ color: marker.tag.color }} />
+                    React.createElement(TagIconComponent as any, { size: 20, style: { color: marker.tag.color } })
                   )}
                   {displaySettings.showTagAutoDelete && marker.tag.autoDeleteOnZeroUses && (
                     <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-destructive text-destructive-foreground rounded-full p-0.5 shadow-sm border border-background z-10">
@@ -1756,7 +1756,7 @@ export const Canvas: React.FC = () => {
                                   <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
                                     <span className="flex items-center gap-2">
                                       <div className="p-1 rounded bg-background shadow-sm" style={{ color: cat.color }}>
-                                        <CatIcon size={12} />
+                                        {React.createElement(CatIcon as any, { size: 12 })}
                                       </div>
                                       <span style={{ color: cat.color, fontWeight: 600 }}>{cat.name}</span>
                                     </span>
@@ -1775,7 +1775,7 @@ export const Canvas: React.FC = () => {
                                             {tagModel.imageUrl ? (
                                               <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
                                             ) : (
-                                              <IconComponent size={10} style={{ color: tagModel.color }} />
+                                              React.createElement(IconComponent as any, { size: 10, style: { color: tagModel.color } })
                                             )}
                                           </div>
                                           {tagModel.name}
@@ -1811,7 +1811,7 @@ export const Canvas: React.FC = () => {
                                           {tagModel.imageUrl ? (
                                             <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
                                           ) : (
-                                            <IconComponent size={10} style={{ color: tagModel.color }} />
+                                            React.createElement(IconComponent as any, { size: 10, style: { color: tagModel.color } })
                                           )}
                                         </div>
                                         {tagModel.name}
@@ -2054,7 +2054,7 @@ export const Canvas: React.FC = () => {
                               {tagModel.imageUrl ? (
                                 <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
                               ) : (
-                                <IconComponent size={10} style={{ color: tagModel.color }} />
+                                React.createElement(IconComponent as any, { size: 10, style: { color: tagModel.color } })
                               )}
                             </div>
                             {tagModel.name}
