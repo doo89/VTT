@@ -32,6 +32,8 @@ export const ActionConditionWindow: React.FC = () => {
   const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
   const [distanceFromPlayerId, setDistanceFromPlayerId] = useState<string | null>('$Joueur');
   const [distanceTargetRoleId, setDistanceTargetRoleId] = useState<string | null>(null);
+  const [minValue, setMinValue] = useState(-1);
+  const [maxValue, setMaxValue] = useState(1);
 
   const [isDistanceExpanded, setIsDistanceExpanded] = useState(true);
   const [isIdentityExpanded, setIsIdentityExpanded] = useState(true);
@@ -57,6 +59,8 @@ export const ActionConditionWindow: React.FC = () => {
         setSelectionRoleId(condition.selectionRoleId || (roles[0]?.id || null));
         setDistanceFromPlayerId(condition.distanceFromPlayerId || '$Joueur');
         setDistanceTargetRoleId(condition.distanceTargetRoleId || (roles[0]?.id || null));
+        setMinValue(condition.minValue ?? -1);
+        setMaxValue(condition.maxValue ?? 1);
       }
     } else {
       setType('day');
@@ -70,6 +74,8 @@ export const ActionConditionWindow: React.FC = () => {
       setSelectionRoleId(roles[0]?.id || null);
       setDistanceFromPlayerId('$Joueur');
       setDistanceTargetRoleId(roles[0]?.id || null);
+      setMinValue(-1);
+      setMaxValue(1);
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
 
@@ -118,7 +124,9 @@ export const ActionConditionWindow: React.FC = () => {
       selectionType: (type === 'playerSelection' || type === 'playerSelectionRole' || type === 'playerSelectionTag' || type === 'playerSelectionPastille') ? selectionType : null,
       selectionRoleId: (type === 'playerSelection' || type === 'playerSelectionRole' || type === 'playerDistance') ? (type === 'playerDistance' ? distanceTargetRoleId : selectionRoleId) : null,
       distanceFromPlayerId: (type === 'playerDistance' || type === 'playerDistanceTag' || type === 'playerDistancePastille') ? distanceFromPlayerId : null,
-      distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null
+      distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null,
+      minValue: (type === 'playerDistance' || type === 'playerDistanceTag' || type === 'playerDistancePastille') ? minValue : undefined,
+      maxValue: (type === 'playerDistance' || type === 'playerDistanceTag' || type === 'playerDistancePastille') ? maxValue : undefined
     };
     if (isEditing && actionConditionCreatorState.editingConditionId) {
       updatePendingCondition(actionConditionCreatorState.editingConditionId, conditionData);
@@ -326,19 +334,7 @@ export const ActionConditionWindow: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                <input
-                  disabled={type !== 'playerDistance' || !enabled}
-                  type="number"
-                  value={type === 'playerDistance' ? value : 0}
-                  onChange={(e) => setValue(parseInt(e.target.value) || 0)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">de la position de :</span>
-              </div>
+              
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
@@ -351,6 +347,11 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="$Selected">Joueur(s) sélectionné(s)</option>
                 </select>
               </div>
+
+              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">a bien</span>
+              </div>
+
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
                 <select
@@ -363,6 +364,36 @@ export const ActionConditionWindow: React.FC = () => {
                     <option key={role.id} value={role.id}>{role.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">entre</span>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-[0.3]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                <input
+                  disabled={type !== 'playerDistance' || !enabled}
+                  type="number"
+                  value={type === 'playerDistance' ? minValue : 0}
+                  onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                />
+              </div>
+
+              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">et</span>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-[0.3]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                <input
+                  disabled={type !== 'playerDistance' || !enabled}
+                  type="number"
+                  value={type === 'playerDistance' ? maxValue : 0}
+                  onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                />
               </div>
             </div>
 
@@ -389,19 +420,7 @@ export const ActionConditionWindow: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                <input
-                  disabled={type !== 'playerDistanceTag' || !enabled}
-                  type="number"
-                  value={type === 'playerDistanceTag' ? value : 0}
-                  onChange={(e) => setValue(parseInt(e.target.value) || 0)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">de la position de :</span>
-              </div>
+              
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
@@ -414,6 +433,11 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="$Selected">Joueur(s) sélectionné(s)</option>
                 </select>
               </div>
+
+              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">a bien</span>
+              </div>
+
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag</label>
                 <select
@@ -426,6 +450,36 @@ export const ActionConditionWindow: React.FC = () => {
                     <option key={tag.id} value={tag.id}>{tag.name}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">entre</span>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-[0.3]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                <input
+                  disabled={type !== 'playerDistanceTag' || !enabled}
+                  type="number"
+                  value={type === 'playerDistanceTag' ? minValue : 0}
+                  onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                />
+              </div>
+
+              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">et</span>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-[0.3]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                <input
+                  disabled={type !== 'playerDistanceTag' || !enabled}
+                  type="number"
+                  value={type === 'playerDistanceTag' ? maxValue : 0}
+                  onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                />
               </div>
             </div>
 
@@ -452,19 +506,7 @@ export const ActionConditionWindow: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                <input
-                  disabled={type !== 'playerDistancePastille' || !enabled}
-                  type="number"
-                  value={type === 'playerDistancePastille' ? value : 0}
-                  onChange={(e) => setValue(parseInt(e.target.value) || 0)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">de la position de :</span>
-              </div>
+              
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
@@ -477,25 +519,60 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="$Selected">Joueur(s) sélectionné(s)</option>
                 </select>
               </div>
+
+              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">a bien</span>
+              </div>
+
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Pastille</label>
-                <div className="flex items-center gap-2">
-                  <select
-                    disabled={type !== 'playerDistancePastille' || !enabled}
-                    value={pastilleIcon || ''}
-                    onChange={(e) => setPastilleIcon(e.target.value)}
-                    className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {allIcons.map((icon: string) => (
-                      <option key={icon} value={icon}>{icon}</option>
-                    ))}
-                  </select>
-                  {pastilleIcon && (icons as any)[pastilleIcon] && (
-                    <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-lg border border-border p-1 shadow-inner shrink-0">
-                      {React.createElement((icons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
-                    </div>
-                  )}
+                <div className="flex flex-wrap gap-1 bg-input border border-border rounded-lg p-1 max-h-24 overflow-y-auto custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed">
+                  {allIcons.map(iconName => (
+                    <button
+                      key={iconName}
+                      disabled={type !== 'playerDistancePastille' || !enabled}
+                      type="button"
+                      onClick={() => setPastilleIcon(iconName)}
+                      className={`p-1 rounded transition-colors flex items-center justify-center ${
+                        pastilleIcon === iconName
+                          ? 'bg-orange-500 text-white shadow-sm'
+                          : 'hover:bg-accent text-muted-foreground'
+                      }`}
+                    >
+                      {React.createElement(icons[iconName as keyof typeof icons] as any, { size: 14 })}
+                    </button>
+                  ))}
                 </div>
+              </div>
+
+              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">entre</span>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-[0.3]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                <input
+                  disabled={type !== 'playerDistancePastille' || !enabled}
+                  type="number"
+                  value={type === 'playerDistancePastille' ? minValue : 0}
+                  onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                />
+              </div>
+
+              <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">et</span>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-[0.3]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
+                <input
+                  disabled={type !== 'playerDistancePastille' || !enabled}
+                  type="number"
+                  value={type === 'playerDistancePastille' ? maxValue : 0}
+                  onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                />
               </div>
             </div>
           </div>

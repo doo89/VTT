@@ -284,6 +284,8 @@ export interface ActionCondition {
   type: ActionConditionType;
   operator: ActionOperator;
   value: number;
+  minValue?: number;
+  maxValue?: number;
   roleId?: string | null;
   tagId?: string | null;
   pastilleIcon?: string | null;

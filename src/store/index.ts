@@ -752,20 +752,30 @@ export const useVttStore = create<VttStore>()(
                     const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
                     if (sourceIndex === -1) return false;
 
-                    let targetIndex = (sourceIndex + c.value) % totalPlayers;
-                    while (targetIndex < 0) targetIndex += totalPlayers;
+                    const min = c.minValue ?? c.value;
+                    const max = c.maxValue ?? c.value;
 
-                    const targetPlayer = sortedPlayers[targetIndex];
-                    if (!targetPlayer) return false;
+                    for (let d = min; d <= max; d++) {
+                      if (d === 0) continue; 
 
-                    if (c.type === 'playerDistance') {
-                      return targetPlayer.roleId === c.distanceTargetRoleId;
-                    } else if (c.type === 'playerDistanceTag') {
-                      const targetRole = state.roles.find((r: any) => r.id === targetPlayer.roleId);
-                      return targetPlayer.tags.some((t: any) => t.id === c.tagId) ||
-                             (targetRole?.tags || []).some((t: any) => t.id === c.tagId);
-                    } else if (c.type === 'playerDistancePastille') {
-                      return (targetPlayer.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon);
+                      let targetIndex = (sourceIndex + d) % totalPlayers;
+                      while (targetIndex < 0) targetIndex += totalPlayers;
+
+                      const targetPlayer = sortedPlayers[targetIndex];
+                      if (!targetPlayer) continue;
+
+                      let match = false;
+                      if (c.type === 'playerDistance') {
+                        match = targetPlayer.roleId === c.distanceTargetRoleId;
+                      } else if (c.type === 'playerDistanceTag') {
+                        const targetRole = state.roles.find((r: any) => r.id === targetPlayer.roleId);
+                        match = targetPlayer.tags.some((t: any) => t.id === c.tagId) ||
+                                (targetRole?.tags || []).some((t: any) => t.id === c.tagId);
+                      } else if (c.type === 'playerDistancePastille') {
+                        match = (targetPlayer.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon);
+                      }
+
+                      if (match) return true;
                     }
                     return false;
                   }
@@ -826,7 +836,10 @@ export const useVttStore = create<VttStore>()(
                       targetLabel = `Pastille ${c.pastilleIcon}`;
                     }
                     const fromLabel = c.distanceFromPlayerId === '$Selected' ? 'Joueur(s) sélectionné(s)' : c.distanceFromPlayerId;
-                    return `Distance ${c.value} de : ${fromLabel} (${targetLabel})`;
+                    const min = c.minValue ?? c.value;
+                    const max = c.maxValue ?? c.value;
+                    const rangeLabel = min === max ? `${min}` : `${min} à ${max}`;
+                    return `Dist. ${rangeLabel} de : ${fromLabel} (${targetLabel})`;
                   }
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
                   return `${typeLabel} ${c.operator} ${c.value}`;
