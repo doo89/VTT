@@ -808,9 +808,16 @@ export const useVttStore = create<VttStore>()(
                     }
                     return `${selectionLabel} ${c.operator} ${targetLabel}`;
                   }
-                  if (c.type === 'playerDistance') {
-                    const roleName = state.roles.find((r: any) => r.id === c.distanceTargetRoleId)?.name || 'Inconnu';
-                    return `Distance ${c.value} de : ${c.distanceFromPlayerId} (${roleName})`;
+                  if (c.type === 'playerDistance' || c.type === 'playerDistanceTag' || c.type === 'playerDistancePastille') {
+                    let targetLabel = 'Inconnu';
+                    if (c.type === 'playerDistance') {
+                      targetLabel = state.roles.find((r: any) => r.id === c.distanceTargetRoleId)?.name || 'Inconnu';
+                    } else if (c.type === 'playerDistanceTag') {
+                      targetLabel = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
+                    } else if (c.type === 'playerDistancePastille') {
+                      targetLabel = `Pastille ${c.pastilleIcon}`;
+                    }
+                    return `Distance ${c.value} de : ${c.distanceFromPlayerId} (${targetLabel})`;
                   }
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
                   return `${typeLabel} ${c.operator} ${c.value}`;
