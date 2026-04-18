@@ -75,12 +75,17 @@ export const initHostRealtime = (roomCode: string) => {
 
       // Find the tag info and handle pastilles
       let tagData: any = null;
-      for (const p of state.players) {
-        tagData = p.tags.find(t => t.instanceId === payload.tagInstanceId);
-        if (tagData) break;
-      }
-      if (!tagData) {
-        tagData = state.markers.find(m => m.tag.instanceId === payload.tagInstanceId)?.tag;
+      if (payload.tagInstanceId?.startsWith('role-tag-')) {
+        const tagId = payload.tagInstanceId.replace('role-tag-', '');
+        tagData = state.tags.find(t => t.id === tagId);
+      } else {
+        for (const p of state.players) {
+          tagData = p.tags.find(t => t.instanceId === payload.tagInstanceId);
+          if (tagData) break;
+        }
+        if (!tagData) {
+          tagData = state.markers.find(m => m.tag.instanceId === payload.tagInstanceId)?.tag;
+        }
       }
 
       // Prepare a map for all player updates to apply them in a single batch at the end
@@ -142,13 +147,15 @@ export const initHostRealtime = (roomCode: string) => {
               val = team?.name || 'Sans Équipe';
             } else if (infoType === 'seen_role') {
               const role = state.roles.find(r => r.id === target.roleId);
-              const tagSeenRole = target.tags.find(t => t.seenAsRoleId)?.seenAsRoleId;
+              const tagSeenRole = target.tags.find(t => t.seenAsRoleId)?.seenAsRoleId || 
+                                  (role?.tags || []).find(t => t.seenAsRoleId)?.seenAsRoleId;
               const seenRoleId = tagSeenRole || role?.seenAsRoleId || target.roleId;
               const seenRole = state.roles.find(r => r.id === seenRoleId);
               val = seenRole?.name || role?.name || 'Sans Rôle';
             } else if (infoType === 'seen_team') {
               const role = state.roles.find(r => r.id === target.roleId);
-              const tagSeenTeam = target.tags.find(t => t.seenInTeamId)?.seenInTeamId;
+              const tagSeenTeam = target.tags.find(t => t.seenInTeamId)?.seenInTeamId ||
+                                  (role?.tags || []).find(t => t.seenInTeamId)?.seenInTeamId;
               const teamId = tagSeenTeam || role?.seenInTeamId || role?.teamId || target.teamId;
               const team = state.teams.find(t => t.id === teamId);
               val = team?.name || 'Sans Équipe';
