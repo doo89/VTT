@@ -1,4 +1,4 @@
-﻿export type EntityId = string;
+export type EntityId = string;
 
 export interface Player {
   id: EntityId;
@@ -270,7 +270,7 @@ export interface ActionEffect {
   enabled: boolean;
 }
 
-export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole';
+export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille';
 export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=';
 
 export interface ActionCondition {

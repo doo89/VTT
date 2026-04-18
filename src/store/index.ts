@@ -729,8 +729,7 @@ export const useVttStore = create<VttStore>()(
                     }
                     return false;
                   }
-
-                  if (c.type === 'playerDistance') {
+                  if (c.type === 'playerDistance' || c.type === 'playerDistanceTag' || c.type === 'playerDistancePastille') {
                     let sourcePlayer = null;
                     if (c.distanceFromPlayerId === '$Joueur') {
                       sourcePlayer = actionContext['$Joueur'];
@@ -753,7 +752,14 @@ export const useVttStore = create<VttStore>()(
                     const targetPlayer = sortedPlayers[targetIndex];
                     if (!targetPlayer) return false;
 
-                    return targetPlayer.roleId === c.distanceTargetRoleId;
+                    if (c.type === 'playerDistance') {
+                      return targetPlayer.roleId === c.distanceTargetRoleId;
+                    } else if (c.type === 'playerDistanceTag') {
+                      return targetPlayer.tags.some((t: any) => t.id === c.tagId);
+                    } else if (c.type === 'playerDistancePastille') {
+                      return (targetPlayer.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon);
+                    }
+                    return false;
                   }
 
                   let compareVal = 0;
