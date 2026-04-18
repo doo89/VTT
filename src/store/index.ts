@@ -816,7 +816,7 @@ export const useVttStore = create<VttStore>()(
                       targetLabel = state.roles.find((r: any) => r.id === c.distanceTargetRoleId)?.name || 'Inconnu';
                     } else if (c.type === 'playerDistanceTag') {
                       targetLabel = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
-                    } else if (c.type === 'playerSelectionPastille' || c.type === 'playerDistancePastille') {
+                    } else if (c.type === 'playerDistancePastille') {
                       targetLabel = `Pastille ${c.pastilleIcon}`;
                     }
                     const fromLabel = c.distanceFromPlayerId === '$Selected' ? 'Joueur(s) sélectionné(s)' : c.distanceFromPlayerId;
