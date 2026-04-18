@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useVttStore } from '../store';
 import { Tag, X, Move, GripHorizontal } from 'lucide-react';
-import { icons } from 'lucide-react';
+import * as icons from 'lucide-react';
 
 export const TagDistributorWindow: React.FC = () => {
   const { tagDistributorState, setTagDistributorState, tags } = useVttStore();

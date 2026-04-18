@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
-import { Music, X, Settings, Repeat, icons } from 'lucide-react';
+import * as icons from 'lucide-react';
+import { Music, X, Settings, Repeat } from 'lucide-react';
 
 import { getChannel } from '../lib/realtime-host';
 

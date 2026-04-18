@@ -1,6 +1,7 @@
 import React from 'react';
 import { useVttStore } from '../store';
-import { X, Trash2, icons } from 'lucide-react';
+import * as icons from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import { uploadImageToStorage, deleteImageFromStorage } from '../lib/supabase';
 import { ColorPicker } from './ColorPicker';
 
@@ -606,7 +607,7 @@ export const EditingModal: React.FC = () => {
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Icône de l'équipe</label>
           <div className="flex flex-wrap gap-1.5 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto">
-            {TEAM_ICONS.map(iconName => {
+            {TEAM_icons.map(iconName => {
               const IconComponent = icons[iconName as keyof typeof icons];
               if (!IconComponent) return null;
               return (
@@ -873,7 +874,7 @@ export const EditingModal: React.FC = () => {
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Icône du tag</label>
                 <div className="flex flex-wrap gap-1 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto custom-scrollbar">
-                  {TAG_ICONS.map(iconName => {
+                  {TAG_icons.map(iconName => {
                     const IconComponent = icons[iconName as keyof typeof icons];
                     if (!IconComponent) return null;
                     return (
@@ -1504,7 +1505,7 @@ export const EditingModal: React.FC = () => {
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Icône du tag</label>
                 <div className="flex flex-wrap gap-1 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto custom-scrollbar">
-                  {TAG_ICONS.map(iconName => {
+                  {TAG_icons.map(iconName => {
                     const IconComponent = icons[iconName as keyof typeof icons];
                     if (!IconComponent) return null;
                     return (
@@ -2237,7 +2238,7 @@ export const EditingModal: React.FC = () => {
         <div className="flex flex-col gap-1 mt-2">
           <label className="text-sm font-medium">Icône</label>
           <div className="flex flex-wrap gap-1 bg-input border border-border rounded-md p-2 max-h-32 overflow-y-auto custom-scrollbar">
-            {TAG_ICONS.map(iconName => {
+            {TAG_icons.map(iconName => {
               const IconComponent = icons[iconName as keyof typeof icons];
               if (!IconComponent) return null;
               return (

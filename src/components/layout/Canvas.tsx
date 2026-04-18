@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useStore } from 'zustand';
 import { useVttStore } from '../../store';
-import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, Sun, Moon, Copy, Heart, icons, Users, Hand, MousePointer2, Undo2, Redo2, Radio, Lock, Globe, Bell, Check, X, WifiOff, FileText, FastForward, Smartphone, QrCode } from 'lucide-react';
+import * as icons from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, Sun, Moon, Copy, Heart, Users, Hand, MousePointer2, Undo2, Redo2, Radio, Lock, Globe, Bell, Check, X, WifiOff, FileText, FastForward, Smartphone, QrCode } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Marker, Player } from '../../types';
 import { supabase, getEnvUrl, getEnvKey } from '../../lib/supabase';
@@ -902,9 +903,9 @@ export const Canvas: React.FC = () => {
                     style={{ backgroundColor: team.color }}
                     title={`Équipe: ${team.name}`}
                   >
-                    {team.icon && icons[team.icon as keyof typeof icons] ? (
-                      React.createElement(icons[team.icon as keyof typeof icons], { size: 12, className: "text-white drop-shadow" })
-                    ) : null}
+                    <div className="flex items-center justify-center p-0.5 pointer-events-none">
+                      {team.icon && (icons as any)[team.icon] && React.createElement((icons as any)[team.icon], { size: 12, className: "text-white drop-shadow" })}
+                    </div>
                   </div>
                 );
               }

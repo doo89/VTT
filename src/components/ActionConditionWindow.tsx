@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
-import * as LucideIcons from 'lucide-react';
+import * as icons from 'lucide-react';
 import { X, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import type { ActionConditionType, ActionOperator } from '../types';
 import { TAG_ICONS } from './EditingModal';
@@ -528,21 +528,25 @@ export const ActionConditionWindow: React.FC = () => {
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Pastille</label>
                 <div className="flex flex-wrap gap-1 bg-input border border-border rounded-lg p-1 max-h-24 overflow-y-auto custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed">
-                  {allIcons.map(iconName => (
-                    <button
-                      key={iconName}
-                      disabled={type !== 'playerDistancePastille' || !enabled}
-                      type="button"
-                      onClick={() => setPastilleIcon(iconName)}
-                      className={`p-1 rounded transition-colors flex items-center justify-center ${
-                        pastilleIcon === iconName
-                          ? 'bg-orange-500 text-white shadow-sm'
-                          : 'hover:bg-accent text-muted-foreground'
-                      }`}
-                    >
-                      {React.createElement((LucideIcons as any)[iconName] as any, { size: 14 })}
-                    </button>
-                  ))}
+                  {allIcons.map((iconName: string) => {
+                    const IconComponent = (icons as any)[iconName];
+                    if (!IconComponent) return null;
+                    return (
+                      <button
+                        key={iconName}
+                        disabled={type !== 'playerDistancePastille' || !enabled}
+                        type="button"
+                        onClick={() => setPastilleIcon(iconName)}
+                        className={`p-1 rounded transition-colors flex items-center justify-center ${
+                          pastilleIcon === iconName
+                            ? 'bg-orange-500 text-white shadow-sm'
+                            : 'hover:bg-accent text-muted-foreground'
+                        }`}
+                      >
+                        <IconComponent size={14} />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -778,9 +782,9 @@ export const ActionConditionWindow: React.FC = () => {
                       <option key={icon} value={icon}>{icon}</option>
                     ))}
                   </select>
-                  {pastilleIcon && (LucideIcons as any)[pastilleIcon] && (
+                  {pastilleIcon && (icons as any)[pastilleIcon] && (
                     <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-lg border border-border p-1 shadow-inner shrink-0">
-                      {React.createElement((LucideIcons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
+                      {React.createElement((icons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
                     </div>
                   )}
                 </div>
@@ -965,9 +969,9 @@ export const ActionConditionWindow: React.FC = () => {
                       <option key={icon} value={icon}>{icon}</option>
                     ))}
                   </select>
-                  {pastilleIcon && (LucideIcons as any)[pastilleIcon] && (
+                  {pastilleIcon && (icons as any)[pastilleIcon] && (
                     <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-lg border border-border p-1 shadow-inner shrink-0">
-                      {React.createElement((LucideIcons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
+                      {React.createElement((icons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
                     </div>
                   )}
                 </div>

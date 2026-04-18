@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Music, AlertCircle, LogOut, icons } from 'lucide-react';
+import * as icons from 'lucide-react';
+import { Music, AlertCircle, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
