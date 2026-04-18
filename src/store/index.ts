@@ -679,7 +679,9 @@ export const useVttStore = create<VttStore>()(
                     const player = state.players.find((p: any) => (p.creationOrder || 0) === c.value) 
                                    || state.players[c.value - 1];
                     if (!player) return false;
-                    const hasTag = player.tags.some((t: any) => t.id === c.tagId);
+                    const role = state.roles.find((r: any) => r.id === player.roleId);
+                    const hasTag = player.tags.some((t: any) => t.id === c.tagId) || 
+                                   (role?.tags || []).some((t: any) => t.id === c.tagId);
                     if (c.operator === '=') return hasTag;
                     if (c.operator === '!=') return !hasTag;
                     return false;
@@ -698,7 +700,9 @@ export const useVttStore = create<VttStore>()(
                         if (c.operator === '=') return p.roleId === c.selectionRoleId;
                         if (c.operator === '!=') return p.roleId !== c.selectionRoleId;
                       } else if (c.type === 'playerSelectionTag') {
-                        const hasTag = p.tags.some((t: any) => t.id === c.tagId);
+                        const role = state.roles.find((r: any) => r.id === p.roleId);
+                        const hasTag = p.tags.some((t: any) => t.id === c.tagId) ||
+                                       (role?.tags || []).some((t: any) => t.id === c.tagId);
                         if (c.operator === '=') return hasTag;
                         if (c.operator === '!=') return !hasTag;
                       } else if (c.type === 'playerSelectionPastille') {
@@ -757,7 +761,9 @@ export const useVttStore = create<VttStore>()(
                     if (c.type === 'playerDistance') {
                       return targetPlayer.roleId === c.distanceTargetRoleId;
                     } else if (c.type === 'playerDistanceTag') {
-                      return targetPlayer.tags.some((t: any) => t.id === c.tagId);
+                      const targetRole = state.roles.find((r: any) => r.id === targetPlayer.roleId);
+                      return targetPlayer.tags.some((t: any) => t.id === c.tagId) ||
+                             (targetRole?.tags || []).some((t: any) => t.id === c.tagId);
                     } else if (c.type === 'playerDistancePastille') {
                       return (targetPlayer.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon);
                     }

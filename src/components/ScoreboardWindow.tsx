@@ -1,6 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { useVttStore } from '../store';
 import { Trophy, X, Shield, Heart, Vote } from 'lucide-react';
+import { getEffectiveStats } from '../lib/utils';
 
 export const ScoreboardWindow: React.FC = () => {
   const { scoreboard, setScoreboard, players, roles } = useVttStore();
@@ -8,8 +9,14 @@ export const ScoreboardWindow: React.FC = () => {
   const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
 
   const sortedPlayers = useMemo(() => {
-    return [...players].sort((a, b) => (b.points || 0) - (a.points || 0));
-  }, [players]);
+    return [...players].sort((a, b) => {
+      const roleA = roles.find(r => r.id === a.roleId);
+      const roleB = roles.find(r => r.id === b.roleId);
+      const effectiveA = getEffectiveStats(a, roleA);
+      const effectiveB = getEffectiveStats(b, roleB);
+      return (effectiveB.points || 0) - (effectiveA.points || 0);
+    });
+  }, [players, roles]);
 
   if (!scoreboard.isOpen || !scoreboard.isDetached) return null;
 
@@ -124,27 +131,34 @@ export const ScoreboardWindow: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    {scoreboard.showPoints && (
-                      <td className="p-3 text-center">
-                         <span className="font-black text-blue-400 text-sm">{player.points || 0}</span>
-                      </td>
-                    )}
-                    {scoreboard.showLives && (
-                      <td className="p-3 text-center">
-                         <div className="flex items-center justify-center gap-1 text-red-500 font-bold">
-                           <Heart size={12} fill={player.lives && player.lives > 0 ? "currentColor" : "none"} />
-                           <span>{player.lives ?? 0}</span>
-                         </div>
-                      </td>
-                    )}
-                    {scoreboard.showVotes && (
-                      <td className="p-3 text-center">
-                         <div className="flex items-center justify-center gap-1 text-purple-400 font-bold">
-                           <Vote size={12} />
-                           <span>{player.votes ?? 0}</span>
-                         </div>
-                      </td>
-                    )}
+                    {(() => {
+                      const effective = getEffectiveStats(player, role);
+                      return (
+                        <>
+                          {scoreboard.showPoints && (
+                            <td className="p-3 text-center">
+                               <span className="font-black text-blue-400 text-sm">{effective.points}</span>
+                            </td>
+                          )}
+                          {scoreboard.showLives && (
+                            <td className="p-3 text-center">
+                               <div className="flex items-center justify-center gap-1 text-red-500 font-bold">
+                                 <Heart size={12} fill={effective.lives > 0 ? "currentColor" : "none"} />
+                                 <span>{effective.lives ?? 0}</span>
+                               </div>
+                            </td>
+                          )}
+                          {scoreboard.showVotes && (
+                            <td className="p-3 text-center">
+                               <div className="flex items-center justify-center gap-1 text-purple-400 font-bold">
+                                 <Vote size={12} />
+                                 <span>{effective.votes ?? 0}</span>
+                               </div>
+                            </td>
+                          )}
+                        </>
+                      );
+                    })()}
                     {scoreboard.showStatus && (
                       <td className="p-3 text-center">
                          {player.isDead ? (

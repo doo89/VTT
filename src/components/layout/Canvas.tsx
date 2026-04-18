@@ -5,6 +5,7 @@ import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, 
 import { v4 as uuidv4 } from 'uuid';
 import type { Marker, Player } from '../../types';
 import { supabase, getEnvUrl, getEnvKey } from '../../lib/supabase';
+import { calculateTagEffect, getEffectiveStats } from '../../lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
 
 export const Canvas: React.FC = () => {
@@ -160,28 +161,14 @@ export const Canvas: React.FC = () => {
     return Math.round(value / gridSize) * gridSize;
   };
 
-  const calculateTagEffect = (currentValue: number, tagValue: string | number | null): number => {
-    if (tagValue === null || tagValue === undefined || tagValue === '') return currentValue;
-    
-    const strVal = String(tagValue).trim();
-    if (strVal.startsWith('+')) {
-      return currentValue + (parseFloat(strVal.substring(1)) || 0);
-    } else if (strVal.startsWith('-')) {
-      return currentValue - (parseFloat(strVal.substring(1)) || 0);
-    } else {
-      // Valor brute (sans signe) = valeur absolue
-      const parsed = parseFloat(strVal);
-      return isNaN(parsed) ? currentValue : parsed;
-    }
-  };
-
   const applyTagToPlayer = (player: Player, tagModel: any) => {
     const role = roles.find(r => r.id === player.roleId);
+    const effective = getEffectiveStats(player, role);
     
     // Calculate new persistent stats
-    const newLives = calculateTagEffect(player.lives ?? role?.lives ?? 0, tagModel.lives);
-    const newPoints = calculateTagEffect(player.points ?? 0, tagModel.points);
-    const newVotes = calculateTagEffect(player.votes ?? 0, tagModel.votes);
+    const newLives = calculateTagEffect(effective.lives, tagModel.lives);
+    const newPoints = calculateTagEffect(effective.points, tagModel.points);
+    const newVotes = calculateTagEffect(effective.votes, tagModel.votes);
 
     const newTags = [...player.tags];
     const parentInstId = uuidv4();
@@ -862,18 +849,13 @@ export const Canvas: React.FC = () => {
             const effectiveRoleId = tagSeenRole || role?.seenAsRoleId || role?.id;
             const effectiveRole = roles.find(r => r.id === effectiveRoleId);
 
-            // Calculate Total Lives
-            const baseLives = player.lives ?? role?.lives ?? 0;
-            const tagLives = player.tags.reduce((sum, t) => sum + (Number(t.lives) || 0), 0);
-            const roleTagLives = role?.tags?.reduce((sum, t) => sum + (Number(t.lives) || 0), 0) || 0;
-            const totalLives = baseLives + tagLives + roleTagLives;
+            // Calculate Effective Stats
+            const effectiveStats = getEffectiveStats(player, role);
+            const totalLives = effectiveStats.lives;
 
             // Compute other stats for custom badges
             const getAggregatedValue = (field: 'votes' | 'points' | 'uses') => {
-              const baseVal = field === 'uses' ? 0 : (player[field] || 0);
-              const val1 = player.tags.reduce((sum, t) => sum + (Number(t[field]) || 0), 0);
-              const val2 = role?.tags?.reduce((sum, t) => sum + (Number(t[field]) || 0), 0) || 0;
-              return baseVal + val1 + val2;
+              return effectiveStats[field];
             };
 
             // For call orders, pick the minimum

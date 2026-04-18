@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
 import { uploadImageToStorage, deleteImageFromStorage } from '../../lib/supabase';
+import { getEffectiveStats } from '../../lib/utils';
 import type { Role, Player } from '../../types';
 import { SettingsModal } from './SettingsModal';
 import { ChecklistContent } from '../ChecklistContent';
@@ -518,20 +519,27 @@ export const RightPanel: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
-                      {[...players].sort((a, b) => (b.points || 0) - (a.points || 0)).map((player) => {
+                      {[...players].sort((a, b) => {
+                        const roleA = roles.find(r => r.id === a.roleId);
+                        const roleB = roles.find(r => r.id === b.roleId);
+                        const effectiveA = getEffectiveStats(a, roleA);
+                        const effectiveB = getEffectiveStats(b, roleB);
+                        return (effectiveB.points || 0) - (effectiveA.points || 0);
+                      }).map((player) => {
                         const role = roles.find(r => r.id === player.roleId);
+                        const effective = getEffectiveStats(player, role);
                         return (
                           <tr key={player.id} className={`${player.isDead ? 'opacity-50' : ''}`}>
                             <td className="p-1.5">
                               <div className="font-bold truncate max-w-[80px]">{player.name}</div>
                               {scoreboard.showRoles && <div className="text-[8px] text-muted-foreground uppercase truncate max-w-[80px]">{role?.name || 'Sans Rôle'}</div>}
                             </td>
-                            {scoreboard.showPoints && <td className="p-1.5 text-center font-bold text-blue-400">{player.points || 0}</td>}
+                            {scoreboard.showPoints && <td className="p-1.5 text-center font-bold text-blue-400">{effective.points}</td>}
                             {scoreboard.showLives && (
                               <td className="p-1.5 text-center">
                                  <div className="flex items-center justify-center gap-0.5 text-red-500">
-                                   <Heart size={8} fill={player.lives && player.lives > 0 ? "currentColor" : "none"} />
-                                   <span>{player.lives ?? 0}</span>
+                                   <Heart size={8} fill={effective.lives > 0 ? "currentColor" : "none"} />
+                                   <span>{effective.lives ?? 0}</span>
                                  </div>
                               </td>
                             )}
