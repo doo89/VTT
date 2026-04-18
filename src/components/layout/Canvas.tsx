@@ -1003,6 +1003,24 @@ export const Canvas: React.FC = () => {
                 }}
                 onMouseEnter={() => setHoveredId(player.id)}
                 onMouseLeave={() => setHoveredId(null)}
+                onMouseDown={(e) => {
+                  if (e.button === 0) { // Left click
+                    e.stopPropagation();
+                    if (e.shiftKey) {
+                      // Toggle selection
+                      if (selectedEntityIds.includes(player.id)) {
+                        setSelectedEntityIds(selectedEntityIds.filter(id => id !== player.id));
+                      } else {
+                        setSelectedEntityIds([...selectedEntityIds, player.id]);
+                      }
+                    } else {
+                      // Single selection
+                      if (!selectedEntityIds.includes(player.id)) {
+                        setSelectedEntityIds([player.id]);
+                      }
+                    }
+                  }
+                }}
                 draggable
                 onDragStart={(e) => {
                   e.stopPropagation();
@@ -1240,6 +1258,24 @@ export const Canvas: React.FC = () => {
                 }}
                 onMouseEnter={() => setHoveredId(marker.id)}
                 onMouseLeave={() => setHoveredId(null)}
+                onMouseDown={(e) => {
+                  if (e.button === 0) { // Left click
+                    e.stopPropagation();
+                    if (e.shiftKey) {
+                      // Toggle selection
+                      if (selectedEntityIds.includes(marker.id)) {
+                        setSelectedEntityIds(selectedEntityIds.filter(id => id !== marker.id));
+                      } else {
+                        setSelectedEntityIds([...selectedEntityIds, marker.id]);
+                      }
+                    } else {
+                      // Single selection
+                      if (!selectedEntityIds.includes(marker.id)) {
+                        setSelectedEntityIds([marker.id]);
+                      }
+                    }
+                  }
+                }}
                 draggable
                 onDragStart={(e) => {
                   e.stopPropagation();
