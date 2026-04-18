@@ -228,15 +228,32 @@ export const ActionCreatorWindow: React.FC = () => {
                     ) : (
                       <>
                         <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase font-bold text-[9px]">
-                          {condition.type === 'playerRole' || condition.type === 'playerTag' || condition.type === 'playerPastille' ? `Joueur ${condition.value}` : condition.type === 'day' ? 'Jour' : condition.type === 'night' ? 'Nuit' : condition.type === 'playerSelection' ? 'Sélection' : condition.type === 'playerDistance' ? 'Distance' : 'Tour'}
+                          {condition.type === 'playerRole' || condition.type === 'playerTag' || condition.type === 'playerPastille' ? `Joueur ${condition.value}` : 
+                           condition.type === 'day' ? 'Jour' : 
+                           condition.type === 'night' ? 'Nuit' : 
+                           condition.type === 'turn' ? 'Tour' :
+                           condition.type === 'playerDistance' || condition.type === 'playerDistanceTag' || condition.type === 'playerDistancePastille' ? 'Distance' :
+                           'Sélection'}
                         </span>
                         <span className="font-mono font-bold text-muted-foreground">{condition.type === 'playerDistance' ? '' : condition.operator}</span>
                         <span className="font-bold">
                           {condition.type === 'playerRole' ? (roles.find(r => r.id === condition.roleId)?.name || 'Inconnu') : 
                             condition.type === 'playerTag' ? (tags.find((t: any) => t.id === condition.tagId)?.name || 'Inconnu') :
                             condition.type === 'playerPastille' ? (condition.pastilleIcon || 'Icon') :
-                            condition.type === 'playerSelection' ? `${condition.selectionType === 'first' ? '1er' : condition.selectionType === 'last' ? 'Dernier' : 'Tous'} : ${roles.find(r => r.id === condition.selectionRoleId)?.name || 'Inconnu'}` :
-                            condition.type === 'playerDistance' ? `${condition.value} de : ${condition.distanceFromPlayerId} (${roles.find(r => r.id === condition.distanceTargetRoleId)?.name || 'Inconnu'})` :
+                            condition.type === 'playerSelection' || condition.type === 'playerSelectionRole' || condition.type === 'playerSelectionTag' || condition.type === 'playerSelectionPastille' ? (
+                              `${condition.selectionType === 'first' ? '1er' : condition.selectionType === 'last' ? 'Dernier' : 'Tous'} : ${
+                                condition.type === 'playerSelectionPastille' ? `Pastille ${condition.pastilleIcon}` :
+                                (condition.type === 'playerSelectionTag' ? (tags.find(t => t.id === condition.tagId)?.name || 'Inconnu') :
+                                (roles.find(r => r.id === (condition.selectionRoleId || condition.roleId))?.name || 'Inconnu'))
+                              }`
+                            ) :
+                            condition.type === 'playerDistance' || condition.type === 'playerDistanceTag' || condition.type === 'playerDistancePastille' ? (
+                              `${condition.value} de : ${condition.distanceFromPlayerId} (${
+                                condition.type === 'playerDistanceTag' ? (tags.find(t => t.id === condition.tagId)?.name || 'Inconnu') :
+                                (condition.type === 'playerDistancePastille' ? `Pastille ${condition.pastilleIcon}` :
+                                (roles.find(r => r.id === condition.distanceTargetRoleId)?.name || 'Inconnu'))
+                              })`
+                            ) :
                             condition.value}
                         </span>
                       </>
