@@ -8,6 +8,7 @@ export const CustomPopupOverlay: React.FC = () => {
   const location = useLocation();
 
   const activePopup = customPopups?.find(p => p.id === activeCustomPopupId);
+  const lastPlayedId = React.useRef<string | null>(null);
 
   useEffect(() => {
     if (activePopup?.autoCloseTimer) {
@@ -16,30 +17,32 @@ export const CustomPopupOverlay: React.FC = () => {
       }, 10000); // 10 seconds
       return () => clearTimeout(timer);
     }
-  }, [activePopup, triggerCustomPopup]);
+  }, [activeCustomPopupId, activePopup?.autoCloseTimer, triggerCustomPopup]);
 
-  // Sound playback logic
   useEffect(() => {
-    if (activePopup?.soundUrl) {
+    if (activePopup?.soundUrl && activeCustomPopupId !== lastPlayedId.current) {
       const isGM = location.pathname === '/';
       const isSmartphone = location.pathname.startsWith('/player/') || location.pathname.startsWith('/soundboard/');
       
-      const shouldShow = (isGM && (activePopup.showToGM !== false)) || (isSmartphone && (activePopup.showToSmartphone !== false));
+      const shouldShow = isGM ? (activePopup.showToGM !== false) : (isSmartphone ? (activePopup.showToSmartphone !== false) : false);
       
       if (shouldShow) {
         const audio = new Audio(activePopup.soundUrl);
         audio.volume = 0.5;
         audio.play().catch(e => console.error("Failed to play popup sound:", e));
+        lastPlayedId.current = activeCustomPopupId;
       }
+    } else if (!activeCustomPopupId) {
+      lastPlayedId.current = null;
     }
-  }, [activeCustomPopupId, location.pathname]); // only re-run when ID or path changes
+  }, [activeCustomPopupId, location.pathname, activePopup?.soundUrl]);
 
   if (!activePopup) return null;
 
   const isGM = location.pathname === '/';
   const isSmartphone = location.pathname.startsWith('/player/') || location.pathname.startsWith('/soundboard/');
   
-  const shouldShow = (isGM && (activePopup.showToGM !== false)) || (isSmartphone && (activePopup.showToSmartphone !== false));
+  const shouldShow = isGM ? (activePopup.showToGM !== false) : (isSmartphone ? (activePopup.showToSmartphone !== false) : false);
 
   if (!shouldShow) return null;
 
