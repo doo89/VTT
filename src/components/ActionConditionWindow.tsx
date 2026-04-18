@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
-import { X, Check, icons, ChevronDown, ChevronRight } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { X, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import type { ActionConditionType, ActionOperator } from '../types';
 import { TAG_ICONS } from './EditingModal';
 
@@ -539,7 +540,7 @@ export const ActionConditionWindow: React.FC = () => {
                           : 'hover:bg-accent text-muted-foreground'
                       }`}
                     >
-                      {React.createElement(icons[iconName as keyof typeof icons] as any, { size: 14 })}
+                      {React.createElement((LucideIcons as any)[iconName] as any, { size: 14 })}
                     </button>
                   ))}
                 </div>
@@ -777,9 +778,9 @@ export const ActionConditionWindow: React.FC = () => {
                       <option key={icon} value={icon}>{icon}</option>
                     ))}
                   </select>
-                  {pastilleIcon && (icons as any)[pastilleIcon] && (
+                  {pastilleIcon && (LucideIcons as any)[pastilleIcon] && (
                     <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-lg border border-border p-1 shadow-inner shrink-0">
-                      {React.createElement((icons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
+                      {React.createElement((LucideIcons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
                     </div>
                   )}
                 </div>
@@ -964,9 +965,9 @@ export const ActionConditionWindow: React.FC = () => {
                       <option key={icon} value={icon}>{icon}</option>
                     ))}
                   </select>
-                  {pastilleIcon && (icons as any)[pastilleIcon] && (
+                  {pastilleIcon && (LucideIcons as any)[pastilleIcon] && (
                     <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-lg border border-border p-1 shadow-inner shrink-0">
-                      {React.createElement((icons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
+                      {React.createElement((LucideIcons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
                     </div>
                   )}
                 </div>
