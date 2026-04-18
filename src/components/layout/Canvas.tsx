@@ -831,31 +831,20 @@ export const Canvas: React.FC = () => {
             <div className="absolute w-4 h-4 rounded-full bg-red-500/50 -ml-2 -mt-2" />
           )}
 
-          {/* Selection Box (Layered below entities) */}
-          <svg
-            className="absolute pointer-events-none"
-            style={{
-              zIndex: 1,
-              overflow: 'visible',
-              left: 0,
-              top: 0,
-              width: '100%',
-              height: '100%'
-            }}
-          >
-            {isSelecting && selectionBoxStart && selectionBoxCurrent && (
-              <rect
-                x={Math.min(selectionBoxStart.x, selectionBoxCurrent.x)}
-                y={Math.min(selectionBoxStart.y, selectionBoxCurrent.y)}
-                width={Math.abs(selectionBoxCurrent.x - selectionBoxStart.x)}
-                height={Math.abs(selectionBoxCurrent.y - selectionBoxStart.y)}
-                fill="rgba(59, 130, 246, 0.2)"
-                stroke="rgba(59, 130, 246, 0.8)"
-                strokeWidth={2}
-                pointerEvents="none"
-              />
-            )}
-          </svg>
+          {/* Selection Box (Marquee) */}
+          {isSelecting && selectionBoxStart && selectionBoxCurrent && (
+            <div
+              className="absolute pointer-events-none border-2 border-blue-500 bg-blue-500/20 z-[200] animate-in fade-in zoom-in-95 duration-75"
+              style={{
+                left: Math.min(selectionBoxStart.x, selectionBoxCurrent.x),
+                top: Math.min(selectionBoxStart.y, selectionBoxCurrent.y),
+                width: Math.abs(selectionBoxCurrent.x - selectionBoxStart.x),
+                height: Math.abs(selectionBoxCurrent.y - selectionBoxStart.y),
+                borderRadius: '2px',
+                boxShadow: '0 0 10px rgba(59, 130, 246, 0.3)'
+              }}
+            />
+          )}
 
           {/* Render Players */}
           {displaySettings.showPlayers && players.map(player => {
