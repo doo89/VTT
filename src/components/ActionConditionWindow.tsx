@@ -35,6 +35,8 @@ export const ActionConditionWindow: React.FC = () => {
 
   const [isDistanceExpanded, setIsDistanceExpanded] = useState(true);
   const [isIdentityExpanded, setIsIdentityExpanded] = useState(true);
+  const [isAutreExpanded, setIsAutreExpanded] = useState(true);
+  const [isCycleExpanded, setIsCycleExpanded] = useState(true);
 
   const isEditing = !!actionConditionCreatorState.editingConditionId;
 
@@ -160,113 +162,134 @@ export const ActionConditionWindow: React.FC = () => {
 
       <div className="p-3.5 flex flex-col gap-3.5 bg-background/50 overflow-y-auto max-h-[75vh]">
         {/* Groupe : Autre */}
-        <div className="flex flex-col gap-1.5 bg-orange-500/5 p-2.5 rounded-xl border border-orange-500/10">
-          <h4 className="text-[10px] font-black text-orange-500/60 uppercase tracking-[0.2em] pl-1 -mt-1 mb-1">Groupe : Autre</h4>
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs font-bold text-foreground">Une seule fois</span>
-              <span className="text-[10px] text-muted-foreground">L'action se désactivera après sa première exécution réussie</span>
+        <div className="flex flex-col bg-orange-500/5 rounded-xl border border-orange-500/10 shadow-sm transition-all hover:bg-orange-500/[0.08]">
+          <button 
+            type="button"
+            onClick={() => setIsAutreExpanded(!isAutreExpanded)}
+            className="flex items-center justify-between w-full p-2.5 text-left outline-none"
+          >
+            <h4 className="text-[10px] font-black text-orange-500/60 uppercase tracking-[0.2em] pl-1">Groupe : Autre</h4>
+            {isAutreExpanded ? <ChevronDown size={14} className="text-orange-500/40" /> : <ChevronRight size={14} className="text-orange-500/40" />}
+          </button>
+          <div className={`px-2.5 pb-2.5 transition-all duration-300 origin-top flex flex-col gap-1.5 ${isAutreExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-bold text-foreground">Une seule fois</span>
+                <span className="text-[10px] text-muted-foreground">L'action se désactivera après sa première exécution réussie</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={pendingActionOnce}
+                onChange={(e) => setPendingOnce(e.target.checked)}
+                className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+              />
             </div>
-            <input
-              type="checkbox"
-              checked={pendingActionOnce}
-              onChange={(e) => setPendingOnce(e.target.checked)}
-              className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-            />
-          </div>
-          <div className="h-px bg-border/20 my-1" />
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              checked={pendingActionIsRecurring}
-              onChange={(e) => setPendingRecurring(e.target.checked, pendingActionIntervalSeconds, pendingActionRepeatCount)}
-              className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer shrink-0"
-            />
-            <div className={`flex items-center gap-1.5 text-xs transition-opacity duration-200 ${!pendingActionIsRecurring ? 'opacity-50 grayscale' : 'opacity-100'}`}>
-              <span className="font-medium">Exécuter toutes les</span>
+            <div className="h-px bg-border/20 my-1" />
+            <div className="flex items-center gap-3">
               <input
-                disabled={!pendingActionIsRecurring}
-                type="number"
-                min="1"
-                value={pendingActionIntervalSeconds}
-                onChange={(e) => setPendingRecurring(pendingActionIsRecurring, parseInt(e.target.value) || 1, pendingActionRepeatCount)}
-                className="w-12 bg-input border border-border rounded-lg px-2 py-1 text-center font-bold outline-none"
+                type="checkbox"
+                checked={pendingActionIsRecurring}
+                onChange={(e) => setPendingRecurring(e.target.checked, pendingActionIntervalSeconds, pendingActionRepeatCount)}
+                className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer shrink-0"
               />
-              <span className="font-medium">secondes,</span>
-              <input
-                disabled={!pendingActionIsRecurring}
-                type="number"
-                min="1"
-                value={pendingActionRepeatCount}
-                onChange={(e) => setPendingRecurring(pendingActionIsRecurring, pendingActionIntervalSeconds, parseInt(e.target.value) || 1)}
-                className="w-12 bg-input border border-border rounded-lg px-2 py-1 text-center font-bold outline-none"
-              />
-              <span className="font-medium">fois.</span>
+              <div className={`flex items-center gap-1.5 text-xs transition-opacity duration-200 ${!pendingActionIsRecurring ? 'opacity-50 grayscale' : 'opacity-100'}`}>
+                <span className="font-medium">Exécuter toutes les</span>
+                <input
+                  disabled={!pendingActionIsRecurring}
+                  type="number"
+                  min="1"
+                  value={pendingActionIntervalSeconds}
+                  onChange={(e) => setPendingRecurring(pendingActionIsRecurring, parseInt(e.target.value) || 1, pendingActionRepeatCount)}
+                  className="w-12 bg-input border border-border rounded-lg px-2 py-1 text-center font-bold outline-none"
+                />
+                <span className="font-medium">secondes,</span>
+                <input
+                  disabled={!pendingActionIsRecurring}
+                  type="number"
+                  min="1"
+                  value={pendingActionRepeatCount}
+                  onChange={(e) => setPendingRecurring(pendingActionIsRecurring, pendingActionIntervalSeconds, parseInt(e.target.value) || 1)}
+                  className="w-12 bg-input border border-border rounded-lg px-2 py-1 text-center font-bold outline-none"
+                />
+                <span className="font-medium">fois.</span>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="h-px bg-border/30 -mt-2" />
 
-        {/* Cycle Row - Line 1 */}
-        <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'day' && type !== 'night' && type !== 'turn') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-          <div className="flex flex-col gap-1.5 pb-2">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-            <div className="flex items-center h-[38px] justify-center">
-              <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">1.</span>
-              <input
-                type="checkbox"
-                checked={(type === 'day' || type === 'night' || type === 'turn') && enabled}
-                onChange={() => {
-                  if (type !== 'day' && type !== 'night' && type !== 'turn') {
-                    setType('day');
-                    setEnabled(true);
-                  } else {
-                    setEnabled(!enabled);
-                  }
-                }}
-                className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-              />
+        {/* Groupe : Cycle */}
+        <div className="flex flex-col bg-orange-500/5 rounded-xl border border-orange-500/10 shadow-sm transition-all hover:bg-orange-500/[0.08]">
+          <button 
+            type="button"
+            onClick={() => setIsCycleExpanded(!isCycleExpanded)}
+            className="flex items-center justify-between w-full p-2.5 text-left outline-none"
+          >
+            <h4 className="text-[10px] font-black text-orange-500/60 uppercase tracking-[0.2em] pl-1">Groupe : Cycle</h4>
+            {isCycleExpanded ? <ChevronDown size={14} className="text-orange-500/40" /> : <ChevronRight size={14} className="text-orange-500/40" />}
+          </button>
+          <div className={`px-2.5 pb-2.5 transition-all duration-300 origin-top flex flex-col gap-1.5 ${isCycleExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
+            <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'day' && type !== 'night' && type !== 'turn') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+              <div className="flex flex-col gap-1.5 pb-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+                <div className="flex items-center h-[38px] justify-center">
+                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">1.</span>
+                  <input
+                    type="checkbox"
+                    checked={(type === 'day' || type === 'night' || type === 'turn') && enabled}
+                    onChange={() => {
+                      if (type !== 'day' && type !== 'night' && type !== 'turn') {
+                        setType('day');
+                        setEnabled(true);
+                      } else {
+                        setEnabled(!enabled);
+                      }
+                    }}
+                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cycle</label>
+                <select
+                  disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
+                  value={(type !== 'day' && type !== 'night' && type !== 'turn') ? 'day' : type}
+                  onChange={(e) => setType(e.target.value as ActionConditionType)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="day">Jour</option>
+                  <option value="night">Nuit</option>
+                  <option value="turn">Tour</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 flex-[0.5]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
+                <select
+                  disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
+                  value={operator}
+                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="=">=</option>
+                  <option value="&lt;">&lt;</option>
+                  <option value="&gt;">&gt;</option>
+                  <option value="!=">!=</option>
+                  <option value="&lt;=">&lt;=</option>
+                  <option value="&gt;=">&gt;=</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5 flex-[0.7]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
+                <input
+                  disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
+                  type="number"
+                  value={value}
+                  onChange={(e) => setValue(parseInt(e.target.value) || 0)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
             </div>
-          </div>
-          <div className="flex flex-col gap-1 flex-1">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cycle</label>
-            <select
-              disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
-              value={(type !== 'day' && type !== 'night' && type !== 'turn') ? 'day' : type}
-              onChange={(e) => setType(e.target.value as ActionConditionType)}
-              className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="day">Jour</option>
-              <option value="night">Nuit</option>
-              <option value="turn">Tour</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1 flex-[0.5]">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
-            <select
-              disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
-              value={operator}
-              onChange={(e) => setOperator(e.target.value as ActionOperator)}
-              className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="=">=</option>
-              <option value="&lt;">&lt;</option>
-              <option value="&gt;">&gt;</option>
-              <option value="!=">!=</option>
-              <option value="&lt;=">&lt;=</option>
-              <option value="&gt;=">&gt;=</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1.5 flex-[0.7]">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
-            <input
-              disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
-              type="number"
-              value={value}
-              onChange={(e) => setValue(parseInt(e.target.value) || 0)}
-              className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-            />
           </div>
         </div>
 
