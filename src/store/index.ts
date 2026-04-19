@@ -704,6 +704,21 @@ export const useVttStore = create<VttStore>()(
                     }
                     return false;
                   };
+ 
+                  if (c.type === 'playerRole' || c.type === 'playerTag' || c.type === 'playerPastille') {
+                    const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
+                    if (sortedPlayers.length === 0) return false;
+                    
+                    let targetIndex = (c.value - 1) % sortedPlayers.length;
+                    while (targetIndex < 0) targetIndex += sortedPlayers.length;
+                    
+                    const targetPlayer = sortedPlayers[targetIndex];
+                    if (targetPlayer && checkMatching(targetPlayer)) {
+                      actionContext['$Joueur'] = targetPlayer;
+                      return true;
+                    }
+                    return false;
+                  }
 
                   if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
                     if (c.selectionType === 'all') {
