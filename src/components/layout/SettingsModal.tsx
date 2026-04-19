@@ -13,6 +13,8 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils'>('salle');
   const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ soundboard: true, scoreboard: true, logs: true });
+  const [expandedSmartphone, setExpandedSmartphone] = useState<Record<string, boolean>>({ game: true, players: true, room: true, wiki: true });
+  const [expandedSmartphone, setExpandedSmartphone] = useState<Record<string, boolean>>({ game: true, players: true, room: true, wiki: true });
 
   const {
     room, setRoom,
@@ -784,16 +786,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                      <p className="text-xs font-bold text-foreground">Onglets visibles sur Smartphone</p>
                      <p className="text-[11px] text-muted-foreground mb-1">Si aucun onglet n'est coché, le contenu de "Jeu" s'affichera par défaut (sans barre de navigation).</p>
                      <div className="flex flex-col gap-2 bg-muted/10 p-3 rounded-md border border-border/40">
-                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
-                         <input
-                           type="checkbox"
-                           checked={displaySettings.smartphoneTabs?.game ?? true}
-                           onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true }), game: e.target.checked } })}
-                           className="rounded border-border w-4 h-4 text-primary"
-                         />
-                         Afficher l'onglet "Jeu" (Plateau principal, actions de base)
-                       </label>
-                        {(displaySettings.smartphoneTabs?.game ?? true) && (
+                       <div className="flex items-center justify-between">
+                          <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors flex-1">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.smartphoneTabs?.game ?? true}
+                              onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true, wiki: true }), game: e.target.checked } })}
+                              className="rounded border-border w-4 h-4 text-primary"
+                            />
+                            Afficher l'onglet "Jeu" (Plateau principal, actions de base)
+                          </label>
+                          <button
+                            onClick={(e) => { e.preventDefault(); setExpandedSmartphone(prev => ({ ...prev, game: !prev.game })) }}
+                            className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground"
+                          >
+                            {expandedSmartphone.game ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          </button>
+                        </div>
+                        {(displaySettings.smartphoneTabs?.game ?? true) && expandedSmartphone.game && (
                    <div className="flex flex-col gap-1.5 w-fit ml-7 mt-1">
                     <label className="text-xs font-bold text-foreground">Style de l'image (Avatar / Rôle)</label>
                     <p className="text-xs text-muted-foreground mb-1">Définit la forme de l'image affichée sur l'écran du smartphone des joueurs.</p>
@@ -839,17 +849,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                      )}
                     </div>
                         )}
-                       <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
-                         <input
-                           type="checkbox"
-                           checked={displaySettings.smartphoneTabs?.players ?? true}
-                           onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true }), players: e.target.checked } })}
-                           className="rounded border-border w-4 h-4 text-primary"
-                         />
-                         Afficher l'onglet "Joueurs" (Liste des joueurs en jeu)
-                       </label>
+                       <div className="flex items-center justify-between border-t border-border/10 pt-2 pb-0.5">
+                          <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors flex-1">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.smartphoneTabs?.players ?? true}
+                              onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true, wiki: true }), players: e.target.checked } })}
+                              className="rounded border-border w-4 h-4 text-primary"
+                            />
+                            Afficher l'onglet "Joueurs" (Liste des joueurs en jeu)
+                          </label>
+                          <button
+                            onClick={(e) => { e.preventDefault(); setExpandedSmartphone(prev => ({ ...prev, players: !prev.players })) }}
+                            className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground"
+                          >
+                            {expandedSmartphone.players ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          </button>
+                        </div>
 
-                       {(displaySettings.smartphoneTabs?.players ?? true) && (
+                       {(displaySettings.smartphoneTabs?.players ?? true) && expandedSmartphone.players && (
                          <div className="pl-7 flex flex-col gap-2 border-l border-border/30 ml-2 mt-1">
                            <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
                              <input
@@ -903,16 +921,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                          </div>
                        )}
 
-                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={displaySettings.smartphoneTabs?.room ?? true}
-                            onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true, wiki: true }), room: e.target.checked } })}
-                            className="rounded border-border w-4 h-4 text-primary"
-                          />
-                          Afficher l'onglet "Salle" (Miniature globale)
-                        </label>
-                        {(displaySettings.smartphoneTabs?.room ?? true) && (
+                        <div className="flex items-center justify-between border-t border-border/10 pt-2 pb-0.5">
+                          <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors flex-1">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.smartphoneTabs?.room ?? true}
+                              onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true, wiki: true }), room: e.target.checked } })}
+                              className="rounded border-border w-4 h-4 text-primary"
+                            />
+                            Afficher l'onglet "Salle" (Miniature globale)
+                          </label>
+                          <button
+                            onClick={(e) => { e.preventDefault(); setExpandedSmartphone(prev => ({ ...prev, room: !prev.room })) }}
+                            className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground"
+                          >
+                            {expandedSmartphone.room ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          </button>
+                        </div>
+                        {(displaySettings.smartphoneTabs?.room ?? true) && expandedSmartphone.room && (
                    <div className="flex flex-col gap-2 ml-7 mt-1">
                      <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
                        <input
@@ -978,16 +1004,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     )}
                    </div>
                         )}
-                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={displaySettings.smartphoneTabs?.wiki ?? true}
-                            onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true, wiki: true }), wiki: e.target.checked } })}
-                            className="rounded border-border w-4 h-4 text-primary"
-                          />
-                          Afficher l'onglet "Wiki" (Notes & Rôles)
-                        </label>
-                        {(displaySettings.smartphoneTabs?.wiki ?? true) && (
+                        <div className="flex items-center justify-between border-t border-border/10 pt-2 pb-0.5">
+                          <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors flex-1">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.smartphoneTabs?.wiki ?? true}
+                              onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true, wiki: true }), wiki: e.target.checked } })}
+                              className="rounded border-border w-4 h-4 text-primary"
+                            />
+                            Afficher l'onglet "Wiki" (Notes & Rôles)
+                          </label>
+                          <button
+                            onClick={(e) => { e.preventDefault(); setExpandedSmartphone(prev => ({ ...prev, wiki: !prev.wiki })) }}
+                            className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground"
+                          >
+                            {expandedSmartphone.wiki ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          </button>
+                        </div>
+                        {(displaySettings.smartphoneTabs?.wiki ?? true) && expandedSmartphone.wiki && (
                         <div className="flex flex-col gap-2 ml-7 mt-1">
                           <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                             <input
