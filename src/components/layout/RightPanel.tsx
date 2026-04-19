@@ -69,7 +69,12 @@ export const RightPanel: React.FC = () => {
 
   const totalPlayersInRoom = players.length;
 
-  const canDistribute = totalRolesToDistribute >= totalPlayersInRoom && totalPlayersInRoom > 0;
+  const fillerRole = useMemo(() => {
+    return selectedRolesForDistribution.find(r => r.isFiller);
+  }, [selectedRolesForDistribution]);
+
+  const needsFilling = totalPlayersInRoom > 0 && totalRolesToDistribute < totalPlayersInRoom && !!fillerRole;
+  const canDistribute = totalPlayersInRoom > 0 && (totalRolesToDistribute >= totalPlayersInRoom || !!fillerRole);
 
   const handleDistributeRoles = () => {
     if (!canDistribute) return;
@@ -82,6 +87,14 @@ export const RightPanel: React.FC = () => {
         rolesPool.push(role);
       }
     });
+
+    // Fill the gap if needed
+    if (needsFilling && fillerRole) {
+      const diff = totalPlayersInRoom - rolesPool.length;
+      for (let i = 0; i < diff; i++) {
+        rolesPool.push(fillerRole);
+      }
+    }
 
     // Shuffle the roles pool using Fisher-Yates
     for (let i = rolesPool.length - 1; i > 0; i--) {
@@ -313,7 +326,7 @@ export const RightPanel: React.FC = () => {
                 disabled={!canDistribute}
                 className={`mt-2 flex items-center justify-center gap-2 w-full py-2 rounded-md text-sm font-medium transition-colors ${
                   canDistribute
-                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    ? (needsFilling ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-primary text-primary-foreground hover:bg-primary/90')
                     : 'bg-muted text-muted-foreground cursor-not-allowed'
                 }`}
               >
@@ -324,6 +337,12 @@ export const RightPanel: React.FC = () => {
               {!canDistribute && totalPlayersInRoom > 0 && (
                 <p className="text-[10px] text-destructive text-center mt-1">
                   Le nombre de rôles ({totalRolesToDistribute}) doit être supérieur ou égal au nombre de joueurs ({totalPlayersInRoom}).
+                </p>
+              )}
+
+              {canDistribute && needsFilling && (
+                <p className="text-[10px] text-orange-500 text-center mt-1">
+                  Le nombre de rôles ({totalRolesToDistribute}) sera complété par le rôle {fillerRole?.name} pour avoir un nombre de rôles égal au nombre de joueurs ({totalPlayersInRoom}).
                 </p>
               )}
             </div>
