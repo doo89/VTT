@@ -1166,6 +1166,76 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </div>
                       </div>
                     )}
+                    {tool.key === 'wiki' && (displaySettings.panels?.wiki ?? true) && (
+                      <div className="ml-8 flex flex-col gap-3 p-3 bg-muted/10 border-l-2 border-blue-500/30 rounded-r-lg mt-1 mb-2">
+                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showWikiNotes ?? true}
+                            onChange={(e) => updateDisplaySettings({ showWikiNotes: e.target.checked })}
+                            className="rounded border-border w-3.5 h-3.5 text-primary"
+                          />
+                          Afficher les Notes
+                        </label>
+                        <div className="flex flex-col gap-1 ml-5">
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Titre du Wiki</label>
+                          <input
+                            type="text"
+                            value={displaySettings.wikiTitle || 'Régles du jeu'}
+                            onChange={(e) => updateDisplaySettings({ wikiTitle: e.target.value })}
+                            placeholder="Ex: Régles du jeu"
+                            className="bg-input border border-border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary w-full max-w-[200px]"
+                          />
+                        </div>
+                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors ml-5">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.wikiLightMode || false}
+                            onChange={(e) => updateDisplaySettings({ wikiLightMode: e.target.checked })}
+                            className="rounded border-border w-3.5 h-3.5 text-primary"
+                          />
+                          Fond clair (Améliore la lisibilité)
+                        </label>
+                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showWikiRoles ?? true}
+                            onChange={(e) => updateDisplaySettings({ showWikiRoles: e.target.checked })}
+                            className="rounded border-border w-3.5 h-3.5 text-primary"
+                          />
+                          Afficher les Rôles
+                        </label>
+                        <div className="flex flex-col gap-1.5 ml-5 mt-1">
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.wikiOnlySelectedRoles || false}
+                              onChange={(e) => updateDisplaySettings({ wikiOnlySelectedRoles: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Seulement les rôles sélectionnés
+                          </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.wikiOnlyInPlayRoles || false}
+                              onChange={(e) => updateDisplaySettings({ wikiOnlyInPlayRoles: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Seulement les rôles en jeu
+                          </label>
+                        </div>
+                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showWikiTags ?? true}
+                            onChange={(e) => updateDisplaySettings({ showWikiTags: e.target.checked })}
+                            className="rounded border-border w-3.5 h-3.5 text-primary"
+                          />
+                          Afficher les Tags
+                        </label>
+                      </div>
+                    )}
                     {tool.key === 'soundboard' && (displaySettings.panels?.soundboard ?? true) && expandedOutils.soundboard && (
                       <div className="ml-8 flex flex-col gap-4 p-4 bg-muted/20 rounded-lg border border-border mt-1 mb-2">
                         <label className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">
