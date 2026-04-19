@@ -55,6 +55,7 @@ export interface Role {
   minCount?: number;
   maxCount?: number;
   isFiller?: boolean;
+  isMinMandatory?: boolean;
 }
 
 export interface TagCategory {

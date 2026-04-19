@@ -47,6 +47,7 @@ export const RolesTab: React.FC = () => {
       minCount: 0,
       maxCount: 99,
       isFiller: false,
+      isMinMandatory: false,
     });
     setNewRoleName('');
   };

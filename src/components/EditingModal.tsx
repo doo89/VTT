@@ -485,17 +485,31 @@ export const EditingModal: React.FC = () => {
                     onChange={(e) => updateRole(role.id, { defaultCount: parseInt(e.target.value) || 0, distributionQuantity: parseInt(e.target.value) || 0 })}
                     className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
                   />
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="isFiller-edit"
-                      checked={role.isFiller || false}
-                      onChange={(e) => updateRole(role.id, { isFiller: e.target.checked })}
-                      className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
-                    />
-                    <label htmlFor="isFiller-edit" className="text-[11px] font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-                      Compléter avec
-                    </label>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="isFiller-edit"
+                        checked={role.isFiller || false}
+                        onChange={(e) => updateRole(role.id, { isFiller: e.target.checked })}
+                        className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
+                      />
+                      <label htmlFor="isFiller-edit" className="text-[11px] font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                        Compléter avec
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="isMinMandatory-edit"
+                        checked={role.isMinMandatory || false}
+                        onChange={(e) => updateRole(role.id, { isMinMandatory: e.target.checked })}
+                        className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
+                      />
+                      <label htmlFor="isMinMandatory-edit" className="text-[11px] font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                        Minimum obligatoire
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>

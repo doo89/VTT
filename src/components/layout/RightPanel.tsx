@@ -63,7 +63,8 @@ export const RightPanel: React.FC = () => {
       if (role.isUnique) {
         return total + 1;
       }
-      return total + (role.distributionQuantity || 1);
+      const quantity = role.isMinMandatory ? Math.max(role.distributionQuantity || 1, role.minCount || 0) : (role.distributionQuantity || 1);
+      return total + quantity;
     }, 0);
   }, [selectedRolesForDistribution]);
 
@@ -82,7 +83,7 @@ export const RightPanel: React.FC = () => {
     // Create array of roles to distribute
     const rolesPool: Role[] = [];
     selectedRolesForDistribution.forEach(role => {
-      const quantity = role.isUnique ? 1 : (role.distributionQuantity || 1);
+      const quantity = role.isUnique ? 1 : (role.isMinMandatory ? Math.max(role.distributionQuantity || 1, role.minCount || 0) : (role.distributionQuantity || 1));
       for (let i = 0; i < quantity; i++) {
         rolesPool.push(role);
       }
