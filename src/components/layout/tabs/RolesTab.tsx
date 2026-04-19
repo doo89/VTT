@@ -46,6 +46,7 @@ export const RolesTab: React.FC = () => {
       defaultCount: 1,
       minCount: 0,
       maxCount: 99,
+      isFiller: false,
     });
     setNewRoleName('');
   };

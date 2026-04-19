@@ -477,13 +477,27 @@ export const EditingModal: React.FC = () => {
             <div className="ml-6 flex flex-col gap-3 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
               <div className="flex items-center gap-3">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Par défaut:</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={role.defaultCount ?? role.distributionQuantity ?? 1}
-                  onChange={(e) => updateRole(role.id, { defaultCount: parseInt(e.target.value) || 0, distributionQuantity: parseInt(e.target.value) || 0 })}
-                  className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
-                />
+                <div className="flex items-center gap-4">
+                  <input
+                    type="number"
+                    min="0"
+                    value={role.defaultCount ?? role.distributionQuantity ?? 1}
+                    onChange={(e) => updateRole(role.id, { defaultCount: parseInt(e.target.value) || 0, distributionQuantity: parseInt(e.target.value) || 0 })}
+                    className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
+                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="isFiller-edit"
+                      checked={role.isFiller || false}
+                      onChange={(e) => updateRole(role.id, { isFiller: e.target.checked })}
+                      className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
+                    />
+                    <label htmlFor="isFiller-edit" className="text-[11px] font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                      Compléter avec
+                    </label>
+                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Minimum:</label>
