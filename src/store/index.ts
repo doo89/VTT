@@ -762,10 +762,10 @@ export const useVttStore = create<VttStore>()(
                       const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
                       if (sourceIndex === -1) return false;
 
-                      const min = c.minValue ?? 0;
-                      const max = c.maxValue ?? 0;
+                      const minDist = Math.min(c.minValue ?? 0, c.maxValue ?? 0);
+                      const maxDist = Math.max(c.minValue ?? 0, c.maxValue ?? 0);
 
-                      for (let dist = min; dist <= max; dist++) {
+                      for (let dist = minDist; dist <= maxDist; dist++) {
                         let targetIndex = (sourceIndex + dist) % sortedPlayers.length;
                         while (targetIndex < 0) targetIndex += sortedPlayers.length;
                         
