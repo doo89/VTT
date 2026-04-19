@@ -347,6 +347,7 @@ export const initialState = {
     distributionResurrectAll: false,
     distributionDeleteTags: false,
     distributionRemovePastilles: false,
+    distributionResetPhase: false,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,

@@ -479,5 +479,6 @@ export interface GameState {
     distributionResurrectAll?: boolean;
     distributionDeleteTags?: boolean;
     distributionRemovePastilles?: boolean;
+    distributionResetPhase?: boolean;
   };
 }

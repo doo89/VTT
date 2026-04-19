@@ -23,7 +23,8 @@ export const RightPanel: React.FC = () => {
     checklistState, setChecklistState,
     tagDistributorState, setTagDistributorState,
     actionCreatorState: _, setActionCreatorState,
-    actions, deleteAction, executeAction, setPendingConditions, setPendingEffects
+    actions, deleteAction, executeAction, setPendingConditions, setPendingEffects,
+    resetCycle
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -108,6 +109,10 @@ export const RightPanel: React.FC = () => {
 
     if (updates.length > 0) {
       updatePlayers(updates);
+      if (displaySettings.distributionResetPhase) {
+        resetCycle();
+        addLog(`Réinitialisation : Jour 1`, 'system');
+      }
       updates.forEach((update) => {
         const player = players.find(p => p.id === update.id);
         const role = roles.find(r => r.id === update.updates.roleId);

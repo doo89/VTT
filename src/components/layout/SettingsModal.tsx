@@ -1123,7 +1123,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         {[
                           { key: 'distributionResurrectAll', label: 'Ressusciter tous les joueurs' },
                           { key: 'distributionDeleteTags', label: 'Supprimer les tags des joueurs' },
-                          { key: 'distributionRemovePastilles', label: 'Enlever les pastilles tags' }
+                          { key: 'distributionRemovePastilles', label: 'Enlever les pastilles tags' },
+                          { key: 'distributionResetPhase', label: 'Réinitialiser la phase (Jour 1)' }
                         ].map(sub => (
                           <label key={sub.key} className="flex items-center gap-2 cursor-pointer group">
                              <input
