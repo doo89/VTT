@@ -12,7 +12,7 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils'>('salle');
-  const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ soundboard: true, scoreboard: true, logs: true });
+  const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ distribution: true, chrono: true, wiki: true, soundboard: true, scoreboard: true, logs: true });
   const [expandedSmartphone, setExpandedSmartphone] = useState<Record<string, boolean>>({ game: true, players: true, room: true, wiki: true });
 
   const {
@@ -1138,7 +1138,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         className="rounded border-border w-5 h-5 text-primary"
                       />
                       <span className="font-semibold text-sm flex-1">{tool.label}</span>
-                      {['soundboard', 'scoreboard', 'logs'].includes(tool.key) && (displaySettings.panels || {})[tool.key as keyof typeof displaySettings.panels] !== false && (
+                      {['distribution', 'chrono', 'wiki', 'soundboard', 'scoreboard', 'logs'].includes(tool.key) && (displaySettings.panels || {})[tool.key as keyof typeof displaySettings.panels] !== false && (
                         <button 
                           onClick={(e) => {
                             e.preventDefault();
@@ -1151,7 +1151,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </button>
                       )}
                     </label>
-                    {tool.key === 'distribution' && (displaySettings.panels?.distribution ?? true) && (
+                    {tool.key === 'distribution' && (displaySettings.panels?.distribution ?? true) && expandedOutils.distribution && (
                       <div className="ml-8 flex flex-col gap-2 p-2 bg-muted/10 border-l-2 border-purple-500/30 rounded-r-lg mt-1 mb-2">
                         {[
                           { key: 'distributionResurrectAll', label: 'Ressusciter tous les joueurs' },
@@ -1173,7 +1173,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         ))}
                       </div>
                     )}
-                    {tool.key === 'chrono' && (displaySettings.panels?.chrono ?? true) && (
+                    {tool.key === 'chrono' && (displaySettings.panels?.chrono ?? true) && expandedOutils.chrono && (
                       <div className="ml-8 flex flex-col gap-3 p-3 bg-muted/10 border-l-2 border-amber-500/30 rounded-r-lg mt-1 mb-2">
                         <div className="flex flex-col gap-1.5">
                           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Minutes par défaut</label>
@@ -1199,7 +1199,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </div>
                       </div>
                     )}
-                    {tool.key === 'wiki' && (displaySettings.panels?.wiki ?? true) && (
+                    {tool.key === 'wiki' && (displaySettings.panels?.wiki ?? true) && expandedOutils.wiki && (
                       <div className="ml-8 flex flex-col gap-3 p-3 bg-muted/10 border-l-2 border-blue-500/30 rounded-r-lg mt-1 mb-2">
                         <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                           <input
