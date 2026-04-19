@@ -162,7 +162,11 @@ export const RightPanel: React.FC = () => {
 
   const handleTimerToggle = () => setTimer({ isRunning: !timer.isRunning });
   const handleTimerReset = () => {
-    setTimer({ isRunning: false, minutes: 5, seconds: 0 });
+    setTimer({ 
+      isRunning: false, 
+      minutes: displaySettings.timerDefaultMinutes ?? 5, 
+      seconds: displaySettings.timerDefaultSeconds ?? 0 
+    });
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);

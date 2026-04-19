@@ -480,5 +480,7 @@ export interface GameState {
     distributionDeleteTags?: boolean;
     distributionRemovePastilles?: boolean;
     distributionResetPhase?: boolean;
+    timerDefaultMinutes?: number;
+    timerDefaultSeconds?: number;
   };
 }

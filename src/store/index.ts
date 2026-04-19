@@ -348,6 +348,8 @@ export const initialState = {
     distributionDeleteTags: false,
     distributionRemovePastilles: false,
     distributionResetPhase: false,
+    timerDefaultMinutes: 5,
+    timerDefaultSeconds: 0,
   },
   isLeftPanelOpen: true,
   isRightPanelOpen: true,

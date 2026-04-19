@@ -1140,6 +1140,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         ))}
                       </div>
                     )}
+                    {tool.key === 'chrono' && (displaySettings.panels?.chrono ?? true) && (
+                      <div className="ml-8 flex flex-col gap-3 p-3 bg-muted/10 border-l-2 border-amber-500/30 rounded-r-lg mt-1 mb-2">
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Minutes par défaut</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="99"
+                            value={displaySettings.timerDefaultMinutes ?? 5}
+                            onChange={(e) => updateDisplaySettings({ timerDefaultMinutes: Math.max(0, parseInt(e.target.value) || 0) })}
+                            className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 text-center font-mono font-bold"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Secondes par défaut</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="59"
+                            value={displaySettings.timerDefaultSeconds ?? 0}
+                            onChange={(e) => updateDisplaySettings({ timerDefaultSeconds: Math.max(0, parseInt(e.target.value) || 0) })}
+                            className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 text-center font-mono font-bold"
+                          />
+                        </div>
+                      </div>
+                    )}
                     {tool.key === 'soundboard' && (displaySettings.panels?.soundboard ?? true) && expandedOutils.soundboard && (
                       <div className="ml-8 flex flex-col gap-4 p-4 bg-muted/20 rounded-lg border border-border mt-1 mb-2">
                         <label className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">
