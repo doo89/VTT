@@ -1118,6 +1118,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </button>
                       )}
                     </label>
+                    {tool.key === 'distribution' && (displaySettings.panels?.distribution ?? true) && (
+                      <div className="ml-8 flex flex-col gap-2 p-2 bg-muted/10 border-l-2 border-purple-500/30 rounded-r-lg mt-1 mb-2">
+                        {[
+                          { key: 'distributionResurrectAll', label: 'Ressusciter tous les joueurs' },
+                          { key: 'distributionDeleteTags', label: 'Supprimer les tags des joueurs' },
+                          { key: 'distributionRemovePastilles', label: 'Enlever les pastilles tags' }
+                        ].map(sub => (
+                          <label key={sub.key} className="flex items-center gap-2 cursor-pointer group">
+                             <input
+                               type="checkbox"
+                               checked={(displaySettings as any)[sub.key] ?? false}
+                               onChange={(e) => updateDisplaySettings({ [sub.key]: e.target.checked })}
+                               className="rounded border-border w-4 h-4 text-purple-500 focus:ring-purple-500"
+                             />
+                             <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                               {sub.label}
+                             </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
                     {tool.key === 'soundboard' && (displaySettings.panels?.soundboard ?? true) && expandedOutils.soundboard && (
                       <div className="ml-8 flex flex-col gap-4 p-4 bg-muted/20 rounded-lg border border-border mt-1 mb-2">
                         <label className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">

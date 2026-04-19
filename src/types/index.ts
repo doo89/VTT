@@ -476,5 +476,8 @@ export interface GameState {
     showTagNameSeenAsRole?: boolean;
     showTagNameSeenInTeam?: boolean;
     showTagSmartphoneIcon?: boolean;
+    distributionResurrectAll?: boolean;
+    distributionDeleteTags?: boolean;
+    distributionRemovePastilles?: boolean;
   };
 }

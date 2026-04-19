@@ -96,7 +96,10 @@ export const RightPanel: React.FC = () => {
           id: player.id,
           updates: {
             roleId: assignedRole.id,
-            teamId: assignedRole.teamId
+            teamId: assignedRole.teamId,
+            ...(displaySettings.distributionResurrectAll ? { isDead: false } : {}),
+            ...(displaySettings.distributionDeleteTags ? { tags: [] } : {}),
+            ...(displaySettings.distributionRemovePastilles ? { selectionPastilles: [] } : {})
           }
         };
       }
