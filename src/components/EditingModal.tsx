@@ -473,6 +473,41 @@ export const EditingModal: React.FC = () => {
             </label>
           </div>
 
+          {!role.isUnique && (
+            <div className="ml-6 flex flex-col gap-3 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Par défaut:</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={role.defaultCount ?? role.distributionQuantity ?? 1}
+                  onChange={(e) => updateRole(role.id, { defaultCount: parseInt(e.target.value) || 0, distributionQuantity: parseInt(e.target.value) || 0 })}
+                  className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Minimum:</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={role.minCount ?? 0}
+                  onChange={(e) => updateRole(role.id, { minCount: parseInt(e.target.value) || 0 })}
+                  className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Maximum:</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={role.maxCount ?? 99}
+                  onChange={(e) => updateRole(role.id, { maxCount: parseInt(e.target.value) || 0 })}
+                  className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Image du rôle</label>
             <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">

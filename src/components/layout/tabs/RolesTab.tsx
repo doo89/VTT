@@ -43,6 +43,9 @@ export const RolesTab: React.FC = () => {
       tags: [],
       isSelectableForDistribution: false,
       distributionQuantity: 1,
+      defaultCount: 1,
+      minCount: 0,
+      maxCount: 99,
     });
     setNewRoleName('');
   };

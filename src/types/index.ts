@@ -51,6 +51,9 @@ export interface Role {
   isSelectableForDistribution?: boolean;
   distributionQuantity?: number;
   smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background' | 'none';
+  defaultCount?: number;
+  minCount?: number;
+  maxCount?: number;
 }
 
 export interface TagCategory {
