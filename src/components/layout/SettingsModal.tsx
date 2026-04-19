@@ -1162,7 +1162,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           <label key={sub.key} className="flex items-center gap-2 cursor-pointer group">
                              <input
                                type="checkbox"
-                               checked={(displaySettings as any)[sub.key] ?? false}
+                               checked={(displaySettings as any)[sub.key] ?? true}
                                onChange={(e) => updateDisplaySettings({ [sub.key]: e.target.checked })}
                                className="rounded border-border w-4 h-4 text-purple-500 focus:ring-purple-500"
                              />
