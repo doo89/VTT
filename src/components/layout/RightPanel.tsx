@@ -159,7 +159,10 @@ export const RightPanel: React.FC = () => {
             teamId: assignedRole.teamId,
             ...(displaySettings.distributionResurrectAll ? { isDead: false } : {}),
             ...(displaySettings.distributionDeleteTags ? { tags: [] } : {}),
-            ...(displaySettings.distributionRemovePastilles ? { selectionPastilles: [] } : {})
+            ...(displaySettings.distributionRemovePastilles ? { selectionPastilles: [] } : {}),
+            ...(displaySettings.distributionResetLives ? { lives: 1 } : {}),
+            ...(displaySettings.distributionResetPoints ? { points: 0 } : {}),
+            ...(displaySettings.distributionResetVotes ? { votes: 0 } : {})
           }
         };
       }

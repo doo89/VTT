@@ -485,6 +485,9 @@ export interface GameState {
     distributionDeleteTags?: boolean;
     distributionRemovePastilles?: boolean;
     distributionResetPhase?: boolean;
+    distributionResetLives?: boolean;
+    distributionResetPoints?: boolean;
+    distributionResetVotes?: boolean;
     timerDefaultMinutes?: number;
     timerDefaultSeconds?: number;
   };
