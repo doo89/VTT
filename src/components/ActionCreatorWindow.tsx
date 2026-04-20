@@ -117,7 +117,7 @@ export const ActionCreatorWindow: React.FC = () => {
 
   return (
     <div 
-      className={`fixed z-[3000] w-80 bg-card border-2 border-primary/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''}`}
+      className={`fixed z-[3000] w-[640px] bg-card border-2 border-primary/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''}`}
       style={{
         left: actionCreatorState.x,
         top: actionCreatorState.y,
