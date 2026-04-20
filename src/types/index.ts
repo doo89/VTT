@@ -273,7 +273,8 @@ export type ActionEffectType =
   | 'showTagTooltip'
   | 'hideTagTooltip'
   | 'showRoleColor'
-  | 'hideRoleColor';
+  | 'hideRoleColor'
+  | 'alertPlayerName';
 
 export interface ActionEffect {
   id: string;

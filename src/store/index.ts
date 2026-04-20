@@ -919,6 +919,12 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'hideTagTooltip') nextDisplaySettings.showTagTooltip = false;
                 if (effect.type === 'showRoleColor') nextDisplaySettings.showRoleColor = true;
                 if (effect.type === 'hideRoleColor') nextDisplaySettings.showRoleColor = false;
+                if (effect.type === 'alertPlayerName') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    alert(player.name);
+                  }
+                }
                 if (effect.type === 'distributeRoles') {
                   const rolesToDistribute = state.roles.filter((r: any) => r.isSelectableForDistribution);
                   if (rolesToDistribute.length > 0) {
