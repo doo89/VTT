@@ -812,7 +812,8 @@ export const useVttStore = create<VttStore>()(
                       compareVal = state.callOrderIndex;
                     }
 
-                    if (!c.operator || c.operator === '') return isActive;
+                    const op: string = c.operator;
+                    if (!op || op === '') return isActive;
 
                     switch (c.operator) {
                       case '=': return compareVal === c.value;
@@ -887,7 +888,8 @@ export const useVttStore = create<VttStore>()(
                     return `Dist. ${rangeLabel} de : ${fromLabel} (${targetLabel})`;
                   }
                   if (c.type === 'cycleCheck') {
-                    if (!c.operator || c.operator === '') return `${c.cycleCheckType} (Actif)`;
+                    const op: string = c.operator;
+                    if (!op || op === '') return `${c.cycleCheckType} (Actif)`;
                     return `${c.cycleCheckType} ${c.operator} ${c.value}`;
                   }
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
