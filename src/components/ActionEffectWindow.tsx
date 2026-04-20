@@ -143,6 +143,8 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="hideRoleColor">Masquer la couleur du rôle</option>
               <option value="alertPlayerName">Afficher $Joueur</option>
               <option value="alertDayNumber">Afficher $Jour</option>
+              <option value="alertNightNumber">Afficher $Nuit</option>
+              <option value="alertCycleNumber">Afficher $Cycle</option>
             </select>
           </div>
 

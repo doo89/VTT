@@ -275,7 +275,9 @@ export type ActionEffectType =
   | 'showRoleColor'
   | 'hideRoleColor'
   | 'alertPlayerName'
-  | 'alertDayNumber';
+  | 'alertDayNumber'
+  | 'alertNightNumber'
+  | 'alertCycleNumber';
 
 export interface ActionEffect {
   id: string;
@@ -283,7 +285,7 @@ export interface ActionEffect {
   enabled: boolean;
 }
 
-export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'isDay';
+export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck';
 export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=';
 
 export interface ActionCondition {
@@ -300,6 +302,7 @@ export interface ActionCondition {
   selectionRoleId?: string | null;
   distanceFromPlayerId?: string | null;
   distanceTargetRoleId?: string | null;
+  cycleCheckType?: '$Jour' | '$Nuit' | '$Cycle' | null;
   enabled: boolean;
   logic?: 'AND' | 'OR';
 }

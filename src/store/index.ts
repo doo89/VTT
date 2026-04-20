@@ -792,8 +792,11 @@ export const useVttStore = create<VttStore>()(
                     });
                   }
 
-                  if (c.type === 'isDay') {
-                    return !state.isNight;
+                  if (c.type === 'cycleCheck') {
+                    if (c.cycleCheckType === '$Jour') return !state.isNight;
+                    if (c.cycleCheckType === '$Nuit') return state.isNight;
+                    if (c.cycleCheckType === '$Cycle') return state.cycleMode !== 'none';
+                    return false;
                   }
 
                   let compareVal = 0;
@@ -857,7 +860,7 @@ export const useVttStore = create<VttStore>()(
                       : `${c.value}`;
                     return `Dist. ${rangeLabel} de : ${fromLabel} (${targetLabel})`;
                   }
-                  if (c.type === 'isDay') return '$Jour (Actif)';
+                  if (c.type === 'cycleCheck') return `${c.cycleCheckType} (Actif)`;
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
                   return `${typeLabel} ${c.operator} ${c.value}`;
                 };
@@ -932,6 +935,12 @@ export const useVttStore = create<VttStore>()(
                 }
                 if (effect.type === 'alertDayNumber') {
                   alert(!state.isNight ? state.cycleNumber.toString() : 'Faux');
+                }
+                if (effect.type === 'alertNightNumber') {
+                  alert(state.isNight ? state.cycleNumber.toString() : 'Faux');
+                }
+                if (effect.type === 'alertCycleNumber') {
+                  alert(state.cycleMode !== 'none' ? state.cycleNumber.toString() : 'Faux');
                 }
                 if (effect.type === 'distributeRoles') {
                   const rolesToDistribute = state.roles.filter((r: any) => r.isSelectableForDistribution);
