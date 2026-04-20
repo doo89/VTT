@@ -145,6 +145,10 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="alertDayNumber">Afficher $Jour</option>
               <option value="alertNightNumber">Afficher $Nuit</option>
               <option value="alertCycleNumber">Afficher $Cycle</option>
+              <option value="alertCallOrder">Afficher $Ordre</option>
+              <option value="incrementCallOrder">$Ordre + 1</option>
+              <option value="decrementCallOrder">$Ordre - 1</option>
+              <option value="resetCallOrder">Réinitialiser $Ordre</option>
             </select>
           </div>
 

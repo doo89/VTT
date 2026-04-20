@@ -274,6 +274,7 @@ export const ActionConditionWindow: React.FC = () => {
                     <option value="$Jour">$Jour</option>
                     <option value="$Nuit">$Nuit</option>
                     <option value="$Cycle">$Cycle</option>
+                    <option value="$Ordre">$Ordre</option>
                   </select>
                 </div>
               </div>

@@ -277,7 +277,11 @@ export type ActionEffectType =
   | 'alertPlayerName'
   | 'alertDayNumber'
   | 'alertNightNumber'
-  | 'alertCycleNumber';
+  | 'alertCycleNumber'
+  | 'alertCallOrder'
+  | 'incrementCallOrder'
+  | 'decrementCallOrder'
+  | 'resetCallOrder';
 
 export interface ActionEffect {
   id: string;
@@ -302,7 +306,8 @@ export interface ActionCondition {
   selectionRoleId?: string | null;
   distanceFromPlayerId?: string | null;
   distanceTargetRoleId?: string | null;
-  cycleCheckType?: '$Jour' | '$Nuit' | '$Cycle' | null;
+  cycleCheckType?: '$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | null;
+}
   enabled: boolean;
   logic?: 'AND' | 'OR';
 }
@@ -352,6 +357,7 @@ export interface GameState {
   checklist: ChecklistItem[];
   isNight: boolean;
   cycleNumber: number;
+  callOrderIndex: number;
   cycleMode: 'dayNight' | 'turns' | 'none';
   timer: {
     minutes: number;

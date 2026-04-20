@@ -97,6 +97,8 @@ interface VttStore extends GameState {
   updateAction: (id: string, updates: Partial<Action>) => void;
   deleteAction: (id: string) => void;
   executeAction: (id: string, initialContext?: Record<string, any>) => void;
+  callOrderIndex: number;
+  setCallOrderIndex: (index: number) => void;
   setActionConditionCreatorState: (state: Partial<ActionConditionCreatorState>) => void;
   addPendingCondition: (condition: Omit<ActionCondition, 'id'>) => void;
   updatePendingCondition: (id: string, updates: Partial<ActionCondition>) => void;
@@ -356,8 +358,11 @@ export const initialState = {
     timerDefaultMinutes: 5,
     timerDefaultSeconds: 0,
   },
+  activeLeftTab: 'players',
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
+  callOrderIndex: 0,
+  editingEntity: null,
   downloadLogs: () => {
     const logs = useVttStore.getState().logs;
     if (logs.length === 0) return;
@@ -399,8 +404,8 @@ export const useVttStore = create<VttStore>()(
   clearRoomCode: () => set({ roomCode: null, joinRequests: [], onlinePlayerIds: [] }),
   addJoinRequest: (name) => set((state) => ({ joinRequests: [...new Set([...state.joinRequests, name])] })),
   removeJoinRequest: (name) => set((state) => ({ joinRequests: state.joinRequests.filter(n => n !== name) })),
-  setOnlinePlayers: (ids) => set({ onlinePlayerIds: ids }),
-
+  setOnlinePlayers: (playerIds) => set({ onlinePlayers: playerIds }),
+  setCallOrderIndex: (index) => set({ callOrderIndex: index }),
   setPan: (x, y) => set((state) => ({ canvas: { ...state.canvas, panX: x, panY: y } })),
   setZoom: (zoom) => set((state) => ({ canvas: { ...state.canvas, zoom } })),
   setCycleMode: (mode) => set({ cycleMode: mode }),
@@ -796,6 +801,7 @@ export const useVttStore = create<VttStore>()(
                     if (c.cycleCheckType === '$Jour') return !state.isNight;
                     if (c.cycleCheckType === '$Nuit') return state.isNight;
                     if (c.cycleCheckType === '$Cycle') return state.cycleMode !== 'none';
+                    if (c.cycleCheckType === '$Ordre') return state.callOrderIndex > 0;
                     return false;
                   }
 
@@ -941,6 +947,18 @@ export const useVttStore = create<VttStore>()(
                 }
                 if (effect.type === 'alertCycleNumber') {
                   alert(state.cycleMode !== 'none' ? state.cycleNumber.toString() : 'Faux');
+                }
+                if (effect.type === 'alertCallOrder') {
+                  alert(state.callOrderIndex.toString());
+                }
+                if (effect.type === 'incrementCallOrder') {
+                  state.setCallOrderIndex(state.callOrderIndex + 1);
+                }
+                if (effect.type === 'decrementCallOrder') {
+                  state.setCallOrderIndex(Math.max(0, state.callOrderIndex - 1));
+                }
+                if (effect.type === 'resetCallOrder') {
+                  state.setCallOrderIndex(0);
                 }
                 if (effect.type === 'distributeRoles') {
                   const rolesToDistribute = state.roles.filter((r: any) => r.isSelectableForDistribution);
@@ -1116,6 +1134,7 @@ export const useVttStore = create<VttStore>()(
           displaySettings: state.displaySettings,
           isNight: state.isNight,
           cycleNumber: state.cycleNumber,
+          callOrderIndex: state.callOrderIndex,
           scoreboard: state.scoreboard,
           wiki: state.wiki,
           checklist: state.checklist,
