@@ -157,12 +157,12 @@ export const RightPanel: React.FC = () => {
           updates: {
             roleId: assignedRole.id,
             teamId: assignedRole.teamId,
-            ...(displaySettings.distributionResurrectAll ? { isDead: false } : {}),
-            ...(displaySettings.distributionDeleteTags ? { tags: [] } : {}),
-            ...(displaySettings.distributionRemovePastilles ? { selectionPastilles: [] } : {}),
-            ...(displaySettings.distributionResetLives ? { lives: 1 } : {}),
-            ...(displaySettings.distributionResetPoints ? { points: 0 } : {}),
-            ...(displaySettings.distributionResetVotes ? { votes: 0 } : {})
+            ...(displaySettings.distributionResurrectAll !== false ? { isDead: false } : {}),
+            ...(displaySettings.distributionDeleteTags !== false ? { tags: [] } : {}),
+            ...(displaySettings.distributionRemovePastilles !== false ? { selectionPastilles: [] } : {}),
+            ...(displaySettings.distributionResetLives !== false ? { lives: 1 } : {}),
+            ...(displaySettings.distributionResetPoints !== false ? { points: 0 } : {}),
+            ...(displaySettings.distributionResetVotes !== false ? { votes: 0 } : {})
           }
         };
       }
@@ -171,7 +171,7 @@ export const RightPanel: React.FC = () => {
 
     if (updates.length > 0) {
       updatePlayers(updates);
-      if (displaySettings.distributionResetPhase) {
+      if (displaySettings.distributionResetPhase !== false) {
         resetCycle();
         addLog(`Réinitialisation : Jour 1`, 'system');
       }
