@@ -1160,7 +1160,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           { key: 'distributionResetPhase', label: 'Réinitialiser la phase (Jour 1)' },
                           { key: 'distributionResetLives', label: 'Reset Vie' },
                           { key: 'distributionResetPoints', label: 'Reset Points' },
-                          { key: 'distributionResetVotes', label: 'Reset Votes' }
+                          { key: 'distributionResetVotes', label: 'Reset Votes' },
+                          { key: 'distributionDeletePrivateNotes', label: 'Supprimer les notes privés' },
+                          { key: 'distributionDeletePublicNotes', label: 'Supprimer les notes publiques' }
                         ].map(sub => (
                           <label key={sub.key} className="flex items-center gap-2 cursor-pointer group">
                              <input

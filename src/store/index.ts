@@ -351,6 +351,8 @@ export const initialState = {
     distributionResetLives: true,
     distributionResetPoints: true,
     distributionResetVotes: true,
+    distributionDeletePrivateNotes: true,
+    distributionDeletePublicNotes: true,
     timerDefaultMinutes: 5,
     timerDefaultSeconds: 0,
   },

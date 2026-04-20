@@ -488,6 +488,8 @@ export interface GameState {
     distributionResetLives?: boolean;
     distributionResetPoints?: boolean;
     distributionResetVotes?: boolean;
+    distributionDeletePrivateNotes?: boolean;
+    distributionDeletePublicNotes?: boolean;
     timerDefaultMinutes?: number;
     timerDefaultSeconds?: number;
   };

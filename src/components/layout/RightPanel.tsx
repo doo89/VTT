@@ -162,7 +162,9 @@ export const RightPanel: React.FC = () => {
             ...(displaySettings.distributionRemovePastilles !== false ? { selectionPastilles: [] } : {}),
             ...(displaySettings.distributionResetLives !== false ? { lives: 1 } : {}),
             ...(displaySettings.distributionResetPoints !== false ? { points: 0 } : {}),
-            ...(displaySettings.distributionResetVotes !== false ? { votes: 0 } : {})
+            ...(displaySettings.distributionResetVotes !== false ? { votes: 0 } : {}),
+            ...(displaySettings.distributionDeletePrivateNotes !== false ? { privateNotes: '' } : {}),
+            ...(displaySettings.distributionDeletePublicNotes !== false ? { publicNotes: '' } : {})
           }
         };
       }
