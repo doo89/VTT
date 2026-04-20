@@ -796,11 +796,33 @@ export const useVttStore = create<VttStore>()(
                   }
 
                   if (c.type === 'cycleCheck') {
-                    if (c.cycleCheckType === '$Jour') return !state.isNight;
-                    if (c.cycleCheckType === '$Nuit') return state.isNight;
-                    if (c.cycleCheckType === '$Cycle') return state.cycleMode !== 'none';
-                    if (c.cycleCheckType === '$Ordre') return state.callOrderIndex > 0;
-                    return false;
+                    let compareVal = 0;
+                    let isActive = false;
+                    if (c.cycleCheckType === '$Jour') {
+                      isActive = !state.isNight;
+                      compareVal = state.cycleNumber;
+                    } else if (c.cycleCheckType === '$Nuit') {
+                      isActive = state.isNight;
+                      compareVal = state.cycleNumber;
+                    } else if (c.cycleCheckType === '$Cycle') {
+                      isActive = state.cycleMode !== 'none';
+                      compareVal = state.cycleNumber;
+                    } else if (c.cycleCheckType === '$Ordre') {
+                      isActive = state.callOrderIndex > 0;
+                      compareVal = state.callOrderIndex;
+                    }
+
+                    if (!c.operator || c.operator === '') return isActive;
+
+                    switch (c.operator) {
+                      case '=': return compareVal === c.value;
+                      case '<': return compareVal < c.value;
+                      case '>': return compareVal > c.value;
+                      case '!=': return compareVal !== c.value;
+                      case '<=': return compareVal <= c.value;
+                      case '>=': return compareVal >= c.value;
+                      default: return isActive;
+                    }
                   }
 
                   let compareVal = 0;
@@ -864,7 +886,10 @@ export const useVttStore = create<VttStore>()(
                       : `${c.value}`;
                     return `Dist. ${rangeLabel} de : ${fromLabel} (${targetLabel})`;
                   }
-                  if (c.type === 'cycleCheck') return `${c.cycleCheckType} (Actif)`;
+                  if (c.type === 'cycleCheck') {
+                    if (!c.operator || c.operator === '') return `${c.cycleCheckType} (Actif)`;
+                    return `${c.cycleCheckType} ${c.operator} ${c.value}`;
+                  }
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
                   return `${typeLabel} ${c.operator} ${c.value}`;
                 };

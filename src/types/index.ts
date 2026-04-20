@@ -290,7 +290,7 @@ export interface ActionEffect {
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck';
-export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=';
+export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=' | '';
 
 export interface ActionCondition {
   id: string;
