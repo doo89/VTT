@@ -117,38 +117,38 @@ export const ActionEffectWindow: React.FC = () => {
               onChange={(e) => setType(e.target.value as any)}
               className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-sm focus:border-indigo-500/50"
             >
-              <option value="deleteAllTags">Supprimer tous les tags dans la salle</option>
-              <option value="deleteAllPlayerTags">Supprimer tous les tags des joueurs</option>
-              <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
-              <option value="resurrectAllPlayers">Ressusciter tous les joueurs</option>
-              <option value="showAllPlayers">Afficher tous les joueurs</option>
-              <option value="hideAllPlayers">Masquer tous les joueurs</option>
-              <option value="nextPhase">Passer à la phase suivante</option>
-              <option value="previousPhase">Revenir à la phase précédente</option>
-              <option value="resetCycle">Réinitialiser le Cycle (Jour 1)</option>
-              <option value="setCycleDayNight">Cycle : Jour/Nuit</option>
-              <option value="setCycleTurn">Cycle : par Tour</option>
-              <option value="setCycleNone">Cycle : Aucun</option>
-              <option value="distributeRoles">Distribuer (Rôles)</option>
-              <option value="showPlayerImage">Afficher l'image du joueur</option>
-              <option value="hidePlayerImage">Cacher l'image du joueur</option>
-              <option value="showRoleImage">Afficher l'image du Rôle</option>
-              <option value="hideRoleImage">Cacher l'image du Rôle</option>
-              <option value="popupPlayer">Popup $Joueur</option>
-              <option value="showPlayerTooltip">Afficher l'info bulle des joueurs</option>
-              <option value="hidePlayerTooltip">Masquer l'info bulle des joueurs</option>
-              <option value="showTagTooltip">Afficher l'info bulle des tags</option>
-              <option value="hideTagTooltip">Masquer l'info bulle des tags</option>
-              <option value="showRoleColor">Afficher la couleur du rôle</option>
-              <option value="hideRoleColor">Masquer la couleur du rôle</option>
-              <option value="alertPlayerName">Afficher $Joueur</option>
-              <option value="alertDayNumber">Afficher $Jour</option>
-              <option value="alertNightNumber">Afficher $Nuit</option>
-              <option value="alertCycleNumber">Afficher $Cycle</option>
-              <option value="alertCallOrder">Afficher $Ordre</option>
               <option value="incrementCallOrder">$Ordre + 1</option>
               <option value="decrementCallOrder">$Ordre - 1</option>
+              <option value="alertCycleNumber">Afficher $Cycle</option>
+              <option value="alertDayNumber">Afficher $Jour</option>
+              <option value="alertPlayerName">Afficher $Joueur</option>
+              <option value="alertNightNumber">Afficher $Nuit</option>
+              <option value="alertCallOrder">Afficher $Ordre</option>
+              <option value="showRoleImage">Afficher l'image du Rôle</option>
+              <option value="showPlayerImage">Afficher l'image du joueur</option>
+              <option value="showPlayerTooltip">Afficher l'info bulle des joueurs</option>
+              <option value="showTagTooltip">Afficher l'info bulle des tags</option>
+              <option value="showRoleColor">Afficher la couleur du rôle</option>
+              <option value="showAllPlayers">Afficher tous les joueurs</option>
+              <option value="hideRoleImage">Cacher l'image du Rôle</option>
+              <option value="hidePlayerImage">Cacher l'image du joueur</option>
+              <option value="setCycleNone">Cycle : Aucun</option>
+              <option value="setCycleDayNight">Cycle : Jour/Nuit</option>
+              <option value="setCycleTurn">Cycle : par Tour</option>
+              <option value="distributeRoles">Distribuer (Rôles)</option>
+              <option value="hidePlayerTooltip">Masquer l'info bulle des joueurs</option>
+              <option value="hideTagTooltip">Masquer l'info bulle des tags</option>
+              <option value="hideRoleColor">Masquer la couleur du rôle</option>
+              <option value="hideAllPlayers">Masquer tous les joueurs</option>
+              <option value="nextPhase">Passer à la phase suivante</option>
+              <option value="popupPlayer">Popup $Joueur</option>
+              <option value="resurrectAllPlayers">Ressusciter tous les joueurs</option>
+              <option value="previousPhase">Revenir à la phase précédente</option>
               <option value="resetCallOrder">Réinitialiser $Ordre</option>
+              <option value="resetCycle">Réinitialiser le Cycle (Jour 1)</option>
+              <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
+              <option value="deleteAllTags">Supprimer tous les tags dans la salle</option>
+              <option value="deleteAllPlayerTags">Supprimer tous les tags des joueurs</option>
             </select>
           </div>
 
