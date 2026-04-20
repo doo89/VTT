@@ -80,24 +80,69 @@ export const RightPanel: React.FC = () => {
   const handleDistributeRoles = () => {
     if (!canDistribute) return;
 
-    // Create array of roles to distribute
-    const rolesPool: Role[] = [];
+    const requiredGroups: Role[][] = [];
+    const optionalPool: Role[] = [];
+
     selectedRolesForDistribution.forEach(role => {
-      const quantity = role.isUnique ? 1 : (role.isMinMandatory ? Math.max(role.distributionQuantity || 1, role.minCount || 0) : (role.distributionQuantity || 1));
-      for (let i = 0; i < quantity; i++) {
+      if (role.isUnique) {
+        requiredGroups.push([role]);
+      } else if (role.isMinMandatory) {
+        const min = role.minCount || 0;
+        const mandatoryInstances: Role[] = [];
+        for (let i = 0; i < min; i++) {
+          mandatoryInstances.push(role);
+        }
+        requiredGroups.push(mandatoryInstances);
+        
+        const extra = (role.distributionQuantity || 1) - min;
+        for (let i = 0; i < extra; i++) {
+          optionalPool.push(role);
+        }
+      } else {
+        const qty = role.distributionQuantity || 1;
+        for (let i = 0; i < qty; i++) {
+          optionalPool.push(role);
+        }
+      }
+    });
+
+    // Shuffle required groups to be fair if we need to prune
+    for (let i = requiredGroups.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [requiredGroups[i], requiredGroups[j]] = [requiredGroups[j], requiredGroups[i]];
+    }
+
+    const rolesPool: Role[] = [];
+    
+    // Add required roles that fit
+    requiredGroups.forEach(group => {
+      if (rolesPool.length + group.length <= totalPlayersInRoom) {
+        rolesPool.push(...group);
+      }
+    });
+
+    // Shuffle optional roles
+    for (let i = optionalPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [optionalPool[i], optionalPool[j]] = [optionalPool[j], optionalPool[i]];
+    }
+
+    // Fill with optional roles
+    optionalPool.forEach(role => {
+      if (rolesPool.length < totalPlayersInRoom) {
         rolesPool.push(role);
       }
     });
 
-    // Fill the gap if needed
-    if (needsFilling && fillerRole) {
+    // Fill remaining with fillerRole
+    if (rolesPool.length < totalPlayersInRoom && fillerRole) {
       const diff = totalPlayersInRoom - rolesPool.length;
       for (let i = 0; i < diff; i++) {
         rolesPool.push(fillerRole);
       }
     }
 
-    // Shuffle the roles pool using Fisher-Yates
+    // FINAL SHUFFLE (Fisher-Yates) before assignment
     for (let i = rolesPool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [rolesPool[i], rolesPool[j]] = [rolesPool[j], rolesPool[i]];
