@@ -245,6 +245,7 @@ export interface Action {
   intervalSeconds?: number;
   repeatCount?: number;
   currentRepeatExecution?: number;
+  elseActionId?: string | null;
   enabled?: boolean;
 }
 

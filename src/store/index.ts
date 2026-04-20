@@ -96,7 +96,9 @@ interface VttStore extends GameState {
   addAction: (action: Omit<Action, 'id'>) => void;
   updateAction: (id: string, updates: Partial<Action>) => void;
   deleteAction: (id: string) => void;
-  executeAction: (id: string, initialContext?: Record<string, any>) => void;
+  executeAction: (id: string, initialContext?: Record<string, any>, depth?: number) => void;
+  pendingElseActionId: string | null;
+  setPendingElseActionId: (id: string | null) => void;
   callOrderIndex: number;
   setCallOrderIndex: (index: number) => void;
   setActionConditionCreatorState: (state: Partial<ActionConditionCreatorState>) => void;
@@ -249,6 +251,7 @@ export const initialState = {
   pendingActionIntervalSeconds: 5,
   pendingActionRepeatCount: 2,
   pendingActionEnabled: true,
+  pendingElseActionId: null,
   activeLeftTab: 'players' as const,
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
@@ -658,8 +661,16 @@ export const useVttStore = create<VttStore>()(
           actions: state.actions.filter(a => a.id !== id)
         })),
         setPendingActionEnabled: (enabled: boolean) => set({ pendingActionEnabled: enabled }),
-        executeAction: (id, initialContext) => {
+        setPendingElseActionId: (id: string | null) => set({ pendingElseActionId: id }),
+        executeAction: (id, initialContext, depth = 0) => {
           const run = (remaining: number) => {
+            if (depth > 5) {
+              set((state: any) => {
+                state.addLog(`Action annulée : profondeur maximale atteinte (SINON)`, 'system');
+                return {};
+              });
+              return;
+            }
             set((state: any) => {
               const action = state.actions.find((a: any) => a.id === id);
               if (!action) return {};
@@ -923,6 +934,12 @@ export const useVttStore = create<VttStore>()(
               const evaluation = evaluate(action.conditions || []);
               if (!evaluation.success) {
                 state.addLog(`Action "${action.name}" annulée : condition non remplie (${evaluation.failReason})`, 'system');
+                if (action.elseActionId && depth < 5) {
+                  setTimeout(() => {
+                    const currentState = (useVttStore.getState() as any);
+                    currentState.executeAction(action.elseActionId, initialContext, depth + 1);
+                  }, 100);
+                }
                 return {};
               }
               

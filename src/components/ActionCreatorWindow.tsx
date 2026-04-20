@@ -26,6 +26,8 @@ export const ActionCreatorWindow: React.FC = () => {
     pendingActionEffects,
     clearPendingEffects,
     deletePendingEffect,
+    pendingElseActionId,
+    setPendingElseActionId,
     roles,
     tags
   } = useVttStore();
@@ -41,6 +43,7 @@ export const ActionCreatorWindow: React.FC = () => {
         setPendingOnce(action.once || false);
         setPendingRecurring(action.isRecurring || false, action.intervalSeconds || 5, action.repeatCount || 2);
         setPendingActionEnabled(action.enabled !== false);
+        setPendingElseActionId(action.elseActionId || null);
       }
     }
   }, [isEditingAction, actionCreatorState.editingActionId, actions]);
@@ -87,6 +90,7 @@ export const ActionCreatorWindow: React.FC = () => {
     setPendingActionEnabled(true);
     clearPendingConditions();
     clearPendingEffects();
+    setPendingElseActionId(null);
   };
 
   const handleSave = () => {
@@ -99,6 +103,7 @@ export const ActionCreatorWindow: React.FC = () => {
       isRecurring: pendingActionIsRecurring,
       intervalSeconds: pendingActionIntervalSeconds,
       repeatCount: pendingActionRepeatCount,
+      elseActionId: pendingElseActionId,
       enabled: pendingActionEnabled
     };
 
@@ -357,6 +362,26 @@ export const ActionCreatorWindow: React.FC = () => {
               ))
             )}
           </div>
+        </div>
+
+        {/* ELSE Section */}
+        <div className="flex flex-col gap-3 pt-1">
+          <div className="flex items-center justify-between px-1">
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-[#94a3b8]">Sinon (Appeler Action)</label>
+          </div>
+          <select
+            value={pendingElseActionId || ''}
+            onChange={(e) => setPendingElseActionId(e.target.value || null)}
+            className="w-full bg-[#1e293b]/50 border border-[#334155]/50 rounded-lg px-3 py-2 text-[11px] font-bold outline-none transition-all hover:border-[#475569] focus:border-primary/50"
+          >
+            <option value="">-- Aucune action --</option>
+            {actions
+              .filter(a => !isEditingAction || a.id !== actionCreatorState.editingActionId)
+              .map(a => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))
+            }
+          </select>
         </div>
 
         <div className="flex items-center gap-2 pt-2">
