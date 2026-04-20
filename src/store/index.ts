@@ -250,6 +250,9 @@ export const initialState = {
   pendingActionRepeatCount: 2,
   pendingActionEnabled: true,
   activeLeftTab: 'players' as const,
+  isLeftPanelOpen: true,
+  isRightPanelOpen: true,
+  callOrderIndex: 0,
   editingEntity: null,
   smartphoneActionMessage: null,
   canvas: {
@@ -358,11 +361,6 @@ export const initialState = {
     timerDefaultMinutes: 5,
     timerDefaultSeconds: 0,
   },
-  activeLeftTab: 'players',
-  isLeftPanelOpen: true,
-  isRightPanelOpen: true,
-  callOrderIndex: 0,
-  editingEntity: null,
   downloadLogs: () => {
     const logs = useVttStore.getState().logs;
     if (logs.length === 0) return;
@@ -404,7 +402,7 @@ export const useVttStore = create<VttStore>()(
   clearRoomCode: () => set({ roomCode: null, joinRequests: [], onlinePlayerIds: [] }),
   addJoinRequest: (name) => set((state) => ({ joinRequests: [...new Set([...state.joinRequests, name])] })),
   removeJoinRequest: (name) => set((state) => ({ joinRequests: state.joinRequests.filter(n => n !== name) })),
-  setOnlinePlayers: (playerIds) => set({ onlinePlayers: playerIds }),
+  setOnlinePlayers: (playerIds) => set({ onlinePlayerIds: playerIds }),
   setCallOrderIndex: (index) => set({ callOrderIndex: index }),
   setPan: (x, y) => set((state) => ({ canvas: { ...state.canvas, panX: x, panY: y } })),
   setZoom: (zoom) => set((state) => ({ canvas: { ...state.canvas, zoom } })),
