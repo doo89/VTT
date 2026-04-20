@@ -274,7 +274,8 @@ export type ActionEffectType =
   | 'hideTagTooltip'
   | 'showRoleColor'
   | 'hideRoleColor'
-  | 'alertPlayerName';
+  | 'alertPlayerName'
+  | 'alertDayNumber';
 
 export interface ActionEffect {
   id: string;
@@ -282,7 +283,7 @@ export interface ActionEffect {
   enabled: boolean;
 }
 
-export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille';
+export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'isDay';
 export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=';
 
 export interface ActionCondition {

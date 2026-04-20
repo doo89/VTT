@@ -792,6 +792,10 @@ export const useVttStore = create<VttStore>()(
                     });
                   }
 
+                  if (c.type === 'isDay') {
+                    return !state.isNight;
+                  }
+
                   let compareVal = 0;
                   if (c.type === 'day') {
                     if (state.isNight) return false;
@@ -853,6 +857,7 @@ export const useVttStore = create<VttStore>()(
                       : `${c.value}`;
                     return `Dist. ${rangeLabel} de : ${fromLabel} (${targetLabel})`;
                   }
+                  if (c.type === 'isDay') return '$Jour (Actif)';
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
                   return `${typeLabel} ${c.operator} ${c.value}`;
                 };
@@ -924,6 +929,9 @@ export const useVttStore = create<VttStore>()(
                   if (player) {
                     alert(player.name);
                   }
+                }
+                if (effect.type === 'alertDayNumber') {
+                  alert(!state.isNight ? state.cycleNumber.toString() : 'Faux');
                 }
                 if (effect.type === 'distributeRoles') {
                   const rolesToDistribute = state.roles.filter((r: any) => r.isSelectableForDistribution);

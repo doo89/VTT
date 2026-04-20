@@ -320,6 +320,31 @@ export const ActionConditionWindow: React.FC = () => {
           
           <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-6 ${isDistanceExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
             
+            {/* Action Condition: isDay */}
+            <div className={`flex items-center gap-3 transition-all duration-300 ${type !== 'isDay' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+              <div className="flex flex-col gap-1.5 pb-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+                <div className="flex items-center h-[38px] justify-center gap-2 px-1">
+                  <input
+                    type="checkbox"
+                    checked={type === 'isDay' && enabled}
+                    onChange={() => {
+                      if (type !== 'isDay') {
+                        setType('isDay');
+                        setEnabled(true);
+                      } else {
+                        setEnabled(!enabled);
+                      }
+                    }}
+                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+                  />
+                  <span className="text-sm font-bold text-foreground">$Jour</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="h-px bg-border/20 mx-2" />
+            
             {/* Distance (Rôle) */}
             <div className={`flex flex-col gap-3 transition-all duration-300 ${type !== 'playerDistance' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex items-center gap-2">
