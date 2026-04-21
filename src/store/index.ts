@@ -1194,6 +1194,16 @@ export const useVttStore = create<VttStore>()(
     ),
     {
       name: 'vtt-storage',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.editingEntity = null;
+          state.actionCreatorState = { ...state.actionCreatorState, isOpen: false, editingActionId: null };
+          state.actionConditionCreatorState = { ...state.actionConditionCreatorState, isOpen: false, editingConditionId: null };
+          state.actionEffectCreatorState = { ...state.actionEffectCreatorState, isOpen: false, editingEffectId: null };
+          state.pendingActionConditions = [];
+          state.pendingActionEffects = [];
+        }
+      },
       partialize: (state) => {
         const { 
           editingEntity, 
