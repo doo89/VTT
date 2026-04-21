@@ -1194,8 +1194,27 @@ export const useVttStore = create<VttStore>()(
     ),
     {
       name: 'vtt-storage',
-      // Optional: you can ignore certain fields from being persisted if needed.
-      // But for temporal, we configure that separately.
+      partialize: (state) => {
+        const { 
+          editingEntity, 
+          actionCreatorState, 
+          actionConditionCreatorState, 
+          actionEffectCreatorState,
+          pendingActionConditions,
+          pendingActionEffects,
+          pendingActionOnce,
+          pendingActionIsRecurring,
+          pendingActionIntervalSeconds,
+          pendingActionRepeatCount,
+          pendingActionEnabled,
+          pendingElseActionId,
+          tagDistributorState,
+          customPopups,
+          activeCustomPopupId,
+          ...rest 
+        } = state;
+        return rest;
+      },
     }
   )
 );
