@@ -313,8 +313,9 @@ export const GameTab: React.FC = () => {
                      <span className="truncate flex-1 font-medium">
                         {item.type === 'player' ? `${(item.entity as Player).name} (${roles.find(r => r.id === (item.entity as Player).roleId)?.name || 'Sans rôle'})` : `Marqueur: ${(item.entity as Marker).tag.name}`}
                      </span>
-                     <span className="text-[10px] text-muted-foreground w-12 text-right">
-                       {item.type === 'player' && (item.entity as Player).isDead ? '(Mort)' : ''}
+                     <span className="text-[10px] text-muted-foreground w-auto text-right flex items-center gap-1">
+                        {item.type === 'player' && (item.entity as Player).isDead && <span>(Mort)</span>}
+                        {item.type === 'player' && (item.entity as Player).isSleeping && <span className="text-indigo-400 font-bold">(Dort)</span>}
                      </span>
                   </div>
 

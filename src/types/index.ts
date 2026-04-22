@@ -23,6 +23,7 @@ export interface Player {
   selectionPastilles?: { id: string, icon: string, color: string, name?: string }[];
   smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background' | 'none';
   creationOrder?: number;
+  isSleeping?: boolean;
 }
 
 export interface PlayerTemplate {
@@ -34,6 +35,7 @@ export interface PlayerTemplate {
   roleId: EntityId | null;
   teamId: EntityId | null;
   smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background' | 'none';
+  isSleeping?: boolean;
 }
 
 export interface Role {
@@ -251,6 +253,8 @@ export interface Action {
 
 export type ActionEffectType = 
   | 'selectPlayer'
+  | 'sleepPlayer'
+  | 'wakePlayer'
   | 'deleteAllTags' 
   | 'nextPhase' 
   | 'previousPhase' 

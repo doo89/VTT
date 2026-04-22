@@ -981,6 +981,18 @@ export const useVttStore = create<VttStore>()(
                     state.setSelectedEntityIds([player.id]);
                   }
                 }
+                if (effect.type === 'sleepPlayer') {
+                  const player = actionContext['$Joueur'];
+                  if (player && player.id) {
+                    nextPlayers = nextPlayers.map(p => p.id === player.id ? { ...p, isSleeping: true } : p);
+                  }
+                }
+                if (effect.type === 'wakePlayer') {
+                  const player = actionContext['$Joueur'];
+                  if (player && player.id) {
+                    nextPlayers = nextPlayers.map(p => p.id === player.id ? { ...p, isSleeping: false } : p);
+                  }
+                }
                 if (effect.type === 'alertPlayerName') {
                   const player = actionContext['$Joueur'];
                   if (player) {

@@ -147,6 +147,8 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="resetCallOrder">Réinitialiser $Ordre</option>
               <option value="resetCycle">Réinitialiser le Cycle (Jour 1)</option>
               <option value="selectPlayer">Sélectionner $Joueur</option>
+              <option value="sleepPlayer">$Joueur dort</option>
+              <option value="wakePlayer">$Joueur réveil</option>
               <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
               <option value="deleteAllTags">Supprimer tous les tags dans la salle</option>
               <option value="deleteAllPlayerTags">Supprimer tous les tags des joueurs</option>

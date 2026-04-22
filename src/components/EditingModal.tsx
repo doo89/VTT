@@ -410,7 +410,8 @@ export const EditingModal: React.FC = () => {
             />
           </div>
         </div>
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center gap-4 mt-2">
+          <div className="flex items-center gap-2">
             <input
               type="checkbox"
               id="dead-player"
@@ -422,6 +423,19 @@ export const EditingModal: React.FC = () => {
               Joueur Mort
             </label>
           </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="sleeping-player"
+              checked={player.isSleeping || false}
+              onChange={(e) => updatePlayer(player.id, { isSleeping: e.target.checked })}
+              className="w-4 h-4 rounded border-border text-primary focus:ring-ring cursor-pointer"
+            />
+            <label htmlFor="sleeping-player" className="text-sm font-medium text-indigo-400 whitespace-nowrap cursor-pointer">
+              Joueur Dort
+            </label>
+          </div>
+        </div>
       </div>
     );
   } else if (editingEntity.type === 'role') {

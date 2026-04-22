@@ -440,6 +440,23 @@ export const PlayerView: React.FC = () => {
       ) : (
         <div className="flex-1 flex flex-col gap-6 z-10 pb-20 overflow-y-auto custom-scrollbar pr-2">
           
+          {localPlayer.isSleeping && (
+            <div className="absolute inset-0 bg-zinc-950 z-[100] flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-700">
+               <div className="relative mb-6">
+                 <icons.Moon size={80} className="text-indigo-400 animate-pulse" />
+                 <div className="absolute -top-2 -right-4 flex flex-col gap-1">
+                   <span className="text-xl font-bold text-indigo-300/60 animate-bounce delay-100">Z</span>
+                   <span className="text-2xl font-bold text-indigo-300/40 animate-bounce delay-200">z</span>
+                   <span className="text-3xl font-bold text-indigo-300/20 animate-bounce delay-300">z</span>
+                 </div>
+               </div>
+               <h3 className="text-2xl font-black uppercase tracking-tighter text-white mb-2 italic">Vous dormez...</h3>
+               <p className="text-sm text-zinc-500 max-w-[200px] leading-relaxed">
+                 Le Maître du Jeu vous a endormi. Vous ne pouvez plus voir vos actions pour le moment.
+               </p>
+            </div>
+          )}
+
           {activeTab === 'game' && (
             <>
               {/* Status Banner */}
