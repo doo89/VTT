@@ -975,6 +975,12 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'hideTagTooltip') nextDisplaySettings.showTagTooltip = false;
                 if (effect.type === 'showRoleColor') nextDisplaySettings.showRoleColor = true;
                 if (effect.type === 'hideRoleColor') nextDisplaySettings.showRoleColor = false;
+                if (effect.type === 'selectPlayer') {
+                  const player = actionContext['$Joueur'];
+                  if (player && player.id) {
+                    state.setSelectedEntityIds([player.id]);
+                  }
+                }
                 if (effect.type === 'alertPlayerName') {
                   const player = actionContext['$Joueur'];
                   if (player) {

@@ -250,6 +250,7 @@ export interface Action {
 }
 
 export type ActionEffectType = 
+  | 'selectPlayer'
   | 'deleteAllTags' 
   | 'nextPhase' 
   | 'previousPhase' 
