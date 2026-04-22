@@ -142,12 +142,14 @@ export interface Team {
   color: string;
 }
 
-export type BadgeType = 'none' | 'team' | 'lives' | 'votes' | 'points' | 'uses' | 'callOrderDay' | 'callOrderNight' | 'connection' | 'creationOrder';
+export type BadgeType = 'none' | 'team' | 'lives' | 'votes' | 'points' | 'uses' | 'callOrderDay' | 'callOrderNight' | 'connection' | 'creationOrder' | 'sleeping';
 
 export interface BadgeConfig {
   type: BadgeType;
   bgColor: string;
   textColor: string;
+  sleepingIcon?: string;
+  awakeIcon?: string;
 }
 
 export interface Handout {

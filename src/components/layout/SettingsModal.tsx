@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Sun, UserCircle2, Tag, ChevronDown, ChevronRight } from 'lucide-react';
+import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Sun, UserCircle2, Tag, ChevronDown, ChevronRight, Moon, Eye, EyeOff, Bell, BellOff, MoonStar } from 'lucide-react';
+import * as icons from 'lucide-react';
 import { useVttStore } from '../../store';
 import { ColorPicker } from '../ColorPicker';
 import { ThemeToggle } from '../ThemeToggle';
@@ -485,6 +486,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                     {config.type === 'callOrderDay' && '1'}
                                     {config.type === 'callOrderNight' && '2'}
                                     {config.type === 'creationOrder' && '1'}
+                                    {config.type === 'sleeping' && <Moon size={12} />}
                                     {config.type === 'connection' && <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
                                   </div>
                                 );
@@ -533,6 +535,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                       <option value="callOrderNight">Appel N</option>
                                       <option value="connection">Status</option>
                                       <option value="creationOrder">Classement</option>
+                                      <option value="sleeping">Éveillé</option>
                                     </select>
 
                                     {badge.type !== 'none' && badge.type !== 'team' && badge.type !== 'connection' && (
@@ -552,6 +555,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                       </div>
                                     )}
                                   </div>
+                                  
+                                  {badge.type === 'sleeping' && (
+                                    <div className="flex flex-col gap-2 p-2 bg-background/50 rounded-lg border border-border/30 mt-2 w-full animate-in slide-in-from-top-1 duration-200">
+                                      <div className="flex flex-col gap-1">
+                                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Icône Réveillé</span>
+                                        <div className="flex flex-wrap gap-1">
+                                          {['Sun', 'Eye', 'Bell', 'User'].map(iconName => (
+                                            <button
+                                              key={iconName}
+                                              onClick={() => updateBadge({ awakeIcon: iconName })}
+                                              className={`p-1 rounded hover:bg-primary/20 transition-colors ${badge.awakeIcon === iconName ? 'bg-primary text-white shadow-sm' : 'bg-muted/40 text-muted-foreground'}`}
+                                              title={iconName}
+                                            >
+                                              {React.createElement((icons as any)[iconName], { size: 10 })}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-col gap-1">
+                                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Icône Dort</span>
+                                        <div className="flex flex-wrap gap-1">
+                                          {['Moon', 'EyeOff', 'MoonStar', 'BellOff'].map(iconName => (
+                                            <button
+                                              key={iconName}
+                                              onClick={() => updateBadge({ sleepingIcon: iconName })}
+                                              className={`p-1 rounded hover:bg-primary/20 transition-colors ${badge.sleepingIcon === iconName ? 'bg-primary text-white shadow-sm' : 'bg-muted/40 text-muted-foreground'}`}
+                                              title={iconName}
+                                            >
+                                              {React.createElement((icons as any)[iconName], { size: 10 })}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}

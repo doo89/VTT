@@ -943,6 +943,23 @@ export const Canvas: React.FC = () => {
                 );
               }
 
+              if (config.type === 'sleeping') {
+                const isSleeping = player.isSleeping;
+                const iconName = isSleeping ? (config.sleepingIcon || 'Moon') : (config.awakeIcon || 'Sun');
+                const IconComponent = (icons as any)[iconName] || (isSleeping ? Moon : Sun);
+                
+                return (
+                  <div
+                    key={position}
+                    className={`${baseClasses} ${posClass}`}
+                    style={{ backgroundColor: config.bgColor, color: config.textColor }}
+                    title={isSleeping ? 'Dort' : 'Éveillé'}
+                  >
+                     <IconComponent size={12} />
+                  </div>
+                );
+              }
+
               if (config.type === 'connection') {
                 if (!roomCode || onlinePlayerIds.includes(player.id)) return null;
                 return (
