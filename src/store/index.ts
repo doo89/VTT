@@ -1219,7 +1219,7 @@ export const useVttStore = create<VttStore>()(
           pendingActionEnabled,
           pendingElseActionId,
           tagDistributorState,
-          customPopups,
+          checklistState,
           activeCustomPopupId,
           ...rest 
         } = state;

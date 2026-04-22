@@ -96,6 +96,14 @@ export const Canvas: React.FC = () => {
       stateToSave.cycleNumber = state.cycleNumber;
       stateToSave.activeLeftTab = state.activeLeftTab;
       stateToSave.displaySettings = state.displaySettings;
+      
+      // Inclusion of Actions & Outils Data
+      stateToSave.actions = state.actions;
+      stateToSave.checklist = state.checklist;
+      stateToSave.customPopups = state.customPopups;
+      stateToSave.soundboard = state.soundboard;
+      stateToSave.wiki = state.wiki;
+      stateToSave.logs = state.logs;
     }
 
     const stateStr = JSON.stringify(stateToSave, null, 2);
