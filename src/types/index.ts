@@ -255,6 +255,8 @@ export type ActionEffectType =
   | 'selectPlayer'
   | 'sleepPlayer'
   | 'wakePlayer'
+  | 'sleepAllPlayers'
+  | 'wakeAllPlayers'
   | 'deleteAllTags' 
   | 'nextPhase' 
   | 'previousPhase' 

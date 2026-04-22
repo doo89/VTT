@@ -993,6 +993,12 @@ export const useVttStore = create<VttStore>()(
                     nextPlayers = nextPlayers.map(p => p.id === player.id ? { ...p, isSleeping: false } : p);
                   }
                 }
+                if (effect.type === 'sleepAllPlayers') {
+                  nextPlayers = nextPlayers.map(p => ({ ...p, isSleeping: true }));
+                }
+                if (effect.type === 'wakeAllPlayers') {
+                  nextPlayers = nextPlayers.map(p => ({ ...p, isSleeping: false }));
+                }
                 if (effect.type === 'alertPlayerName') {
                   const player = actionContext['$Joueur'];
                   if (player) {
