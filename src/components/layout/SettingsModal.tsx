@@ -538,7 +538,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                       <option value="sleeping">Éveillé</option>
                                     </select>
 
-                                    {badge.type !== 'none' && badge.type !== 'team' && badge.type !== 'connection' && (
+                                    {badge.type !== 'none' && badge.type !== 'team' && badge.type !== 'connection' && badge.type !== 'sleeping' && (
                                       <div className="flex items-center gap-1 shrink-0">
                                         <ColorPicker
                                           color={badge.bgColor}
@@ -560,13 +560,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                     <div className="flex flex-col gap-2 p-2 bg-background/50 rounded-lg border border-border/30 mt-2 w-full animate-in slide-in-from-top-1 duration-200">
                                       <div className="flex flex-col gap-1.5">
                                         <div className="flex items-center justify-between px-0.5">
-                                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Icône Réveillé</span>
-                                          <ColorPicker
-                                            color={badge.awakeColor || badge.textColor}
-                                            onChange={(c) => updateBadge({ awakeColor: c })}
-                                            label="Couleur"
-                                            className="!w-4 !h-4 rounded-full border border-border/50"
-                                          />
+                                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Réveillé</span>
+                                          <div className="flex items-center gap-1.5">
+                                            <ColorPicker
+                                              color={badge.awakeBgColor || '#fbbf24'}
+                                              onChange={(c) => updateBadge({ awakeBgColor: c })}
+                                              label="Fond"
+                                              className="!w-4 !h-4 rounded-full border border-border/50"
+                                            />
+                                            <ColorPicker
+                                              color={badge.awakeTextColor || '#fff'}
+                                              onChange={(c) => updateBadge({ awakeTextColor: c })}
+                                              label="Texte"
+                                              className="!w-4 !h-4 rounded-full border border-border/50"
+                                            />
+                                          </div>
                                         </div>
                                         <div className="flex flex-wrap gap-1">
                                           {['Sun', 'Eye', 'Bell', 'User'].map(iconName => (
@@ -583,13 +591,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                       </div>
                                       <div className="flex flex-col gap-1.5 border-t border-border/20 pt-1.5">
                                         <div className="flex items-center justify-between px-0.5">
-                                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Icône Dort</span>
-                                          <ColorPicker
-                                            color={badge.sleepingColor || badge.textColor}
-                                            onChange={(c) => updateBadge({ sleepingColor: c })}
-                                            label="Couleur"
-                                            className="!w-4 !h-4 rounded-full border border-border/50"
-                                          />
+                                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Dort</span>
+                                          <div className="flex items-center gap-1.5">
+                                            <ColorPicker
+                                              color={badge.sleepingBgColor || '#4f46e5'}
+                                              onChange={(c) => updateBadge({ sleepingBgColor: c })}
+                                              label="Fond"
+                                              className="!w-4 !h-4 rounded-full border border-border/50"
+                                            />
+                                            <ColorPicker
+                                              color={badge.sleepingTextColor || '#fff'}
+                                              onChange={(c) => updateBadge({ sleepingTextColor: c })}
+                                              label="Texte"
+                                              className="!w-4 !h-4 rounded-full border border-border/50"
+                                            />
+                                          </div>
                                         </div>
                                         <div className="flex flex-wrap gap-1">
                                           {['Moon', 'EyeOff', 'MoonStar', 'BellOff'].map(iconName => (
