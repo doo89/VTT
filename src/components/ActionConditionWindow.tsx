@@ -17,6 +17,8 @@ export const ActionConditionWindow: React.FC = () => {
     pendingActionIsRecurring,
     pendingActionIntervalSeconds,
     pendingActionRepeatCount,
+    pendingActionDelaySeconds,
+    setPendingDelay,
     setPendingRecurring,
     roles,
     tags
@@ -228,6 +230,27 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-12 bg-input border border-border rounded-lg px-2 py-1 text-center font-bold outline-none"
                 />
                 <span className="font-medium">fois.</span>
+              </div>
+            </div>
+            <div className="h-px bg-border/20 my-1" />
+            <div className="flex items-center gap-3 px-2 py-1">
+              <input
+                type="checkbox"
+                checked={pendingActionDelaySeconds > 0}
+                onChange={(e) => setPendingDelay(e.target.checked ? 5 : 0)}
+                className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer shrink-0"
+              />
+              <div className={`flex items-center gap-1.5 text-xs transition-opacity duration-200 ${pendingActionDelaySeconds === 0 ? 'opacity-50 grayscale' : 'opacity-100'}`}>
+                <span className="font-medium">Attendre :</span>
+                <input
+                  disabled={pendingActionDelaySeconds === 0}
+                  type="number"
+                  min="0"
+                  value={pendingActionDelaySeconds}
+                  onChange={(e) => setPendingDelay(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-12 bg-input border border-border rounded-lg px-2 py-1 text-center font-bold outline-none"
+                />
+                <span className="font-medium">secondes avant d'exécuter l'action.</span>
               </div>
             </div>
           </div>

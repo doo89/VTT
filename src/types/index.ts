@@ -255,6 +255,7 @@ export interface Action {
   currentRepeatExecution?: number;
   elseActionId?: string | null;
   enabled?: boolean;
+  delaySeconds?: number;
 }
 
 export type ActionEffectType = 

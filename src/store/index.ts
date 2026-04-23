@@ -112,6 +112,8 @@ interface VttStore extends GameState {
   pendingActionIsRecurring: boolean;
   pendingActionIntervalSeconds: number;
   pendingActionRepeatCount: number;
+  pendingActionDelaySeconds: number;
+  setPendingDelay: (delay: number) => void;
   setPendingRecurring: (recurring: boolean, interval: number, count: number) => void;
   setPendingActionEnabled: (enabled: boolean) => void;
   setActionEffectCreatorState: (state: Partial<ActionEffectCreatorState>) => void;
@@ -1149,13 +1151,21 @@ export const useVttStore = create<VttStore>()(
             return;
           }
 
-          if (initialAction.isRecurring) {
-            set((state: any) => ({
-              actions: state.actions.map((a: any) => a.id === id ? { ...a, currentRepeatExecution: initialAction.repeatCount || 2 } : a)
-            }));
-            run(initialAction.repeatCount || 2);
+          const startExecution = () => {
+            if (initialAction.isRecurring) {
+              set((state: any) => ({
+                actions: state.actions.map((a: any) => a.id === id ? { ...a, currentRepeatExecution: initialAction.repeatCount || 2 } : a)
+              }));
+              run(initialAction.repeatCount || 2);
+            } else {
+              run(1);
+            }
+          };
+
+          if (initialAction.delaySeconds && initialAction.delaySeconds > 0) {
+            setTimeout(startExecution, initialAction.delaySeconds * 1000);
           } else {
-            run(1);
+            startExecution();
           }
         },
         addPendingCondition: (conditionData) => set((state) => ({
@@ -1177,9 +1187,11 @@ export const useVttStore = create<VttStore>()(
           pendingActionOnce: false,
           pendingActionIsRecurring: false,
           pendingActionIntervalSeconds: 5,
-          pendingActionRepeatCount: 2
+          pendingActionRepeatCount: 2,
+          pendingActionDelaySeconds: 0
         }),
         setPendingOnce: (once) => set({ pendingActionOnce: once }),
+        setPendingDelay: (delay) => set({ pendingActionDelaySeconds: delay }),
         setPendingRecurring: (recurring, interval, count) => set({ 
           pendingActionIsRecurring: recurring,
           pendingActionIntervalSeconds: interval,

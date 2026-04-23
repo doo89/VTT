@@ -26,7 +26,8 @@ export const ActionCreatorWindow: React.FC = () => {
     pendingActionEffects,
     clearPendingEffects,
     deletePendingEffect,
-    pendingElseActionId,
+    pendingActionDelaySeconds,
+    setPendingDelay,
     setPendingElseActionId,
     roles,
     tags
@@ -44,6 +45,7 @@ export const ActionCreatorWindow: React.FC = () => {
         setPendingRecurring(action.isRecurring || false, action.intervalSeconds || 5, action.repeatCount || 2);
         setPendingActionEnabled(action.enabled !== false);
         setPendingElseActionId(action.elseActionId || null);
+        setPendingDelay(action.delaySeconds || 0);
       }
     }
   }, [isEditingAction, actionCreatorState.editingActionId, actions]);
@@ -104,7 +106,8 @@ export const ActionCreatorWindow: React.FC = () => {
       intervalSeconds: pendingActionIntervalSeconds,
       repeatCount: pendingActionRepeatCount,
       elseActionId: pendingElseActionId,
-      enabled: pendingActionEnabled
+      enabled: pendingActionEnabled,
+      delaySeconds: pendingActionDelaySeconds
     };
 
     if (isEditingAction && actionCreatorState.editingActionId) {
