@@ -339,6 +339,7 @@ export const initialState = {
     smartphoneImageBlur: 20,
     smartphoneImageMinHeight: 400,
     roomMiniatureAnimation: true,
+    roomMiniatureSelfAnimation: true,
     roomMiniatureDeadIconUrl: null,
     roomMiniaturePlayerIconUrl: null,
     showTagCallOrderDay: true,

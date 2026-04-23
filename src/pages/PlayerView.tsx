@@ -910,7 +910,7 @@ export const PlayerView: React.FC = () => {
                         <div
                           key={p.id}
                           title={p.name}
-                          className={`absolute ${displaySettings?.roomMiniatureAnimation !== false ? 'transition-all duration-700' : ''}`}
+                          className={`absolute ${(p.id === localPlayer?.id ? displaySettings?.roomMiniatureSelfAnimation : displaySettings?.roomMiniatureAnimation) !== false ? 'transition-all duration-700' : ''}`}
                           style={{ left: `${leftPct}%`, top: `${topPct}%`, transform: 'translate(-50%, -50%)', zIndex: 10 }}
                         >
                           {p.isDead ? (
@@ -931,12 +931,12 @@ export const PlayerView: React.FC = () => {
                               <img 
                                 src={displaySettings.roomMiniaturePlayerIconUrl} 
                                 alt="Moi" 
-                                className={`w-[30px] h-[30px] object-contain ${displaySettings?.roomMiniatureAnimation !== false ? 'animate-pulse' : ''}`}
+                                className={`w-[30px] h-[30px] object-contain ${displaySettings?.roomMiniatureSelfAnimation !== false ? 'animate-pulse' : ''}`}
                                 style={{ filter: `drop-shadow(0 0 5px ${p.color})` }}
                               />
                             ) : (
                               <div
-                                className={displaySettings?.roomMiniatureAnimation !== false ? 'animate-pulse' : ''}
+                                className={(p.id === localPlayer?.id ? displaySettings?.roomMiniatureSelfAnimation : displaySettings?.roomMiniatureAnimation) !== false ? 'animate-pulse' : ''}
                                 style={{
                                   width: '30px',
                                   height: '30px',

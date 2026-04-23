@@ -1029,15 +1029,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           )}
                         </div>
                       </div>
-                     <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
-                       <input
-                         type="checkbox"
-                         checked={displaySettings.roomMiniatureAnimation ?? true}
-                         onChange={(e) => updateDisplaySettings({ roomMiniatureAnimation: e.target.checked })}
-                         className="rounded border-border w-3.5 h-3.5 text-primary"
-                       />
-                       Animation des joueurs
-                     </label>
+                      <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={displaySettings.roomMiniatureSelfAnimation ?? true}
+                          onChange={(e) => updateDisplaySettings({ roomMiniatureSelfAnimation: e.target.checked })}
+                          className="rounded border-border w-3.5 h-3.5 text-primary"
+                        />
+                        Animation du joueur (Moi)
+                      </label>
+                      <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={displaySettings.roomMiniatureAnimation ?? true}
+                          onChange={(e) => updateDisplaySettings({ roomMiniatureAnimation: e.target.checked })}
+                          className="rounded border-border w-3.5 h-3.5 text-primary"
+                        />
+                        Animation des joueurs (Autres)
+                      </label>
                      <div className="flex flex-col gap-1">
                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Icône joueur mort (Overly)</label>
                        <div className="flex gap-2 items-center">

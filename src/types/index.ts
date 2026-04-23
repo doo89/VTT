@@ -491,6 +491,7 @@ export interface GameState {
     smartphoneImageBlur?: number;
     smartphoneImageMinHeight?: number;
     roomMiniatureAnimation?: boolean;
+    roomMiniatureSelfAnimation?: boolean;
     roomMiniatureDeadIconUrl?: string | null;
     roomMiniaturePlayerIconUrl?: string | null;
     showTagCallOrderDay?: boolean;
