@@ -151,6 +151,7 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="sleepAllPlayers">Tous les Joueurs dorment</option>
               <option value="sleepPlayer">$Joueur dort</option>
               <option value="wakePlayer">$Joueur réveil</option>
+              <option value="switchSleepPlayer">$Joueur switch éveille</option>
               <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
               <option value="deleteAllTags">Supprimer tous les tags dans la salle</option>
               <option value="deleteAllPlayerTags">Supprimer tous les tags des joueurs</option>

@@ -997,6 +997,13 @@ export const useVttStore = create<VttStore>()(
                     nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, isSleeping: false } : p);
                   }
                 }
+                if (effect.type === 'switchSleepPlayer') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, isSleeping: !p.isSleeping } : p);
+                  }
+                }
                 if (effect.type === 'sleepAllPlayers') {
                   nextPlayers = nextPlayers.map(p => ({ ...p, isSleeping: true }));
                 }
