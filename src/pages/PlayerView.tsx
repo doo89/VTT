@@ -927,16 +927,25 @@ export const PlayerView: React.FC = () => {
                               </svg>
                             )
                           ) : (
-                            <div
-                              className={displaySettings?.roomMiniatureAnimation !== false ? 'animate-pulse' : ''}
-                              style={{
-                                width: '30px',
-                                height: '30px',
-                                borderRadius: '50%',
-                                backgroundColor: p.color,
-                                boxShadow: `0 0 15px ${p.color}`,
-                              }}
-                            />
+                            p.id === localPlayer?.id && displaySettings?.roomMiniaturePlayerIconUrl ? (
+                              <img 
+                                src={displaySettings.roomMiniaturePlayerIconUrl} 
+                                alt="Moi" 
+                                className={`w-[30px] h-[30px] object-contain ${displaySettings?.roomMiniatureAnimation !== false ? 'animate-pulse' : ''}`}
+                                style={{ filter: `drop-shadow(0 0 5px ${p.color})` }}
+                              />
+                            ) : (
+                              <div
+                                className={displaySettings?.roomMiniatureAnimation !== false ? 'animate-pulse' : ''}
+                                style={{
+                                  width: '30px',
+                                  height: '30px',
+                                  borderRadius: '50%',
+                                  backgroundColor: p.color,
+                                  boxShadow: `0 0 15px ${p.color}`,
+                                }}
+                              />
+                            )
                           )}
                         </div>
                       );
