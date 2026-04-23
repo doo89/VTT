@@ -952,7 +952,7 @@ export const Canvas: React.FC = () => {
                   <div
                     key={position}
                     className={`${baseClasses} ${posClass}`}
-                    style={{ backgroundColor: config.bgColor, color: config.textColor }}
+                    style={{ backgroundColor: config.bgColor, color: isSleeping ? (config.sleepingColor || config.textColor) : (config.awakeColor || config.textColor) }}
                     title={isSleeping ? 'Dort' : 'Éveillé'}
                   >
                      <IconComponent size={12} />

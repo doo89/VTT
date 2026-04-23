@@ -150,6 +150,8 @@ export interface BadgeConfig {
   textColor: string;
   sleepingIcon?: string;
   awakeIcon?: string;
+  sleepingColor?: string;
+  awakeColor?: string;
 }
 
 export interface Handout {

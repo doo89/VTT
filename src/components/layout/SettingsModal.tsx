@@ -558,8 +558,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                   
                                   {badge.type === 'sleeping' && (
                                     <div className="flex flex-col gap-2 p-2 bg-background/50 rounded-lg border border-border/30 mt-2 w-full animate-in slide-in-from-top-1 duration-200">
-                                      <div className="flex flex-col gap-1">
-                                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Icône Réveillé</span>
+                                      <div className="flex flex-col gap-1.5">
+                                        <div className="flex items-center justify-between px-0.5">
+                                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Icône Réveillé</span>
+                                          <ColorPicker
+                                            color={badge.awakeColor || badge.textColor}
+                                            onChange={(c) => updateBadge({ awakeColor: c })}
+                                            label="Couleur"
+                                            className="!w-4 !h-4 rounded-full border border-border/50"
+                                          />
+                                        </div>
                                         <div className="flex flex-wrap gap-1">
                                           {['Sun', 'Eye', 'Bell', 'User'].map(iconName => (
                                             <button
@@ -573,8 +581,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                           ))}
                                         </div>
                                       </div>
-                                      <div className="flex flex-col gap-1">
-                                        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Icône Dort</span>
+                                      <div className="flex flex-col gap-1.5 border-t border-border/20 pt-1.5">
+                                        <div className="flex items-center justify-between px-0.5">
+                                          <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-tight">Icône Dort</span>
+                                          <ColorPicker
+                                            color={badge.sleepingColor || badge.textColor}
+                                            onChange={(c) => updateBadge({ sleepingColor: c })}
+                                            label="Couleur"
+                                            className="!w-4 !h-4 rounded-full border border-border/50"
+                                          />
+                                        </div>
                                         <div className="flex flex-wrap gap-1">
                                           {['Moon', 'EyeOff', 'MoonStar', 'BellOff'].map(iconName => (
                                             <button
