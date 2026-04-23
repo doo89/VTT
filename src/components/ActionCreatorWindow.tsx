@@ -28,6 +28,7 @@ export const ActionCreatorWindow: React.FC = () => {
     deletePendingEffect,
     pendingActionDelaySeconds,
     setPendingDelay,
+    pendingElseActionId,
     setPendingElseActionId,
     roles,
     tags
