@@ -744,7 +744,8 @@ export const useVttStore = create<VttStore>()(
                       const matchingPlayers = state.players.filter(checkMatching);
                       if (matchingPlayers.length > 0) {
                         const names = matchingPlayers.map((p: any) => p.name).join(', ');
-                        actionContext['$Joueur'] = { ...matchingPlayers[0], name: names };
+                        const ids = matchingPlayers.map((p: any) => p.id);
+                        actionContext['$Joueur'] = { ...matchingPlayers[0], name: names, _isMultiple: true, _ids: ids };
                         return true;
                       }
                       return false;
@@ -977,20 +978,23 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'hideRoleColor') nextDisplaySettings.showRoleColor = false;
                 if (effect.type === 'selectPlayer') {
                   const player = actionContext['$Joueur'];
-                  if (player && player.id) {
-                    state.setSelectedEntityIds([player.id]);
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    state.setSelectedEntityIds(ids);
                   }
                 }
                 if (effect.type === 'sleepPlayer') {
                   const player = actionContext['$Joueur'];
-                  if (player && player.id) {
-                    nextPlayers = nextPlayers.map(p => p.id === player.id ? { ...p, isSleeping: true } : p);
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, isSleeping: true } : p);
                   }
                 }
                 if (effect.type === 'wakePlayer') {
                   const player = actionContext['$Joueur'];
-                  if (player && player.id) {
-                    nextPlayers = nextPlayers.map(p => p.id === player.id ? { ...p, isSleeping: false } : p);
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, isSleeping: false } : p);
                   }
                 }
                 if (effect.type === 'sleepAllPlayers') {
