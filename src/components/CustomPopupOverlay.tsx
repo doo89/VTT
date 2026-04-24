@@ -22,7 +22,7 @@ export const CustomPopupOverlay: React.FC = () => {
   useEffect(() => {
     if (activePopup?.soundUrl && activeCustomPopupId !== lastPlayedId.current) {
       const isGM = location.pathname === '/';
-      const isSmartphone = location.pathname.startsWith('/player/') || location.pathname.startsWith('/soundboard/');
+      const isSmartphone = location.pathname.startsWith('/player/') || location.pathname.startsWith('/remote/');
       
       const shouldShow = isGM ? (activePopup.showToGM !== false) : (isSmartphone ? (activePopup.showToSmartphone !== false) : false);
       
@@ -40,7 +40,7 @@ export const CustomPopupOverlay: React.FC = () => {
   if (!activePopup) return null;
 
   const isGM = location.pathname === '/';
-  const isSmartphone = location.pathname.startsWith('/player/') || location.pathname.startsWith('/soundboard/');
+  const isSmartphone = location.pathname.startsWith('/player/') || location.pathname.startsWith('/remote/');
   
   const shouldShow = isGM ? (activePopup.showToGM !== false) : (isSmartphone ? (activePopup.showToSmartphone !== false) : false);
 

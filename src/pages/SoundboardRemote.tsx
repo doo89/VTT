@@ -79,7 +79,7 @@ export const SoundboardRemote: React.FC = () => {
   };
 
   const handleDisconnect = () => {
-    navigate('/soundboard');
+    navigate('/remote');
   };
 
   if (connectionStatus === 'connecting') {

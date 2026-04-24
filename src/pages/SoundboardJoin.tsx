@@ -12,7 +12,7 @@ export const SoundboardJoin: React.FC = () => {
     if (!roomCode.trim() || !passcode.trim()) return;
 
     const cleanRoomCode = roomCode.trim().toUpperCase();
-    navigate(`/soundboard/${cleanRoomCode}/${encodeURIComponent(passcode.trim())}`);
+    navigate(`/remote/${cleanRoomCode}/${encodeURIComponent(passcode.trim())}`);
   };
 
   return (

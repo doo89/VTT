@@ -652,7 +652,7 @@ export const Canvas: React.FC = () => {
                   }
                   
                   const joinHref = `${window.location.origin}/join${sbParams}`;
-                  const sbHref = `${window.location.origin}/soundboard${sbParams}`;
+                  const sbHref = `${window.location.origin}/remote${sbParams}`;
                   
                   return (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

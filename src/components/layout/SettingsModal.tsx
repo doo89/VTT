@@ -1385,7 +1385,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                            Activer le portail "Soundboard / Télécommande"
                          </label>
                          <p className="text-[11px] text-muted-foreground leading-relaxed pl-8">
-                           Si activé, l'URL <code>/soundboard</code> permettra à un appareil de se connecter à la boîte à sons du MJ à distance (sans voir le jeu). 
+                           Si activé, l'URL <code>/remote</code> permettra à un appareil de se connecter à la boîte à sons du MJ à distance (sans voir le jeu). 
                          </p>
                          
                          {soundboard.remoteEnabled && (

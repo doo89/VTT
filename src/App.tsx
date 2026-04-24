@@ -13,8 +13,8 @@ function App() {
         <Route path="/" element={<GmView />} />
         <Route path="/join" element={<PlayerJoin />} />
         <Route path="/player/:roomId/:playerName" element={<PlayerView />} />
-        <Route path="/soundboard" element={<SoundboardJoin />} />
-        <Route path="/soundboard/:roomId/:passcode" element={<SoundboardRemote />} />
+        <Route path="/remote" element={<SoundboardJoin />} />
+        <Route path="/remote/:roomId/:passcode" element={<SoundboardRemote />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <CustomPopupOverlay />
