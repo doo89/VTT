@@ -342,6 +342,17 @@ export const initHostRealtime = (roomCode: string) => {
         }
       }));
     })
+    .on('broadcast', { event: 'checklist_action' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      if (!state.soundboard.remoteEnabled) return;
+      if ((state.soundboard.remotePasscode || "").trim() !== (payload.passcode || "").trim()) return;
+      
+      if (payload.type === 'toggle') {
+        state.setChecklist(prev => prev.map(item => 
+          item.id === payload.itemId ? { ...item, completed: !item.completed } : item
+        ));
+      }
+    })
     .on('presence', { event: 'sync' }, () => {
       const state = useVttStore.getState();
       const newState = currentChannel?.presenceState() || {};
@@ -428,6 +439,7 @@ export const forceBroadcastState = () => {
     cycleMode: state.cycleMode,
     displaySettings: state.displaySettings,
     wiki: state.wiki,
+    checklist: state.checklist,
     room: {
       ...state.room,
       // Strip backgroundImage if it's a base64 blob — send only external URLs
