@@ -349,9 +349,16 @@ export const initHostRealtime = (roomCode: string) => {
       
       if (payload.type === 'toggle') {
         console.log(`[VTT] Remote checklist toggle received for item ${payload.itemId}`);
-        state.setChecklist(prev => prev.map(item => 
-          item.id === payload.itemId ? { ...item, checked: !item.checked } : item
-        ));
+        state.setChecklist(prev => prev.map(item => {
+          if (item.id === payload.itemId) {
+            const newChecked = !item.checked;
+            if (newChecked && item.actionId) {
+              state.executeAction(item.actionId, {});
+            }
+            return { ...item, checked: newChecked };
+          }
+          return item;
+        }));
       }
     })
     .on('presence', { event: 'sync' }, () => {

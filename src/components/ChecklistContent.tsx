@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { Trash2, Settings, Type, CheckSquare } from 'lucide-react';
+import { Trash2, Settings, Type, CheckSquare, Zap, X } from 'lucide-react';
 import { useVttStore } from '../store';
 
 export const ChecklistContent: React.FC = () => {
-  const { checklist, setChecklist } = useVttStore();
+  const { checklist, setChecklist, actions, executeAction } = useVttStore();
   const [openColorPickerId, setOpenColorPickerId] = useState<string | null>(null);
+  const [openActionPickerId, setOpenActionPickerId] = useState<string | null>(null);
 
-  // Close color picker when clicking elsewhere is handled implicitly by the buttons
-  
   if (!checklist) return null;
 
   return (
@@ -36,11 +35,17 @@ export const ChecklistContent: React.FC = () => {
                     type="checkbox"
                     checked={item.checked || false}
                     onChange={(e) => {
+                      const newChecked = e.target.checked;
                       const newChecklist = [...checklist];
-                      newChecklist[index].checked = e.target.checked;
+                      newChecklist[index].checked = newChecked;
                       setChecklist(newChecklist);
+                      
+                      // Execute action if provided and becoming checked
+                      if (newChecked && item.actionId) {
+                        executeAction(item.actionId, {});
+                      }
                     }}
-                    className="w-4 h-4 rounded border-border"
+                    className="w-4 h-4 rounded border-border cursor-pointer"
                   />
                   <input
                     type="text"
@@ -60,6 +65,60 @@ export const ChecklistContent: React.FC = () => {
             
             {/* Controls for item */}
             <div className="flex items-center gap-1 shrink-0 pl-2 border-l border-border/30 h-6">
+              {item.type === 'checkbox' && (
+                <div className="relative">
+                  <button 
+                    onClick={() => setOpenActionPickerId(openActionPickerId === item.id ? null : item.id)}
+                    className={`p-1 rounded transition-colors ${item.actionId ? 'text-yellow-500 bg-yellow-500/10' : 'text-muted-foreground hover:text-yellow-500'} ${openActionPickerId === item.id ? 'bg-yellow-500/20' : ''}`}
+                    title="Action automatique"
+                  >
+                    <Zap size={12} fill={item.actionId ? "currentColor" : "none"} />
+                  </button>
+                  {openActionPickerId === item.id && (
+                    <div className="absolute right-0 bottom-full mb-1 w-48 bg-popover border border-border rounded shadow-xl z-[300] flex flex-col animate-in fade-in slide-in-from-bottom-2 duration-150">
+                      <div className="flex items-center justify-between p-2 border-b border-border bg-muted/30">
+                         <span className="text-[10px] font-black uppercase tracking-widest">Choisir une action</span>
+                         <button onClick={() => setOpenActionPickerId(null)} className="text-muted-foreground hover:text-foreground">
+                           <X size={10} />
+                         </button>
+                      </div>
+                      <div className="max-h-40 overflow-y-auto custom-scrollbar p-1">
+                        <button
+                          onClick={() => {
+                            const newChecklist = [...checklist];
+                            newChecklist[index].actionId = null;
+                            setChecklist(newChecklist);
+                            setOpenActionPickerId(null);
+                          }}
+                          className={`w-full text-left px-2 py-1.5 text-[11px] rounded hover:bg-accent transition-colors mb-1 border border-dashed border-border/50 ${!item.actionId ? 'bg-accent/50 text-accent-foreground' : 'text-muted-foreground'}`}
+                        >
+                          Aucune action
+                        </button>
+                        {actions.map((action: any) => (
+                          <button
+                            key={action.id}
+                            onClick={() => {
+                              const newChecklist = [...checklist];
+                              newChecklist[index].actionId = action.id;
+                              setChecklist(newChecklist);
+                              setOpenActionPickerId(null);
+                            }}
+                            className={`w-full text-left px-2 py-1.5 text-[11px] rounded hover:bg-accent transition-colors flex items-center gap-2 ${item.actionId === action.id ? 'bg-accent text-accent-foreground font-bold' : ''}`}
+                          >
+                            <Zap size={10} />
+                            <span className="truncate">{action.name}</span>
+                          </button>
+                        ))}
+                        {actions.length === 0 && (
+                          <div className="p-2 text-[10px] text-muted-foreground italic text-center">
+                            Aucune action créée
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               {(item.type === 'text' || item.type === 'checkbox') && (
                 <div className="relative">
                   <button 

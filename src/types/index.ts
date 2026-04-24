@@ -218,6 +218,7 @@ export interface ChecklistItem {
   checked?: boolean;
   color?: string;
   imageUrl?: string | null;
+  actionId?: string | null;
 }
 
 export interface ChecklistState {
