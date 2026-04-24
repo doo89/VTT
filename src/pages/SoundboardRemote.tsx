@@ -262,7 +262,7 @@ export const SoundboardRemote: React.FC = () => {
 
                 if (item.type === 'text') {
                   return (
-                    <div key={item.id} className="bg-zinc-900/50 border border-zinc-800/50 p-4 rounded-2xl italic text-zinc-400 text-sm whitespace-pre-wrap leading-relaxed" style={{ color: item.color }}>
+                    <div key={item.id} className="bg-zinc-900/80 border border-zinc-700 p-4 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed shadow-lg shadow-black/20" style={{ color: item.color || '#e4e4e7' }}>
                       {item.content}
                     </div>
                   );
@@ -288,8 +288,8 @@ export const SoundboardRemote: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`font-bold text-sm leading-snug transition-all ${
-                        item.checked ? 'line-through text-zinc-500' : 'text-zinc-100'
-                      }`} style={{ color: item.checked ? undefined : item.color }}>
+                        item.checked ? 'line-through opacity-50' : ''
+                      }`} style={{ color: item.color || '#e4e4e7' }}>
                         {item.content}
                       </p>
                     </div>
