@@ -685,7 +685,7 @@ export const Canvas: React.FC = () => {
                           <div className="p-1.5 bg-pink-500/10 rounded text-pink-400">
                              <Radio size={16} />
                           </div>
-                          <h4 className="text-sm font-bold text-pink-400">Soundboard Externe</h4>
+                          <h4 className="text-sm font-bold text-pink-400">Télécommande MJ</h4>
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed h-12">
                           Faites scanner ce QR Code pour contrôler la boîte à sons depuis un autre appareil (Nécessite le code configuré).
