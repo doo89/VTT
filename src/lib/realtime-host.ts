@@ -319,8 +319,20 @@ export const initHostRealtime = (roomCode: string) => {
     })
     .on('broadcast', { event: 'soundboard_action' }, ({ payload }) => {
       const state = useVttStore.getState();
-      if (!state.soundboard.remoteEnabled) return;
-      if (state.soundboard.remotePasscode !== payload.passcode) return;
+      if (!state.soundboard.remoteEnabled) {
+        console.warn("[VTT] Remote soundboard action ignored: remote access is disabled.");
+        return;
+      }
+      
+      const hostPasscode = (state.soundboard.remotePasscode || "").trim();
+      const clientPasscode = (payload.passcode || "").trim();
+      
+      if (hostPasscode !== clientPasscode) {
+        console.warn("[VTT] Remote soundboard action ignored: invalid passcode.");
+        return;
+      }
+      
+      console.log(`[VTT] Remote soundboard trigger received for index ${payload.index}`);
       
       // Update store to trigger the playing logic in DetachedSoundboard
       useVttStore.setState(s => ({
@@ -389,7 +401,10 @@ export const forceBroadcastState = () => {
       imageUrl: stripImage(r.imageUrl),
     })),
     teams: state.teams,
-    tags: state.tags,
+    tags: state.tags.map(t => ({
+      ...t,
+      imageUrl: (t as any).imageUrl ? stripImage((t as any).imageUrl) : undefined
+    })),
     handouts: state.handouts.map(h => ({
       ...h,
       imageUrl: stripImage(h.imageUrl),
@@ -405,6 +420,7 @@ export const forceBroadcastState = () => {
         icon: b.icon,
         color: b.color,
         hasAudio: !!b.audioUrl,
+        isOneShot: b.isOneShot,
         imageUrl: stripImage(b.imageUrl)
       }))
     },

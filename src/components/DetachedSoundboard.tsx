@@ -39,8 +39,10 @@ export const DetachedSoundboard: React.FC = () => {
     }).catch(() => {});
   };
 
+  const lastTriggerTimestamp = useRef<number | null>(null);
   useEffect(() => {
-    if (soundboard.remotePlayTrigger) {
+    if (soundboard.remotePlayTrigger && soundboard.remotePlayTrigger.timestamp !== lastTriggerTimestamp.current) {
+      lastTriggerTimestamp.current = soundboard.remotePlayTrigger.timestamp;
       handleButtonClick(soundboard.remotePlayTrigger.index);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
