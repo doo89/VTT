@@ -14,9 +14,9 @@ export const ChecklistContent: React.FC = () => {
   return (
     <div className="flex flex-col gap-3 h-full">
       {/* List of blocks */}
-      <div className="flex flex-col gap-2 flex-1 overflow-y-auto custom-scrollbar pr-1">
+      <div className="flex flex-col gap-1.5 flex-1 overflow-y-auto custom-scrollbar pr-1">
         {checklist.map((item, index) => (
-          <div key={item.id} className="flex gap-2 items-start w-full bg-muted/20 border border-border/50 rounded-md p-2">
+          <div key={item.id} className="flex gap-2 items-center w-full bg-black/40 border border-border/50 rounded-md p-1.5 px-2">
             <div className="flex-1 flex flex-col gap-2">
               {item.type === 'text' && (
                 <textarea
@@ -28,7 +28,7 @@ export const ChecklistContent: React.FC = () => {
                   }}
                   placeholder="Votre texte..."
                   style={{ color: item.color || '#e4e4e7' }}
-                  className="w-full bg-transparent border-0 text-sm focus:outline-none focus:ring-0 resize-y min-h-[40px] p-0 m-0"
+                  className="w-full bg-transparent border-0 text-sm focus:outline-none focus:ring-0 resize-y min-h-[30px] p-0 m-0"
                 />
               )}
               {item.type === 'checkbox' && (
@@ -53,52 +53,14 @@ export const ChecklistContent: React.FC = () => {
                     }}
                     placeholder="Tâche..."
                     style={{ color: item.color || '#e4e4e7' }}
-                    className="flex-1 bg-transparent border-0 text-sm focus:outline-none focus:ring-0 px-0 py-1 font-medium"
+                    className="flex-1 bg-transparent border-0 text-sm focus:outline-none focus:ring-0 px-0 py-0 font-medium h-6"
                   />
-                </div>
-              )}
-              {item.type === 'image' && (
-                <div className="flex flex-col gap-2 w-full">
-                  {item.imageUrl ? (
-                    <img src={item.imageUrl} alt="Checklist" className="w-full max-h-48 object-contain rounded border border-border bg-black/20" />
-                  ) : (
-                    <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-border/50 rounded-md cursor-pointer hover:bg-muted/30 transition-colors text-muted-foreground w-full">
-                      <Upload size={16} className="mb-1" />
-                      <span className="text-[10px]">Charger une image</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const url = await uploadImageToStorage(file);
-                            if (url) {
-                              const newChecklist = [...checklist];
-                              newChecklist[index].imageUrl = url;
-                              setChecklist(newChecklist);
-                            }
-                          }
-                        }}
-                      />
-                    </label>
-                  )}
                 </div>
               )}
             </div>
             
             {/* Controls for item */}
-            <div className="flex flex-col gap-1 items-end shrink-0 pl-2 border-l border-border/30">
-              <button
-                onClick={() => {
-                  const newChecklist = checklist.filter((_, i) => i !== index);
-                  setChecklist(newChecklist);
-                }}
-                className="text-muted-foreground hover:text-white hover:bg-destructive p-1 rounded transition-colors"
-                title="Supprimer ce bloc"
-              >
-                <Trash2 size={12} />
-              </button>
+            <div className="flex items-center gap-1 shrink-0 pl-2 border-l border-border/30 h-6">
               {(item.type === 'text' || item.type === 'checkbox') && (
                 <div className="relative">
                   <button 
@@ -127,6 +89,16 @@ export const ChecklistContent: React.FC = () => {
                   )}
                 </div>
               )}
+              <button
+                onClick={() => {
+                  const newChecklist = checklist.filter((_, i) => i !== index);
+                  setChecklist(newChecklist);
+                }}
+                className="text-muted-foreground hover:text-white hover:bg-destructive p-1 rounded transition-colors"
+                title="Supprimer ce bloc"
+              >
+                <Trash2 size={12} />
+              </button>
             </div>
           </div>
         ))}
@@ -136,10 +108,10 @@ export const ChecklistContent: React.FC = () => {
       </div>
 
       {/* Add buttons */}
-      <div className="grid grid-cols-3 gap-2 mt-auto pt-3 border-t border-border bg-background/50 -mx-3 px-3 pb-0 rounded-b-md">
+      <div className="grid grid-cols-2 gap-2 mt-auto pt-3 border-t border-border bg-background/50 -mx-3 px-3 pb-0 rounded-b-md">
         <button
           onClick={() => setChecklist([...(checklist || []), { id: Date.now().toString() + 't', type: 'text', content: '', color: '#e4e4e7' }])}
-          className="flex flex-col items-center justify-center gap-1.5 p-2 bg-muted/40 hover:bg-accent rounded border border-border/50 transition-colors text-muted-foreground hover:text-foreground"
+          className="flex flex-col items-center justify-center gap-1 p-1.5 bg-muted/40 hover:bg-accent rounded border border-border/50 transition-colors text-muted-foreground hover:text-foreground"
           title="Ajouter du texte"
         >
           <Type size={14} />
@@ -147,19 +119,11 @@ export const ChecklistContent: React.FC = () => {
         </button>
         <button
           onClick={() => setChecklist([...(checklist || []), { id: Date.now().toString() + 'c', type: 'checkbox', content: '', checked: false, color: '#e4e4e7' }])}
-          className="flex flex-col items-center justify-center gap-1.5 p-2 bg-muted/40 hover:bg-accent rounded border border-border/50 transition-colors text-muted-foreground hover:text-foreground"
+          className="flex flex-col items-center justify-center gap-1 p-1.5 bg-muted/40 hover:bg-accent rounded border border-border/50 transition-colors text-muted-foreground hover:text-foreground"
           title="Ajouter une tâche"
         >
           <CheckSquare size={14} />
           <span className="text-[9px] uppercase font-bold text-center">Tâche</span>
-        </button>
-        <button
-          onClick={() => setChecklist([...(checklist || []), { id: Date.now().toString() + 'i', type: 'image', imageUrl: null }])}
-          className="flex flex-col items-center justify-center gap-1.5 p-2 bg-muted/40 hover:bg-accent rounded border border-border/50 transition-colors text-muted-foreground hover:text-foreground"
-          title="Ajouter une image"
-        >
-          <ImageIcon size={14} />
-          <span className="text-[9px] uppercase font-bold text-center">Image</span>
         </button>
       </div>
     </div>
