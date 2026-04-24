@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Trash2, Settings, Upload, Type, CheckSquare, Image as ImageIcon } from 'lucide-react';
+import { Trash2, Settings, Type, CheckSquare } from 'lucide-react';
 import { useVttStore } from '../store';
-import { uploadImageToStorage } from '../lib/supabase';
 
 export const ChecklistContent: React.FC = () => {
   const { checklist, setChecklist } = useVttStore();
