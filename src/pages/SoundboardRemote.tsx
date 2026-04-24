@@ -231,7 +231,7 @@ export const SoundboardRemote: React.FC = () => {
             <div className="flex items-center justify-between mb-2">
                <h2 className="text-xl font-black uppercase tracking-widest text-zinc-400">Checklist</h2>
                <span className="bg-zinc-800 text-zinc-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-zinc-700">
-                 {checklist.filter((i: any) => i.checked).length} / {checklist.length}
+                 {checklist.filter((i: any) => i.type === 'checkbox' && i.checked).length} / {checklist.filter((i: any) => i.type === 'checkbox').length}
                </span>
             </div>
             {checklist.length === 0 ? (
@@ -240,37 +240,51 @@ export const SoundboardRemote: React.FC = () => {
                 <p className="text-sm font-medium">Aucune tâche dans la checklist</p>
               </div>
             ) : (
-              checklist.map((item: any) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleToggleChecklist(item.id)}
-                  className={`flex items-center gap-4 p-4 rounded-2xl border transition-all active:scale-[0.98] text-left group ${
-                    item.checked 
-                      ? 'bg-zinc-900/30 border-zinc-800 opacity-60' 
-                      : 'bg-zinc-900/80 border-zinc-700 shadow-lg shadow-black/20 hover:border-blue-500/30'
-                  }`}
-                >
-                  <div className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${
-                    item.checked 
-                      ? 'bg-blue-500/10 border-blue-500 text-blue-500' 
-                      : 'border-zinc-700 bg-zinc-950'
-                  }`}>
-                    {item.checked && <Check size={18} strokeWidth={3} />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-bold text-sm leading-snug transition-all ${
-                      item.checked ? 'line-through text-zinc-500' : 'text-zinc-100'
-                    }`}>
+              checklist.map((item: any) => {
+                if (item.type === 'image') {
+                  return item.imageUrl ? (
+                    <div key={item.id} className="w-full bg-zinc-900/50 rounded-2xl overflow-hidden border border-zinc-800">
+                      <img src={item.imageUrl} alt="Checklist" className="w-full h-auto max-h-60 object-contain" />
+                    </div>
+                  ) : null;
+                }
+
+                if (item.type === 'text') {
+                  return (
+                    <div key={item.id} className="bg-zinc-900/50 border border-zinc-800/50 p-4 rounded-2xl italic text-zinc-400 text-sm whitespace-pre-wrap leading-relaxed" style={{ color: item.color }}>
                       {item.content}
-                    </p>
-                    {item.category && (
-                      <span className="text-[9px] uppercase tracking-widest font-black text-zinc-600 mt-1 block">
-                        {item.category}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))
+                    </div>
+                  );
+                }
+
+                // Checkbox type
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleToggleChecklist(item.id)}
+                    className={`flex items-center gap-4 p-4 rounded-2xl border transition-all active:scale-[0.98] text-left group ${
+                      item.checked 
+                        ? 'bg-zinc-900/30 border-zinc-800 opacity-60' 
+                        : 'bg-zinc-900/80 border-zinc-700 shadow-lg shadow-black/20 hover:border-blue-500/30'
+                    }`}
+                  >
+                    <div className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${
+                      item.checked 
+                        ? 'bg-blue-500/10 border-blue-500 text-blue-500' 
+                        : 'border-zinc-700 bg-zinc-950'
+                    }`}>
+                      {item.checked && <Check size={18} strokeWidth={3} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-bold text-sm leading-snug transition-all ${
+                        item.checked ? 'line-through text-zinc-500' : 'text-zinc-100'
+                      }`} style={{ color: item.checked ? undefined : item.color }}>
+                        {item.content}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })
             )}
           </div>
         )}
