@@ -418,13 +418,25 @@ export const useVttStore = create<VttStore>()(
   setActiveLeftTab: (tab) => set({ activeLeftTab: tab }),
   setEditingEntity: (entity) => set({ editingEntity: entity }),
   toggleLeftPanel: () => set((state) => ({ isLeftPanelOpen: !state.isLeftPanelOpen })),
-  toggleRightPanel: () => set((state) => ({ isRightPanelOpen: !state.isRightPanelOpen })),
+  toggleRightPanel: () => set((state) => {
+    const newState = { isRightPanelOpen: !state.isRightPanelOpen };
+    if (state.isRightPanelOpen && state.editingEntity?.type === 'soundButton') {
+      return { ...newState, editingEntity: null };
+    }
+    return newState;
+  }),
 
   // Tools
   setGrid: (grid) => set({ grid }),
   setRoom: (roomUpdates) => set((state) => ({ room: { ...state.room, ...roomUpdates } })),
   setTimer: (timerUpdates) => set((state) => ({ timer: { ...state.timer, ...timerUpdates } })),
-  setSoundboard: (soundboardUpdates) => set((state) => ({ soundboard: { ...state.soundboard, ...soundboardUpdates } })),
+  setSoundboard: (soundboardUpdates) => set((state) => {
+    const newState = { soundboard: { ...state.soundboard, ...soundboardUpdates } };
+    if (soundboardUpdates.isDetached === false && state.editingEntity?.type === 'soundButton') {
+      return { ...newState, editingEntity: null };
+    }
+    return newState;
+  }),
   setScoreboard: (update) => set((state) => ({ scoreboard: { ...state.scoreboard, ...update } })),
   setWiki: (update) => set((state) => ({ wiki: { ...state.wiki, ...update } })),
   setChecklistState: (update) => set((state) => ({ checklistState: { ...state.checklistState, ...update } })),

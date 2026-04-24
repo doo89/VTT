@@ -24,7 +24,8 @@ export const RightPanel: React.FC = () => {
     tagDistributorState, setTagDistributorState,
     actionCreatorState: _, setActionCreatorState,
     actions, deleteAction, executeAction, setPendingConditions, setPendingEffects,
-    resetCycle
+    resetCycle,
+    editingEntity, setEditingEntity
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -50,6 +51,9 @@ export const RightPanel: React.FC = () => {
   };
 
   const toggleSection = (section: string) => {
+    if (activeSection === 'soundboard' && section === 'soundboard' && editingEntity?.type === 'soundButton') {
+      setEditingEntity(null);
+    }
     setActiveSection(prev => prev === section ? null : section);
   };
 
