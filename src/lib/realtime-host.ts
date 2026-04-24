@@ -348,6 +348,7 @@ export const initHostRealtime = (roomCode: string) => {
       if ((state.soundboard.remotePasscode || "").trim() !== (payload.passcode || "").trim()) return;
       
       if (payload.type === 'toggle') {
+        console.log(`[VTT] Remote checklist toggle received for item ${payload.itemId}`);
         state.setChecklist(prev => prev.map(item => 
           item.id === payload.itemId ? { ...item, checked: !item.checked } : item
         ));
@@ -486,6 +487,7 @@ export const setupHostRealtimeSubscription = () => {
       state.displaySettings !== prevState.displaySettings ||
       state.soundboard !== prevState.soundboard ||
       state.wiki !== prevState.wiki ||
+      state.checklist !== prevState.checklist ||
       state.customPopups !== prevState.customPopups ||
       state.activeCustomPopupId !== prevState.activeCustomPopupId ||
       state.room !== prevState.room;

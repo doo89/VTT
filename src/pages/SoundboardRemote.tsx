@@ -82,6 +82,17 @@ export const SoundboardRemote: React.FC = () => {
   const handleToggleChecklist = (itemId: string) => {
     if (!channel || !passcode) return;
     
+    // Add optimism
+    setGameState((prev: any) => {
+      if (!prev || !prev.checklist) return prev;
+      return {
+        ...prev,
+        checklist: prev.checklist.map((item: any) => 
+          item.id === itemId ? { ...item, checked: !item.checked } : item
+        )
+      };
+    });
+
     channel.send({
       type: 'broadcast',
       event: 'checklist_action',
