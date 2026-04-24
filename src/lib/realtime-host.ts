@@ -349,7 +349,7 @@ export const initHostRealtime = (roomCode: string) => {
       
       if (payload.type === 'toggle') {
         state.setChecklist(prev => prev.map(item => 
-          item.id === payload.itemId ? { ...item, completed: !item.completed } : item
+          item.id === payload.itemId ? { ...item, checked: !item.checked } : item
         ));
       }
     })

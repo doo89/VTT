@@ -231,7 +231,7 @@ export const SoundboardRemote: React.FC = () => {
             <div className="flex items-center justify-between mb-2">
                <h2 className="text-xl font-black uppercase tracking-widest text-zinc-400">Checklist</h2>
                <span className="bg-zinc-800 text-zinc-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-zinc-700">
-                 {checklist.filter((i: any) => i.completed).length} / {checklist.length}
+                 {checklist.filter((i: any) => i.checked).length} / {checklist.length}
                </span>
             </div>
             {checklist.length === 0 ? (
@@ -245,23 +245,23 @@ export const SoundboardRemote: React.FC = () => {
                   key={item.id}
                   onClick={() => handleToggleChecklist(item.id)}
                   className={`flex items-center gap-4 p-4 rounded-2xl border transition-all active:scale-[0.98] text-left group ${
-                    item.completed 
+                    item.checked 
                       ? 'bg-zinc-900/30 border-zinc-800 opacity-60' 
                       : 'bg-zinc-900/80 border-zinc-700 shadow-lg shadow-black/20 hover:border-blue-500/30'
                   }`}
                 >
                   <div className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center shrink-0 transition-colors ${
-                    item.completed 
+                    item.checked 
                       ? 'bg-blue-500/10 border-blue-500 text-blue-500' 
                       : 'border-zinc-700 bg-zinc-950'
                   }`}>
-                    {item.completed && <Check size={18} strokeWidth={3} />}
+                    {item.checked && <Check size={18} strokeWidth={3} />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={`font-bold text-sm leading-snug transition-all ${
-                      item.completed ? 'line-through text-zinc-500' : 'text-zinc-100'
+                      item.checked ? 'line-through text-zinc-500' : 'text-zinc-100'
                     }`}>
-                      {item.text}
+                      {item.content}
                     </p>
                     {item.category && (
                       <span className="text-[9px] uppercase tracking-widest font-black text-zinc-600 mt-1 block">
