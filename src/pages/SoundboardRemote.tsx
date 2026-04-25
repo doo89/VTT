@@ -100,6 +100,27 @@ export const SoundboardRemote: React.FC = () => {
     }).catch(console.error);
   };
 
+  const handleToggleCollapse = (itemId: string) => {
+    if (!channel || !passcode) return;
+    
+    // Optimism
+    setGameState((prev: any) => {
+      if (!prev || !prev.checklist) return prev;
+      return {
+        ...prev,
+        checklist: prev.checklist.map((item: any) => 
+          item.id === itemId ? { ...item, collapsed: !item.collapsed } : item
+        )
+      };
+    });
+
+    channel.send({
+      type: 'broadcast',
+      event: 'checklist_action',
+      payload: { type: 'toggle_collapse', itemId, passcode }
+    }).catch(console.error);
+  };
+
   const handleDisconnect = () => {
     navigate('/remote');
   };
@@ -244,9 +265,16 @@ export const SoundboardRemote: React.FC = () => {
                {(() => {
                  const visibleChecklist = [];
                  let currentSectionVisible = true;
+                 let currentSectionCollapsed = false;
                  for (const item of checklist) {
-                   if (item.type === 'text') currentSectionVisible = item.showOnSmartphone !== false;
-                   if (currentSectionVisible && item.showOnSmartphone !== false) visibleChecklist.push(item);
+                   if (item.type === 'text') {
+                     currentSectionVisible = item.showOnSmartphone !== false;
+                     currentSectionCollapsed = item.collapsed || false;
+                   }
+                   if (currentSectionVisible && item.showOnSmartphone !== false) {
+                     if (item.type === 'checkbox' && currentSectionCollapsed) continue;
+                     visibleChecklist.push(item);
+                   }
                  }
                  return (
                    <span className="bg-zinc-800 text-zinc-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-zinc-700">
@@ -258,9 +286,16 @@ export const SoundboardRemote: React.FC = () => {
             {(() => {
               const visibleChecklist = [];
               let currentSectionVisible = true;
+              let currentSectionCollapsed = false;
               for (const item of checklist) {
-                if (item.type === 'text') currentSectionVisible = item.showOnSmartphone !== false;
-                if (currentSectionVisible && item.showOnSmartphone !== false) visibleChecklist.push(item);
+                if (item.type === 'text') {
+                  currentSectionVisible = item.showOnSmartphone !== false;
+                  currentSectionCollapsed = item.collapsed || false;
+                }
+                if (currentSectionVisible && item.showOnSmartphone !== false) {
+                  if (item.type === 'checkbox' && currentSectionCollapsed) continue;
+                  visibleChecklist.push(item);
+                }
               }
               
               if (visibleChecklist.length === 0) {
@@ -283,8 +318,16 @@ export const SoundboardRemote: React.FC = () => {
 
                 if (item.type === 'text') {
                   return (
-                    <div key={item.id} className="bg-zinc-900/80 border border-zinc-700 p-4 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed shadow-lg shadow-black/20" style={{ color: item.color || '#e4e4e7' }}>
-                      {item.content}
+                    <div 
+                      key={item.id} 
+                      onClick={() => handleToggleCollapse(item.id)}
+                      className="bg-zinc-900/80 border border-zinc-700 p-4 rounded-2xl text-sm leading-relaxed shadow-lg shadow-black/20 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all" 
+                      style={{ color: item.color || '#e4e4e7' }}
+                    >
+                      <span className="font-black uppercase tracking-widest">{item.content}</span>
+                      <div className="text-zinc-500">
+                        {item.collapsed ? <icons.ChevronRight size={16} /> : <icons.ChevronDown size={16} />}
+                      </div>
                     </div>
                   );
                 }

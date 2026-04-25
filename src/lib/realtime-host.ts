@@ -360,6 +360,13 @@ export const initHostRealtime = (roomCode: string) => {
           return item;
         }));
       }
+
+      if (payload.type === 'toggle_collapse') {
+        console.log(`[VTT] Remote checklist toggle_collapse received for item ${payload.itemId}`);
+        state.setChecklist(prev => prev.map(item => 
+          item.id === payload.itemId ? { ...item, collapsed: !item.collapsed } : item
+        ));
+      }
     })
     .on('presence', { event: 'sync' }, () => {
       const state = useVttStore.getState();
