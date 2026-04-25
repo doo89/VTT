@@ -42,7 +42,7 @@ export const ChecklistWindow: React.FC = () => {
 
   return (
     <div
-      className="fixed bg-card border border-border shadow-2xl rounded-xl overflow-hidden flex flex-col z-[150] w-[350px] touch-none"
+      className="fixed bg-card border border-border shadow-2xl rounded-xl overflow-hidden flex flex-col z-[150] w-[420px] touch-none"
       style={{
         left: checklistState.x,
         top: checklistState.y,
