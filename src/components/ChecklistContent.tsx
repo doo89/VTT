@@ -1,20 +1,53 @@
 import React, { useState } from 'react';
-import { Trash2, Settings, Type, CheckSquare, Zap, X } from 'lucide-react';
+import { Trash2, Settings, Type, CheckSquare, Zap, X, GripVertical } from 'lucide-react';
 import { useVttStore } from '../store';
 
 export const ChecklistContent: React.FC = () => {
   const { checklist, setChecklist, actions, executeAction } = useVttStore();
   const [openColorPickerId, setOpenColorPickerId] = useState<string | null>(null);
   const [openActionPickerId, setOpenActionPickerId] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   if (!checklist) return null;
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    const newChecklist = [...checklist];
+    const draggedItem = newChecklist[draggedIndex];
+    newChecklist.splice(draggedIndex, 1);
+    newChecklist.splice(index, 0, draggedItem);
+    
+    setChecklist(newChecklist);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
 
   return (
     <div className="flex flex-col gap-3 h-full">
       {/* List of blocks */}
       <div className="flex flex-col gap-1.5 flex-1 overflow-y-auto custom-scrollbar pr-1">
         {checklist.map((item, index) => (
-          <div key={item.id} className="flex gap-2 items-center w-full bg-black/40 border border-border/50 rounded-md p-1.5 px-2">
+          <div 
+            key={item.id} 
+            draggable 
+            onDragStart={(e) => handleDragStart(e, index)}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDragEnd={handleDragEnd}
+            className={`flex gap-2 items-center w-full bg-black/40 border border-border/50 rounded-md p-1.5 px-2 transition-opacity ${draggedIndex === index ? 'opacity-30' : ''}`}
+          >
+            <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0">
+               <GripVertical size={14} />
+            </div>
             <div className="flex-1 flex flex-col gap-2">
               {item.type === 'text' && (
                 <textarea
