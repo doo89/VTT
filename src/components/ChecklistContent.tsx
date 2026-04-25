@@ -214,10 +214,10 @@ export const ChecklistContent: React.FC = () => {
         <button
           onClick={() => setChecklist([...(checklist || []), { id: Date.now().toString() + 't', type: 'text', content: '', color: '#e4e4e7' }])}
           className="flex flex-col items-center justify-center gap-1 p-1.5 bg-muted/40 hover:bg-accent rounded border border-border/50 transition-colors text-muted-foreground hover:text-foreground"
-          title="Ajouter du texte"
+          title="Ajouter une section"
         >
           <Type size={14} />
-          <span className="text-[9px] uppercase font-bold text-center">Texte</span>
+          <span className="text-[9px] uppercase font-bold text-center">Section</span>
         </button>
         <button
           onClick={() => setChecklist([...(checklist || []), { id: Date.now().toString() + 'c', type: 'checkbox', content: '', checked: false, color: '#e4e4e7' }])}
