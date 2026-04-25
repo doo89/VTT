@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Settings, Type, CheckSquare, Zap, X, GripVertical } from 'lucide-react';
+import { Trash2, Settings, Type, CheckSquare, Zap, X, GripVertical, Eye, EyeOff } from 'lucide-react';
 import { useVttStore } from '../store';
 
 export const ChecklistContent: React.FC = () => {
@@ -98,6 +98,17 @@ export const ChecklistContent: React.FC = () => {
             
             {/* Controls for item */}
             <div className="flex items-center gap-1 shrink-0 pl-2 border-l border-border/30 h-6">
+              <button 
+                onClick={() => {
+                  const newChecklist = [...checklist];
+                  newChecklist[index].showOnSmartphone = !(item.showOnSmartphone !== false);
+                  setChecklist(newChecklist);
+                }}
+                className={`p-1 rounded transition-colors ${(item.showOnSmartphone !== false) ? 'text-blue-500 hover:text-blue-600' : 'text-muted-foreground hover:text-foreground'}`}
+                title={(item.showOnSmartphone !== false) ? "Visible sur smartphone" : "Masqué sur smartphone"}
+              >
+                {(item.showOnSmartphone !== false) ? <Eye size={12} /> : <EyeOff size={12} />}
+              </button>
               {item.type === 'checkbox' && (
                 <div className="relative">
                   <button 

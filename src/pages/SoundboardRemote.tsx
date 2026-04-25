@@ -242,16 +242,16 @@ export const SoundboardRemote: React.FC = () => {
             <div className="flex items-center justify-between mb-2">
                <h2 className="text-xl font-black uppercase tracking-widest text-zinc-400">Checklist</h2>
                <span className="bg-zinc-800 text-zinc-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-zinc-700">
-                 {checklist.filter((i: any) => i.type === 'checkbox' && i.checked).length} / {checklist.filter((i: any) => i.type === 'checkbox').length}
+                 {checklist.filter((i: any) => i.showOnSmartphone !== false && i.type === 'checkbox' && i.checked).length} / {checklist.filter((i: any) => i.showOnSmartphone !== false && i.type === 'checkbox').length}
                </span>
             </div>
-            {checklist.length === 0 ? (
+            {checklist.filter((i: any) => i.showOnSmartphone !== false).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-zinc-500 opacity-50">
                 <CheckSquare size={48} className="mb-4 stroke-[1px]" />
-                <p className="text-sm font-medium">Aucune tâche dans la checklist</p>
+                <p className="text-sm font-medium">Aucune tâche visible</p>
               </div>
             ) : (
-              checklist.map((item: any) => {
+              checklist.filter((item: any) => item.showOnSmartphone !== false).map((item: any) => {
                 if (item.type === 'image') {
                   return item.imageUrl ? (
                     <div key={item.id} className="w-full bg-zinc-900/50 rounded-2xl overflow-hidden border border-zinc-800">

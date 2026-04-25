@@ -219,6 +219,7 @@ export interface ChecklistItem {
   color?: string;
   imageUrl?: string | null;
   actionId?: string | null;
+  showOnSmartphone?: boolean;
 }
 
 export interface ChecklistState {
