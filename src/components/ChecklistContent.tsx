@@ -232,8 +232,9 @@ export const ChecklistContent: React.FC = () => {
                 <Trash2 size={12} />
               </button>
             </div>
-          );
-        })}
+          </div>
+        );
+      })}
         {checklist.length === 0 && (
           <p className="text-xs text-muted-foreground italic text-center py-4">La checklist est vide.</p>
         )}
