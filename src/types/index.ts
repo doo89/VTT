@@ -220,6 +220,7 @@ export interface ChecklistItem {
   imageUrl?: string | null;
   actionId?: string | null;
   showOnSmartphone?: boolean;
+  collapsed?: boolean;
 }
 
 export interface ChecklistState {

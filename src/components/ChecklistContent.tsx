@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Settings, Type, CheckSquare, Zap, X, GripVertical, Eye, EyeOff } from 'lucide-react';
+import { Trash2, Settings, Type, CheckSquare, Zap, X, GripVertical, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react';
 import { useVttStore } from '../store';
 
 export const ChecklistContent: React.FC = () => {
@@ -32,83 +32,113 @@ export const ChecklistContent: React.FC = () => {
     setDraggedIndex(null);
   };
 
+  // Logic to handle grouping and indentation
+  let activeSectionCollapsed = false;
+  let hasMetSection = false;
+
   return (
     <div className="flex flex-col gap-3 h-full">
       {/* List of blocks */}
       <div className="flex flex-col gap-1.5 flex-1 overflow-y-auto custom-scrollbar pr-1">
-        {checklist.map((item, index) => (
-          <div 
-            key={item.id} 
-            draggable 
-            onDragStart={(e) => handleDragStart(e, index)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDragEnd={handleDragEnd}
-            className={`flex gap-2 items-center w-full bg-black/40 border border-border/50 rounded-md p-1.5 px-2 transition-opacity ${draggedIndex === index ? 'opacity-30' : ''}`}
-          >
-            <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0">
-               <GripVertical size={14} />
-            </div>
-            <div className="flex-1 flex flex-col gap-2">
-              {item.type === 'text' && (
-                <textarea
-                  value={item.content || ''}
-                  onChange={(e) => {
+        {checklist.map((item, index) => {
+          const isSection = item.type === 'text';
+          
+          if (isSection) {
+            activeSectionCollapsed = item.collapsed || false;
+            hasMetSection = true;
+          } else {
+            if (activeSectionCollapsed) return null;
+          }
+
+          const shouldIndent = !isSection && hasMetSection;
+
+          return (
+            <div 
+              key={item.id} 
+              draggable 
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragEnd={handleDragEnd}
+              className={`flex gap-2 items-center w-full bg-black/40 border border-border/50 rounded-md p-1.5 px-2 transition-all ${draggedIndex === index ? 'opacity-30' : ''} ${shouldIndent ? 'ml-4 w-[calc(100%-1rem)]' : ''} ${isSection ? 'bg-zinc-800/40 border-zinc-700/50' : ''}`}
+            >
+              <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0">
+                 <GripVertical size={14} />
+              </div>
+
+              {isSection && (
+                <button 
+                  onClick={() => {
                     const newChecklist = [...checklist];
-                    newChecklist[index].content = e.target.value;
+                    newChecklist[index].collapsed = !newChecklist[index].collapsed;
                     setChecklist(newChecklist);
                   }}
-                  placeholder="Votre texte..."
-                  style={{ color: item.color || '#e4e4e7' }}
-                  className="w-full bg-transparent border-0 text-sm focus:outline-none focus:ring-0 resize-y min-h-[30px] p-0 m-0"
-                />
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {item.collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                </button>
               )}
-              {item.type === 'checkbox' && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={item.checked || false}
-                    onChange={(e) => {
-                      const newChecked = e.target.checked;
-                      const newChecklist = [...checklist];
-                      newChecklist[index].checked = newChecked;
-                      setChecklist(newChecklist);
-                      
-                      // Execute action if provided and becoming checked
-                      if (newChecked && item.actionId) {
-                        executeAction(item.actionId, {});
-                      }
-                    }}
-                    className="w-4 h-4 rounded border-border cursor-pointer"
-                  />
-                  <input
-                    type="text"
+
+              <div className="flex-1 flex flex-col gap-2">
+                {item.type === 'text' && (
+                  <textarea
                     value={item.content || ''}
                     onChange={(e) => {
                       const newChecklist = [...checklist];
                       newChecklist[index].content = e.target.value;
                       setChecklist(newChecklist);
                     }}
-                    placeholder="Tâche..."
+                    placeholder="Titre de la section..."
                     style={{ color: item.color || '#e4e4e7' }}
-                    className="flex-1 bg-transparent border-0 text-sm focus:outline-none focus:ring-0 px-0 py-0 font-medium h-6"
+                    className="w-full bg-transparent border-0 text-sm focus:outline-none focus:ring-0 resize-y min-h-[30px] p-0 m-0 font-black uppercase tracking-widest"
                   />
-                </div>
-              )}
-            </div>
-            
-            {/* Controls for item */}
-            <div className="flex items-center gap-1 shrink-0 pl-2 border-l border-border/30 h-6">
-              <button 
-                onClick={() => {
-                  const newChecklist = [...checklist];
-                  newChecklist[index].showOnSmartphone = !(item.showOnSmartphone !== false);
-                  setChecklist(newChecklist);
-                }}
-                className={`p-1 rounded transition-colors ${(item.showOnSmartphone !== false) ? 'text-blue-500 hover:text-blue-600' : 'text-muted-foreground hover:text-foreground'}`}
-                title={(item.showOnSmartphone !== false) ? "Visible sur smartphone" : "Masqué sur smartphone"}
-              >
-                {(item.showOnSmartphone !== false) ? <Eye size={12} /> : <EyeOff size={12} />}
-              </button>
+                )}
+                {item.type === 'checkbox' && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={item.checked || false}
+                      onChange={(e) => {
+                        const newChecked = e.target.checked;
+                        const newChecklist = [...checklist];
+                        newChecklist[index].checked = newChecked;
+                        setChecklist(newChecklist);
+                        
+                        // Execute action if provided and becoming checked
+                        if (newChecked && item.actionId) {
+                          executeAction(item.actionId, {});
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-border cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={item.content || ''}
+                      onChange={(e) => {
+                        const newChecklist = [...checklist];
+                        newChecklist[index].content = e.target.value;
+                        setChecklist(newChecklist);
+                      }}
+                      placeholder="Tâche..."
+                      style={{ color: item.color || '#e4e4e7' }}
+                      className="flex-1 bg-transparent border-0 text-sm focus:outline-none focus:ring-0 px-0 py-0 font-medium h-6"
+                    />
+                  </div>
+                )}
+              </div>
+              
+              {/* Controls for item */}
+              <div className="flex items-center gap-1 shrink-0 pl-2 border-l border-border/30 h-6">
+                <button 
+                  onClick={() => {
+                    const newChecklist = [...checklist];
+                    newChecklist[index].showOnSmartphone = !(item.showOnSmartphone !== false);
+                    setChecklist(newChecklist);
+                  }}
+                  className={`p-1 rounded transition-colors ${(item.showOnSmartphone !== false) ? 'text-blue-500 hover:text-blue-600' : 'text-muted-foreground hover:text-foreground'}`}
+                  title={(item.showOnSmartphone !== false) ? "Visible sur smartphone" : "Masqué sur smartphone"}
+                >
+                  {(item.showOnSmartphone !== false) ? <Eye size={12} /> : <EyeOff size={12} />}
+                </button>
               {item.type === 'checkbox' && (
                 <div className="relative">
                   <button 
@@ -202,8 +232,8 @@ export const ChecklistContent: React.FC = () => {
                 <Trash2 size={12} />
               </button>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {checklist.length === 0 && (
           <p className="text-xs text-muted-foreground italic text-center py-4">La checklist est vide.</p>
         )}
