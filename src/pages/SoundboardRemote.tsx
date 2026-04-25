@@ -317,7 +317,7 @@ export const SoundboardRemote: React.FC = () => {
                   </button>
                 );
               })
-            )}
+            })()}
           </div>
         )}
       </div>
