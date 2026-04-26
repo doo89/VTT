@@ -12,7 +12,7 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
-  const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils'>('salle');
+  const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils' | 'remote'>('salle');
   const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ distribution: true, chrono: true, wiki: true, soundboard: true, scoreboard: true, logs: true });
   const [expandedSmartphone, setExpandedSmartphone] = useState<Record<string, boolean>>({ game: true, players: true, room: true, wiki: true });
 
@@ -45,7 +45,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-popover text-popover-foreground rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-border" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-popover text-popover-foreground rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-border" onClick={(e) => e.stopPropagation()}>
         
         {/* Header */}
         <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50">
@@ -93,6 +93,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'outils' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
           >
             <SettingsIcon size={16} /> Outils
+          </button>
+          <button
+            onClick={() => setActiveTab('remote')}
+            className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'remote' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            <Smartphone size={16} /> Télécommande
           </button>
         </div>
 
@@ -1450,6 +1456,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
               </section>
 
 
+            </div>
+          )}
+
+          {/* TAB: REMOTE */}
+          {activeTab === 'remote' && (
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground italic">
+              En cours de création
             </div>
           )}
 
