@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useVttStore } from '../store';
-import { X, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Maximize2, Minimize2, ExternalLink } from 'lucide-react';
 import type { Handout } from '../types';
 
 interface HandoutWindowProps {
@@ -73,7 +73,21 @@ export const HandoutWindow: React.FC<HandoutWindowProps> = ({ handout }) => {
     >
       {/* Header */}
       <div className={`handout-header h-10 bg-muted/80 border-b border-border flex items-center justify-between px-3 shrink-0 select-none ${handout.isMaximized ? '' : 'cursor-move'}`}>
-        <span className="font-semibold text-sm truncate" title={handout.name}>{handout.name}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-semibold text-sm truncate" title={handout.name}>{handout.name}</span>
+          {handout.type === 'pdf' && (
+            <a 
+              href={handout.imageUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="p-1 hover:bg-accent rounded text-muted-foreground hover:text-primary transition-colors"
+              title="Ouvrir dans un nouvel onglet"
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <ExternalLink size={14} />
+            </a>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => updateHandout(handout.id, { isMaximized: !handout.isMaximized })}
@@ -93,13 +107,23 @@ export const HandoutWindow: React.FC<HandoutWindowProps> = ({ handout }) => {
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-auto custom-scrollbar relative bg-black/5 flex items-center justify-center p-2">
-        <img
-          src={handout.imageUrl}
-          alt={handout.name}
-          className={`object-contain ${handout.isMaximized ? 'max-w-full max-h-full' : 'w-full h-full'}`}
-          draggable={false}
-        />
+      <div className="flex-1 overflow-auto custom-scrollbar relative bg-black/5 flex items-center justify-center">
+        {handout.type === 'pdf' ? (
+          <iframe
+            src={`${handout.imageUrl}#toolbar=0`}
+            className="w-full h-full border-none bg-white"
+            title={handout.name}
+          />
+        ) : (
+          <div className="p-2 w-full h-full flex items-center justify-center">
+            <img
+              src={handout.imageUrl}
+              alt={handout.name}
+              className={`object-contain ${handout.isMaximized ? 'max-w-full max-h-full' : 'w-full h-full'}`}
+              draggable={false}
+            />
+          </div>
+        )}
       </div>
 
       {/* Resizer handle (only when not maximized) */}

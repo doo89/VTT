@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useVttStore } from '../../../store';
-import { Upload, Trash2, Eye, EyeOff } from 'lucide-react';
-import { uploadImageToStorage, deleteImageFromStorage } from '../../../lib/supabase';
+import { uploadFileToStorage, deleteFileFromStorage } from '../../../lib/supabase';
+import { FileText, Upload, Trash2, Eye, EyeOff, File as FileIcon } from 'lucide-react';
 
 export const HandoutsTab: React.FC = () => {
   const { handouts, addHandout, deleteHandout, toggleHandout } = useVttStore();
@@ -11,11 +11,13 @@ export const HandoutsTab: React.FC = () => {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = await uploadImageToStorage(file);
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      const url = await uploadFileToStorage(file);
       if (url) {
         addHandout({
           name: newHandoutName || file.name.split('.')[0],
           imageUrl: url,
+          type: isPdf ? 'pdf' : 'image',
           isOpen: true, // open by default when created
           x: 50,
           y: 50,
@@ -44,11 +46,11 @@ export const HandoutsTab: React.FC = () => {
             onClick={() => fileInputRef.current?.click()}
             className="flex items-center justify-center gap-2 w-full py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-sm font-medium transition-colors"
           >
-            <Upload size={16} /> Uploader une image
+            <Upload size={16} /> Uploader Image ou PDF
           </button>
           <input
             type="file"
-            accept="image/*"
+            accept="image/*,application/pdf"
             ref={fileInputRef}
             onChange={handleUpload}
             className="hidden"
@@ -66,10 +68,17 @@ export const HandoutsTab: React.FC = () => {
             handouts.map(handout => (
               <div key={handout.id} className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="w-8 h-8 rounded shrink-0 bg-muted overflow-hidden border border-border">
-                    <img src={handout.imageUrl} alt={handout.name} className="w-full h-full object-cover" />
+                  <div className="w-8 h-8 rounded shrink-0 bg-muted overflow-hidden border border-border flex items-center justify-center">
+                    {handout.type === 'pdf' ? (
+                      <FileIcon size={16} className="text-red-500" />
+                    ) : (
+                      <img src={handout.imageUrl} alt={handout.name} className="w-full h-full object-cover" />
+                    )}
                   </div>
-                  <span className="text-sm font-medium truncate" title={handout.name}>{handout.name}</span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium truncate" title={handout.name}>{handout.name}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold">{handout.type || 'image'}</span>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-1">
@@ -82,7 +91,7 @@ export const HandoutsTab: React.FC = () => {
                   </button>
                   <button
                     onClick={async () => {
-                      if (handout.imageUrl) await deleteImageFromStorage(handout.imageUrl);
+                      if (handout.imageUrl) await deleteFileFromStorage(handout.imageUrl);
                       deleteHandout(handout.id);
                     }}
                     className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"

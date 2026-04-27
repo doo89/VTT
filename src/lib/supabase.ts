@@ -66,10 +66,10 @@ export type JoinRequestPayload = {
 };
 
 /**
- * Uploads an image file to the Supabase Storage bucket 'images-all'
+ * Uploads a file (image, PDF, etc.) to the Supabase Storage bucket 'images-all'
  * and returns its public URL.
  */
-export const uploadImageToStorage = async (file: File): Promise<string | null> => {
+export const uploadFileToStorage = async (file: File): Promise<string | null> => {
   if (!supabase) {
     console.error("Supabase is not initialized.");
     return null;
@@ -89,7 +89,7 @@ export const uploadImageToStorage = async (file: File): Promise<string | null> =
       });
 
     if (uploadError) {
-      console.error("Error uploading image:", uploadError.message);
+      console.error("Error uploading file:", uploadError.message);
       return null;
     }
 
@@ -99,25 +99,25 @@ export const uploadImageToStorage = async (file: File): Promise<string | null> =
 
     return data.publicUrl;
   } catch (error) {
-    console.error("Unexpected error during image upload:", error);
+    console.error("Unexpected error during file upload:", error);
     return null;
   }
 };
 
 /**
- * Deletes an image from Supabase Storage given its public URL.
+ * Deletes a file from Supabase Storage given its public URL.
  */
-export const deleteImageFromStorage = async (imageUrl: string): Promise<boolean> => {
-  if (!supabase || !imageUrl) return false;
+export const deleteFileFromStorage = async (fileUrl: string): Promise<boolean> => {
+  if (!supabase || !fileUrl) return false;
 
   // Check if it's a Supabase URL and get the file name
   // Standard format: .../storage/v1/object/public/images-all/FILENAME
-  if (!imageUrl.includes('/storage/v1/object/public/images-all/')) {
-    return false; // Not a Supabase managed image or from another bucket
+  if (!fileUrl.includes('/storage/v1/object/public/images-all/')) {
+    return false; // Not a Supabase managed file or from another bucket
   }
 
   try {
-    const fileName = imageUrl.split('/').pop();
+    const fileName = fileUrl.split('/').pop();
     if (!fileName) return false;
 
     const { error } = await supabase.storage
@@ -125,13 +125,13 @@ export const deleteImageFromStorage = async (imageUrl: string): Promise<boolean>
       .remove([fileName]);
 
     if (error) {
-      console.error("Error deleting image from storage:", error.message);
+      console.error("Error deleting file from storage:", error.message);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error("Unexpected error during image deletion:", error);
+    console.error("Unexpected error during file deletion:", error);
     return false;
   }
 };

@@ -159,7 +159,8 @@ export interface BadgeConfig {
 export interface Handout {
   id: EntityId;
   name: string;
-  imageUrl: string;
+  imageUrl: string; // URL of the file (image or PDF)
+  type: 'image' | 'pdf';
   isOpen: boolean;
   x: number;
   y: number;
@@ -476,6 +477,7 @@ export interface GameState {
       players: boolean;
       room: boolean;
       wiki: boolean;
+      handouts: boolean;
     };
     smartphonePlayersOptions?: {
       allowPrivateNotes: boolean;

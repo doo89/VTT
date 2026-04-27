@@ -12,7 +12,7 @@ export const SoundboardRemote: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error' | 'unauthorized'>('connecting');
   const [gameState, setGameState] = useState<any>(null);
   const [playingIndices, setPlayingIndices] = useState<number[]>([]);
-  const [activeTab, setActiveTab] = useState<'soundboard' | 'checklist'>('soundboard');
+  const [activeTab, setActiveTab] = useState<'soundboard' | 'checklist' | 'handouts'>('soundboard');
 
   useEffect(() => {
     if (!roomId || !supabase) return;
@@ -180,7 +180,7 @@ export const SoundboardRemote: React.FC = () => {
       <header className="flex items-center justify-between p-4 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800 shrink-0 z-10">
         <div className="flex items-center gap-3">
           <div className="bg-pink-600 p-2 rounded-xl text-white shadow-lg shadow-pink-900/40">
-            {activeTab === 'soundboard' ? <Music size={20} /> : <CheckSquare size={20} />}
+            {activeTab === 'soundboard' ? <Music size={20} /> : activeTab === 'checklist' ? <CheckSquare size={20} /> : <icons.FileText size={20} />}
           </div>
           <div>
             <h1 className="font-extrabold text-lg tracking-tight leading-none">Télécommande MJ</h1>
@@ -362,32 +362,80 @@ export const SoundboardRemote: React.FC = () => {
               })
             })()}
           </div>
+        ) : (
+          <div className="flex flex-col gap-4 pb-8">
+            <h2 className="text-xl font-black uppercase tracking-widest text-zinc-400 mb-2">Aides de Jeu</h2>
+            <div className="grid grid-cols-1 gap-4">
+              {gameState.handouts?.map((handout: any) => (
+                <div key={handout.id} className="bg-zinc-900/80 border border-zinc-700 rounded-2xl overflow-hidden shadow-lg shadow-black/20">
+                  <div className="p-3 border-b border-zinc-800 flex items-center justify-between">
+                    <span className="font-bold text-sm truncate pr-2">{handout.name}</span>
+                    <span className="text-[10px] text-zinc-500 font-black uppercase tracking-tighter shrink-0">{handout.type || 'image'}</span>
+                  </div>
+                  <div className="aspect-video bg-black/20 flex items-center justify-center relative">
+                    {handout.type === 'pdf' ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <icons.FileText size={48} className="text-red-500/40" />
+                        <a 
+                          href={handout.imageUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-zinc-800 hover:bg-zinc-700 px-6 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 border border-zinc-700 shadow-lg"
+                        >
+                          Ouvrir le PDF
+                        </a>
+                      </div>
+                    ) : (
+                      <img src={handout.imageUrl} alt={handout.name} className="w-full h-full object-contain" />
+                    )}
+                  </div>
+                </div>
+              ))}
+              {(!gameState.handouts || gameState.handouts.length === 0) && (
+                <div className="flex flex-col items-center justify-center py-20 text-zinc-500 opacity-50">
+                  <icons.FileText size={48} className="mb-4 stroke-[1px]" />
+                  <p className="text-sm font-medium">Aucune aide de jeu</p>
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
       {/* Bottom Navigation */}
-      <nav className="grid grid-cols-2 bg-zinc-900/90 backdrop-blur-lg border-t border-zinc-800 p-2 gap-2 z-20 shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+      <nav className="grid grid-cols-3 bg-zinc-900/90 backdrop-blur-lg border-t border-zinc-800 p-2 gap-2 z-20 shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
         <button
           onClick={() => setActiveTab('soundboard')}
-          className={`flex flex-col items-center justify-center py-2.5 rounded-xl transition-all ${
+          className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
             activeTab === 'soundboard'
               ? 'bg-pink-600 text-white shadow-lg shadow-pink-900/40'
               : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
           }`}
         >
-          <Music size={22} className={activeTab === 'soundboard' ? 'scale-110' : ''} />
-          <span className="text-[10px] font-bold mt-1 uppercase tracking-wider">Soundboard</span>
+          <Music size={20} className={activeTab === 'soundboard' ? 'scale-110' : ''} />
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Sons</span>
         </button>
         <button
           onClick={() => setActiveTab('checklist')}
-          className={`flex flex-col items-center justify-center py-2.5 rounded-xl transition-all ${
+          className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
             activeTab === 'checklist'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
               : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
           }`}
         >
-          <CheckSquare size={22} className={activeTab === 'checklist' ? 'scale-110' : ''} />
-          <span className="text-[10px] font-bold mt-1 uppercase tracking-wider">Checklist</span>
+          <CheckSquare size={20} className={activeTab === 'checklist' ? 'scale-110' : ''} />
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Tâches</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('handouts')}
+          className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
+            activeTab === 'handouts'
+              ? 'bg-teal-600 text-white shadow-lg shadow-teal-900/40'
+              : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+          }`}
+        >
+          <icons.FileText size={20} className={activeTab === 'handouts' ? 'scale-110' : ''} />
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Aides</span>
         </button>
       </nav>
     </div>
