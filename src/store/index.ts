@@ -1105,6 +1105,27 @@ export const useVttStore = create<VttStore>()(
                     effectUpdates.activeCustomPopupId = dynamicPopup.id;
                   }
                 }
+                if (effect.type === 'modifyVariable' && effect.variable) {
+                  let currentVal = 0;
+                  if (effect.variable === '$Ordre') currentVal = state.callOrderIndex;
+                  else if (effect.variable === '$Cycle') currentVal = state.cycleNumber;
+                  else if (effect.variable === '$Jour') currentVal = !state.isNight ? state.cycleNumber : 0;
+                  else if (effect.variable === '$Nuit') currentVal = state.isNight ? state.cycleNumber : 0;
+                  
+                  let nextVal = currentVal;
+                  const val = effect.value || 0;
+                  if (effect.operator === '=') nextVal = val;
+                  else if (effect.operator === '+') nextVal = currentVal + val;
+                  else if (effect.operator === '-') nextVal = currentVal - val;
+                  else if (effect.operator === '*') nextVal = Math.round(currentVal * val);
+                  else if (effect.operator === '/') nextVal = val !== 0 ? Math.floor(currentVal / val) : currentVal;
+                  
+                  if (effect.variable === '$Ordre') {
+                    state.setCallOrderIndex(Math.max(0, nextVal));
+                  } else {
+                    effectUpdates.cycleNumber = Math.max(0, nextVal);
+                  }
+                }
               });
 
               const newState: any = { 

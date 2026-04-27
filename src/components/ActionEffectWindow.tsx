@@ -14,6 +14,9 @@ export const ActionEffectWindow: React.FC = () => {
   
   const [type, setType] = useState<ActionEffectType>('deleteAllTags');
   const [enabled, setEnabled] = useState(true);
+  const [variable, setVariable] = useState('$Ordre');
+  const [operator, setOperator] = useState('=');
+  const [value, setValue] = useState<number>(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -25,10 +28,16 @@ export const ActionEffectWindow: React.FC = () => {
       if (effect) {
         setType(effect.type);
         setEnabled(effect.enabled);
+        setVariable(effect.variable || '$Ordre');
+        setOperator(effect.operator || '=');
+        setValue(effect.value || 0);
       }
     } else {
       setType('deleteAllTags');
       setEnabled(true);
+      setVariable('$Ordre');
+      setOperator('=');
+      setValue(0);
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects]);
 
@@ -68,10 +77,17 @@ export const ActionEffectWindow: React.FC = () => {
   };
 
   const handleOK = () => {
+    const data = { 
+      type, 
+      enabled,
+      variable: type === 'modifyVariable' ? variable : undefined,
+      operator: type === 'modifyVariable' ? operator : undefined,
+      value: type === 'modifyVariable' ? value : undefined
+    };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
-      updatePendingEffect(actionEffectCreatorState.editingEffectId, { type, enabled });
+      updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
     } else {
-      addPendingEffect({ type, enabled });
+      addPendingEffect(data);
     }
     handleClose();
   };
@@ -110,6 +126,21 @@ export const ActionEffectWindow: React.FC = () => {
 
       <div className="p-5 flex flex-col gap-5 bg-background/50">
         <div className="flex flex-col gap-4">
+          {/* Status first */}
+          <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
+            <input
+              type="checkbox"
+              checked={enabled}
+              onChange={(e) => setEnabled(e.target.checked)}
+              className="w-5 h-5 rounded border-border text-indigo-500 focus:ring-indigo-500 transition-all"
+            />
+            <div className="flex flex-col">
+              <span className="text-sm font-bold">Activer cette action</span>
+              <span className="text-[10px] text-muted-foreground italic">Définit si cette action spécifique sera exécutée</span>
+            </div>
+          </label>
+
+          {/* Type second */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type d'action</label>
             <select
@@ -117,6 +148,7 @@ export const ActionEffectWindow: React.FC = () => {
               onChange={(e) => setType(e.target.value as any)}
               className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-sm focus:border-indigo-500/50"
             >
+              <option value="modifyVariable">Modifier Variable ($Ordre, $Cycle...)</option>
               <option value="incrementCallOrder">$Ordre + 1</option>
               <option value="decrementCallOrder">$Ordre - 1</option>
               <option value="alertCycleNumber">Afficher $Cycle</option>
@@ -158,18 +190,49 @@ export const ActionEffectWindow: React.FC = () => {
             </select>
           </div>
 
-          <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
-            <input
-              type="checkbox"
-              checked={enabled}
-              onChange={(e) => setEnabled(e.target.checked)}
-              className="w-5 h-5 rounded border-border text-indigo-500 focus:ring-indigo-500 transition-all"
-            />
-            <div className="flex flex-col">
-              <span className="text-sm font-bold">Activer cette action</span>
-              <span className="text-[10px] text-muted-foreground italic">Définit si cette action spécifique sera exécutée</span>
+          {/* New row for variable modification */}
+          {type === 'modifyVariable' && (
+            <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+               <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Variable</label>
+                  <select
+                    value={variable}
+                    onChange={(e) => setVariable(e.target.value)}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                  >
+                    <option value="$Ordre">$Ordre</option>
+                    <option value="$Cycle">$Cycle</option>
+                    <option value="$Jour">$Jour</option>
+                    <option value="$Nuit">$Nuit</option>
+                  </select>
+               </div>
+               <div className="flex gap-2">
+                  <div className="flex-1 flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Opérateur</label>
+                    <select
+                      value={operator}
+                      onChange={(e) => setOperator(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                    >
+                      <option value="=">=</option>
+                      <option value="+">+</option>
+                      <option value="-">-</option>
+                      <option value="*">*</option>
+                      <option value="/">/</option>
+                    </select>
+                  </div>
+                  <div className="flex-1 flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
+                    <input
+                      type="number"
+                      value={value}
+                      onChange={(e) => setValue(Number(e.target.value))}
+                      className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50 shadow-inner"
+                    />
+                  </div>
+               </div>
             </div>
-          </label>
+          )}
         </div>
 
         <div className="flex items-center gap-2 pt-2">

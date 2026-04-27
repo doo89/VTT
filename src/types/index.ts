@@ -301,12 +301,16 @@ export type ActionEffectType =
   | 'alertCallOrder'
   | 'incrementCallOrder'
   | 'decrementCallOrder'
-  | 'resetCallOrder';
+  | 'resetCallOrder'
+  | 'modifyVariable';
 
 export interface ActionEffect {
   id: string;
   type: ActionEffectType;
   enabled: boolean;
+  variable?: string;
+  operator?: string;
+  value?: number;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck';
