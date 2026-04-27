@@ -258,7 +258,7 @@ export const SoundboardRemote: React.FC = () => {
               );
             })}
           </div>
-        ) : (
+        ) : activeTab === 'checklist' ? (
           <div className="flex flex-col gap-3 pb-8">
             <div className="flex items-center justify-between mb-2">
                <h2 className="text-xl font-black uppercase tracking-widest text-zinc-400">Checklist</h2>
