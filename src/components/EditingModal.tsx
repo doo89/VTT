@@ -2,7 +2,7 @@ import React from 'react';
 import { useVttStore } from '../store';
 import * as icons from 'lucide-react';
 import { X, Trash2 } from 'lucide-react';
-import { uploadImageToStorage, deleteImageFromStorage } from '../lib/supabase';
+import { uploadFileToStorage, deleteFileFromStorage } from '../lib/supabase';
 import { ColorPicker } from './ColorPicker';
 
 const TEAM_ICONS = [
@@ -196,7 +196,7 @@ export const EditingModal: React.FC = () => {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const url = await uploadImageToStorage(file);
+                    const url = await uploadFileToStorage(file);
                     if (url) {
                       updatePlayerTemplate(template.id, { imageUrl: url });
                     }
@@ -233,7 +233,7 @@ export const EditingModal: React.FC = () => {
                     </select>
                     <button
                       onClick={async () => {
-                        if (template.imageUrl) await deleteImageFromStorage(template.imageUrl);
+                        if (template.imageUrl) await deleteFileFromStorage(template.imageUrl);
                         updatePlayerTemplate(template.id, { imageUrl: undefined });
                       }}
                       className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
@@ -308,7 +308,7 @@ export const EditingModal: React.FC = () => {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const url = await uploadImageToStorage(file);
+                    const url = await uploadFileToStorage(file);
                     if (url) {
                       updatePlayer(player.id, { imageUrl: url });
                     }
@@ -343,7 +343,7 @@ export const EditingModal: React.FC = () => {
                     </select>
                     <button
                       onClick={async () => {
-                        if (player.imageUrl) await deleteImageFromStorage(player.imageUrl);
+                        if (player.imageUrl) await deleteFileFromStorage(player.imageUrl);
                         updatePlayer(player.id, { imageUrl: undefined });
                       }}
                       className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
@@ -560,7 +560,7 @@ export const EditingModal: React.FC = () => {
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      const url = await uploadImageToStorage(file);
+                      const url = await uploadFileToStorage(file);
                       if (url) {
                         updateRole(role.id, { imageUrl: url });
                       }
@@ -595,7 +595,7 @@ export const EditingModal: React.FC = () => {
                       </select>
                       <button
                         onClick={async () => {
-                          if (role.imageUrl) await deleteImageFromStorage(role.imageUrl);
+                          if (role.imageUrl) await deleteFileFromStorage(role.imageUrl);
                           updateRole(role.id, { imageUrl: undefined });
                         }}
                         className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
@@ -982,7 +982,7 @@ export const EditingModal: React.FC = () => {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          const url = await uploadImageToStorage(file);
+                          const url = await uploadFileToStorage(file);
                           if (url) {
                             updateTagModel(tag.id, { imageUrl: url });
                           }
@@ -1006,7 +1006,7 @@ export const EditingModal: React.FC = () => {
                         <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
                         <button
                           onClick={async () => {
-                            if (tag.imageUrl) await deleteImageFromStorage(tag.imageUrl);
+                            if (tag.imageUrl) await deleteFileFromStorage(tag.imageUrl);
                             updateTagModel(tag.id, { imageUrl: undefined });
                           }}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"
@@ -1612,7 +1612,7 @@ export const EditingModal: React.FC = () => {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const url = await uploadImageToStorage(file);
+                        const url = await uploadFileToStorage(file);
                         if (url) {
                           updateTagInstance({ imageUrl: url });
                         }
@@ -2346,7 +2346,7 @@ export const EditingModal: React.FC = () => {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const url = await uploadImageToStorage(file);
+                    const url = await uploadFileToStorage(file);
                     if (url) {
                       updateSoundButton(index, { imageUrl: url });
                     }
@@ -2370,7 +2370,7 @@ export const EditingModal: React.FC = () => {
                   <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
                   <button
                     onClick={async () => {
-                      if (btn.imageUrl) await deleteImageFromStorage(btn.imageUrl);
+                      if (btn.imageUrl) await deleteFileFromStorage(btn.imageUrl);
                       updateSoundButton(index, { imageUrl: undefined });
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"

@@ -2,7 +2,7 @@ import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music,
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
-import { uploadImageToStorage, deleteImageFromStorage } from '../../lib/supabase';
+import { uploadFileToStorage, deleteFileFromStorage } from '../../lib/supabase';
 import { getEffectiveStats } from '../../lib/utils';
 import type { Role, Player } from '../../types';
 import { SettingsModal } from './SettingsModal';
@@ -873,7 +873,7 @@ export const RightPanel: React.FC = () => {
                               <Edit2 size={12} />
                             </button>
                             <button onClick={async () => {
-                              if (popup.imageUrl) await deleteImageFromStorage(popup.imageUrl);
+                              if (popup.imageUrl) await deleteFileFromStorage(popup.imageUrl);
                               deleteCustomPopup(popup.id);
                             }} className="text-destructive hover:text-white hover:bg-destructive p-1 rounded transition-colors" title="Supprimer">
                               <Trash2 size={12} />
@@ -1161,7 +1161,7 @@ export const RightPanel: React.FC = () => {
                       <button
                         onClick={async () => {
                           if (newPopupData.imageUrl) {
-                            await deleteImageFromStorage(newPopupData.imageUrl);
+                            await deleteFileFromStorage(newPopupData.imageUrl);
                           }
                           setNewPopupData({...newPopupData, imageUrl: ''});
                         }}
@@ -1181,7 +1181,7 @@ export const RightPanel: React.FC = () => {
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      const url = await uploadImageToStorage(file);
+                      const url = await uploadFileToStorage(file);
                       if (url) {
                         setNewPopupData({...newPopupData, imageUrl: url});
                       }
@@ -1229,7 +1229,7 @@ export const RightPanel: React.FC = () => {
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      const url = await uploadImageToStorage(file);
+                      const url = await uploadFileToStorage(file);
                       if (url) {
                         setNewPopupData({...newPopupData, soundUrl: url});
                       }

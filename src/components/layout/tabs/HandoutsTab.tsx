@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useVttStore } from '../../../store';
 import { uploadFileToStorage, deleteFileFromStorage } from '../../../lib/supabase';
-import { FileText, Upload, Trash2, Eye, EyeOff, File as FileIcon } from 'lucide-react';
+import { Upload, Trash2, Eye, EyeOff, File as FileIcon } from 'lucide-react';
 
 export const HandoutsTab: React.FC = () => {
   const { handouts, addHandout, deleteHandout, toggleHandout } = useVttStore();

@@ -321,6 +321,7 @@ export const initialState = {
       players: false,
       room: false,
       wiki: false,
+      handouts: false,
     },
     smartphonePlayersOptions: {
       allowPrivateNotes: true,
