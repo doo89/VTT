@@ -374,15 +374,20 @@ export const SoundboardRemote: React.FC = () => {
                   </div>
                   <div className="aspect-video bg-black/20 flex items-center justify-center relative">
                     {handout.type === 'pdf' ? (
-                      <div className="flex flex-col items-center gap-3">
-                        <icons.FileText size={48} className="text-red-500/40" />
+                      <div className="flex flex-col items-center justify-center w-full h-full bg-zinc-950/30 group">
+                        <div className="relative mb-3 transition-transform group-active:scale-95">
+                          <icons.File size={64} className="text-zinc-700 stroke-[1.5px]" />
+                          <div className="absolute inset-0 flex items-center justify-center pt-2">
+                             <span className="text-[10px] font-black text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20 uppercase tracking-tighter">PDF</span>
+                          </div>
+                        </div>
                         <a 
                           href={handout.imageUrl} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="bg-zinc-800 hover:bg-zinc-700 px-6 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 border border-zinc-700 shadow-lg"
+                          className="bg-zinc-800 hover:bg-zinc-700 px-6 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 border border-zinc-700 shadow-lg shadow-black/40"
                         >
-                          Ouvrir le PDF
+                          Voir le document
                         </a>
                       </div>
                     ) : (
