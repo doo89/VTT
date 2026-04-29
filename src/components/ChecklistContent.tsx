@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Settings, Type, CheckSquare, Zap, X, GripVertical, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react';
+import { Trash2, Settings, Type, CheckSquare, Square, Zap, X, GripVertical, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react';
 import { useVttStore } from '../store';
 
 export const ChecklistContent: React.FC = () => {
@@ -30,6 +30,17 @@ export const ChecklistContent: React.FC = () => {
 
   const handleDragEnd = () => {
     setDraggedIndex(null);
+  };
+
+  const uncheckSection = (sectionIndex: number) => {
+    const newChecklist = [...checklist];
+    for (let i = sectionIndex + 1; i < newChecklist.length; i++) {
+      if (newChecklist[i].type === 'text') break; // Next section reached
+      if (newChecklist[i].type === 'checkbox') {
+        newChecklist[i].checked = false;
+      }
+    }
+    setChecklist(newChecklist);
   };
 
   // Logic to handle grouping and indentation
@@ -80,17 +91,26 @@ export const ChecklistContent: React.FC = () => {
 
               <div className="flex-1 flex flex-col gap-2">
                 {item.type === 'text' && (
-                  <textarea
-                    value={item.content || ''}
-                    onChange={(e) => {
-                      const newChecklist = [...checklist];
-                      newChecklist[index].content = e.target.value;
-                      setChecklist(newChecklist);
-                    }}
-                    placeholder="Titre de la section..."
-                    style={{ color: item.color || '#e4e4e7' }}
-                    className="w-full bg-transparent border-0 text-sm focus:outline-none focus:ring-0 resize-y min-h-[30px] p-0 m-0 font-black uppercase tracking-widest"
-                  />
+                  <div className="flex items-center gap-1.5 w-full">
+                    <button
+                      onClick={() => uncheckSection(index)}
+                      className="text-muted-foreground hover:text-orange-400 transition-colors shrink-0 mt-0.5"
+                      title="Décocher toutes les cases de la section"
+                    >
+                      <Square size={13} strokeWidth={3} />
+                    </button>
+                    <textarea
+                      value={item.content || ''}
+                      onChange={(e) => {
+                        const newChecklist = [...checklist];
+                        newChecklist[index].content = e.target.value;
+                        setChecklist(newChecklist);
+                      }}
+                      placeholder="Titre de la section..."
+                      style={{ color: item.color || '#e4e4e7' }}
+                      className="w-full bg-transparent border-0 text-sm focus:outline-none focus:ring-0 resize-y min-h-[30px] p-0 m-0 font-black uppercase tracking-widest leading-tight"
+                    />
+                  </div>
                 )}
                 {item.type === 'checkbox' && (
                   <div className="flex items-center gap-2">
