@@ -179,6 +179,7 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="resetCallOrder">Réinitialiser $Ordre</option>
               <option value="resetCycle">Réinitialiser le Cycle (Jour 1)</option>
               <option value="wakeAllPlayers">Réveil de tous les Joueurs</option>
+              <option value="selectCallOrderPlayer">Sélectionner joueur $Ordre</option>
               <option value="selectPlayer">Sélectionner $Joueur</option>
               <option value="sleepAllPlayers">Tous les Joueurs dorment</option>
               <option value="sleepPlayer">$Joueur dort</option>

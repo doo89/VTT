@@ -302,7 +302,8 @@ export type ActionEffectType =
   | 'incrementCallOrder'
   | 'decrementCallOrder'
   | 'resetCallOrder'
-  | 'modifyVariable';
+  | 'modifyVariable'
+  | 'selectCallOrderPlayer';
 
 export interface ActionEffect {
   id: string;

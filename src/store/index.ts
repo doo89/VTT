@@ -1018,6 +1018,22 @@ export const useVttStore = create<VttStore>()(
                     state.setSelectedEntityIds(ids);
                   }
                 }
+                if (effect.type === 'selectCallOrderPlayer') {
+                  const calledPlayers = state.players.filter((p: any) => {
+                    const playerTags = p.tags || [];
+                    const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
+                    const allTags = [...playerTags, ...roleTags];
+                    return allTags.some((tag: any) => {
+                      const order = (state.cycleMode === 'dayNight' && state.isNight) ? tag.callOrderNight : tag.callOrderDay;
+                      return order !== null && order !== undefined && order !== '' && Number(order) === state.callOrderIndex;
+                    });
+                  });
+                  if (calledPlayers.length > 0) {
+                    state.setSelectedEntityIds(calledPlayers.map(p => p.id));
+                  } else {
+                    state.setSelectedEntityIds([]);
+                  }
+                }
                 if (effect.type === 'sleepPlayer') {
                   const player = actionContext['$Joueur'];
                   if (player) {
