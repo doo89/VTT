@@ -304,7 +304,8 @@ export type ActionEffectType =
   | 'resetCallOrder'
   | 'modifyVariable'
   | 'selectCallOrderPlayer'
-  | 'triggerAction';
+  | 'triggerAction'
+  | 'assignTagToRole';
 
 export interface ActionEffect {
   id: string;
@@ -314,6 +315,8 @@ export interface ActionEffect {
   operator?: string;
   value?: number;
   targetActionId?: string;
+  tagId?: string;
+  roleId?: string;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole';

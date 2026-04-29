@@ -1021,6 +1021,18 @@ export const useVttStore = create<VttStore>()(
                     state.addLog(`Action annulée : boucle infinie détectée (${action.name})`, 'system');
                   }
                 }
+                if (effect.type === 'assignTagToRole' && effect.tagId && effect.roleId) {
+                  const tagModel = state.tags.find((t: any) => t.id === effect.tagId);
+                  if (tagModel) {
+                    nextPlayers = nextPlayers.map(p => {
+                      if (p.roleId === effect.roleId) {
+                        const newTag = { ...tagModel, instanceId: uuidv4() };
+                        return { ...p, tags: [...(p.tags || []), newTag] };
+                      }
+                      return p;
+                    });
+                  }
+                }
                 if (effect.type === 'selectPlayer') {
                   const player = actionContext['$Joueur'];
                   if (player) {
