@@ -1029,7 +1029,7 @@ export const useVttStore = create<VttStore>()(
                     });
                   });
                   if (calledPlayers.length > 0) {
-                    state.setSelectedEntityIds(calledPlayers.map(p => p.id));
+                    state.setSelectedEntityIds(calledPlayers.map((p: any) => p.id));
                   } else {
                     state.setSelectedEntityIds([]);
                   }
