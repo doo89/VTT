@@ -1033,6 +1033,14 @@ export const useVttStore = create<VttStore>()(
                     });
                   }
                 }
+                if (effect.type === 'removeTagFromRole' && effect.tagId && effect.roleId) {
+                  nextPlayers = nextPlayers.map(p => {
+                    if (p.roleId === effect.roleId) {
+                      return { ...p, tags: (p.tags || []).filter((t: any) => t.id !== effect.tagId) };
+                    }
+                    return p;
+                  });
+                }
                 if (effect.type === 'assignTeam') {
                   const player = actionContext['$Joueur'];
                   if (player) {

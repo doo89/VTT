@@ -306,6 +306,7 @@ export type ActionEffectType =
   | 'selectCallOrderPlayer'
   | 'triggerAction'
   | 'assignTagToRole'
+  | 'removeTagFromRole'
   | 'assignTeam';
 
 export interface ActionEffect {

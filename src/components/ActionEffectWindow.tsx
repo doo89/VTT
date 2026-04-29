@@ -100,8 +100,8 @@ export const ActionEffectWindow: React.FC = () => {
       operator: type === 'modifyVariable' ? operator : undefined,
       value: type === 'modifyVariable' ? value : undefined,
       targetActionId: type === 'triggerAction' ? targetActionId : undefined,
-      tagId: type === 'assignTagToRole' ? tagId : undefined,
-      roleId: type === 'assignTagToRole' ? roleId : undefined,
+      tagId: (type === 'assignTagToRole' || type === 'removeTagFromRole') ? tagId : undefined,
+      roleId: (type === 'assignTagToRole' || type === 'removeTagFromRole') ? roleId : undefined,
       teamId: type === 'assignTeam' ? teamId : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
@@ -190,6 +190,7 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="distributeRoles">Distribuer (Rôles)</option>
               <option value="triggerAction">Exécuter une Action</option>
               <option value="assignTagToRole">Assigner un tag à un rôle</option>
+              <option value="removeTagFromRole">Enlever un tag à un rôle</option>
               <option value="assignTeam">Assigner une équipe</option>
               <option value="hidePlayerTooltip">Masquer l'info bulle des joueurs</option>
               <option value="hideTagTooltip">Masquer l'info bulle des tags</option>
@@ -230,10 +231,12 @@ export const ActionEffectWindow: React.FC = () => {
             </div>
           )}
 
-          {type === 'assignTagToRole' && (
+          {(type === 'assignTagToRole' || type === 'removeTagFromRole') && (
             <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag à assigner</label>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                  {type === 'assignTagToRole' ? 'Tag à assigner' : 'Tag à enlever'}
+                </label>
                 <select
                   value={tagId}
                   onChange={(e) => setTagId(e.target.value)}
