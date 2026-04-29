@@ -14,6 +14,7 @@ export const ActionCreatorWindow: React.FC = () => {
     clearPendingConditions,
     updatePendingCondition,
     deletePendingCondition,
+    setPendingConditions,
     pendingActionOnce,
     setPendingOnce,
     pendingActionIsRecurring,
@@ -26,6 +27,7 @@ export const ActionCreatorWindow: React.FC = () => {
     pendingActionEffects,
     clearPendingEffects,
     deletePendingEffect,
+    setPendingEffects,
     pendingActionDelaySeconds,
     setPendingDelay,
     pendingElseActionId,
@@ -35,7 +37,42 @@ export const ActionCreatorWindow: React.FC = () => {
   } = useVttStore();
   
   const [actionName, setActionName] = useState('');
+  const [draggedConditionIndex, setDraggedConditionIndex] = useState<number | null>(null);
+  const [draggedEffectIndex, setDraggedEffectIndex] = useState<number | null>(null);
+
   const isEditingAction = !!actionCreatorState.editingActionId;
+
+  const handleConditionDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedConditionIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleConditionDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedConditionIndex === null || draggedConditionIndex === index) return;
+    const items = [...pendingActionConditions];
+    const draggedItem = items[draggedConditionIndex];
+    items.splice(draggedConditionIndex, 1);
+    items.splice(index, 0, draggedItem);
+    setDraggedConditionIndex(index);
+    setPendingConditions(items);
+  };
+
+  const handleEffectDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedEffectIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleEffectDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedEffectIndex === null || draggedEffectIndex === index) return;
+    const items = [...pendingActionEffects];
+    const draggedItem = items[draggedEffectIndex];
+    items.splice(draggedEffectIndex, 1);
+    items.splice(index, 0, draggedItem);
+    setDraggedEffectIndex(index);
+    setPendingEffects(items);
+  };
 
   useEffect(() => {
     if (isEditingAction) {
@@ -230,8 +267,15 @@ export const ActionCreatorWindow: React.FC = () => {
                     </select>
                   </div>
                 )}
-                <div key={condition.id} className={`flex items-center justify-between gap-2 bg-background border border-border/50 rounded p-1.5 shadow-sm text-[10px] font-medium animate-in slide-in-from-left-2 duration-200 ${!condition.enabled ? 'opacity-50' : ''}`}>
-                  <div className="flex items-center gap-2">
+                <div 
+                  key={condition.id} 
+                  draggable
+                  onDragStart={(e) => handleConditionDragStart(e, index)}
+                  onDragOver={(e) => handleConditionDragOver(e, index)}
+                  onDragEnd={() => setDraggedConditionIndex(null)}
+                  className={`flex items-center justify-between gap-2 bg-background border border-border/50 rounded p-1.5 shadow-sm text-[10px] font-medium animate-in slide-in-from-left-2 duration-200 cursor-grab active:cursor-grabbing ${draggedConditionIndex === index ? 'opacity-30 border-dashed border-primary' : ''} ${!condition.enabled ? 'opacity-50' : ''}`}
+                >
+                  <div className="flex items-center gap-2 pointer-events-none">
                     {!condition.enabled ? (
                       <span className="italic text-muted-foreground">Aucune</span>
                     ) : (
@@ -315,9 +359,16 @@ export const ActionCreatorWindow: React.FC = () => {
             {pendingActionEffects.length === 0 ? (
               <p className="text-[10px] text-muted-foreground italic text-center py-2">Aucune action définie.</p>
             ) : (
-              pendingActionEffects.map((effect) => (
-                <div key={effect.id} className="flex items-center justify-between gap-2 bg-background border border-indigo-500/20 rounded p-1.5 shadow-sm text-[10px] font-medium animate-in slide-in-from-left-2 duration-200">
-                  <div className="flex items-center gap-2">
+              pendingActionEffects.map((effect, index) => (
+                <div 
+                  key={effect.id} 
+                  draggable
+                  onDragStart={(e) => handleEffectDragStart(e, index)}
+                  onDragOver={(e) => handleEffectDragOver(e, index)}
+                  onDragEnd={() => setDraggedEffectIndex(null)}
+                  className={`flex items-center justify-between gap-2 bg-background border border-indigo-500/20 rounded p-1.5 shadow-sm text-[10px] font-medium animate-in slide-in-from-left-2 duration-200 cursor-grab active:cursor-grabbing ${draggedEffectIndex === index ? 'opacity-30 border-dashed border-indigo-500' : ''}`}
+                >
+                  <div className="flex items-center gap-2 pointer-events-none">
                     <span className="bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded uppercase font-bold text-[9px]">
                       Effect
                     </span>
