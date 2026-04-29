@@ -9,7 +9,8 @@ export const ActionEffectWindow: React.FC = () => {
     setActionEffectCreatorState, 
     addPendingEffect,
     updatePendingEffect,
-    pendingActionEffects
+    pendingActionEffects,
+    actions
   } = useVttStore();
   
   const [type, setType] = useState<ActionEffectType>('deleteAllTags');
@@ -17,6 +18,7 @@ export const ActionEffectWindow: React.FC = () => {
   const [variable, setVariable] = useState('$Ordre');
   const [operator, setOperator] = useState('=');
   const [value, setValue] = useState<number>(0);
+  const [targetActionId, setTargetActionId] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -31,6 +33,7 @@ export const ActionEffectWindow: React.FC = () => {
         setVariable(effect.variable || '$Ordre');
         setOperator(effect.operator || '=');
         setValue(effect.value || 0);
+        setTargetActionId(effect.targetActionId || (actions.length > 0 ? actions[0].id : ''));
       }
     } else {
       setType('deleteAllTags');
@@ -38,8 +41,9 @@ export const ActionEffectWindow: React.FC = () => {
       setVariable('$Ordre');
       setOperator('=');
       setValue(0);
+      setTargetActionId(actions.length > 0 ? actions[0].id : '');
     }
-  }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects]);
+  }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -82,7 +86,8 @@ export const ActionEffectWindow: React.FC = () => {
       enabled,
       variable: type === 'modifyVariable' ? variable : undefined,
       operator: type === 'modifyVariable' ? operator : undefined,
-      value: type === 'modifyVariable' ? value : undefined
+      value: type === 'modifyVariable' ? value : undefined,
+      targetActionId: type === 'triggerAction' ? targetActionId : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -168,6 +173,7 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="setCycleDayNight">Cycle : Jour/Nuit</option>
               <option value="setCycleTurn">Cycle : par Tour</option>
               <option value="distributeRoles">Distribuer (Rôles)</option>
+              <option value="triggerAction">Exécuter une Action</option>
               <option value="hidePlayerTooltip">Masquer l'info bulle des joueurs</option>
               <option value="hideTagTooltip">Masquer l'info bulle des tags</option>
               <option value="hideRoleColor">Masquer la couleur du rôle</option>
@@ -190,6 +196,22 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="deleteAllPlayerTags">Supprimer tous les tags des joueurs</option>
             </select>
           </div>
+
+          {type === 'triggerAction' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Action à exécuter</label>
+              <select
+                value={targetActionId}
+                onChange={(e) => setTargetActionId(e.target.value)}
+                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-orange-500/50"
+              >
+                {actions.length === 0 && <option value="">Aucune action disponible</option>}
+                {actions.map(a => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* New row for variable modification */}
           {type === 'modifyVariable' && (

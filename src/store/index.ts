@@ -1011,6 +1011,16 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'hideTagTooltip') nextDisplaySettings.showTagTooltip = false;
                 if (effect.type === 'showRoleColor') nextDisplaySettings.showRoleColor = true;
                 if (effect.type === 'hideRoleColor') nextDisplaySettings.showRoleColor = false;
+                if (effect.type === 'triggerAction' && effect.targetActionId) {
+                  if (depth < 5) {
+                    setTimeout(() => {
+                      const currentState = (useVttStore.getState() as any);
+                      currentState.executeAction(effect.targetActionId, actionContext, depth + 1);
+                    }, 50);
+                  } else {
+                    state.addLog(`Action annulée : boucle infinie détectée (${action.name})`, 'system');
+                  }
+                }
                 if (effect.type === 'selectPlayer') {
                   const player = actionContext['$Joueur'];
                   if (player) {

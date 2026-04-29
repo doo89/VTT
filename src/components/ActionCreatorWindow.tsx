@@ -346,6 +346,7 @@ export const ActionCreatorWindow: React.FC = () => {
                        effect.type === 'showRoleColor' ? 'Afficher couleur rôle' :
                        effect.type === 'hideRoleColor' ? 'Masquer couleur rôle' :
                        effect.type === 'popupPlayer' ? 'Popup $Joueur' :
+                       effect.type === 'triggerAction' ? `Exécuter: ${actions.find(a => a.id === effect.targetActionId)?.name || 'Action inconnue'}` :
                        effect.type === 'selectCallOrderPlayer' ? 'Sélectionner joueur $Ordre' :
                        effect.type === 'modifyVariable' ? `${effect.variable} ${effect.operator} ${effect.value}` :
                        effect.type}

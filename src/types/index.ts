@@ -303,7 +303,8 @@ export type ActionEffectType =
   | 'decrementCallOrder'
   | 'resetCallOrder'
   | 'modifyVariable'
-  | 'selectCallOrderPlayer';
+  | 'selectCallOrderPlayer'
+  | 'triggerAction';
 
 export interface ActionEffect {
   id: string;
@@ -312,6 +313,7 @@ export interface ActionEffect {
   variable?: string;
   operator?: string;
   value?: number;
+  targetActionId?: string;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole';

@@ -926,8 +926,10 @@ export const RightPanel: React.FC = () => {
                           className={`flex-1 rounded-md text-[10px] uppercase font-bold py-2 px-3 transition-all border flex items-center gap-2 shadow-sm truncate ${
                             action.enabled !== false 
                               ? (action.currentRepeatExecution && action.currentRepeatExecution > 0 
-                                  ? 'bg-orange-600/20 text-orange-400 border-orange-500/30 font-black' 
-                                  : 'bg-green-600/10 hover:bg-green-600/20 text-green-400 border-green-500/20')
+                                  ? 'bg-red-600/20 text-red-400 border-red-500/30 font-black animate-pulse' 
+                                  : action.effects?.some((e: any) => e.type === 'triggerAction')
+                                    ? 'bg-orange-600/10 hover:bg-orange-600/20 text-orange-400 border-orange-500/20'
+                                    : 'bg-green-600/10 hover:bg-green-600/20 text-green-400 border-green-500/20')
                               : 'bg-muted/30 text-muted-foreground border-border/10 cursor-not-allowed opacity-60'
                           }`}
                         >
