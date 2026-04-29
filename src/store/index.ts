@@ -1033,6 +1033,13 @@ export const useVttStore = create<VttStore>()(
                     });
                   }
                 }
+                if (effect.type === 'assignTeam') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, teamId: effect.teamId || null } : p);
+                  }
+                }
                 if (effect.type === 'selectPlayer') {
                   const player = actionContext['$Joueur'];
                   if (player) {

@@ -12,7 +12,8 @@ export const ActionEffectWindow: React.FC = () => {
     pendingActionEffects,
     actions,
     roles,
-    tags
+    tags,
+    teams
   } = useVttStore();
   
   const [type, setType] = useState<ActionEffectType>('deleteAllTags');
@@ -23,6 +24,7 @@ export const ActionEffectWindow: React.FC = () => {
   const [targetActionId, setTargetActionId] = useState<string>('');
   const [tagId, setTagId] = useState<string>('');
   const [roleId, setRoleId] = useState<string>('');
+  const [teamId, setTeamId] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -40,6 +42,7 @@ export const ActionEffectWindow: React.FC = () => {
         setTargetActionId(effect.targetActionId || (actions.length > 0 ? actions[0].id : ''));
         setTagId(effect.tagId || (tags.length > 0 ? tags[0].id : ''));
         setRoleId(effect.roleId || (roles.length > 0 ? roles[0].id : ''));
+        setTeamId(effect.teamId || (teams.length > 0 ? teams[0].id : ''));
       }
     } else {
       setType('deleteAllTags');
@@ -50,8 +53,9 @@ export const ActionEffectWindow: React.FC = () => {
       setTargetActionId(actions.length > 0 ? actions[0].id : '');
       setTagId(tags.length > 0 ? tags[0].id : '');
       setRoleId(roles.length > 0 ? roles[0].id : '');
+      setTeamId(teams.length > 0 ? teams[0].id : '');
     }
-  }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles]);
+  }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -97,7 +101,8 @@ export const ActionEffectWindow: React.FC = () => {
       value: type === 'modifyVariable' ? value : undefined,
       targetActionId: type === 'triggerAction' ? targetActionId : undefined,
       tagId: type === 'assignTagToRole' ? tagId : undefined,
-      roleId: type === 'assignTagToRole' ? roleId : undefined
+      roleId: type === 'assignTagToRole' ? roleId : undefined,
+      teamId: type === 'assignTeam' ? teamId : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -185,6 +190,7 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="distributeRoles">Distribuer (Rôles)</option>
               <option value="triggerAction">Exécuter une Action</option>
               <option value="assignTagToRole">Assigner un tag à un rôle</option>
+              <option value="assignTeam">Assigner une équipe</option>
               <option value="hidePlayerTooltip">Masquer l'info bulle des joueurs</option>
               <option value="hideTagTooltip">Masquer l'info bulle des tags</option>
               <option value="hideRoleColor">Masquer la couleur du rôle</option>
@@ -252,6 +258,22 @@ export const ActionEffectWindow: React.FC = () => {
                   ))}
                 </select>
               </div>
+            </div>
+          )}
+
+          {type === 'assignTeam' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Équipe à assigner à $Joueur</label>
+              <select
+                value={teamId}
+                onChange={(e) => setTeamId(e.target.value)}
+                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+              >
+                <option value="">Aucune équipe (Retirer l'équipe)</option>
+                {teams.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
             </div>
           )}
 

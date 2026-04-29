@@ -305,7 +305,8 @@ export type ActionEffectType =
   | 'modifyVariable'
   | 'selectCallOrderPlayer'
   | 'triggerAction'
-  | 'assignTagToRole';
+  | 'assignTagToRole'
+  | 'assignTeam';
 
 export interface ActionEffect {
   id: string;
@@ -317,6 +318,7 @@ export interface ActionEffect {
   targetActionId?: string;
   tagId?: string;
   roleId?: string;
+  teamId?: string;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole';
