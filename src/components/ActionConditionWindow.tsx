@@ -127,7 +127,7 @@ export const ActionConditionWindow: React.FC = () => {
       minValue: isDist ? minValue : value,
       maxValue: isDist ? maxValue : value,
       enabled, 
-      roleId: (type === 'playerRole' || type === 'playerSelectionRole') ? roleId : null,
+      roleId: (type === 'playerRole' || type === 'playerSelectionRole' || type === 'callOrderRole') ? roleId : null,
       tagId: (type === 'playerTag' || type === 'playerSelectionTag' || type === 'playerDistanceTag') ? tagId : null,
       pastilleIcon: (type === 'playerPastille' || type === 'playerSelectionPastille' || type === 'playerDistancePastille') ? pastilleIcon : null,
       selectionType: (type === 'playerSelection' || type === 'playerSelectionRole' || type === 'playerSelectionTag' || type === 'playerSelectionPastille') ? selectionType : null,
@@ -711,6 +711,62 @@ export const ActionConditionWindow: React.FC = () => {
           
           <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-5 ${isIdentityExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
             
+            {/* Call Order Role */}
+            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'callOrderRole' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+              <div className="flex flex-col gap-1.5 pb-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+                <div className="flex items-center h-[38px] justify-center px-1">
+                  <input
+                    type="checkbox"
+                    checked={type === 'callOrderRole' && enabled}
+                    onChange={() => {
+                      if (type !== 'callOrderRole') {
+                        setType('callOrderRole');
+                        setEnabled(true);
+                        setOperator('=');
+                      } else {
+                        setEnabled(!enabled);
+                      }
+                    }}
+                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 flex-[0.6]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Variable</label>
+                <div className="h-[38px] flex items-center bg-input/50 border border-border/50 rounded-lg px-3">
+                  <span className="text-sm font-bold text-muted-foreground">$Ordre</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 flex-[0.5]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
+                <select
+                  disabled={type !== 'callOrderRole' || !enabled}
+                  value={type === 'callOrderRole' ? operator : '='}
+                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="=">=</option>
+                  <option value="!=">!=</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
+                <select
+                  disabled={type !== 'callOrderRole' || !enabled}
+                  value={roleId || ''}
+                  onChange={(e) => setRoleId(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {roles.map(role => (
+                    <option key={role.id} value={role.id}>{role.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="h-px bg-border/20 mx-2" />
+
             {/* Player Role */}
             <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerRole' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">

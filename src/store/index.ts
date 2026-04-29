@@ -742,6 +742,23 @@ export const useVttStore = create<VttStore>()(
                     return false;
                   };
  
+                  if (c.type === 'callOrderRole') {
+                    const calledPlayers = state.players.filter((p: any) => {
+                      const playerTags = p.tags || [];
+                      const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
+                      const allTags = [...playerTags, ...roleTags];
+                      return allTags.some((tag: any) => {
+                        const order = (state.cycleMode === 'dayNight' && state.isNight) ? tag.callOrderNight : tag.callOrderDay;
+                        return order !== null && order !== undefined && order !== '' && Number(order) === state.callOrderIndex;
+                      });
+                    });
+                    
+                    const hasRole = calledPlayers.some((p: any) => p.roleId === c.roleId);
+                    
+                    if (c.operator === '=') return hasRole;
+                    if (c.operator === '!=') return calledPlayers.length > 0 ? !hasRole : true;
+                  }
+
                   if (c.type === 'playerRole' || c.type === 'playerTag' || c.type === 'playerPastille') {
                     const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
                     if (sortedPlayers.length === 0) return false;

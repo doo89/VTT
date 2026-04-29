@@ -238,6 +238,7 @@ export const ActionCreatorWindow: React.FC = () => {
                       <>
                         <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded uppercase font-bold text-[9px]">
                           {condition.type === 'playerRole' || condition.type === 'playerTag' || condition.type === 'playerPastille' ? `Joueur ${condition.value}` : 
+                           condition.type === 'callOrderRole' ? '$Ordre' :
                            condition.type === 'day' ? 'Jour' : 
                            condition.type === 'night' ? 'Nuit' : 
                            condition.type === 'turn' ? 'Tour' :
@@ -246,7 +247,7 @@ export const ActionCreatorWindow: React.FC = () => {
                         </span>
                         <span className="font-mono font-bold text-muted-foreground">{condition.type === 'playerDistance' ? '' : condition.operator}</span>
                         <span className="font-bold">
-                          {condition.type === 'playerRole' ? (roles.find(r => r.id === condition.roleId)?.name || 'Inconnu') : 
+                          {condition.type === 'playerRole' || condition.type === 'callOrderRole' ? (roles.find(r => r.id === condition.roleId)?.name || 'Inconnu') : 
                             condition.type === 'playerTag' ? (tags.find((t: any) => t.id === condition.tagId)?.name || 'Inconnu') :
                             condition.type === 'playerPastille' ? (condition.pastilleIcon || 'Icon') :
                             condition.type === 'playerSelection' || condition.type === 'playerSelectionRole' || condition.type === 'playerSelectionTag' || condition.type === 'playerSelectionPastille' ? (
