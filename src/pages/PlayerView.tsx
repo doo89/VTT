@@ -47,6 +47,24 @@ export const PlayerView: React.FC = () => {
   const matchedPlayerIdRef = useRef<string | null>(null);
   const channelRef = useRef<any>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [smartphoneCountdown, setSmartphoneCountdown] = useState<any>(null);
+
+  // Local timer for smartphone countdown
+  useEffect(() => {
+    if (!smartphoneCountdown?.isActive || smartphoneCountdown.remaining <= 0) return;
+
+    const timer = setInterval(() => {
+      setSmartphoneCountdown((prev: any) => {
+        if (!prev || prev.remaining <= 0) {
+          clearInterval(timer);
+          return prev ? { ...prev, isActive: false } : null;
+        }
+        return { ...prev, remaining: prev.remaining - 1 };
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [smartphoneCountdown?.isActive, smartphoneCountdown?.duration]);
 
   const dismissNote = () => {
     if (!localPlayer || !channelRef.current) return;
@@ -139,6 +157,7 @@ export const PlayerView: React.FC = () => {
         setCycleMode(data.cycleMode || 'dayNight');
         setDisplaySettings(data.displaySettings || null);
         setWiki(data.wiki || null);
+        setSmartphoneCountdown((data as any).smartphoneCountdown || null);
         
         // Initial light mode from GM settings if not already toggled by user
         if (data.displaySettings?.wikiLightMode !== undefined) {
@@ -350,6 +369,33 @@ export const PlayerView: React.FC = () => {
 
   return (
     <div className={`h-screen w-screen text-zinc-50 flex flex-col p-4 md:p-8 max-w-md mx-auto relative overflow-hidden transition-colors duration-1000 ${(isNight && cycleMode === 'dayNight') ? 'bg-zinc-950' : 'bg-zinc-900'}`}>
+      {/* Countdown Overlay */}
+      {smartphoneCountdown?.isActive && smartphoneCountdown.remaining > 0 && (
+        <div className="fixed top-20 left-4 right-4 z-[200] bg-zinc-900/95 backdrop-blur-md border border-indigo-500/50 rounded-2xl p-4 shadow-2xl animate-in slide-in-from-top-10 duration-500 ring-1 ring-white/5">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Action en cours</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-indigo-300 font-mono font-bold text-lg">
+                <Clock size={16} />
+                {Math.floor(smartphoneCountdown.remaining / 60)}:{(smartphoneCountdown.remaining % 60).toString().padStart(2, '0')}
+              </div>
+            </div>
+            {smartphoneCountdown.message && (
+              <p className="text-sm font-bold text-white leading-tight">{smartphoneCountdown.message}</p>
+            )}
+            <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden mt-1">
+              <div 
+                className="h-full bg-indigo-500 transition-all duration-1000 ease-linear"
+                style={{ width: `${(smartphoneCountdown.remaining / smartphoneCountdown.duration) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between border-b border-zinc-800 pb-4 mb-6 z-10">
         <div className="flex flex-col">

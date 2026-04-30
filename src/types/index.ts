@@ -322,6 +322,8 @@ export interface ActionEffect {
   roleId?: string;
   teamId?: string;
   roleTeamId?: string;
+  showCountdown?: boolean;
+  countdownMessage?: string;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole';
@@ -402,6 +404,12 @@ export interface GameState {
     x: number;
     y: number;
   };
+  smartphoneCountdown: {
+    duration: number;
+    remaining: number;
+    message: string;
+    isActive: boolean;
+  } | null;
   soundboard: SoundboardState;
   wiki: WikiState;
   checklistState: ChecklistState;

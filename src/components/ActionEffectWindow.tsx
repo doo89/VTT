@@ -26,6 +26,8 @@ export const ActionEffectWindow: React.FC = () => {
   const [roleId, setRoleId] = useState<string>('');
   const [teamId, setTeamId] = useState<string>('unchanged');
   const [roleTeamId, setRoleTeamId] = useState<string>('unchanged');
+  const [showCountdown, setShowCountdown] = useState(false);
+  const [countdownMessage, setCountdownMessage] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -45,6 +47,8 @@ export const ActionEffectWindow: React.FC = () => {
         setRoleId(effect.roleId || (roles.length > 0 ? roles[0].id : ''));
         setTeamId(effect.teamId || 'unchanged');
         setRoleTeamId(effect.roleTeamId || 'unchanged');
+        setShowCountdown(effect.showCountdown || false);
+        setCountdownMessage(effect.countdownMessage || '');
       }
     } else {
       setType('deleteAllTags');
@@ -57,6 +61,8 @@ export const ActionEffectWindow: React.FC = () => {
       setRoleId(roles.length > 0 ? roles[0].id : '');
       setTeamId('unchanged');
       setRoleTeamId('unchanged');
+      setShowCountdown(false);
+      setCountdownMessage('');
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -106,7 +112,9 @@ export const ActionEffectWindow: React.FC = () => {
       tagId: (type === 'assignTagToRole' || type === 'removeTagFromRole') ? tagId : undefined,
       roleId: (type === 'assignTagToRole' || type === 'removeTagFromRole') ? roleId : undefined,
       teamId: type === 'assignTeam' ? teamId : undefined,
-      roleTeamId: type === 'assignTeam' ? roleTeamId : undefined
+      roleTeamId: type === 'assignTeam' ? roleTeamId : undefined,
+      showCountdown: type === 'wait' ? showCountdown : undefined,
+      countdownMessage: type === 'wait' ? countdownMessage : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -221,16 +229,46 @@ export const ActionEffectWindow: React.FC = () => {
           </div>
 
           {type === 'wait' && (
-            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Durée (secondes)</label>
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={value}
-                onChange={(e) => setValue(Number(e.target.value))}
-                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
-              />
+            <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Durée (secondes)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => setValue(Number(e.target.value))}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                />
+              </div>
+              
+              <div className="flex flex-col gap-2 pt-1 border-t border-indigo-500/10 mt-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${showCountdown ? 'bg-indigo-500 border-indigo-500' : 'border-border group-hover:border-indigo-500/50'}`}>
+                    {showCountdown && <Check size={12} className="text-white" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={showCountdown}
+                    onChange={(e) => setShowCountdown(e.target.checked)}
+                    className="hidden"
+                  />
+                  <span className="text-xs font-medium">Compte à rebours sur smartphone</span>
+                </label>
+
+                {showCountdown && (
+                  <div className="flex flex-col gap-1.5 animate-in slide-in-from-top-1">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Message sur smartphone</label>
+                    <input
+                      type="text"
+                      value={countdownMessage}
+                      onChange={(e) => setCountdownMessage(e.target.value)}
+                      placeholder="Ex: Fin du vote dans..."
+                      className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

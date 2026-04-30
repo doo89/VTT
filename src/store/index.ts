@@ -137,6 +137,7 @@ interface VttStore extends GameState {
   // Smartphone Action Popups for GM
   smartphoneActionMessage: { playerName: string, message: string } | null;
   setSmartphoneActionMessage: (message: { playerName: string, message: string } | null) => void;
+  setSmartphoneCountdown: (countdown: GameState['smartphoneCountdown']) => void;
   // Custom Popups
   addCustomPopup: (popup: Omit<CustomPopup, 'id'>) => void;
   updateCustomPopup: (id: string, updates: Partial<CustomPopup>) => void;
@@ -185,6 +186,7 @@ export const initialState = {
     x: 100,
     y: 100,
   },
+  smartphoneCountdown: null,
   soundboard: {
     cols: 4,
     rows: 3,
@@ -652,6 +654,7 @@ export const useVttStore = create<VttStore>()(
 
         // Smartphone action message
         setSmartphoneActionMessage: (message) => set({ smartphoneActionMessage: message }),
+        setSmartphoneCountdown: (countdown) => set({ smartphoneCountdown: countdown }),
 
         // Logs
         addLog: (message, type) => set((state) => {
@@ -1002,6 +1005,15 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'wait') {
                   hasWait = true;
                   waitTime = effect.value || 0;
+                  
+                  if (effect.showCountdown) {
+                    state.setSmartphoneCountdown({
+                      duration: waitTime,
+                      remaining: waitTime,
+                      message: effect.countdownMessage || '',
+                      isActive: true
+                    });
+                  }
                   break;
                 }
                 if (effect.type === 'deleteAllTags') nextMarkers = [];
@@ -1262,7 +1274,13 @@ export const useVttStore = create<VttStore>()(
               });
               
               if (hasWait) {
-                setTimeout(() => run(remaining, currentEffectIndex + 1), waitTime * 1000);
+                const waitEffect = effectsToRun[currentEffectIndex];
+                setTimeout(() => {
+                  if (waitEffect.showCountdown) {
+                    state.setSmartphoneCountdown(null);
+                  }
+                  run(remaining, currentEffectIndex + 1);
+                }, waitTime * 1000);
               } else if (remaining > 1) {
                 setTimeout(() => run(remaining - 1, 0), (action.intervalSeconds || 5) * 1000);
               } else {
