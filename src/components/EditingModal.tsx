@@ -48,6 +48,7 @@ export const TAG_ICONS = [
 export const EditingModal: React.FC = () => {
   const { editingEntity, setEditingEntity, players, playerTemplates, roles, teams, tags, tagCategories, markers, soundboard, handouts, actions, updatePlayer, updatePlayerTemplate, updateRole, updateTeam, updateTagModel, updateTagCategory, updateMarker, updateSoundButton, removeSoundButton, addLog } = useVttStore();
   const [activeTagTab, setActiveTagTab] = React.useState<'general' | 'appearance' | 'fields' | 'container' | 'smartphone'>('general');
+  const [activeRoleTab, setActiveRoleTab] = React.useState<'general' | 'appearance' | 'tags'>('general');
   const [expandedContainerCategories, setExpandedContainerCategories] = React.useState<Record<string, boolean>>({});
   const [isSmartphoneFiltersExpanded, setIsSmartphoneFiltersExpanded] = React.useState(false);
 
@@ -72,6 +73,7 @@ export const EditingModal: React.FC = () => {
   // Reset tab when editing entity changes
   React.useEffect(() => {
     setActiveTagTab('general');
+    setActiveRoleTab('general');
     setIsSmartphoneFiltersExpanded(false);
     
     if (editingEntity?.type === 'playerNotes') {
@@ -444,225 +446,252 @@ export const EditingModal: React.FC = () => {
 
     entityTitle = `Modifier Rôle: ${role.name}`;
     entityContent = (
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Nom</label>
-          <input
-            type="text"
-            value={role.name}
-            onChange={(e) => updateRole(role.id, { name: e.target.value })}
-            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          />
+      <div className="flex flex-col h-full w-full">
+        {/* Tabs */}
+        <div className="flex border-b border-border mb-4 sticky top-0 bg-card z-10 shrink-0">
+          <button
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeRoleTab === 'general' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+            onClick={() => setActiveRoleTab('general')}
+          >
+            Général
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeRoleTab === 'appearance' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+            onClick={() => setActiveRoleTab('appearance')}
+          >
+            Apparence
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeRoleTab === 'tags' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+            onClick={() => setActiveRoleTab('tags')}
+          >
+            Tags
+          </button>
         </div>
-        <div className="flex gap-4">
-          <div className="flex flex-col gap-1 flex-1">
-            <label className="text-sm font-medium">Vies</label>
-            <input
-              type="number"
-              value={role.lives}
-              onChange={(e) => updateRole(role.id, { lives: parseInt(e.target.value) || 0 })}
-              className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Couleur</label>
-            <ColorPicker
-              color={role.color}
-              onChange={(c) => updateRole(role.id, { color: c })}
-              label="Couleur"
-              className="!w-10 !h-10"
-            />
-          </div>
-        </div>
-        <div className="flex items-center gap-2 mt-2">
-            <input
-              type="checkbox"
-              id="unique-role-edit"
-              checked={role.isUnique}
-              onChange={(e) => updateRole(role.id, { isUnique: e.target.checked })}
-              className="w-4 h-4 rounded border-border text-primary focus:ring-ring cursor-pointer"
-            />
-            <label htmlFor="unique-role-edit" className="text-sm font-medium cursor-pointer">
-              Rôle Unique (un seul joueur peut l'avoir)
-            </label>
-          </div>
 
-          {!role.isUnique && (
-            <div className="ml-6 flex flex-col gap-3 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
-              <div className="flex items-center gap-3">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Par défaut:</label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="number"
-                    min="0"
-                    value={role.defaultCount ?? role.distributionQuantity ?? 1}
-                    onChange={(e) => updateRole(role.id, { defaultCount: parseInt(e.target.value) || 0, distributionQuantity: parseInt(e.target.value) || 0 })}
-                    className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
-                  />
-                  <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="isFiller-edit"
-                        checked={role.isFiller || false}
-                        onChange={(e) => updateRole(role.id, { isFiller: e.target.checked })}
-                        className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
-                      />
-                      <label htmlFor="isFiller-edit" className="text-[11px] font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-                        Compléter avec
-                      </label>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="isMinMandatory-edit"
-                        checked={role.isMinMandatory || false}
-                        onChange={(e) => updateRole(role.id, { isMinMandatory: e.target.checked })}
-                        className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
-                      />
-                      <label htmlFor="isMinMandatory-edit" className="text-[11px] font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-                        Minimum obligatoire
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Minimum:</label>
+        <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
+          {activeRoleTab === 'general' && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Nom</label>
                 <input
-                  type="number"
-                  min="0"
-                  value={role.minCount ?? 0}
-                  onChange={(e) => updateRole(role.id, { minCount: parseInt(e.target.value) || 0 })}
-                  className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
+                  type="text"
+                  value={role.name}
+                  onChange={(e) => updateRole(role.id, { name: e.target.value })}
+                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 />
               </div>
-              <div className="flex items-center gap-3">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Maximum:</label>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Équipe (réelle)</label>
+                <select
+                  value={role.teamId || ''}
+                  onChange={(e) => updateRole(role.id, { teamId: e.target.value || null })}
+                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="">-- Aucune --</option>
+                  {teams.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-sm font-medium">Vies</label>
                 <input
                   type="number"
-                  min="0"
-                  value={role.maxCount ?? 99}
-                  onChange={(e) => updateRole(role.id, { maxCount: parseInt(e.target.value) || 0 })}
-                  className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
+                  value={role.lives}
+                  onChange={(e) => updateRole(role.id, { lives: parseInt(e.target.value) || 0 })}
+                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="checkbox"
+                  id="unique-role-edit"
+                  checked={role.isUnique}
+                  onChange={(e) => updateRole(role.id, { isUnique: e.target.checked })}
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-ring cursor-pointer"
+                />
+                <label htmlFor="unique-role-edit" className="text-sm font-medium cursor-pointer">
+                  Rôle Unique (un seul joueur peut l'avoir)
+                </label>
+              </div>
+
+              {!role.isUnique && (
+                <div className="ml-6 flex flex-col gap-3 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Par défaut:</label>
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="number"
+                        min="0"
+                        value={role.defaultCount ?? role.distributionQuantity ?? 1}
+                        onChange={(e) => updateRole(role.id, { defaultCount: parseInt(e.target.value) || 0, distributionQuantity: parseInt(e.target.value) || 0 })}
+                        className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
+                      />
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="isFiller-edit"
+                            checked={role.isFiller || false}
+                            onChange={(e) => updateRole(role.id, { isFiller: e.target.checked })}
+                            className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
+                          />
+                          <label htmlFor="isFiller-edit" className="text-[11px] font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                            Compléter avec
+                          </label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="isMinMandatory-edit"
+                            checked={role.isMinMandatory || false}
+                            onChange={(e) => updateRole(role.id, { isMinMandatory: e.target.checked })}
+                            className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
+                          />
+                          <label htmlFor="isMinMandatory-edit" className="text-[11px] font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                            Minimum obligatoire
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Minimum:</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={role.minCount ?? 0}
+                      onChange={(e) => updateRole(role.id, { minCount: parseInt(e.target.value) || 0 })}
+                      className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Maximum:</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={role.maxCount ?? 99}
+                      onChange={(e) => updateRole(role.id, { maxCount: parseInt(e.target.value) || 0 })}
+                      className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Description libre</label>
+                <textarea
+                  value={role.description || ''}
+                  onChange={(e) => updateRole(role.id, { description: e.target.value })}
+                  placeholder="Ex: Si tué la nuit, ressuscite le lendemain..."
+                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[80px]"
                 />
               </div>
             </div>
           )}
 
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Image du rôle</label>
-            <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
-              <div className="flex flex-col gap-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const url = await uploadFileToStorage(file);
-                      if (url) {
-                        updateRole(role.id, { imageUrl: url });
-                      }
-                    }
-                  }}
-                  className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
-                />
-                <input
-                  type="text"
-                  value={role.imageUrl || ''}
-                  onChange={(e) => updateRole(role.id, { imageUrl: e.target.value })}
-                  placeholder="Ou collez l'URL d'une image ici..."
-                  className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring flex-1"
+          {activeRoleTab === 'appearance' && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Couleur</label>
+                <ColorPicker
+                  color={role.color}
+                  onChange={(c) => updateRole(role.id, { color: c })}
+                  label="Couleur"
+                  className="!w-10 !h-10"
                 />
               </div>
-
-              {role.imageUrl && (
-                <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
-                  <img src={role.imageUrl} alt="Preview" className="w-14 h-14 rounded-md object-cover border-2 border-primary/20 shadow-sm" />
-                  <div className="flex flex-col flex-1">
-                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu & Style Smartphone</span>
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={role.smartphoneImageStyle || 'circle'}
-                        onChange={(e) => updateRole(role.id, { smartphoneImageStyle: e.target.value as any })}
-                        className="bg-background border border-border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1"
-                      >
-                        <option value="circle">Rond</option>
-                        <option value="square">Carré</option>
-                        <option value="original">Taille réelle</option>
-                        <option value="background">Fond de carte</option>
-                      </select>
-                      <button
-                        onClick={async () => {
-                          if (role.imageUrl) await deleteFileFromStorage(role.imageUrl);
-                          updateRole(role.id, { imageUrl: undefined });
-                        }}
-                        className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
-                        title="Supprimer l'image"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Image du rôle</label>
+                <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = await uploadFileToStorage(file);
+                          if (url) {
+                            updateRole(role.id, { imageUrl: url });
+                          }
+                        }
+                      }}
+                      className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                    />
+                    <input
+                      type="text"
+                      value={role.imageUrl || ''}
+                      onChange={(e) => updateRole(role.id, { imageUrl: e.target.value })}
+                      placeholder="Ou collez l'URL d'une image ici..."
+                      className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring flex-1"
+                    />
                   </div>
+
+                  {role.imageUrl && (
+                    <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
+                      <img src={role.imageUrl} alt="Preview" className="w-14 h-14 rounded-md object-cover border-2 border-primary/20 shadow-sm" />
+                      <div className="flex flex-col flex-1">
+                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu & Style Smartphone</span>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={role.smartphoneImageStyle || 'circle'}
+                            onChange={(e) => updateRole(role.id, { smartphoneImageStyle: e.target.value as any })}
+                            className="bg-background border border-border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1"
+                          >
+                            <option value="circle">Rond</option>
+                            <option value="square">Carré</option>
+                            <option value="original">Taille réelle</option>
+                            <option value="background">Fond de carte</option>
+                          </select>
+                          <button
+                            onClick={async () => {
+                              if (role.imageUrl) await deleteFileFromStorage(role.imageUrl);
+                              updateRole(role.id, { imageUrl: undefined });
+                            }}
+                            className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
+                            title="Supprimer l'image"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Équipe (réelle)</label>
-            <select
-              value={role.teamId || ''}
-              onChange={(e) => updateRole(role.id, { teamId: e.target.value || null })}
-              className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="">-- Aucune --</option>
-              {teams.map(t => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Description libre</label>
-            <textarea
-              value={role.description || ''}
-              onChange={(e) => updateRole(role.id, { description: e.target.value })}
-              placeholder="Ex: Si tué la nuit, ressuscite le lendemain..."
-              className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[80px]"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium">Tags attachés</label>
-            {tags.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">Aucun tag défini dans le jeu.</p>
-            ) : (
-              <select
-                multiple
-                value={(role.tags || []).map(t => t.id)}
-                onChange={(e) => {
-                  const options = Array.from(e.target.selectedOptions);
-                  const selectedTagIds = options.map(o => o.value);
-                  const newTags = tags.filter(t => selectedTagIds.includes(t.id));
-                  updateRole(role.id, { tags: newTags });
-                }}
-                className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-ring focus:border-input outline-none h-24 custom-scrollbar"
-                title="Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs tags."
-              >
-                {tags.map(tag => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            <span className="text-[10px] text-muted-foreground leading-tight mt-1">
-              Maintenez <kbd className="bg-muted px-1 rounded">Ctrl</kbd> ou <kbd className="bg-muted px-1 rounded">Cmd</kbd> pour sélectionner plusieurs tags.
-            </span>
-          </div>
-
+          {activeRoleTab === 'tags' && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Tags attachés</label>
+                {tags.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Aucun tag défini dans le jeu.</p>
+                ) : (
+                  <select
+                    multiple
+                    value={(role.tags || []).map(t => t.id)}
+                    onChange={(e) => {
+                      const options = Array.from(e.target.selectedOptions);
+                      const selectedTagIds = options.map(o => o.value);
+                      const newTags = tags.filter(t => selectedTagIds.includes(t.id));
+                      updateRole(role.id, { tags: newTags });
+                    }}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[150px] custom-scrollbar"
+                  >
+                    {tags.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs tags.</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   } else if (editingEntity.type === 'team') {
@@ -2426,10 +2455,11 @@ export const EditingModal: React.FC = () => {
   }
 
   const isWiderModal = editingEntity.type === 'tagModel' || editingEntity.type === 'tagInstance';
+  const isRoleModal = editingEntity.type === 'role';
 
   return (
     <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-      <div className={`bg-card w-full ${isWiderModal ? 'max-w-2xl min-h-[400px]' : 'max-w-md'} rounded-xl shadow-xl border border-border flex flex-col overflow-hidden`}>
+      <div className={`bg-card w-full ${isRoleModal ? 'max-w-3xl min-h-[500px]' : isWiderModal ? 'max-w-2xl min-h-[400px]' : 'max-w-md'} rounded-xl shadow-xl border border-border flex flex-col overflow-hidden max-h-[90vh]`}>
         <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
           <h2 className="font-bold text-lg">{entityTitle}</h2>
           <button
