@@ -403,6 +403,7 @@ export const ActionCreatorWindow: React.FC = () => {
                        effect.type === 'removeTagFromRole' ? `Enlever Tag ${tags.find(t => t.id === effect.tagId)?.name || ''} au Rôle ${roles.find(r => r.id === effect.roleId)?.name || ''}` :
                        effect.type === 'assignTeam' ? `Assigner Équipe: ${effect.teamId ? (teams.find(t => t.id === effect.teamId)?.name || 'Inconnue') : 'Aucune'}` :
                        effect.type === 'selectCallOrderPlayer' ? 'Sélectionner joueur $Ordre' :
+                       effect.type === 'wait' ? `Attendre ${effect.value || 0} seconde(s)` :
                        effect.type === 'modifyVariable' ? `${effect.variable} ${effect.operator} ${effect.value}` :
                        effect.type}
                     </span>

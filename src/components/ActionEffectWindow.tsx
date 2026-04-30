@@ -98,7 +98,7 @@ export const ActionEffectWindow: React.FC = () => {
       enabled,
       variable: type === 'modifyVariable' ? variable : undefined,
       operator: type === 'modifyVariable' ? operator : undefined,
-      value: type === 'modifyVariable' ? value : undefined,
+      value: (type === 'modifyVariable' || type === 'wait') ? value : undefined,
       targetActionId: type === 'triggerAction' ? targetActionId : undefined,
       tagId: (type === 'assignTagToRole' || type === 'removeTagFromRole') ? tagId : undefined,
       roleId: (type === 'assignTagToRole' || type === 'removeTagFromRole') ? roleId : undefined,
@@ -212,8 +212,23 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
               <option value="deleteAllTags">Supprimer tous les tags dans la salle</option>
               <option value="deleteAllPlayerTags">Supprimer tous les tags des joueurs</option>
+              <option value="wait">Attendre x secondes</option>
             </select>
           </div>
+
+          {type === 'wait' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Durée (secondes)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={value}
+                onChange={(e) => setValue(Number(e.target.value))}
+                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+              />
+            </div>
+          )}
 
           {type === 'triggerAction' && (
             <div className="flex flex-col gap-1.5 p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg animate-in slide-in-from-top-2">

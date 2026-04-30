@@ -681,7 +681,7 @@ export const useVttStore = create<VttStore>()(
         setPendingActionEnabled: (enabled: boolean) => set({ pendingActionEnabled: enabled }),
         setPendingElseActionId: (id: string | null) => set({ pendingElseActionId: id }),
         executeAction: (id, initialContext, depth = 0) => {
-          const run = (remaining: number) => {
+          const run = (remaining: number, startEffectIndex: number = 0) => {
             if (depth > 5) {
               set((state: any) => {
                 state.addLog(`Action annulée : profondeur maximale atteinte (SINON)`, 'system');
@@ -967,16 +967,18 @@ export const useVttStore = create<VttStore>()(
                 return { success: finalResult, failReason: finalResult ? undefined : andGroups.map(g => `(${g.label})`).join(' OU ') };
               };
 
-              const evaluation = evaluate(action.conditions || []);
-              if (!evaluation.success) {
-                state.addLog(`Action "${action.name}" annulée : condition non remplie (${evaluation.failReason})`, 'system');
-                if (action.elseActionId && depth < 5) {
-                  setTimeout(() => {
-                    const currentState = (useVttStore.getState() as any);
-                    currentState.executeAction(action.elseActionId, initialContext, depth + 1);
-                  }, 100);
+              if (startEffectIndex === 0) {
+                const evaluation = evaluate(action.conditions || []);
+                if (!evaluation.success) {
+                  state.addLog(`Action "${action.name}" annulée : condition non remplie (${evaluation.failReason})`, 'system');
+                  if (action.elseActionId && depth < 5) {
+                    setTimeout(() => {
+                      const currentState = (useVttStore.getState() as any);
+                      currentState.executeAction(action.elseActionId, initialContext, depth + 1);
+                    }, 100);
+                  }
+                  return {};
                 }
-                return {};
               }
               
               let nextMarkers = [...state.markers];
@@ -987,8 +989,20 @@ export const useVttStore = create<VttStore>()(
               let nextCycleMode = state.cycleMode;
               let effectUpdates: any = {};
               
-              action.effects?.forEach((effect: any) => {
-                if (!effect.enabled) return;
+              const effectsToRun = action.effects || [];
+              let currentEffectIndex = startEffectIndex;
+              let hasWait = false;
+              let waitTime = 0;
+              
+              for (; currentEffectIndex < effectsToRun.length; currentEffectIndex++) {
+                const effect = effectsToRun[currentEffectIndex];
+                if (!effect.enabled) continue;
+                
+                if (effect.type === 'wait') {
+                  hasWait = true;
+                  waitTime = effect.value || 0;
+                  break;
+                }
                 if (effect.type === 'deleteAllTags') nextMarkers = [];
                 if (effect.type === 'nextPhase') phaseShift++;
                 if (effect.type === 'previousPhase') phaseShift--;
@@ -1196,7 +1210,7 @@ export const useVttStore = create<VttStore>()(
                     effectUpdates.cycleNumber = Math.max(0, nextVal);
                   }
                 }
-              });
+              }
 
               const newState: any = { 
                 ...effectUpdates,
@@ -1231,16 +1245,20 @@ export const useVttStore = create<VttStore>()(
                 if (a.id === id) {
                   return { 
                     ...a, 
-                    currentRepeatExecution: remaining > 1 ? remaining - 1 : 0,
-                    enabled: (action.once && remaining === 1) ? false : a.enabled,
-                    isExecuted: (action.once && remaining === 1) ? true : a.isExecuted
+                    currentRepeatExecution: hasWait ? a.currentRepeatExecution : (remaining > 1 ? remaining - 1 : 0),
+                    enabled: (!hasWait && action.once && remaining === 1) ? false : a.enabled,
+                    isExecuted: (!hasWait && action.once && remaining === 1) ? true : a.isExecuted
                   };
                 }
                 return a;
               });
               
-              if (remaining > 1) {
-                setTimeout(() => run(remaining - 1), (action.intervalSeconds || 5) * 1000);
+              if (hasWait) {
+                setTimeout(() => run(remaining, currentEffectIndex + 1), waitTime * 1000);
+              } else if (remaining > 1) {
+                setTimeout(() => run(remaining - 1, 0), (action.intervalSeconds || 5) * 1000);
+              } else {
+                newState.activeActionId = null;
               }
               
               return newState;

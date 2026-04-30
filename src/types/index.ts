@@ -307,7 +307,8 @@ export type ActionEffectType =
   | 'triggerAction'
   | 'assignTagToRole'
   | 'removeTagFromRole'
-  | 'assignTeam';
+  | 'assignTeam'
+  | 'wait';
 
 export interface ActionEffect {
   id: string;
