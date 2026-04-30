@@ -983,6 +983,7 @@ export const useVttStore = create<VttStore>()(
               
               let nextMarkers = [...state.markers];
               let nextPlayers = [...state.players];
+              let nextRoles = [...state.roles];
               let phaseShift = 0;
               let resetValue: number | null = null;
               let nextDisplaySettings = { ...state.displaySettings };
@@ -1059,7 +1060,13 @@ export const useVttStore = create<VttStore>()(
                   const player = actionContext['$Joueur'];
                   if (player) {
                     const ids = player._isMultiple ? player._ids : [player.id];
-                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, teamId: effect.teamId || null } : p);
+                    if (effect.teamId !== 'unchanged' && effect.teamId !== undefined) {
+                      nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, teamId: effect.teamId || null } : p);
+                    }
+                    if (effect.roleTeamId !== 'unchanged' && effect.roleTeamId !== undefined) {
+                      const roleIdsToUpdate = nextPlayers.filter(p => ids.includes(p.id)).map(p => p.roleId).filter(id => id !== null);
+                      nextRoles = nextRoles.map(r => roleIdsToUpdate.includes(r.id) ? { ...r, teamId: effect.roleTeamId || null } : r);
+                    }
                   }
                 }
                 if (effect.type === 'selectPlayer') {
@@ -1216,6 +1223,7 @@ export const useVttStore = create<VttStore>()(
                 ...effectUpdates,
                 markers: nextMarkers, 
                 players: nextPlayers, 
+                roles: nextRoles,
                 displaySettings: nextDisplaySettings,
                 cycleMode: nextCycleMode 
               };

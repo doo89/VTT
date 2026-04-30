@@ -321,6 +321,7 @@ export interface ActionEffect {
   tagId?: string;
   roleId?: string;
   teamId?: string;
+  roleTeamId?: string;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole';

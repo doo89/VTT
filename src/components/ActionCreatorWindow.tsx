@@ -401,7 +401,7 @@ export const ActionCreatorWindow: React.FC = () => {
                        effect.type === 'triggerAction' ? `Exécuter: ${actions.find(a => a.id === effect.targetActionId)?.name || 'Action inconnue'}` :
                        effect.type === 'assignTagToRole' ? `Assigner Tag ${tags.find(t => t.id === effect.tagId)?.name || ''} au Rôle ${roles.find(r => r.id === effect.roleId)?.name || ''}` :
                        effect.type === 'removeTagFromRole' ? `Enlever Tag ${tags.find(t => t.id === effect.tagId)?.name || ''} au Rôle ${roles.find(r => r.id === effect.roleId)?.name || ''}` :
-                       effect.type === 'assignTeam' ? `Assigner Équipe: ${effect.teamId ? (teams.find(t => t.id === effect.teamId)?.name || 'Inconnue') : 'Aucune'}` :
+                       effect.type === 'assignTeam' ? `Assigner Équipe: Joueur(${effect.teamId === 'unchanged' ? 'Inchangé' : effect.teamId ? (teams.find(t => t.id === effect.teamId)?.name || 'Inconnue') : 'Aucune'}) Rôle(${effect.roleTeamId === 'unchanged' ? 'Inchangé' : effect.roleTeamId ? (teams.find(t => t.id === effect.roleTeamId)?.name || 'Inconnue') : 'Aucune'})` :
                        effect.type === 'selectCallOrderPlayer' ? 'Sélectionner joueur $Ordre' :
                        effect.type === 'wait' ? `Attendre ${effect.value || 0} seconde(s)` :
                        effect.type === 'modifyVariable' ? `${effect.variable} ${effect.operator} ${effect.value}` :
