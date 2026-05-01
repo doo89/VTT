@@ -603,65 +603,157 @@ export const EditingModal: React.FC = () => {
           )}
 
           {activeRoleTab === 'appearance' && (
-            <div className="flex flex-col gap-4">
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Image du rôle</label>
-                <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
-                  <div className="flex flex-col gap-2">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const url = await uploadFileToStorage(file);
-                          if (url) {
-                            updateRole(role.id, { imageUrl: url });
+            <div className="grid grid-cols-2 gap-6 h-full min-h-[450px]">
+              {/* Left Column: Settings */}
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium">Image du rôle</label>
+                  <div className="flex flex-col gap-3 p-4 bg-muted/30 rounded-xl border border-border/50">
+                    <div className="flex flex-col gap-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = await uploadFileToStorage(file);
+                            if (url) {
+                              updateRole(role.id, { imageUrl: url });
+                            }
                           }
-                        }
-                      }}
-                      className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={role.imageUrl || ''}
-                      onChange={(e) => updateRole(role.id, { imageUrl: e.target.value })}
-                      placeholder="Ou collez l'URL d'une image ici..."
-                      className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring flex-1"
-                    />
-                  </div>
-
-                  {role.imageUrl && (
-                    <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
-                      <img src={role.imageUrl} alt="Preview" className="w-14 h-14 rounded-md object-cover border-2 border-primary/20 shadow-sm" />
-                      <div className="flex flex-col flex-1">
-                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu & Style Smartphone</span>
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={role.smartphoneImageStyle || 'circle'}
-                            onChange={(e) => updateRole(role.id, { smartphoneImageStyle: e.target.value as any })}
-                            className="bg-background border border-border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1"
-                          >
-                            <option value="circle">Rond</option>
-                            <option value="square">Carré</option>
-                            <option value="original">Taille réelle</option>
-                            <option value="background">Fond de carte</option>
-                          </select>
+                        }}
+                        className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                      />
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={role.imageUrl || ''}
+                          onChange={(e) => updateRole(role.id, { imageUrl: e.target.value })}
+                          placeholder="Ou collez l'URL d'une image ici..."
+                          className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring flex-1"
+                        />
+                        {role.imageUrl && (
                           <button
                             onClick={async () => {
                               if (role.imageUrl) await deleteFileFromStorage(role.imageUrl);
                               updateRole(role.id, { imageUrl: undefined });
                             }}
-                            className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
+                            className="flex items-center justify-center p-2 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded-md transition-colors"
                             title="Supprimer l'image"
                           >
-                            <Trash2 size={12} />
+                            <Trash2 size={14} />
                           </button>
-                        </div>
+                        )}
                       </div>
                     </div>
-                  )}
+
+                    <div className="pt-3 border-t border-border/30 flex flex-col gap-2">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Style d'affichage</label>
+                      <select
+                        value={role.smartphoneImageStyle || 'circle'}
+                        onChange={(e) => updateRole(role.id, { smartphoneImageStyle: e.target.value as any })}
+                        className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                      >
+                        <option value="circle">Rond</option>
+                        <option value="square">Carré</option>
+                        <option value="original">Taille réelle</option>
+                        <option value="background">Fond de carte</option>
+                      </select>
+                      <p className="text-[10px] text-muted-foreground italic">
+                        Définit comment l'image sera affichée sur l'écran du joueur.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Smartphone Preview */}
+              <div className="flex flex-col gap-3">
+                <label className="text-sm font-medium text-center flex items-center justify-center gap-2">
+                  <icons.Smartphone size={14} className="text-primary" />
+                  Aperçu Smartphone
+                </label>
+                
+                <div className="relative mx-auto w-full max-w-[240px] aspect-[9/18] bg-[#09090b] rounded-[40px] border-[8px] border-[#18181b] shadow-2xl overflow-hidden flex flex-col ring-1 ring-white/5">
+                  {/* Smartphone Notch */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-24 bg-[#18181b] rounded-b-2xl z-20" />
+                  
+                  {/* Smartphone Screen Content */}
+                  <div className="flex-1 flex flex-col p-4 pt-10 overflow-hidden relative">
+                    {/* Mock Header */}
+                    <div className="flex flex-col gap-0.5 mb-4 opacity-50">
+                      <div className="h-1.5 w-12 bg-zinc-800 rounded-full" />
+                      <div className="h-3 w-20 bg-zinc-700 rounded-full" />
+                    </div>
+
+                    {/* Mock Role Card (simplified version of PlayerView.tsx) */}
+                    {(() => {
+                      const effectiveStyle = role.smartphoneImageStyle || 'circle';
+                      const team = teams.find(t => t.id === role.teamId);
+                      
+                      return (
+                        <div className="flex-1 flex flex-col items-center bg-[#18181b] rounded-2xl border border-white/5 p-4 shadow-xl overflow-hidden relative">
+                          {team && (
+                            <div 
+                              className="absolute top-0 left-0 w-full h-1" 
+                              style={{ backgroundColor: team.color }}
+                            />
+                          )}
+
+                          {/* Background Image Style */}
+                          {effectiveStyle === 'background' && role.imageUrl && (
+                            <div className="absolute inset-0 z-0 opacity-40">
+                              <img src={role.imageUrl} alt="" className="w-full h-full object-cover blur-sm brightness-50" />
+                            </div>
+                          )}
+
+                          <div className="flex flex-col items-center gap-4 w-full z-10 py-2">
+                            {effectiveStyle !== 'background' && (
+                              <div 
+                                className={`flex items-center justify-center border-4 border-[#09090b] bg-[#09090b] overflow-hidden shadow-lg transition-all ${
+                                  effectiveStyle === 'square' ? 'w-24 h-24 rounded-2xl' :
+                                  effectiveStyle === 'original' ? 'max-w-full rounded-lg' : 
+                                  'w-24 h-24 rounded-full'
+                                }`}
+                                style={{ borderColor: role.color }}
+                              >
+                                {role.imageUrl ? (
+                                  <img src={role.imageUrl} alt="" className={`w-full h-full ${effectiveStyle === 'original' ? 'object-contain' : 'object-cover'}`} />
+                                ) : (
+                                  <icons.UserCircle2 size={40} className="text-zinc-700" />
+                                )}
+                              </div>
+                            )}
+
+                            <div className="text-center flex flex-col gap-1">
+                              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Votre Rôle</span>
+                              <h4 className="text-lg font-black leading-none" style={{ color: role.color || '#fff' }}>
+                                {role.name || 'Nom du Rôle'}
+                              </h4>
+                              {team && (
+                                <div className="inline-flex items-center justify-center px-2 py-0.5 rounded-full mt-1 border border-white/5 bg-black/40">
+                                  <span className="text-[8px] font-bold" style={{ color: team.color }}>{team.name}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="mt-2 pt-2 border-t border-white/5 w-full">
+                              <p className="text-[9px] text-zinc-500 italic text-center leading-relaxed line-clamp-3">
+                                {role.description || 'La description du rôle apparaîtra ici sur le smartphone du joueur...'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Mock Bottom Tabs */}
+                    <div className="mt-auto pt-4 flex justify-around opacity-20">
+                      <div className="h-6 w-6 rounded-full bg-zinc-800" />
+                      <div className="h-6 w-6 rounded-full bg-zinc-800" />
+                      <div className="h-6 w-6 rounded-full bg-zinc-800" />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
