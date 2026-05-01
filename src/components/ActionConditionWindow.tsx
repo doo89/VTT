@@ -21,7 +21,8 @@ export const ActionConditionWindow: React.FC = () => {
     setPendingDelay,
     setPendingRecurring,
     roles,
-    tags
+    tags,
+    teams
   } = useVttStore();
   
   const [type, setType] = useState<ActionConditionType>('day');
@@ -32,6 +33,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [enabled, setEnabled] = useState(true);
   const [roleId, setRoleId] = useState<string | null>(null);
   const [tagId, setTagId] = useState<string | null>(null);
+  const [selectionTeamId, setSelectionTeamId] = useState<string | null>(null);
   const [pastilleIcon, setPastilleIcon] = useState<string | null>(null);
   const [selectionType, setSelectionType] = useState<'first' | 'last' | 'all' | null>('all');
   const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
@@ -66,6 +68,7 @@ export const ActionConditionWindow: React.FC = () => {
         setDistanceFromPlayerId(condition.distanceFromPlayerId || '$Joueur');
         setDistanceTargetRoleId(condition.distanceTargetRoleId || (roles[0]?.id || null));
         setCycleCheckType(condition.cycleCheckType || '$Jour');
+        setSelectionTeamId(condition.selectionTeamId || (teams[0]?.id || null));
       }
     } else {
       setType('day');
@@ -82,6 +85,7 @@ export const ActionConditionWindow: React.FC = () => {
       setDistanceFromPlayerId('$Joueur');
       setDistanceTargetRoleId(roles[0]?.id || null);
       setCycleCheckType('$Jour');
+      setSelectionTeamId(teams[0]?.id || null);
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
 
@@ -134,7 +138,8 @@ export const ActionConditionWindow: React.FC = () => {
       selectionRoleId: (type === 'playerSelectionRole') ? selectionRoleId : null,
       distanceFromPlayerId: isDist ? distanceFromPlayerId : null,
       distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null,
-      cycleCheckType: type === 'cycleCheck' ? cycleCheckType : null
+      cycleCheckType: type === 'cycleCheck' ? cycleCheckType : null,
+      selectionTeamId: type === 'playerSelectionTeam' ? selectionTeamId : null
     };
 
     if (isEditing && actionConditionCreatorState.editingConditionId) {
@@ -1023,6 +1028,71 @@ export const ActionConditionWindow: React.FC = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+            <div className="h-px bg-border/20 mx-2" />
+            
+            {/* Player Selection (Team) */}
+            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerSelectionTeam' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+              <div className="flex flex-col gap-1.5 pb-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+                <div className="flex items-center h-[38px] justify-center">
+                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">3.</span>
+                  <input
+                    type="checkbox"
+                    checked={type === 'playerSelectionTeam' && enabled}
+                    onChange={() => {
+                      if (type !== 'playerSelectionTeam') {
+                        setType('playerSelectionTeam');
+                        setEnabled(true);
+                        setOperator('=');
+                        if (!selectionTeamId && teams.length > 0) setSelectionTeamId(teams[0].id);
+                      } else {
+                        setEnabled(!enabled);
+                      }
+                    }}
+                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 flex-[1.2]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
+                <select
+                  disabled={type !== 'playerSelectionTeam' || !enabled}
+                  value={selectionType || 'all'}
+                  onChange={(e) => setSelectionType(e.target.value as 'first' | 'last' | 'all')}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="first">Le premier joueur (ordre croissant)</option>
+                  <option value="last">Le dernier joueur (ordre décroissant)</option>
+                  <option value="all">Tous les joueurs</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 flex-[0.5]">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
+                <select
+                  disabled={type !== 'playerSelectionTeam' || !enabled}
+                  value={operator}
+                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="=">=</option>
+                  <option value="!=">!=</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Equipe</label>
+                <select
+                  disabled={type !== 'playerSelectionTeam' || !enabled}
+                  value={selectionTeamId || ''}
+                  onChange={(e) => setSelectionTeamId(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="">-- Aucune --</option>
+                  {[...teams].sort((a,b) => a.name.localeCompare(b.name)).map(team => (
+                    <option key={team.id} value={team.id}>{team.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

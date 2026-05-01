@@ -769,6 +769,10 @@ export const useVttStore = create<VttStore>()(
                       const hasPastille = (p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon);
                       if (c.operator === '=') return hasPastille;
                       if (c.operator === '!=') return !hasPastille;
+                    } else if (c.type === 'playerSelectionTeam') {
+                      const isTeam = p.teamId === (c.selectionTeamId || null);
+                      if (c.operator === '=') return isTeam;
+                      if (c.operator === '!=') return !isTeam;
                     }
                     return false;
                   };
@@ -805,7 +809,7 @@ export const useVttStore = create<VttStore>()(
                     return false;
                   }
 
-                  if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
+                  if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille' || c.type === 'playerSelectionTeam') {
                     if (c.selectionType === 'all') {
                       const matchingPlayers = state.players.filter(checkMatching);
                       if (matchingPlayers.length > 0) {
@@ -938,7 +942,7 @@ export const useVttStore = create<VttStore>()(
                   if (c.type === 'playerPastille') {
                     return `Joueur ${c.value} ${c.operator} Pastille ${c.pastilleIcon}`;
                   }
-                  if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille') {
+                  if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille' || c.type === 'playerSelectionTeam') {
                     const selectionLabel = c.selectionType === 'all' ? 'Tous les Joueurs' : (c.selectionType === 'first' ? '1er Joueur' : 'Dernier Joueur');
                     let targetLabel = 'Inconnu';
                     if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
@@ -947,6 +951,8 @@ export const useVttStore = create<VttStore>()(
                       targetLabel = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
                     } else if (c.type === 'playerSelectionPastille') {
                       targetLabel = `Pastille ${c.pastilleIcon}`;
+                    } else if (c.type === 'playerSelectionTeam') {
+                      targetLabel = state.teams.find((t: any) => t.id === c.selectionTeamId)?.name || 'Aucune équipe';
                     }
                     return `${selectionLabel} ${c.operator} ${targetLabel}`;
                   }
