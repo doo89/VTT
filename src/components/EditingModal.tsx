@@ -49,6 +49,7 @@ export const EditingModal: React.FC = () => {
   const { editingEntity, setEditingEntity, players, playerTemplates, roles, teams, tags, tagCategories, markers, soundboard, handouts, actions, updatePlayer, updatePlayerTemplate, updateRole, updateTeam, updateTagModel, updateTagCategory, updateMarker, updateSoundButton, removeSoundButton, addLog } = useVttStore();
   const [activeTagTab, setActiveTagTab] = React.useState<'general' | 'appearance' | 'fields' | 'container' | 'smartphone'>('general');
   const [activeRoleTab, setActiveRoleTab] = React.useState<'general' | 'appearance' | 'tags'>('general');
+  const [tagSearchQuery, setTagSearchQuery] = React.useState('');
   const [expandedContainerCategories, setExpandedContainerCategories] = React.useState<Record<string, boolean>>({});
   const [isSmartphoneFiltersExpanded, setIsSmartphoneFiltersExpanded] = React.useState(false);
 
@@ -762,7 +763,19 @@ export const EditingModal: React.FC = () => {
           {activeRoleTab === 'tags' && (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Tags attachés</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium">Tags attachés</label>
+                  <div className="relative">
+                    <icons.Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Filtrer les tags..."
+                      value={tagSearchQuery}
+                      onChange={(e) => setTagSearchQuery(e.target.value)}
+                      className="bg-input border border-border rounded-md pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring w-48"
+                    />
+                  </div>
+                </div>
                 {tags.length === 0 ? (
                   <p className="text-xs text-muted-foreground italic">Aucun tag défini dans le jeu.</p>
                 ) : (
@@ -771,15 +784,26 @@ export const EditingModal: React.FC = () => {
                     value={(role.tags || []).map(t => t.id)}
                     onChange={(e) => {
                       const options = Array.from(e.target.selectedOptions);
-                      const selectedTagIds = options.map(o => o.value);
-                      const newTags = tags.filter(t => selectedTagIds.includes(t.id));
+                      const selectedVisibleIds = options.map(o => o.value);
+                      
+                      const currentSelectedIds = (role.tags || []).map(t => t.id);
+                      const filteredTags = tags.filter(t => t.name.toLowerCase().includes(tagSearchQuery.toLowerCase()));
+                      const filteredTagIds = filteredTags.map(t => t.id);
+                      
+                      // Keep tags that are selected but NOT currently visible (filtered out)
+                      const selectedHiddenIds = currentSelectedIds.filter(id => !filteredTagIds.includes(id));
+                      
+                      const finalIds = [...selectedHiddenIds, ...selectedVisibleIds];
+                      const newTags = tags.filter(t => finalIds.includes(t.id));
                       updateRole(role.id, { tags: newTags });
                     }}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[150px] custom-scrollbar"
                   >
-                    {tags.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
+                    {tags
+                      .filter(t => t.name.toLowerCase().includes(tagSearchQuery.toLowerCase()))
+                      .map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
                   </select>
                 )}
                 <p className="text-xs text-muted-foreground mt-1">Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs tags.</p>
