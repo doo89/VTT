@@ -711,6 +711,34 @@ export const useVttStore = create<VttStore>()(
                 const activeConditions = (conditions || []).filter(c => c.enabled);
                 if (activeConditions.length === 0) return { success: true };
 
+                const mergeIntoJoueur = (player: any) => {
+                  if (!player) return;
+                  if (!actionContext['$Joueur']) {
+                    actionContext['$Joueur'] = player;
+                    return;
+                  }
+                  
+                  const existing = actionContext['$Joueur'];
+                  const existingIds = existing._isMultiple ? (existing._ids || []) : [existing.id];
+                  const newIds = player._isMultiple ? (player._ids || []) : [player.id];
+                  
+                  const combinedIds = Array.from(new Set([...existingIds, ...newIds]));
+                  if (combinedIds.length === existingIds.length && combinedIds.every(id => existingIds.includes(id))) {
+                    return; 
+                  }
+                  
+                  const allPlayers = state.players.filter((p: any) => combinedIds.includes(p.id));
+                  const names = allPlayers.map((p: any) => p.name).join(', ');
+                  if (allPlayers.length > 0) {
+                    actionContext['$Joueur'] = { 
+                      ...allPlayers[0], 
+                      name: names, 
+                      _isMultiple: true, 
+                      _ids: combinedIds 
+                    };
+                  }
+                };
+
                 const checkSingle = (c: ActionCondition): boolean => {
                   const checkMatching = (p: any): boolean => {
                     const playerTags = p.tags || [];
@@ -771,7 +799,7 @@ export const useVttStore = create<VttStore>()(
                     
                     const targetPlayer = sortedPlayers[targetIndex];
                     if (targetPlayer && checkMatching(targetPlayer)) {
-                      actionContext['$Joueur'] = targetPlayer;
+                      mergeIntoJoueur(targetPlayer);
                       return true;
                     }
                     return false;
@@ -783,7 +811,7 @@ export const useVttStore = create<VttStore>()(
                       if (matchingPlayers.length > 0) {
                         const names = matchingPlayers.map((p: any) => p.name).join(', ');
                         const ids = matchingPlayers.map((p: any) => p.id);
-                        actionContext['$Joueur'] = { ...matchingPlayers[0], name: names, _isMultiple: true, _ids: ids };
+                        mergeIntoJoueur({ ...matchingPlayers[0], name: names, _isMultiple: true, _ids: ids });
                         return true;
                       }
                       return false;
@@ -794,7 +822,7 @@ export const useVttStore = create<VttStore>()(
                     const foundPlayer = sortedPlayers.find(checkMatching);
                     
                     if (foundPlayer) {
-                      actionContext['$Joueur'] = foundPlayer;
+                      mergeIntoJoueur(foundPlayer);
                       return true;
                     }
                     return false;
