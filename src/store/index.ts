@@ -810,8 +810,21 @@ export const useVttStore = create<VttStore>()(
                   }
 
                   if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille' || c.type === 'playerSelectionTeam') {
-                    if (c.selectionType === 'all') {
-                      const matchingPlayers = state.players.filter(checkMatching);
+                    if (c.selectionType === 'all' || c.selectionType === 'callOrder') {
+                      let sourcePlayers = state.players;
+                      if (c.selectionType === 'callOrder') {
+                        sourcePlayers = state.players.filter((p: any) => {
+                          const playerTags = p.tags || [];
+                          const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
+                          const allTags = [...playerTags, ...roleTags];
+                          return allTags.some((tag: any) => {
+                            const order = (state.cycleMode === 'dayNight' && state.isNight) ? tag.callOrderNight : tag.callOrderDay;
+                            return order !== null && order !== undefined && order !== '' && Number(order) === state.callOrderIndex;
+                          });
+                        });
+                      }
+
+                      const matchingPlayers = sourcePlayers.filter(checkMatching);
                       if (matchingPlayers.length > 0) {
                         const names = matchingPlayers.map((p: any) => p.name).join(', ');
                         const ids = matchingPlayers.map((p: any) => p.id);
@@ -943,7 +956,7 @@ export const useVttStore = create<VttStore>()(
                     return `Joueur ${c.value} ${c.operator} Pastille ${c.pastilleIcon}`;
                   }
                   if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille' || c.type === 'playerSelectionTeam') {
-                    const selectionLabel = c.selectionType === 'all' ? 'Tous les Joueurs' : (c.selectionType === 'first' ? '1er Joueur' : 'Dernier Joueur');
+                    const selectionLabel = c.selectionType === 'all' ? 'Tous les Joueurs' : (c.selectionType === 'first' ? '1er Joueur' : (c.selectionType === 'last' ? 'Dernier Joueur' : '$Ordre'));
                     let targetLabel = 'Inconnu';
                     if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
                       targetLabel = state.roles.find((r: any) => r.id === (c.selectionRoleId || c.roleId))?.name || 'Inconnu';

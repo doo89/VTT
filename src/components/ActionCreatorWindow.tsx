@@ -296,7 +296,7 @@ export const ActionCreatorWindow: React.FC = () => {
                             condition.type === 'playerTag' ? (tags.find((t: any) => t.id === condition.tagId)?.name || 'Inconnu') :
                             condition.type === 'playerPastille' ? (condition.pastilleIcon || 'Icon') :
                             condition.type === 'playerSelection' || condition.type === 'playerSelectionRole' || condition.type === 'playerSelectionTag' || condition.type === 'playerSelectionPastille' || condition.type === 'playerSelectionTeam' ? (
-                              `${condition.selectionType === 'first' ? '1er' : condition.selectionType === 'last' ? 'Dernier' : 'Tous'} : ${
+                              `${condition.selectionType === 'first' ? '1er' : condition.selectionType === 'last' ? 'Dernier' : (condition.selectionType === 'callOrder' ? '$Ordre' : 'Tous')} : ${
                                 condition.type === 'playerSelectionPastille' ? `Pastille ${condition.pastilleIcon}` :
                                 (condition.type === 'playerSelectionTag' ? (tags.find(t => t.id === condition.tagId)?.name || 'Inconnu') :
                                 (condition.type === 'playerSelectionTeam' ? (teams.find(t => t.id === condition.selectionTeamId)?.name || 'Aucune équipe') :
