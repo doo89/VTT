@@ -35,7 +35,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [tagId, setTagId] = useState<string | null>(null);
   const [selectionTeamId, setSelectionTeamId] = useState<string | null>(null);
   const [pastilleIcon, setPastilleIcon] = useState<string | null>(null);
-  const [selectionType, setSelectionType] = useState<'first' | 'last' | 'all' | 'callOrder' | 'numeric' | null>('all');
+  const [selectionType, setSelectionType] = useState<'first' | 'last' | 'all' | 'callOrder' | 'numeric' | 'random' | null>('all');
   const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
   const [distanceFromPlayerId, setDistanceFromPlayerId] = useState<string | null>('$Joueur');
   const [distanceTargetRoleId, setDistanceTargetRoleId] = useState<string | null>(null);
@@ -751,6 +751,7 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="all">Tous les joueurs</option>
                   <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
                   <option value="numeric">Numérique (Sélection par ordre)</option>
+                  <option value="random">Aléatoire (Un seul joueur)</option>
                 </select>
                 {selectionType === 'numeric' && (
                   <input
@@ -828,6 +829,7 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="all">Tous les joueurs</option>
                   <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
                   <option value="numeric">Numérique (Sélection par ordre)</option>
+                  <option value="random">Aléatoire (Un seul joueur)</option>
                 </select>
                 {selectionType === 'numeric' && (
                   <input
@@ -905,6 +907,7 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="all">Tous les joueurs</option>
                   <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
                   <option value="numeric">Numérique (Sélection par ordre)</option>
+                  <option value="random">Aléatoire (Un seul joueur)</option>
                 </select>
                 {selectionType === 'numeric' && (
                   <input
@@ -989,6 +992,7 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="all">Tous les joueurs</option>
                   <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
                   <option value="numeric">Numérique (Sélection par ordre)</option>
+                  <option value="random">Aléatoire (Un seul joueur)</option>
                 </select>
                 {selectionType === 'numeric' && (
                   <input

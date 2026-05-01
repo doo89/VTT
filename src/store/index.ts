@@ -848,6 +848,16 @@ export const useVttStore = create<VttStore>()(
                       }
                       return false;
                     }
+
+                    if (c.selectionType === 'random') {
+                      const matchingPlayers = state.players.filter(checkMatching);
+                      if (matchingPlayers.length > 0) {
+                        const randomPlayer = matchingPlayers[Math.floor(Math.random() * matchingPlayers.length)];
+                        mergeIntoJoueur(randomPlayer);
+                        return true;
+                      }
+                      return false;
+                    }
                     
                     const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
                     if (c.selectionType === 'last') sortedPlayers.reverse();
@@ -971,7 +981,7 @@ export const useVttStore = create<VttStore>()(
                     return `Joueur ${c.value} ${c.operator} Pastille ${c.pastilleIcon}`;
                   }
                   if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille' || c.type === 'playerSelectionTeam') {
-                    const selectionLabel = c.selectionType === 'all' ? 'Tous les Joueurs' : (c.selectionType === 'first' ? '1er Joueur' : (c.selectionType === 'last' ? 'Dernier Joueur' : (c.selectionType === 'numeric' ? `Joueur ${c.value}` : '$Ordre')));
+                    const selectionLabel = c.selectionType === 'all' ? 'Tous les Joueurs' : (c.selectionType === 'first' ? '1er Joueur' : (c.selectionType === 'last' ? 'Dernier Joueur' : (c.selectionType === 'numeric' ? `Joueur ${c.value}` : (c.selectionType === 'random' ? 'Aléatoire' : '$Ordre'))));
                     let targetLabel = 'Inconnu';
                     if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
                       targetLabel = state.roles.find((r: any) => r.id === (c.selectionRoleId || c.roleId))?.name || 'Inconnu';
