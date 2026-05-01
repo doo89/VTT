@@ -35,7 +35,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [tagId, setTagId] = useState<string | null>(null);
   const [selectionTeamId, setSelectionTeamId] = useState<string | null>(null);
   const [pastilleIcon, setPastilleIcon] = useState<string | null>(null);
-  const [selectionType, setSelectionType] = useState<'first' | 'last' | 'all' | 'callOrder' | null>('all');
+  const [selectionType, setSelectionType] = useState<'first' | 'last' | 'all' | 'callOrder' | 'numeric' | null>('all');
   const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
   const [distanceFromPlayerId, setDistanceFromPlayerId] = useState<string | null>('$Joueur');
   const [distanceTargetRoleId, setDistanceTargetRoleId] = useState<string | null>(null);
@@ -716,67 +716,6 @@ export const ActionConditionWindow: React.FC = () => {
           
           <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-5 ${isIdentityExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
             
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerRole' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">2.</span>
-                  <input
-                    type="checkbox"
-                    checked={type === 'playerRole' && enabled}
-                    onChange={() => {
-                      if (type !== 'playerRole') {
-                        setType('playerRole');
-                        setEnabled(true);
-                        setOperator('=');
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.6]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre</label>
-                <input
-                  disabled={type !== 'playerRole' || !enabled}
-                  type="number"
-                  min="1"
-                  value={type === 'playerRole' ? value : 1}
-                  onChange={(e) => setValue(parseInt(e.target.value) || 1)}
-                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
-                <select
-                  disabled={type !== 'playerRole' || !enabled}
-                  value={operator}
-                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="=">=</option>
-                  <option value="!=">!=</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
-                <select
-                  disabled={type !== 'playerRole' || !enabled}
-                  value={roleId || ''}
-                  onChange={(e) => setRoleId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {roles.map(role => (
-                    <option key={role.id} value={role.id}>{role.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="h-px bg-border/20 mx-2" />
-
             {/* Selection Role/Target */}
             <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'playerSelection' && type !== 'playerSelectionRole') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
@@ -811,7 +750,19 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="last">Le dernier joueur (ordre décroissant)</option>
                   <option value="all">Tous les joueurs</option>
                   <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
+                  <option value="numeric">Numérique (Sélection par ordre)</option>
                 </select>
+                {selectionType === 'numeric' && (
+                  <input
+                    disabled={(type !== 'playerSelection' && type !== 'playerSelectionRole') || !enabled}
+                    type="number"
+                    min="1"
+                    value={value || 1}
+                    onChange={(e) => setValue(parseInt(e.target.value) || 1)}
+                    className="w-full mt-1.5 bg-input border border-border rounded-lg px-2 py-1 text-xs outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="Ordre..."
+                  />
+                )}
               </div>
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
@@ -876,7 +827,19 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="last">Le dernier joueur (ordre décroissant)</option>
                   <option value="all">Tous les joueurs</option>
                   <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
+                  <option value="numeric">Numérique (Sélection par ordre)</option>
                 </select>
+                {selectionType === 'numeric' && (
+                  <input
+                    disabled={type !== 'playerSelectionTag' || !enabled}
+                    type="number"
+                    min="1"
+                    value={value || 1}
+                    onChange={(e) => setValue(parseInt(e.target.value) || 1)}
+                    className="w-full mt-1.5 bg-input border border-border rounded-lg px-2 py-1 text-xs outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="Ordre..."
+                  />
+                )}
               </div>
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
@@ -941,7 +904,19 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="last">Le dernier joueur (ordre décroissant)</option>
                   <option value="all">Tous les joueurs</option>
                   <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
+                  <option value="numeric">Numérique (Sélection par ordre)</option>
                 </select>
+                {selectionType === 'numeric' && (
+                  <input
+                    disabled={type !== 'playerSelectionPastille' || !enabled}
+                    type="number"
+                    min="1"
+                    value={value || 1}
+                    onChange={(e) => setValue(parseInt(e.target.value) || 1)}
+                    className="w-full mt-1.5 bg-input border border-border rounded-lg px-2 py-1 text-xs outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="Ordre..."
+                  />
+                )}
               </div>
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
@@ -1013,7 +988,19 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="last">Le dernier joueur (ordre décroissant)</option>
                   <option value="all">Tous les joueurs</option>
                   <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
+                  <option value="numeric">Numérique (Sélection par ordre)</option>
                 </select>
+                {selectionType === 'numeric' && (
+                  <input
+                    disabled={type !== 'playerSelectionTeam' || !enabled}
+                    type="number"
+                    min="1"
+                    value={value || 1}
+                    onChange={(e) => setValue(parseInt(e.target.value) || 1)}
+                    className="w-full mt-1.5 bg-input border border-border rounded-lg px-2 py-1 text-xs outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="Ordre..."
+                  />
+                )}
               </div>
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>

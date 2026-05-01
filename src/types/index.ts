@@ -339,7 +339,7 @@ export interface ActionCondition {
   roleId?: string | null;
   tagId?: string | null;
   pastilleIcon?: string | null;
-  selectionType?: 'first' | 'last' | 'all' | 'callOrder' | null;
+  selectionType?: 'first' | 'last' | 'all' | 'callOrder' | 'numeric' | null;
   selectionRoleId?: string | null;
   distanceFromPlayerId?: string | null;
   distanceTargetRoleId?: string | null;
