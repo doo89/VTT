@@ -481,18 +481,29 @@ export const EditingModal: React.FC = () => {
                   className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 />
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Équipe (réelle)</label>
-                <select
-                  value={role.teamId || ''}
-                  onChange={(e) => updateRole(role.id, { teamId: e.target.value || null })}
-                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  <option value="">-- Aucune --</option>
-                  {teams.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
+              <div className="flex gap-4 items-end">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-sm font-medium">Équipe (réelle)</label>
+                  <select
+                    value={role.teamId || ''}
+                    onChange={(e) => updateRole(role.id, { teamId: e.target.value || null })}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  >
+                    <option value="">-- Aucune --</option>
+                    {teams.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1 shrink-0">
+                  <label className="text-sm font-medium">Couleur</label>
+                  <ColorPicker
+                    color={role.color}
+                    onChange={(c) => updateRole(role.id, { color: c })}
+                    label="Couleur"
+                    className="!w-10 !h-10"
+                  />
+                </div>
               </div>
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-sm font-medium">Vies</label>
@@ -593,15 +604,7 @@ export const EditingModal: React.FC = () => {
 
           {activeRoleTab === 'appearance' && (
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Couleur</label>
-                <ColorPicker
-                  color={role.color}
-                  onChange={(c) => updateRole(role.id, { color: c })}
-                  label="Couleur"
-                  className="!w-10 !h-10"
-                />
-              </div>
+
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium">Image du rôle</label>
                 <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
