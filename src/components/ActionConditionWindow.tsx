@@ -716,17 +716,17 @@ export const ActionConditionWindow: React.FC = () => {
           
           <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-5 ${isIdentityExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
             
-            {/* Selection Role/Target */}
-            <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'playerSelection' && type !== 'playerSelectionRole') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+            {/* Consolidated Identity Selection */}
+            <div className={`flex items-end gap-3 transition-all duration-300 ${!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
                 <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">3.</span>
+                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">2.</span>
                   <input
                     type="checkbox"
-                    checked={(type === 'playerSelection' || type === 'playerSelectionRole') && enabled}
+                    checked={['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) && enabled}
                     onChange={() => {
-                      if (type !== 'playerSelection' && type !== 'playerSelectionRole') {
+                      if (!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type)) {
                         setType('playerSelectionRole');
                         setEnabled(true);
                         setOperator('=');
@@ -738,12 +738,13 @@ export const ActionConditionWindow: React.FC = () => {
                   />
                 </div>
               </div>
+              
               <div className="flex flex-col gap-1 flex-[1.2]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
-                  disabled={(type !== 'playerSelection' && type !== 'playerSelectionRole') || !enabled}
+                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) || !enabled}
                   value={selectionType || 'all'}
-                  onChange={(e) => setSelectionType(e.target.value as 'first' | 'last' | 'all')}
+                  onChange={(e) => setSelectionType(e.target.value as any)}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="first">Le premier joueur (ordre croissant)</option>
@@ -755,7 +756,7 @@ export const ActionConditionWindow: React.FC = () => {
                 </select>
                 {selectionType === 'numeric' && (
                   <input
-                    disabled={(type !== 'playerSelection' && type !== 'playerSelectionRole') || !enabled}
+                    disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) || !enabled}
                     type="number"
                     min="1"
                     value={value || 1}
@@ -765,88 +766,11 @@ export const ActionConditionWindow: React.FC = () => {
                   />
                 )}
               </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
-                <select
-                  disabled={(type !== 'playerSelection' && type !== 'playerSelectionRole') || !enabled}
-                  value={operator}
-                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="=">=</option>
-                  <option value="!=">!=</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
-                <select
-                  disabled={(type !== 'playerSelection' && type !== 'playerSelectionRole') || !enabled}
-                  value={selectionRoleId || ''}
-                  onChange={(e) => setSelectionRoleId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {roles.map(role => (
-                    <option key={role.id} value={role.id}>{role.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
 
-            <div className="h-px bg-border/20 mx-2" />
-            
-            {/* Player Selection (Tag) */}
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerSelectionTag' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">3.</span>
-                  <input
-                    type="checkbox"
-                    checked={type === 'playerSelectionTag' && enabled}
-                    onChange={() => {
-                      if (type !== 'playerSelectionTag') {
-                        setType('playerSelectionTag');
-                        setEnabled(true);
-                        setOperator('=');
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 flex-[1.2]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
-                <select
-                  disabled={type !== 'playerSelectionTag' || !enabled}
-                  value={selectionType || 'all'}
-                  onChange={(e) => setSelectionType(e.target.value as 'first' | 'last' | 'all')}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="first">Le premier joueur (ordre croissant)</option>
-                  <option value="last">Le dernier joueur (ordre décroissant)</option>
-                  <option value="all">Tous les joueurs</option>
-                  <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
-                  <option value="numeric">Numérique (Sélection par ordre)</option>
-                  <option value="random">Aléatoire (Un seul joueur)</option>
-                </select>
-                {selectionType === 'numeric' && (
-                  <input
-                    disabled={type !== 'playerSelectionTag' || !enabled}
-                    type="number"
-                    min="1"
-                    value={value || 1}
-                    onChange={(e) => setValue(parseInt(e.target.value) || 1)}
-                    className="w-full mt-1.5 bg-input border border-border rounded-lg px-2 py-1 text-xs outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                    placeholder="Ordre..."
-                  />
-                )}
-              </div>
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
                 <select
-                  disabled={type !== 'playerSelectionTag' || !enabled}
+                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) || !enabled}
                   value={operator}
                   onChange={(e) => setOperator(e.target.value as ActionOperator)}
                   className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -855,182 +779,95 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="!=">!=</option>
                 </select>
               </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag</label>
-                <select
-                  disabled={type !== 'playerSelectionTag' || !enabled}
-                  value={tagId || ''}
-                  onChange={(e) => setTagId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
-                    <option key={tag.id} value={tag.id}>{tag.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
 
-            <div className="h-px bg-border/20 mx-2" />
-            
-            {/* Player Selection (Pastille) */}
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerSelectionPastille' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">3.</span>
-                  <input
-                    type="checkbox"
-                    checked={type === 'playerSelectionPastille' && enabled}
-                    onChange={() => {
-                      if (type !== 'playerSelectionPastille') {
-                        setType('playerSelectionPastille');
-                        setEnabled(true);
-                        setOperator('=');
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 flex-[1.2]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
-                <select
-                  disabled={type !== 'playerSelectionPastille' || !enabled}
-                  value={selectionType || 'all'}
-                  onChange={(e) => setSelectionType(e.target.value as 'first' | 'last' | 'all')}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="first">Le premier joueur (ordre croissant)</option>
-                  <option value="last">Le dernier joueur (ordre décroissant)</option>
-                  <option value="all">Tous les joueurs</option>
-                  <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
-                  <option value="numeric">Numérique (Sélection par ordre)</option>
-                  <option value="random">Aléatoire (Un seul joueur)</option>
-                </select>
-                {selectionType === 'numeric' && (
-                  <input
-                    disabled={type !== 'playerSelectionPastille' || !enabled}
-                    type="number"
-                    min="1"
-                    value={value || 1}
-                    onChange={(e) => setValue(parseInt(e.target.value) || 1)}
-                    className="w-full mt-1.5 bg-input border border-border rounded-lg px-2 py-1 text-xs outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                    placeholder="Ordre..."
-                  />
-                )}
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
-                <select
-                  disabled={type !== 'playerSelectionPastille' || !enabled}
-                  value={operator}
-                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="=">=</option>
-                  <option value="!=">!=</option>
-                </select>
-              </div>
               <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Pastille</label>
-                <div className="flex items-center gap-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type</label>
+                <select
+                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) || !enabled}
+                  value={
+                    type === 'playerSelectionRole' || type === 'playerSelection' ? 'ROLE' :
+                    type === 'playerSelectionTag' ? 'TAG' :
+                    type === 'playerSelectionPastille' ? 'PASTILLE' :
+                    type === 'playerSelectionTeam' ? 'EQUIPE' : 'ROLE'
+                  }
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === 'ROLE') setType('playerSelectionRole');
+                    else if (val === 'TAG') setType('playerSelectionTag');
+                    else if (val === 'PASTILLE') setType('playerSelectionPastille');
+                    else if (val === 'EQUIPE') {
+                      setType('playerSelectionTeam');
+                      if (!selectionTeamId && teams.length > 0) setSelectionTeamId(teams[0].id);
+                    }
+                  }}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="ROLE">RÔLE</option>
+                  <option value="TAG">TAG</option>
+                  <option value="PASTILLE">PASTILLE</option>
+                  <option value="EQUIPE">EQUIPE</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Sélection</label>
+                {type === 'playerSelectionRole' || type === 'playerSelection' ? (
                   <select
-                    disabled={type !== 'playerSelectionPastille' || !enabled}
-                    value={pastilleIcon || ''}
-                    onChange={(e) => setPastilleIcon(e.target.value)}
-                    className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!enabled}
+                    value={selectionRoleId || ''}
+                    onChange={(e) => setSelectionRoleId(e.target.value)}
+                    className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {allIcons.map((icon: string) => (
-                      <option key={icon} value={icon}>{icon}</option>
+                    {roles.map(role => (
+                      <option key={role.id} value={role.id}>{role.name}</option>
                     ))}
                   </select>
-                  {pastilleIcon && (icons as any)[pastilleIcon] && (
-                    <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-lg border border-border p-1 shadow-inner shrink-0">
-                      {React.createElement((icons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="h-px bg-border/20 mx-2" />
-            
-            {/* Player Selection (Team) */}
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'playerSelectionTeam' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">3.</span>
-                  <input
-                    type="checkbox"
-                    checked={type === 'playerSelectionTeam' && enabled}
-                    onChange={() => {
-                      if (type !== 'playerSelectionTeam') {
-                        setType('playerSelectionTeam');
-                        setEnabled(true);
-                        setOperator('=');
-                        if (!selectionTeamId && teams.length > 0) setSelectionTeamId(teams[0].id);
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 flex-[1.2]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
-                <select
-                  disabled={type !== 'playerSelectionTeam' || !enabled}
-                  value={selectionType || 'all'}
-                  onChange={(e) => setSelectionType(e.target.value as 'first' | 'last' | 'all')}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="first">Le premier joueur (ordre croissant)</option>
-                  <option value="last">Le dernier joueur (ordre décroissant)</option>
-                  <option value="all">Tous les joueurs</option>
-                  <option value="callOrder">Le(s) joueur(s) de l'ordre d'appel ($Ordre)</option>
-                  <option value="numeric">Numérique (Sélection par ordre)</option>
-                  <option value="random">Aléatoire (Un seul joueur)</option>
-                </select>
-                {selectionType === 'numeric' && (
-                  <input
-                    disabled={type !== 'playerSelectionTeam' || !enabled}
-                    type="number"
-                    min="1"
-                    value={value || 1}
-                    onChange={(e) => setValue(parseInt(e.target.value) || 1)}
-                    className="w-full mt-1.5 bg-input border border-border rounded-lg px-2 py-1 text-xs outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                    placeholder="Ordre..."
-                  />
+                ) : type === 'playerSelectionTag' ? (
+                  <select
+                    disabled={!enabled}
+                    value={tagId || ''}
+                    onChange={(e) => setTagId(e.target.value)}
+                    className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
+                      <option key={tag.id} value={tag.id}>{tag.name}</option>
+                    ))}
+                  </select>
+                ) : type === 'playerSelectionPastille' ? (
+                  <div className="flex items-center gap-2">
+                    <select
+                      disabled={!enabled}
+                      value={pastilleIcon || ''}
+                      onChange={(e) => setPastilleIcon(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {allIcons.map((icon: string) => (
+                        <option key={icon} value={icon}>{icon}</option>
+                      ))}
+                    </select>
+                    {pastilleIcon && (icons as any)[pastilleIcon] && (
+                      <div className="w-9 h-9 flex items-center justify-center bg-muted rounded-lg border border-border p-1 shadow-inner shrink-0">
+                        {React.createElement((icons as any)[pastilleIcon], { size: 20, className: "text-orange-500" })}
+                      </div>
+                    )}
+                  </div>
+                ) : type === 'playerSelectionTeam' ? (
+                  <select
+                    disabled={!enabled}
+                    value={selectionTeamId || ''}
+                    onChange={(e) => setSelectionTeamId(e.target.value)}
+                    className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">-- Aucune --</option>
+                    {[...teams].sort((a,b) => a.name.localeCompare(b.name)).map(team => (
+                      <option key={team.id} value={team.id}>{team.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="h-[38px] bg-input border border-border rounded-lg px-2 py-1.5 text-sm opacity-50 italic flex items-center">
+                    Sélectionnez un type...
+                  </div>
                 )}
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
-                <select
-                  disabled={type !== 'playerSelectionTeam' || !enabled}
-                  value={operator}
-                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="=">=</option>
-                  <option value="!=">!=</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Equipe</label>
-                <select
-                  disabled={type !== 'playerSelectionTeam' || !enabled}
-                  value={selectionTeamId || ''}
-                  onChange={(e) => setSelectionTeamId(e.target.value)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="">-- Aucune --</option>
-                  {[...teams].sort((a,b) => a.name.localeCompare(b.name)).map(team => (
-                    <option key={team.id} value={team.id}>{team.name}</option>
-                  ))}
-                </select>
               </div>
             </div>
           </div>
