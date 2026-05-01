@@ -976,7 +976,7 @@ export const EditingModal: React.FC = () => {
               <p className="text-sm text-muted-foreground mb-2">
                 Ce tag peut servir de "Container". Lorsqu'il est appliqué à un joueur, tous les tags sélectionnés ici seront appliqués en même temps avec lui.
               </p>
-              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2 pb-2">
+              <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto custom-scrollbar pr-2 pb-2">
                 {tagCategories.map(cat => {
                   const catTags = tagsByCategory[cat.id]?.filter(t => t.id !== tag.id);
                   if (!catTags || catTags.length === 0) return null;
@@ -2238,7 +2238,7 @@ export const EditingModal: React.FC = () => {
               <p className="text-sm text-muted-foreground mb-2">
                 Ce tag peut servir de "Container". Lorsqu'il est appliqué à un joueur, tous les tags sélectionnés ici seront appliqués en même temps avec lui.
               </p>
-              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2 pb-2">
+              <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto custom-scrollbar pr-2 pb-2">
                 {tagCategories.map(cat => {
                   const catTags = tagsByCategory[cat.id]?.filter(t => t.id !== tag.id);
                   if (!catTags || catTags.length === 0) return null;
