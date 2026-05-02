@@ -926,9 +926,11 @@ export const useVttStore = create<VttStore>()(
                         const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
                         if (sourceIndex === -1) return false;
 
+                        const len = sortedPlayers.length;
+                        if (len === 0) return false;
+
                         for (let dist = minDist; dist <= maxDist; dist++) {
-                          let targetIndex = (sourceIndex + dist) % sortedPlayers.length;
-                          while (targetIndex < 0) targetIndex += sortedPlayers.length;
+                          const targetIndex = ((sourceIndex + dist) % len + len) % len;
                           if (checkTargetCriteria(sortedPlayers[targetIndex])) return true;
                         }
                         return false;
