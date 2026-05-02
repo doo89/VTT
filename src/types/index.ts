@@ -326,7 +326,7 @@ export interface ActionEffect {
   countdownMessage?: string;
 }
 
-export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam';
+export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus';
 export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=' | '';
 
 export interface ActionCondition {
@@ -345,6 +345,8 @@ export interface ActionCondition {
   distanceTargetRoleId?: string | null;
   cycleCheckType?: '$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | '$Timer' | '$NbEnLigne' | '$NbTotal' | '$NbVivants' | '$NbMorts' | null;
   selectionTeamId?: string | null;
+  distanceTargetTeamId?: string | null;
+  distanceTargetStatus?: 'alive' | 'dead' | null;
   enabled: boolean;
   logic?: 'AND' | 'OR';
 }

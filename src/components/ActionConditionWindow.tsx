@@ -40,6 +40,8 @@ export const ActionConditionWindow: React.FC = () => {
   const [distanceFromPlayerId, setDistanceFromPlayerId] = useState<string | null>('$Joueur');
   const [distanceTargetRoleId, setDistanceTargetRoleId] = useState<string | null>(null);
   const [cycleCheckType, setCycleCheckType] = useState<'$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | '$Timer' | '$NbEnLigne' | '$NbTotal' | '$NbVivants' | '$NbMorts' | null>('$Jour');
+  const [distanceTargetTeamId, setDistanceTargetTeamId] = useState<string | null>(null);
+  const [distanceTargetStatus, setDistanceTargetStatus] = useState<'alive' | 'dead' | null>('alive');
 
   const [isDistanceExpanded, setIsDistanceExpanded] = useState(true);
   const [isIdentityExpanded, setIsIdentityExpanded] = useState(true);
@@ -69,6 +71,8 @@ export const ActionConditionWindow: React.FC = () => {
         setDistanceTargetRoleId(condition.distanceTargetRoleId || (roles[0]?.id || null));
         setCycleCheckType(condition.cycleCheckType || '$Jour');
         setSelectionTeamId(condition.selectionTeamId || (teams[0]?.id || null));
+        setDistanceTargetTeamId(condition.distanceTargetTeamId || (teams[0]?.id || null));
+        setDistanceTargetStatus(condition.distanceTargetStatus || 'alive');
       }
     } else {
       setType('day');
@@ -86,6 +90,8 @@ export const ActionConditionWindow: React.FC = () => {
       setDistanceTargetRoleId(roles[0]?.id || null);
       setCycleCheckType('$Jour');
       setSelectionTeamId(teams[0]?.id || null);
+      setDistanceTargetTeamId(teams[0]?.id || null);
+      setDistanceTargetStatus('alive');
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
 
@@ -123,7 +129,7 @@ export const ActionConditionWindow: React.FC = () => {
   };
 
   const handleOK = () => {
-    const isDist = type === 'playerDistance' || type === 'playerDistanceTag' || type === 'playerDistancePastille';
+    const isDist = ['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus'].includes(type);
     const conditionData = { 
       type, 
       operator, 
@@ -138,6 +144,8 @@ export const ActionConditionWindow: React.FC = () => {
       selectionRoleId: (type === 'playerSelectionRole') ? selectionRoleId : null,
       distanceFromPlayerId: isDist ? distanceFromPlayerId : null,
       distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null,
+      distanceTargetTeamId: type === 'playerDistanceTeam' ? distanceTargetTeamId : null,
+      distanceTargetStatus: type === 'playerDistanceStatus' ? distanceTargetStatus : null,
       cycleCheckType: type === 'cycleCheck' ? cycleCheckType : null,
       selectionTeamId: type === 'playerSelectionTeam' ? selectionTeamId : null
     };
@@ -423,19 +431,25 @@ export const ActionConditionWindow: React.FC = () => {
                       value={
                         type === 'playerDistance' ? 'ROLE' :
                         type === 'playerDistanceTag' ? 'TAG' :
-                        type === 'playerDistancePastille' ? 'PASTILLE' : 'ROLE'
+                        type === 'playerDistancePastille' ? 'PASTILLE' :
+                        type === 'playerDistanceTeam' ? 'TEAM' :
+                        type === 'playerDistanceStatus' ? 'STATUS' : 'ROLE'
                       }
                       onChange={(e) => {
                         const val = e.target.value;
                         if (val === 'ROLE') setType('playerDistance');
                         else if (val === 'TAG') setType('playerDistanceTag');
                         else if (val === 'PASTILLE') setType('playerDistancePastille');
+                        else if (val === 'TEAM') setType('playerDistanceTeam');
+                        else if (val === 'STATUS') setType('playerDistanceStatus');
                       }}
                       className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <option value="ROLE">RÔLE CIBLE</option>
                       <option value="TAG">TAG CIBLE</option>
                       <option value="PASTILLE">PASTILLE CIBLE</option>
+                      <option value="TEAM">ÉQUIPE CIBLE</option>
+                      <option value="STATUS">STATUT CIBLE</option>
                     </select>
                   </div>
 
@@ -485,6 +499,27 @@ export const ActionConditionWindow: React.FC = () => {
                           );
                         })}
                       </div>
+                    ) : type === 'playerDistanceTeam' ? (
+                      <select
+                        disabled={!enabled}
+                        value={distanceTargetTeamId || ''}
+                        onChange={(e) => setDistanceTargetTeamId(e.target.value)}
+                        className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {[...teams].sort((a,b) => a.name.localeCompare(b.name)).map(team => (
+                          <option key={team.id} value={team.id}>{team.name}</option>
+                        ))}
+                      </select>
+                    ) : type === 'playerDistanceStatus' ? (
+                      <select
+                        disabled={!enabled}
+                        value={distanceTargetStatus || 'alive'}
+                        onChange={(e) => setDistanceTargetStatus(e.target.value as any)}
+                        className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                      >
+                        <option value="alive">VIVANT</option>
+                        <option value="dead">MORT</option>
+                      </select>
                     ) : (
                       <div className="h-[38px] bg-input border border-border rounded-lg px-2 py-1.5 text-sm opacity-50 italic flex items-center">
                         Sélectionnez un type...
@@ -499,9 +534,9 @@ export const ActionConditionWindow: React.FC = () => {
                   <div className="flex flex-col gap-1 flex-[0.3]">
                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
                     <input
-                      disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille'].includes(type) || !enabled}
+                      disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus'].includes(type) || !enabled}
                       type="number"
-                      value={['playerDistance', 'playerDistanceTag', 'playerDistancePastille'].includes(type) ? minValue : 0}
+                      value={['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus'].includes(type) ? minValue : 0}
                       onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
                       className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
                     />
@@ -514,7 +549,7 @@ export const ActionConditionWindow: React.FC = () => {
                   <div className="flex flex-col gap-1 flex-[0.3]">
                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
                     <input
-                      disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille'].includes(type) || !enabled}
+                      disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus'].includes(type) || !enabled}
                       type="number"
                       value={['playerDistance', 'playerDistanceTag', 'playerDistancePastille'].includes(type) ? maxValue : 0}
                       onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}

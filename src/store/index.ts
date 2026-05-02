@@ -909,6 +909,11 @@ export const useVttStore = create<VttStore>()(
                           if (allTargetTags.some((t: any) => t.id === c.tagId)) return true;
                         } else if (c.type === 'playerDistancePastille') {
                           if ((targetPlayer.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon)) return true;
+                        } else if (c.type === 'playerDistanceTeam') {
+                          if (targetPlayer.teamId === c.distanceTargetTeamId) return true;
+                        } else if (c.type === 'playerDistanceStatus') {
+                          if (c.distanceTargetStatus === 'alive' && !targetPlayer.isDead) return true;
+                          if (c.distanceTargetStatus === 'dead' && targetPlayer.isDead) return true;
                         }
                       }
                       return false;
