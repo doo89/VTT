@@ -939,6 +939,12 @@ export const useVttStore = create<VttStore>()(
                     } else if (c.cycleCheckType === '$Timer') {
                       isActive = state.timer.isRunning;
                       compareVal = (state.timer.minutes * 60) + state.timer.seconds;
+                    } else if (c.cycleCheckType === '$NbEnLigne') {
+                      isActive = true;
+                      compareVal = state.onlinePlayerIds.length;
+                    } else if (c.cycleCheckType === '$NbTotal') {
+                      isActive = true;
+                      compareVal = state.players.length;
                     }
 
                     const op: string = c.operator;

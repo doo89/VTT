@@ -39,7 +39,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
   const [distanceFromPlayerId, setDistanceFromPlayerId] = useState<string | null>('$Joueur');
   const [distanceTargetRoleId, setDistanceTargetRoleId] = useState<string | null>(null);
-  const [cycleCheckType, setCycleCheckType] = useState<'$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | '$Timer' | null>('$Jour');
+  const [cycleCheckType, setCycleCheckType] = useState<'$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | '$Timer' | '$NbEnLigne' | '$NbTotal' | null>('$Jour');
 
   const [isDistanceExpanded, setIsDistanceExpanded] = useState(true);
   const [isIdentityExpanded, setIsIdentityExpanded] = useState(true);
@@ -322,6 +322,8 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="$Parité">$Parité (1=Impair, 0=Pair)</option>
                   <option value="$Phase">$Phase (1=Nuit, 0=Jour)</option>
                   <option value="$Timer">$Timer (Secondes restantes)</option>
+                  <option value="$NbEnLigne">$NbEnLigne (Joueurs connectés)</option>
+                  <option value="$NbTotal">$NbTotal (Joueurs total)</option>
                 </select>
               </div>
 
