@@ -930,6 +930,12 @@ export const useVttStore = create<VttStore>()(
                     } else if (c.cycleCheckType === '$Ordre') {
                       isActive = state.callOrderIndex > 0;
                       compareVal = state.callOrderIndex;
+                    } else if (c.cycleCheckType === '$Parité') {
+                      isActive = true;
+                      compareVal = state.cycleNumber % 2;
+                    } else if (c.cycleCheckType === '$Phase') {
+                      isActive = true;
+                      compareVal = state.isNight ? 1 : 0;
                     }
 
                     const op: string = c.operator;

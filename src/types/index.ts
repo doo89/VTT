@@ -343,7 +343,7 @@ export interface ActionCondition {
   selectionRoleId?: string | null;
   distanceFromPlayerId?: string | null;
   distanceTargetRoleId?: string | null;
-  cycleCheckType?: '$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | null;
+  cycleCheckType?: '$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | null;
   selectionTeamId?: string | null;
   enabled: boolean;
   logic?: 'AND' | 'OR';
