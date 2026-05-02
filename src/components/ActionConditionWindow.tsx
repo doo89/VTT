@@ -39,7 +39,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
   const [distanceFromPlayerId, setDistanceFromPlayerId] = useState<string | null>('$Joueur');
   const [distanceTargetRoleId, setDistanceTargetRoleId] = useState<string | null>(null);
-  const [cycleCheckType, setCycleCheckType] = useState<'$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | '$Timer' | '$NbEnLigne' | '$NbTotal' | null>('$Jour');
+  const [cycleCheckType, setCycleCheckType] = useState<'$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | '$Timer' | '$NbEnLigne' | '$NbTotal' | '$NbVivants' | '$NbMorts' | null>('$Jour');
 
   const [isDistanceExpanded, setIsDistanceExpanded] = useState(true);
   const [isIdentityExpanded, setIsIdentityExpanded] = useState(true);
@@ -324,6 +324,8 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="$Timer">$Timer (Secondes restantes)</option>
                   <option value="$NbEnLigne">$NbEnLigne (Joueurs connectés)</option>
                   <option value="$NbTotal">$NbTotal (Joueurs total)</option>
+                  <option value="$NbVivants">$NbVivants (Joueurs en vie)</option>
+                  <option value="$NbMorts">$NbMorts (Joueurs morts)</option>
                 </select>
               </div>
 

@@ -945,6 +945,12 @@ export const useVttStore = create<VttStore>()(
                     } else if (c.cycleCheckType === '$NbTotal') {
                       isActive = true;
                       compareVal = state.players.length;
+                    } else if (c.cycleCheckType === '$NbVivants') {
+                      isActive = true;
+                      compareVal = state.players.filter((p: any) => !p.isDead).length;
+                    } else if (c.cycleCheckType === '$NbMorts') {
+                      isActive = true;
+                      compareVal = state.players.filter((p: any) => p.isDead).length;
                     }
 
                     const op: string = c.operator;
