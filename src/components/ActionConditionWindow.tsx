@@ -275,18 +275,20 @@ export const ActionConditionWindow: React.FC = () => {
           </button>
           <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-4 ${isCycleExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
             
-            {/* Action Condition: cycleCheck */}
-            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'cycleCheck' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+            {/* Consolidated Cycle Check */}
+            <div className={`flex items-end gap-3 transition-all duration-300 ${!['cycleCheck', 'day', 'night', 'turn'].includes(type) ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
                 <div className="flex items-center h-[38px] justify-center px-1">
                   <input
                     type="checkbox"
-                    checked={type === 'cycleCheck' && enabled}
+                    checked={['cycleCheck', 'day', 'night', 'turn'].includes(type) && enabled}
                     onChange={() => {
-                      if (type !== 'cycleCheck') {
+                      if (!['cycleCheck', 'day', 'night', 'turn'].includes(type)) {
                         setType('cycleCheck');
+                        setCycleCheckType('$Jour');
                         setEnabled(true);
+                        setOperator('=');
                       } else {
                         setEnabled(!enabled);
                       }
@@ -299,9 +301,18 @@ export const ActionConditionWindow: React.FC = () => {
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Variable</label>
                 <select
-                  disabled={type !== 'cycleCheck' || !enabled}
-                  value={cycleCheckType || '$Jour'}
-                  onChange={(e) => setCycleCheckType(e.target.value as any)}
+                  disabled={!enabled || !['cycleCheck', 'day', 'night', 'turn'].includes(type)}
+                  value={
+                    type === 'day' ? '$Jour' :
+                    type === 'night' ? '$Nuit' :
+                    type === 'turn' ? '$Cycle' :
+                    (cycleCheckType || '$Jour')
+                  }
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setType('cycleCheck');
+                    setCycleCheckType(val as any);
+                  }}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="$Jour">$Jour</option>
@@ -314,8 +325,8 @@ export const ActionConditionWindow: React.FC = () => {
               <div className="flex flex-col gap-1 flex-[0.5]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">OP.</label>
                 <select
-                  disabled={type !== 'cycleCheck' || !enabled}
-                  value={type === 'cycleCheck' ? operator : ''}
+                  disabled={!enabled || !['cycleCheck', 'day', 'night', 'turn'].includes(type)}
+                  value={operator}
                   onChange={(e) => setOperator(e.target.value as ActionOperator)}
                   className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -329,75 +340,10 @@ export const ActionConditionWindow: React.FC = () => {
                 </select>
               </div>
 
-              {(type === 'cycleCheck' && operator !== '') && (
-                <div className="flex flex-col gap-1 flex-[0.7]">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
-                  <input
-                    disabled={type !== 'cycleCheck' || !enabled}
-                    type="number"
-                    value={value}
-                    onChange={(e) => setValue(parseInt(e.target.value) || 0)}
-                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="h-px bg-border/20 mx-2" />
-
-            <div className={`flex items-end gap-3 transition-all duration-300 ${(type !== 'day' && type !== 'night' && type !== 'turn') ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
-                <div className="flex items-center h-[38px] justify-center">
-                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">1.</span>
-                  <input
-                    type="checkbox"
-                    checked={(type === 'day' || type === 'night' || type === 'turn') && enabled}
-                    onChange={() => {
-                      if (type !== 'day' && type !== 'night' && type !== 'turn') {
-                        setType('day');
-                        setEnabled(true);
-                      } else {
-                        setEnabled(!enabled);
-                      }
-                    }}
-                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cycle</label>
-                <select
-                  disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
-                  value={(type !== 'day' && type !== 'night' && type !== 'turn') ? 'day' : type}
-                  onChange={(e) => setType(e.target.value as ActionConditionType)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="day">Jour</option>
-                  <option value="night">Nuit</option>
-                  <option value="turn">Tour</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
-                <select
-                  disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
-                  value={operator}
-                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
-                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="=">=</option>
-                  <option value="<">&lt;</option>
-                  <option value=">">&gt;</option>
-                  <option value="!=">!=</option>
-                  <option value="<=">&lt;=</option>
-                  <option value=">=">&gt;=</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5 flex-[0.7]">
+              <div className="flex flex-col gap-1 flex-[0.7]">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
                 <input
-                  disabled={(type !== 'day' && type !== 'night' && type !== 'turn') || !enabled}
+                  disabled={!enabled || !['cycleCheck', 'day', 'night', 'turn'].includes(type) || operator === ''}
                   type="number"
                   value={value}
                   onChange={(e) => setValue(parseInt(e.target.value) || 0)}
