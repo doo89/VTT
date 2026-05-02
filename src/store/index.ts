@@ -870,7 +870,7 @@ export const useVttStore = create<VttStore>()(
                     return false;
                   }
 
-                  if (c.type === 'playerDistance' || c.type === 'playerDistanceTag' || c.type === 'playerDistancePastille') {
+                  if (['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(c.type)) {
                     let sources: any[] = [];
                     if (c.distanceFromPlayerId === '$Joueur') {
                       if (actionContext['$Joueur']) sources = [actionContext['$Joueur']];
@@ -884,39 +884,55 @@ export const useVttStore = create<VttStore>()(
                     if (sources.length === 0) return false;
 
                     const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
-                    if (sortedPlayers.length === 0) return false;
+                    const minDist = Math.min(c.minValue ?? 0, c.maxValue ?? 0);
+                    const maxDist = Math.max(c.minValue ?? 0, c.maxValue ?? 0);
 
-                    return sources.some(sourcePlayer => {
-                      const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
-                      if (sourceIndex === -1) return false;
+                    const checkTargetCriteria = (targetPlayer: any) => {
+                      if (!targetPlayer) return false;
+                      const targetRoleTags = state.roles.find((r: any) => r.id === targetPlayer.roleId)?.tags || [];
+                      const allTargetTags = [...(targetPlayer.tags || []), ...targetRoleTags];
 
-                      const minDist = Math.min(c.minValue ?? 0, c.maxValue ?? 0);
-                      const maxDist = Math.max(c.minValue ?? 0, c.maxValue ?? 0);
-
-                      for (let dist = minDist; dist <= maxDist; dist++) {
-                        let targetIndex = (sourceIndex + dist) % sortedPlayers.length;
-                        while (targetIndex < 0) targetIndex += sortedPlayers.length;
-                        
-                        const targetPlayer = sortedPlayers[targetIndex];
-                        if (!targetPlayer) continue;
-
-                        const targetRoleTags = state.roles.find((r: any) => r.id === targetPlayer.roleId)?.tags || [];
-                        const allTargetTags = [...(targetPlayer.tags || []), ...targetRoleTags];
-
-                        if (c.type === 'playerDistance') {
-                          if (targetPlayer.roleId === c.distanceTargetRoleId) return true;
-                        } else if (c.type === 'playerDistanceTag') {
-                          if (allTargetTags.some((t: any) => t.id === c.tagId)) return true;
-                        } else if (c.type === 'playerDistancePastille') {
-                          if ((targetPlayer.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon)) return true;
-                        } else if (c.type === 'playerDistanceTeam') {
-                          if (targetPlayer.teamId === c.distanceTargetTeamId) return true;
-                        } else if (c.type === 'playerDistanceStatus') {
-                          if (c.distanceTargetStatus === 'alive' && !targetPlayer.isDead) return true;
-                          if (c.distanceTargetStatus === 'dead' && targetPlayer.isDead) return true;
-                        }
+                      if (c.type === 'playerDistance') {
+                        return targetPlayer.roleId === c.distanceTargetRoleId;
+                      } else if (c.type === 'playerDistanceTag') {
+                        return allTargetTags.some((t: any) => t.id === c.tagId);
+                      } else if (c.type === 'playerDistancePastille') {
+                        return (targetPlayer.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon);
+                      } else if (c.type === 'playerDistanceTeam') {
+                        return targetPlayer.teamId === c.distanceTargetTeamId;
+                      } else if (c.type === 'playerDistanceStatus') {
+                        if (c.distanceTargetStatus === 'alive') return !targetPlayer.isDead;
+                        if (c.distanceTargetStatus === 'dead') return targetPlayer.isDead;
+                      } else if (c.type === 'playerDistanceSelf') {
+                        return targetPlayer.id === (actionContext['$Joueur']?.id);
+                      } else if (c.type === 'playerDistanceSelected') {
+                        return state.selectedEntityIds.includes(targetPlayer.id);
                       }
                       return false;
+                    };
+
+                    return sources.some(sourcePlayer => {
+                      if (c.distanceUnit === 'physical') {
+                        return state.players.some((targetPlayer: any) => {
+                          if (targetPlayer.id === sourcePlayer.id) return false;
+                          const dx = targetPlayer.x - sourcePlayer.x;
+                          const dy = targetPlayer.y - sourcePlayer.y;
+                          const dist = Math.sqrt(dx * dx + dy * dy);
+                          if (dist < minDist || dist > maxDist) return false;
+                          return checkTargetCriteria(targetPlayer);
+                        });
+                      } else {
+                        // Logical distance (index)
+                        const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
+                        if (sourceIndex === -1) return false;
+
+                        for (let dist = minDist; dist <= maxDist; dist++) {
+                          let targetIndex = (sourceIndex + dist) % sortedPlayers.length;
+                          while (targetIndex < 0) targetIndex += sortedPlayers.length;
+                          if (checkTargetCriteria(sortedPlayers[targetIndex])) return true;
+                        }
+                        return false;
+                      }
                     });
                   }
 

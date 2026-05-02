@@ -326,7 +326,7 @@ export interface ActionEffect {
   countdownMessage?: string;
 }
 
-export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus';
+export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected';
 export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=' | '';
 
 export interface ActionCondition {
@@ -347,6 +347,7 @@ export interface ActionCondition {
   selectionTeamId?: string | null;
   distanceTargetTeamId?: string | null;
   distanceTargetStatus?: 'alive' | 'dead' | null;
+  distanceUnit?: 'logical' | 'physical' | null;
   enabled: boolean;
   logic?: 'AND' | 'OR';
 }

@@ -42,6 +42,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [cycleCheckType, setCycleCheckType] = useState<'$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | '$Timer' | '$NbEnLigne' | '$NbTotal' | '$NbVivants' | '$NbMorts' | null>('$Jour');
   const [distanceTargetTeamId, setDistanceTargetTeamId] = useState<string | null>(null);
   const [distanceTargetStatus, setDistanceTargetStatus] = useState<'alive' | 'dead' | null>('alive');
+  const [distanceUnit, setDistanceUnit] = useState<'logical' | 'physical'>('logical');
 
   const [isDistanceExpanded, setIsDistanceExpanded] = useState(true);
   const [isIdentityExpanded, setIsIdentityExpanded] = useState(true);
@@ -73,6 +74,7 @@ export const ActionConditionWindow: React.FC = () => {
         setSelectionTeamId(condition.selectionTeamId || (teams[0]?.id || null));
         setDistanceTargetTeamId(condition.distanceTargetTeamId || (teams[0]?.id || null));
         setDistanceTargetStatus(condition.distanceTargetStatus || 'alive');
+        setDistanceUnit(condition.distanceUnit || 'logical');
       }
     } else {
       setType('day');
@@ -92,6 +94,7 @@ export const ActionConditionWindow: React.FC = () => {
       setSelectionTeamId(teams[0]?.id || null);
       setDistanceTargetTeamId(teams[0]?.id || null);
       setDistanceTargetStatus('alive');
+      setDistanceUnit('logical');
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
 
@@ -129,7 +132,7 @@ export const ActionConditionWindow: React.FC = () => {
   };
 
   const handleOK = () => {
-    const isDist = ['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus'].includes(type);
+    const isDist = ['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type);
     const conditionData = { 
       type, 
       operator, 
@@ -145,7 +148,8 @@ export const ActionConditionWindow: React.FC = () => {
       distanceFromPlayerId: isDist ? distanceFromPlayerId : null,
       distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null,
       distanceTargetTeamId: type === 'playerDistanceTeam' ? distanceTargetTeamId : null,
-      distanceTargetStatus: type === 'playerDistanceStatus' ? distanceTargetStatus : null,
+      distanceTargetStatus: (type === 'playerDistanceStatus') ? distanceTargetStatus : null,
+      distanceUnit: isDist ? distanceUnit : null,
       cycleCheckType: type === 'cycleCheck' ? cycleCheckType : null,
       selectionTeamId: type === 'playerSelectionTeam' ? selectionTeamId : null
     };
@@ -382,19 +386,18 @@ export const ActionConditionWindow: React.FC = () => {
             {isDistanceExpanded ? <ChevronDown size={14} className="text-orange-500/40" /> : <ChevronRight size={14} className="text-orange-500/40" />}
           </button>
           
-          <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-6 ${isDistanceExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
+          <div className={`px-4 pb-4 transition-all duration-300 origin-top flex flex-col gap-5 ${isDistanceExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
             
-            {/* Consolidated Distance Selection */}
-            <div className={`flex flex-col gap-3 transition-all duration-300 ${!['playerDistance', 'playerDistanceTag', 'playerDistancePastille'].includes(type) ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
-              <div className="flex items-center gap-2">
-                <div className="flex flex-col gap-1.5 shrink-0">
-                  <div className="flex items-center h-[20px] justify-center">
-                    <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50 whitespace-nowrap">Dist.</span>
+            <div className={`flex flex-col gap-4 transition-all duration-300 ${!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+              <div className="flex items-end gap-3">
+                <div className="flex flex-col gap-1.5 pb-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+                  <div className="flex items-center h-[38px] justify-center">
                     <input
                       type="checkbox"
-                      checked={['playerDistance', 'playerDistanceTag', 'playerDistancePastille'].includes(type) && enabled}
+                      checked={['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) && enabled}
                       onChange={() => {
-                        if (!['playerDistance', 'playerDistanceTag', 'playerDistancePastille'].includes(type)) {
+                        if (!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type)) {
                           setType('playerDistance');
                           setEnabled(true);
                         } else {
@@ -405,157 +408,182 @@ export const ActionConditionWindow: React.FC = () => {
                     />
                   </div>
                 </div>
-                
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="flex flex-col gap-1 flex-1">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur Source</label>
+
+                <div className="flex flex-col gap-1 flex-[0.6]">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Unité</label>
+                  <select
+                    disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) || !enabled}
+                    value={distanceUnit || 'logical'}
+                    onChange={(e) => setDistanceUnit(e.target.value as any)}
+                    className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="logical">LOGIQUE (Index)</option>
+                    <option value="physical">PHYSIQUE (Pixels)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur Source</label>
+                  <select
+                    disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) || !enabled}
+                    value={distanceFromPlayerId || '$Joueur'}
+                    onChange={(e) => setDistanceFromPlayerId(e.target.value)}
+                    className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="$Joueur">$Joueur</option>
+                    <option value="$Selected">Joueur(s) sélectionné(s)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                  <ChevronRight size={14} className="text-muted-foreground opacity-30 mt-4" />
+                </div>
+
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type Cible</label>
+                  <select
+                    disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) || !enabled}
+                    value={
+                      type === 'playerDistance' ? 'ROLE' :
+                      type === 'playerDistanceTag' ? 'TAG' :
+                      type === 'playerDistancePastille' ? 'PASTILLE' :
+                      type === 'playerDistanceTeam' ? 'TEAM' :
+                      type === 'playerDistanceStatus' ? 'STATUS' : 
+                      type === 'playerDistanceSelf' ? 'SELF' :
+                      type === 'playerDistanceSelected' ? 'SELECTED' : 'ROLE'
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'ROLE') setType('playerDistance');
+                      else if (val === 'TAG') setType('playerDistanceTag');
+                      else if (val === 'PASTILLE') setType('playerDistancePastille');
+                      else if (val === 'TEAM') setType('playerDistanceTeam');
+                      else if (val === 'STATUS') setType('playerDistanceStatus');
+                      else if (val === 'SELF') setType('playerDistanceSelf');
+                      else if (val === 'SELECTED') setType('playerDistanceSelected');
+                    }}
+                    className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="ROLE">RÔLE CIBLE</option>
+                    <option value="TAG">TAG CIBLE</option>
+                    <option value="PASTILLE">PASTILLE CIBLE</option>
+                    <option value="TEAM">ÉQUIPE CIBLE</option>
+                    <option value="STATUS">STATUT CIBLE</option>
+                    <option value="SELF">SOI-MÊME</option>
+                    <option value="SELECTED">SÉLECTION</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cible</label>
+                  {type === 'playerDistance' ? (
                     <select
-                      disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille'].includes(type) || !enabled}
-                      value={distanceFromPlayerId || '$Joueur'}
-                      onChange={(e) => setDistanceFromPlayerId(e.target.value)}
+                      disabled={!enabled}
+                      value={distanceTargetRoleId || ''}
+                      onChange={(e) => setDistanceTargetRoleId(e.target.value)}
                       className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <option value="$Joueur">$Joueur</option>
-                      <option value="$Selected">Joueur(s) sélectionné(s)</option>
+                      {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(role => (
+                        <option key={role.id} value={role.id}>{role.name}</option>
+                      ))}
                     </select>
-                  </div>
-
-                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                    <ChevronRight size={14} className="text-muted-foreground opacity-30 mt-4" />
-                  </div>
-
-                  <div className="flex flex-col gap-1 flex-1">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type Cible</label>
+                  ) : type === 'playerDistanceTag' ? (
                     <select
-                      disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille'].includes(type) || !enabled}
-                      value={
-                        type === 'playerDistance' ? 'ROLE' :
-                        type === 'playerDistanceTag' ? 'TAG' :
-                        type === 'playerDistancePastille' ? 'PASTILLE' :
-                        type === 'playerDistanceTeam' ? 'TEAM' :
-                        type === 'playerDistanceStatus' ? 'STATUS' : 'ROLE'
-                      }
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === 'ROLE') setType('playerDistance');
-                        else if (val === 'TAG') setType('playerDistanceTag');
-                        else if (val === 'PASTILLE') setType('playerDistancePastille');
-                        else if (val === 'TEAM') setType('playerDistanceTeam');
-                        else if (val === 'STATUS') setType('playerDistanceStatus');
-                      }}
-                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={!enabled}
+                      value={tagId || ''}
+                      onChange={(e) => setTagId(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <option value="ROLE">RÔLE CIBLE</option>
-                      <option value="TAG">TAG CIBLE</option>
-                      <option value="PASTILLE">PASTILLE CIBLE</option>
-                      <option value="TEAM">ÉQUIPE CIBLE</option>
-                      <option value="STATUS">STATUT CIBLE</option>
+                      {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
+                        <option key={tag.id} value={tag.id}>{tag.name}</option>
+                      ))}
                     </select>
-                  </div>
+                  ) : type === 'playerDistancePastille' ? (
+                    <div className="flex flex-wrap gap-1 bg-input border border-border rounded-lg p-1 max-h-24 overflow-y-auto custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed">
+                      {allIcons.map((iconName: string) => {
+                        const IconComp = (icons as any)[iconName];
+                        if (!IconComp) return null;
+                        return (
+                          <button
+                            key={iconName}
+                            disabled={!enabled}
+                            type="button"
+                            onClick={() => setPastilleIcon(iconName)}
+                            className={`p-1 rounded transition-colors flex items-center justify-center ${
+                              pastilleIcon === iconName
+                                ? 'bg-orange-500 text-white shadow-sm'
+                                : 'hover:bg-accent text-muted-foreground'
+                            }`}
+                          >
+                            <IconComp size={14} />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : type === 'playerDistanceTeam' ? (
+                    <select
+                      disabled={!enabled}
+                      value={distanceTargetTeamId || ''}
+                      onChange={(e) => setDistanceTargetTeamId(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {[...teams].sort((a,b) => a.name.localeCompare(b.name)).map(team => (
+                        <option key={team.id} value={team.id}>{team.name}</option>
+                      ))}
+                    </select>
+                  ) : type === 'playerDistanceStatus' ? (
+                    <select
+                      disabled={!enabled}
+                      value={distanceTargetStatus || 'alive'}
+                      onChange={(e) => setDistanceTargetStatus(e.target.value as any)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                    >
+                      <option value="alive">VIVANT</option>
+                      <option value="dead">MORT</option>
+                    </select>
+                  ) : type === 'playerDistanceSelf' || type === 'playerDistanceSelected' ? (
+                    <div className="h-[38px] bg-input border border-border rounded-lg px-2 py-1.5 text-sm opacity-50 italic flex items-center font-bold text-orange-500">
+                      {type === 'playerDistanceSelf' ? '$Joueur' : 'SÉLECTION'}
+                    </div>
+                  ) : (
+                    <div className="h-[38px] bg-input border border-border rounded-lg px-2 py-1.5 text-sm opacity-50 italic flex items-center">
+                      Sélectionnez un type...
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                  <div className="flex flex-col gap-1 flex-1">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cible</label>
-                    {type === 'playerDistance' ? (
-                      <select
-                        disabled={!enabled}
-                        value={distanceTargetRoleId || ''}
-                        onChange={(e) => setDistanceTargetRoleId(e.target.value)}
-                        className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(role => (
-                          <option key={role.id} value={role.id}>{role.name}</option>
-                        ))}
-                      </select>
-                    ) : type === 'playerDistanceTag' ? (
-                      <select
-                        disabled={!enabled}
-                        value={tagId || ''}
-                        onChange={(e) => setTagId(e.target.value)}
-                        className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(tag => (
-                          <option key={tag.id} value={tag.id}>{tag.name}</option>
-                        ))}
-                      </select>
-                    ) : type === 'playerDistancePastille' ? (
-                      <div className="flex flex-wrap gap-1 bg-input border border-border rounded-lg p-1 max-h-24 overflow-y-auto custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed">
-                        {allIcons.map((iconName: string) => {
-                          const IconComp = (icons as any)[iconName];
-                          if (!IconComp) return null;
-                          return (
-                            <button
-                              key={iconName}
-                              disabled={!enabled}
-                              type="button"
-                              onClick={() => setPastilleIcon(iconName)}
-                              className={`p-1 rounded transition-colors flex items-center justify-center ${
-                                pastilleIcon === iconName
-                                  ? 'bg-orange-500 text-white shadow-sm'
-                                  : 'hover:bg-accent text-muted-foreground'
-                              }`}
-                            >
-                              <IconComp size={14} />
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : type === 'playerDistanceTeam' ? (
-                      <select
-                        disabled={!enabled}
-                        value={distanceTargetTeamId || ''}
-                        onChange={(e) => setDistanceTargetTeamId(e.target.value)}
-                        className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {[...teams].sort((a,b) => a.name.localeCompare(b.name)).map(team => (
-                          <option key={team.id} value={team.id}>{team.name}</option>
-                        ))}
-                      </select>
-                    ) : type === 'playerDistanceStatus' ? (
-                      <select
-                        disabled={!enabled}
-                        value={distanceTargetStatus || 'alive'}
-                        onChange={(e) => setDistanceTargetStatus(e.target.value as any)}
-                        className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold"
-                      >
-                        <option value="alive">VIVANT</option>
-                        <option value="dead">MORT</option>
-                      </select>
-                    ) : (
-                      <div className="h-[38px] bg-input border border-border rounded-lg px-2 py-1.5 text-sm opacity-50 italic flex items-center">
-                        Sélectionnez un type...
-                      </div>
-                    )}
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap mt-4">entre</span>
+                </div>
 
-                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap mt-4">entre</span>
-                  </div>
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Min {distanceUnit === 'physical' ? '(px)' : '(idx)'}</label>
+                  <input
+                    disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) || !enabled}
+                    type="number"
+                    value={minValue}
+                    onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                  />
+                </div>
 
-                  <div className="flex flex-col gap-1 flex-[0.3]">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                    <input
-                      disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus'].includes(type) || !enabled}
-                      type="number"
-                      value={['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus'].includes(type) ? minValue : 0}
-                      onChange={(e) => setMinValue(parseInt(e.target.value) || 0)}
-                      className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                    />
-                  </div>
+                <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap mt-4">et</span>
+                </div>
 
-                  <div className="flex items-center h-[38px] pb-1.5 px-1 min-w-fit">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap mt-4">et</span>
-                  </div>
-
-                  <div className="flex flex-col gap-1 flex-[0.3]">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Dist.</label>
-                    <input
-                      disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus'].includes(type) || !enabled}
-                      type="number"
-                      value={['playerDistance', 'playerDistanceTag', 'playerDistancePastille'].includes(type) ? maxValue : 0}
-                      onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
-                      className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                    />
-                  </div>
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Max {distanceUnit === 'physical' ? '(px)' : '(idx)'}</label>
+                  <input
+                    disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) || !enabled}
+                    type="number"
+                    value={maxValue}
+                    onChange={(e) => setMaxValue(parseInt(e.target.value) || 0)}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed text-center"
+                  />
                 </div>
               </div>
             </div>
