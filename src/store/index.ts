@@ -936,6 +936,9 @@ export const useVttStore = create<VttStore>()(
                     } else if (c.cycleCheckType === '$Phase') {
                       isActive = true;
                       compareVal = state.isNight ? 1 : 0;
+                    } else if (c.cycleCheckType === '$Timer') {
+                      isActive = state.timer.isRunning;
+                      compareVal = (state.timer.minutes * 60) + state.timer.seconds;
                     }
 
                     const op: string = c.operator;
