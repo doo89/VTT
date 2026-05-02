@@ -287,7 +287,8 @@ export const ActionCreatorWindow: React.FC = () => {
                            condition.type === 'day' ? 'Jour' : 
                            condition.type === 'night' ? 'Nuit' : 
                            condition.type === 'turn' ? 'Tour' :
-                           condition.type === 'playerDistance' || condition.type === 'playerDistanceTag' || condition.type === 'playerDistancePastille' ? 'Distance' :
+                           ['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(condition.type) ? 'Distance' :
+                           condition.type === 'cycleCheck' ? 'Variable' :
                            'Sélection'}
                         </span>
                         <span className="font-mono font-bold text-muted-foreground">{condition.type === 'playerDistance' ? '' : condition.operator}</span>
@@ -299,22 +300,32 @@ export const ActionCreatorWindow: React.FC = () => {
                               `${condition.selectionType === 'first' ? '1er' : condition.selectionType === 'last' ? 'Dernier' : (condition.selectionType === 'callOrder' ? '$Ordre' : (condition.selectionType === 'numeric' ? `Joueur ${condition.value}` : (condition.selectionType === 'random' ? 'Aléatoire' : 'Tous')))} : ${
                                 condition.type === 'playerSelectionPastille' ? `Pastille ${condition.pastilleIcon}` :
                                 (condition.type === 'playerSelectionTag' ? (tags.find(t => t.id === condition.tagId)?.name || 'Inconnu') :
-                                (condition.type === 'playerSelectionTeam' ? (teams.find(t => t.id === condition.selectionTeamId)?.name || 'Aucune équipe') :
+                                (condition.type === 'playerSelectionTeam' ? (teams.find(t => t.id === (condition.selectionTeamId || condition.distanceTargetTeamId))?.name || 'Aucune équipe') :
                                 (roles.find(r => r.id === (condition.selectionRoleId || condition.roleId))?.name || 'Inconnu')))
                               }`
                             ) :
-                            condition.type === 'playerDistance' || condition.type === 'playerDistanceTag' || condition.type === 'playerDistancePastille' ? (
+                            ['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(condition.type) ? (
                               (() => {
                                 const fromLabel = condition.distanceFromPlayerId === '$Joueur' ? '$Joueur' : (condition.distanceFromPlayerId === '$Selected' ? 'Joueur(s) Sél.' : 'Joueur');
+                                const unitLabel = condition.distanceUnit === 'physical' ? 'px' : 'idx';
                                 const rangeLabel = (condition.minValue !== undefined && condition.maxValue !== undefined) 
-                                  ? (condition.minValue === condition.maxValue ? `${condition.minValue}` : `[${condition.minValue} à ${condition.maxValue}]`)
-                                  : `${condition.value}`;
-                                return `${rangeLabel} de : ${fromLabel} (${
-                                  condition.type === 'playerDistanceTag' ? (tags.find(t => t.id === condition.tagId)?.name || 'Inconnu') :
-                                  (condition.type === 'playerDistancePastille' ? `Pastille ${condition.pastilleIcon}` :
-                                  (roles.find(r => r.id === condition.distanceTargetRoleId)?.name || 'Inconnu'))
-                                })`;
+                                  ? (condition.minValue === condition.maxValue ? `${condition.minValue}${unitLabel}` : `[${condition.minValue} à ${condition.maxValue}${unitLabel}]`)
+                                  : `${condition.value}${unitLabel}`;
+                                
+                                let targetLabel = 'Inconnu';
+                                if (condition.type === 'playerDistanceTag') targetLabel = tags.find(t => t.id === condition.tagId)?.name || 'Inconnu';
+                                else if (condition.type === 'playerDistancePastille') targetLabel = `Pastille ${condition.pastilleIcon}`;
+                                else if (condition.type === 'playerDistanceTeam') targetLabel = `Équipe ${teams.find(t => t.id === condition.distanceTargetTeamId)?.name || 'Inconnue'}`;
+                                else if (condition.type === 'playerDistanceStatus') targetLabel = `Statut ${condition.distanceTargetStatus === 'alive' ? 'Vivant' : 'Mort'}`;
+                                else if (condition.type === 'playerDistanceSelf') targetLabel = 'Soi-même';
+                                else if (condition.type === 'playerDistanceSelected') targetLabel = 'Sélection';
+                                else targetLabel = roles.find(r => r.id === condition.distanceTargetRoleId)?.name || 'Inconnu';
+
+                                return `${rangeLabel} de : ${fromLabel} (Cible: ${targetLabel})`;
                               })()
+                            ) :
+                            condition.type === 'cycleCheck' ? (
+                              `${condition.cycleCheckType || 'Variable'} ${condition.operator} ${condition.value}`
                             ) :
                             condition.value}
                         </span>
