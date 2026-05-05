@@ -385,7 +385,6 @@ export const GameTab: React.FC = () => {
           )}
         </div>
       </section>
-      </section>
     </div>
   );
 };
