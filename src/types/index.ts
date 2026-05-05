@@ -506,6 +506,7 @@ export interface GameState {
       actionCreator?: boolean;
       checklist?: boolean;
       tagDistributor?: boolean;
+      magneticPoints?: boolean;
     };
     recordLogs: boolean;
     smartphoneTabs: {
