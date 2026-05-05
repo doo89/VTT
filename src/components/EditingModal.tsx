@@ -866,6 +866,59 @@ export const EditingModal: React.FC = () => {
           />
         </div>
         <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Description de l'équipe (Mémo)</label>
+          <textarea
+            value={team.description || ''}
+            onChange={(e) => updateTeam(team.id, { description: e.target.value })}
+            placeholder="Description, objectifs ou notes sur l'équipe..."
+            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[80px] resize-none"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Image de l'équipe</label>
+          <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const url = await uploadFileToStorage(file);
+                    if (url) {
+                      updateTeam(team.id, { imageUrl: url });
+                    }
+                  }
+                }}
+                className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={team.imageUrl || ''}
+                onChange={(e) => updateTeam(team.id, { imageUrl: e.target.value })}
+                placeholder="Ou collez l'URL d'une image ici..."
+                className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+
+            {team.imageUrl && (
+              <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
+                <img src={team.imageUrl} alt="Preview" className="w-12 h-12 rounded-lg object-cover border-2 border-primary/20 shadow-sm" />
+                <button
+                  onClick={async () => {
+                    if (team.imageUrl) await deleteFileFromStorage(team.imageUrl);
+                    updateTeam(team.id, { imageUrl: undefined });
+                  }}
+                  className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
+                  title="Supprimer l'image"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Icône de l'équipe</label>
           <div className="flex flex-wrap gap-1.5 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto">
             {TEAM_ICONS.map((iconName: string) => {
