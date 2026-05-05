@@ -158,6 +158,7 @@ interface VttStore extends GameState {
   clearMagneticPoints: () => void;
   setShowMagneticPoints: (show: boolean) => void;
   snapPlayersToPoints: () => void;
+  resetStore: () => void;
 }
 
 export const initialState = {
@@ -1553,6 +1554,7 @@ export const useVttStore = create<VttStore>()(
 
           return { players: newPlayers };
         }),
+        resetStore: () => set({ ...initialState }),
       }),
       {
         partialize: (state) => ({
