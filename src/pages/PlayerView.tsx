@@ -596,9 +596,14 @@ export const PlayerView: React.FC = () => {
 
                   {localTeam && (
                     <div
-                      className="inline-flex items-center justify-center px-3 py-1 rounded-full mt-3 border bg-zinc-950/50"
+                      className="inline-flex items-center justify-center px-3 py-1 rounded-full mt-3 border bg-zinc-950/50 gap-2"
                       style={{ borderColor: `${localTeam.color}40`, color: localTeam.color }}
                     >
+                      {localTeam.imageUrl ? (
+                        <img src={localTeam.imageUrl} className="w-3 h-3 rounded-full object-cover" alt="" />
+                      ) : (
+                        (icons as any)[localTeam.icon] && React.createElement((icons as any)[localTeam.icon], { size: 12 })
+                      )}
                       <span className="text-xs font-bold">{localTeam.name}</span>
                     </div>
                   )}
@@ -1098,9 +1103,16 @@ export const PlayerView: React.FC = () => {
                                      <div className="flex flex-col min-w-0">
                                         <span className="font-bold text-zinc-100 truncate">{role.name}</span>
                                         {team && (
-                                           <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: team.color }}>
-                                              {team.name}
-                                           </span>
+                                           <div className="flex items-center gap-1.5 mt-0.5">
+                                             {team.imageUrl ? (
+                                               <img src={team.imageUrl} className="w-2.5 h-2.5 rounded-full object-cover" alt="" />
+                                             ) : (
+                                               (icons as any)[team.icon] && React.createElement((icons as any)[team.icon], { size: 10, style: { color: team.color } })
+                                             )}
+                                             <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: team.color }}>
+                                                {team.name}
+                                             </span>
+                                           </div>
                                         )}
                                      </div>
                                   </div>

@@ -108,7 +108,11 @@ export const RolesTab: React.FC = () => {
                         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                         {team ? (
                           <div className="flex items-center gap-1.5" style={{ color: team.color }}>
-                            {TeamIcon && React.createElement(TeamIcon, { size: 14 })}
+                            {team.imageUrl ? (
+                              <img src={team.imageUrl} className="w-3.5 h-3.5 rounded-full object-cover" alt="" />
+                            ) : (
+                              TeamIcon && React.createElement(TeamIcon, { size: 14 })
+                            )}
                             {team.name}
                           </div>
                         ) : (

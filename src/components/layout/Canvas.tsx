@@ -980,7 +980,11 @@ export const Canvas: React.FC = () => {
                     title={`Équipe: ${team.name}`}
                   >
                     <div className="flex items-center justify-center p-0.5 pointer-events-none">
-                      {team.icon && (icons as any)[team.icon] && React.createElement((icons as any)[team.icon], { size: 12, className: "text-white drop-shadow" })}
+                      {team.imageUrl ? (
+                        <img src={team.imageUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
+                      ) : (
+                        team.icon && (icons as any)[team.icon] && React.createElement((icons as any)[team.icon], { size: 12, className: "text-white drop-shadow" })
+                      )}
                     </div>
                   </div>
                 );

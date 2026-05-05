@@ -307,7 +307,11 @@ export const PlayersTab: React.FC = () => {
                   return (
                     <div key={team.id} className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group">
                       <div className="flex items-center gap-3">
-                        <IconComponent size={16} style={{ color: team.color }} />
+                        {team.imageUrl ? (
+                          <img src={team.imageUrl} className="w-4 h-4 rounded-full object-cover" alt="" />
+                        ) : (
+                          <IconComponent size={16} style={{ color: team.color }} />
+                        )}
                         <span className="text-sm font-medium" style={{ color: team.color }}>{team.name}</span>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
