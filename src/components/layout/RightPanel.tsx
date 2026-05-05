@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play, Magnet, Eye, EyeOff } from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -25,7 +25,8 @@ export const RightPanel: React.FC = () => {
     actionCreatorState: _, setActionCreatorState,
     actions, deleteAction, executeAction, setPendingConditions, setPendingEffects,
     resetCycle,
-    editingEntity, setEditingEntity
+    editingEntity, setEditingEntity,
+    magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -1039,6 +1040,75 @@ export const RightPanel: React.FC = () => {
             )}
             {!tagDistributorState.isDetached && (
               <p className="text-[10px] text-muted-foreground mt-1 px-1">Cliquez sur l'icône pour détacher la liste de distribution rapide.</p>
+            )}
+          </section>
+        )}
+
+        {/* Points Aimantés */}
+        {(displaySettings.panels?.magneticPoints ?? true) && (
+          <section className="flex flex-col border border-border rounded-md bg-background">
+            <button
+              onClick={() => toggleSection('magneticPoints')}
+              className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+            >
+              <div className={`flex items-center gap-2 ${activeSection === 'magneticPoints' ? 'text-blue-500' : ''}`}>
+                <Magnet size={16} /> Points aimantés
+              </div>
+              {activeSection === 'magneticPoints' ? <ChevronDown size={16} className="text-blue-500" /> : <ChevronRight size={16} />}
+            </button>
+            {activeSection === 'magneticPoints' && (
+              <div className="p-3 flex flex-col gap-3 border-t border-border">
+                <button
+                  onClick={() => addMagneticPoint()}
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-600/10 text-blue-500 border border-blue-500/20 rounded-md text-xs font-bold hover:bg-blue-600/20 transition-colors justify-center"
+                >
+                  <Plus size={14} /> Ajouter un point
+                </button>
+
+                <div className="flex flex-col gap-1 px-1">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
+                    <span>Points :</span>
+                    <span className="text-foreground">
+                      {magneticPoints.length} / {players.length}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">Afficher</span>
+                  <button
+                    onClick={() => setShowMagneticPoints(!showMagneticPoints)}
+                    className={`p-1.5 rounded-md transition-all ${showMagneticPoints ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-muted text-muted-foreground'}`}
+                    title={showMagneticPoints ? 'Masquer les points' : 'Afficher les points'}
+                  >
+                    {showMagneticPoints ? <Eye size={14} /> : <EyeOff size={14} />}
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => snapPlayersToPoints()}
+                  disabled={magneticPoints.length === 0}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-md text-xs font-black uppercase tracking-wider transition-all justify-center shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
+                    magneticPoints.length < players.length 
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20' 
+                      : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
+                  }`}
+                >
+                  <Magnet size={14} className={magneticPoints.length > 0 ? "animate-pulse" : ""} /> Aimanter
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (confirm('Supprimer tous les points aimantés ?')) {
+                      clearMagneticPoints();
+                    }
+                  }}
+                  disabled={magneticPoints.length === 0}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[10px] font-bold rounded-md transition-all justify-center hover:text-destructive-foreground disabled:opacity-50"
+                >
+                  <Trash2 size={12} /> Tout supprimer
+                </button>
+              </div>
             )}
           </section>
         )}

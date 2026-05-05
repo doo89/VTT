@@ -1227,6 +1227,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     { key: 'popupCreator', label: 'Créateur de Popup' },
                     { key: 'actionCreator', label: "Créateur d'Actions" },
                     { key: 'checklist', label: 'Checklist pour le MJ' },
+                    { key: 'magneticPoints', label: 'Points aimantés' },
                     { key: 'system', label: 'Système & Connexion' }
                   ].map(tool => (
                     <div key={tool.key} className="flex flex-col gap-2">

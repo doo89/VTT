@@ -1,12 +1,11 @@
-import { Moon, Sun, FastForward, RotateCcw, ChevronDown, ChevronRight, Magnet, Plus, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Moon, Sun, FastForward, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import { useVttStore } from '../../../store';
 import type { Player, Marker, TagInstance } from '../../../types';
 
 export const GameTab: React.FC = () => {
   const { 
-    isNight, cycleNumber, cycleMode, nextCycle, resetCycle, players, markers, roles, updatePlayer, updateMarker,
-    magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints
+    isNight, cycleNumber, cycleMode, nextCycle, resetCycle, players, markers, roles, updatePlayer, updateMarker
   } = useVttStore();
 
   const [expandedCalledTags, setExpandedCalledTags] = useState<Record<string, boolean>>({});
@@ -386,65 +385,6 @@ export const GameTab: React.FC = () => {
           )}
         </div>
       </section>
-      
-      {/* Magnetic Points Group */}
-      <section className="flex flex-col gap-3">
-        <h3 className="font-semibold text-sm border-b border-border pb-1 flex items-center gap-2">
-          <Magnet size={14} className="text-blue-500" />
-          Points aimantés
-        </h3>
-        <div className="flex flex-col gap-3 p-3 rounded-lg border border-border bg-card">
-          <button
-            onClick={() => addMagneticPoint()}
-            className="flex items-center gap-2 px-3 py-2 bg-blue-600/10 text-blue-500 border border-blue-500/20 rounded-md text-xs font-bold hover:bg-blue-600/20 transition-colors justify-center"
-          >
-            <Plus size={14} /> Ajouter un point
-          </button>
-
-          <div className="flex flex-col gap-1 px-1">
-            <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
-              <span>Nombre de points :</span>
-              <span className="text-foreground">
-                {magneticPoints.length} sur {players.length} joueurs
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">Afficher les points</span>
-            <button
-              onClick={() => setShowMagneticPoints(!showMagneticPoints)}
-              className={`p-1.5 rounded-md transition-all ${showMagneticPoints ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-muted text-muted-foreground'}`}
-              title={showMagneticPoints ? 'Masquer les points' : 'Afficher les points'}
-            >
-              {showMagneticPoints ? <Eye size={16} /> : <EyeOff size={16} />}
-            </button>
-          </div>
-
-          <button
-            onClick={() => snapPlayersToPoints()}
-            disabled={magneticPoints.length === 0}
-            className={`flex items-center gap-2 px-3 py-2.5 rounded-md text-xs font-black uppercase tracking-wider transition-all justify-center shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
-              magneticPoints.length < players.length 
-                ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20' 
-                : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
-            }`}
-          >
-            <Magnet size={14} className="animate-pulse" /> Aimanter
-          </button>
-
-          <button
-            onClick={() => {
-              if (confirm('Supprimer tous les points aimantés ?')) {
-                clearMagneticPoints();
-              }
-            }}
-            disabled={magneticPoints.length === 0}
-            className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[10px] font-bold rounded-md transition-all justify-center hover:text-destructive-foreground disabled:opacity-50"
-          >
-            <Trash2 size={12} /> Tout supprimer
-          </button>
-        </div>
       </section>
     </div>
   );
