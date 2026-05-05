@@ -383,6 +383,7 @@ export const initialState = {
     timerDefaultMinutes: 5,
     timerDefaultSeconds: 0,
     defaultPlayerSize: 40,
+    defaultPlayerShape: 'circle',
   },
   downloadLogs: () => {
     const logs = useVttStore.getState().logs;
@@ -499,6 +500,7 @@ export const useVttStore = create<VttStore>()(
         lives: undefined,
         ...playerData, 
         size: playerData.size ?? state.displaySettings.defaultPlayerSize ?? 40,
+        shape: playerData.shape ?? state.displaySettings.defaultPlayerShape ?? 'circle',
         id: uuidv4(),
         creationOrder: maxOrder + 1
       }]

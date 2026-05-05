@@ -422,6 +422,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </div>
                       </div>
 
+                      <div className="flex flex-col gap-1.5 mt-2">
+                        <label className="text-xs text-muted-foreground">Forme par défaut des pions :</label>
+                        <select
+                          value={displaySettings.defaultPlayerShape || 'circle'}
+                          onChange={(e) => updateDisplaySettings({ defaultPlayerShape: e.target.value as any })}
+                          className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-fit"
+                        >
+                          <option value="circle">Rond</option>
+                          <option value="square">Carré</option>
+                          <option value="oval">Ovale</option>
+                          <option value="triangle">Triangle</option>
+                          <option value="trapezoid">Trapèze</option>
+                          <option value="octagon">Octogone</option>
+                          <option value="star">Étoile</option>
+                          <option value="pentagon">Pentagone</option>
+                        </select>
+                      </div>
+
                       {/* Info-Bulle */}
                       <div className="mt-4 p-4 rounded-lg bg-muted/20 border border-border/50 flex flex-col gap-3">
                         <label className="flex items-center gap-2 text-sm font-semibold cursor-pointer border-b border-border/30 pb-2">

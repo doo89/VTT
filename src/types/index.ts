@@ -24,6 +24,7 @@ export interface Player {
   smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background' | 'none';
   creationOrder?: number;
   isSleeping?: boolean;
+  shape?: PlayerShape;
 }
 
 export interface PlayerTemplate {
@@ -36,6 +37,7 @@ export interface PlayerTemplate {
   teamId: EntityId | null;
   smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background' | 'none';
   isSleeping?: boolean;
+  shape?: PlayerShape;
 }
 
 export interface Role {
@@ -148,6 +150,8 @@ export interface MagneticPoint {
   y: number;
   order: number;
 }
+
+export type PlayerShape = 'circle' | 'square' | 'oval' | 'triangle' | 'trapezoid' | 'octagon' | 'star' | 'pentagon';
 
 export type BadgeType = 'none' | 'team' | 'lives' | 'votes' | 'points' | 'uses' | 'callOrderDay' | 'callOrderNight' | 'connection' | 'creationOrder' | 'sleeping';
 
@@ -563,5 +567,6 @@ export interface GameState {
     timerDefaultMinutes?: number;
     timerDefaultSeconds?: number;
     defaultPlayerSize?: number;
+    defaultPlayerShape?: PlayerShape;
   };
 }

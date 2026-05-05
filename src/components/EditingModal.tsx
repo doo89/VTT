@@ -190,6 +190,24 @@ export const EditingModal: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Forme du pion</label>
+          <select
+            value={template.shape || ''}
+            onChange={(e) => updatePlayerTemplate(template.id, { shape: (e.target.value || undefined) as any })}
+            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="">Utiliser le défaut</option>
+            <option value="circle">Rond</option>
+            <option value="square">Carré</option>
+            <option value="oval">Ovale</option>
+            <option value="triangle">Triangle</option>
+            <option value="trapezoid">Trapèze</option>
+            <option value="octagon">Octogone</option>
+            <option value="star">Étoile</option>
+            <option value="pentagon">Pentagone</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Image / Icône (Modèle)</label>
           <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
             <div className="flex flex-col gap-2">
@@ -300,6 +318,24 @@ export const EditingModal: React.FC = () => {
               className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Forme du pion</label>
+          <select
+            value={player.shape || ''}
+            onChange={(e) => updatePlayer(player.id, { shape: (e.target.value || undefined) as any })}
+            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="">Utiliser le défaut</option>
+            <option value="circle">Rond</option>
+            <option value="square">Carré</option>
+            <option value="oval">Ovale</option>
+            <option value="triangle">Triangle</option>
+            <option value="trapezoid">Trapèze</option>
+            <option value="octagon">Octogone</option>
+            <option value="star">Étoile</option>
+            <option value="pentagon">Pentagone</option>
+          </select>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Image / Icône</label>

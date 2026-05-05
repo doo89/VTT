@@ -8,6 +8,21 @@ import type { Marker, Player } from '../../types';
 import { supabase, getEnvUrl, getEnvKey } from '../../lib/supabase';
 import { calculateTagEffect, getEffectiveStats } from '../../lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
+import type { PlayerShape } from '../../types';
+
+const getShapeClipPath = (shape?: PlayerShape) => {
+  switch (shape) {
+    case 'square': return 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)';
+    case 'oval': return 'ellipse(50% 40% at 50% 50%)';
+    case 'triangle': return 'polygon(50% 0%, 0% 100%, 100% 100%)';
+    case 'trapezoid': return 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)';
+    case 'octagon': return 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)';
+    case 'star': return 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
+    case 'pentagon': return 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)';
+    case 'circle':
+    default: return 'circle(50% at 50% 50%)';
+  }
+};
 
 export const Canvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1054,10 +1069,13 @@ export const Canvas: React.FC = () => {
               imageToShow = role.imageUrl;
             }
 
+            const effectiveShape = player.shape || displaySettings.defaultPlayerShape || 'circle';
+            const isSelected = selectedEntityIds.includes(player.id);
+
             return (
               <div
                 key={player.id}
-                className={`absolute canvas-entity group ${selectedEntityIds.includes(player.id) ? 'ring-4 ring-blue-500 rounded-full' : ''}`}
+                className="absolute canvas-entity group"
                 style={{
                   left: player.x,
                   top: player.y,
@@ -1108,26 +1126,76 @@ export const Canvas: React.FC = () => {
                 onDoubleClick={() => useVttStore.getState().setEditingEntity({ type: 'player', id: player.id })}
               >
                 <div className="relative flex flex-col items-center justify-center">
+                  {/* Selection Ring */}
+                  {isSelected && (
+                    <div 
+                      className="absolute inset-0 z-0 bg-blue-500 opacity-50 blur-[2px]"
+                      style={{
+                        width: player.size * 2 + 12,
+                        height: player.size * 2 + 12,
+                        clipPath: getShapeClipPath(effectiveShape),
+                        transform: 'translate(0, 0)',
+                      }}
+                    />
+                  )}
+
                   <div
-                    className={`rounded-full shadow-lg flex items-center justify-center transition-all overflow-hidden ${player.isDead ? 'opacity-80' : ''}`}
+                    className={`shadow-lg flex items-center justify-center transition-all overflow-hidden ${player.isDead ? 'opacity-80' : ''}`}
                     style={{
                       width: player.size * 2,
                       height: player.size * 2,
-                      backgroundColor: player.isDead ? '#27272a' : player.color, // zinc-800
-                      border: `4px solid ${player.isDead ? '#7f1d1d' : (displaySettings.showRoleColor && role?.color) ? role.color : player.color}`, // red-900 or role/player color
-                      padding: imageToShow ? '2px' : '0' // Leave 2px border for color if image exists
+                      backgroundColor: player.isDead ? '#27272a' : player.color,
+                      clipPath: getShapeClipPath(effectiveShape),
+                      border: effectiveShape === 'circle' || effectiveShape === 'square' ? `4px solid ${player.isDead ? '#7f1d1d' : (displaySettings.showRoleColor && role?.color) ? role.color : player.color}` : 'none',
+                      padding: (effectiveShape === 'circle' || effectiveShape === 'square') && imageToShow ? '2px' : '0'
                     }}
                   >
-                    {imageToShow && !player.isDead && (
-                      <img
-                        src={imageToShow}
-                        alt={player.name}
-                        className="w-full h-full object-cover rounded-full bg-background"
-                        draggable={false}
-                      />
-                    )}
-                    {player.isDead && (
-                      <Skull size={player.size * 1.5} className="absolute text-red-900/60 pointer-events-none" />
+                    {/* For complex shapes, we simulate the border by having a background color on the container and a slightly smaller inner div if needed, 
+                        but for now let's just use a simple approach: if it's not circle/square, we use the background color as the "border" and put a smaller div inside. */}
+                    
+                    {effectiveShape !== 'circle' && effectiveShape !== 'square' ? (
+                       <div 
+                         className="w-full h-full flex items-center justify-center"
+                         style={{
+                           padding: '4px',
+                           backgroundColor: player.isDead ? '#7f1d1d' : (displaySettings.showRoleColor && role?.color) ? role.color : player.color,
+                           clipPath: getShapeClipPath(effectiveShape),
+                         }}
+                       >
+                         <div 
+                           className="w-full h-full flex items-center justify-center overflow-hidden"
+                           style={{
+                             backgroundColor: player.isDead ? '#27272a' : player.color,
+                             clipPath: getShapeClipPath(effectiveShape),
+                           }}
+                         >
+                            {imageToShow && !player.isDead && (
+                              <img
+                                src={imageToShow}
+                                alt={player.name}
+                                className="w-full h-full object-cover bg-background"
+                                draggable={false}
+                              />
+                            )}
+                            {player.isDead && (
+                              <Skull size={player.size * 1.5} className="absolute text-red-900/60 pointer-events-none" />
+                            )}
+                         </div>
+                       </div>
+                    ) : (
+                      <>
+                        {imageToShow && !player.isDead && (
+                          <img
+                            src={imageToShow}
+                            alt={player.name}
+                            className="w-full h-full object-cover rounded-full bg-background"
+                            draggable={false}
+                          />
+                        )}
+                        {player.isDead && (
+                          <Skull size={player.size * 1.5} className="absolute text-red-900/60 pointer-events-none" />
+                        )}
+                      </>
                     )}
 
                     {/* Name inside circle */}
