@@ -44,7 +44,13 @@ export const Canvas: React.FC = () => {
     setContainerSize({ width: containerRef.current.clientWidth, height: containerRef.current.clientHeight });
     return () => observer.disconnect();
   }, []);
-  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, type: 'player' | 'marker' | 'canvas' | 'group', entityId: string | null } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, canvasX: number, canvasY: number, type: 'player' | 'marker' | 'canvas' | 'group', entityId: string | null } | null>(null);
+  const [circlePreview, setCirclePreview] = useState<{
+    centerX: number;
+    centerY: number;
+    radius: number;
+    rotation: number;
+  } | null>(null);
   const [mergeConfirm, setMergeConfirm] = useState<{ marker: Marker, hitPlayer: Player, canvasX: number, canvasY: number } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     title: string,
@@ -127,7 +133,8 @@ export const Canvas: React.FC = () => {
   const handleContextMenu = (e: React.MouseEvent, type: 'player' | 'marker' | 'canvas' | 'group', entityId: string | null = null) => {
     e.preventDefault();
     e.stopPropagation();
-    setContextMenu({ x: e.clientX, y: e.clientY, type, entityId });
+    const coords = getCanvasCoordinates(e);
+    setContextMenu({ x: e.clientX, y: e.clientY, canvasX: coords.x, canvasY: coords.y, type, entityId });
   };
 
   const closeContextMenu = () => {
@@ -352,6 +359,27 @@ export const Canvas: React.FC = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (circlePreview) {
+      if (e.button === 0) {
+        // Validate
+        const angleStep = (2 * Math.PI) / players.length;
+        players.forEach((player, index) => {
+          let finalX = circlePreview.centerX + circlePreview.radius * Math.cos(index * angleStep + circlePreview.rotation);
+          let finalY = circlePreview.centerY + circlePreview.radius * Math.sin(index * angleStep + circlePreview.rotation);
+          if (grid.enabled) {
+            finalX = snapToGrid(finalX, grid.sizeX);
+            finalY = snapToGrid(finalY, grid.sizeY);
+          }
+          updatePlayer(player.id, { x: finalX, y: finalY });
+        });
+        setCirclePreview(null);
+      } else {
+        // Cancel on other clicks
+        setCirclePreview(null);
+      }
+      return;
+    }
+
     closeContextMenu();
 
     // Only start panning if clicking directly on the canvas background, not on entities
@@ -379,6 +407,16 @@ export const Canvas: React.FC = () => {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (circlePreview) {
+      const coords = getCanvasCoordinates(e);
+      const dx = coords.x - circlePreview.centerX;
+      const dy = coords.y - circlePreview.centerY;
+      const radius = Math.sqrt(dx * dx + dy * dy);
+      const rotation = Math.atan2(dy, dx);
+      setCirclePreview({ ...circlePreview, radius, rotation });
+      return;
+    }
+
     if (isSelecting && selectionBoxStart) {
       setSelectionBoxCurrent(getCanvasCoordinates(e));
       return;
@@ -428,6 +466,18 @@ export const Canvas: React.FC = () => {
 
     setIsPanning(false);
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (circlePreview) {
+          setCirclePreview(null);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [circlePreview]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -1430,6 +1480,83 @@ export const Canvas: React.FC = () => {
             </div>
           ))}
 
+          {/* Render Circle Rearrange Preview */}
+          {circlePreview && (
+            <div className="absolute inset-0 pointer-events-none z-[150]">
+              {/* Central cross */}
+              <div 
+                className="absolute w-6 h-6 border-2 border-blue-500/50 rounded-full flex items-center justify-center"
+                style={{ 
+                  left: circlePreview.centerX, 
+                  top: circlePreview.centerY, 
+                  transform: 'translate(-50%, -50%)' 
+                }}
+              >
+                <div className="absolute top-1/2 left-0 w-full h-0.5 bg-blue-500/50" />
+                <div className="absolute left-1/2 top-0 w-0.5 h-full bg-blue-500/50" />
+              </div>
+
+              {/* Radius line and Circle */}
+              <svg className="absolute inset-0 w-full h-full overflow-visible">
+                <line 
+                  x1={circlePreview.centerX} 
+                  y1={circlePreview.centerY} 
+                  x2={circlePreview.centerX + circlePreview.radius * Math.cos(circlePreview.rotation)} 
+                  y2={circlePreview.centerY + circlePreview.radius * Math.sin(circlePreview.rotation)} 
+                  stroke="rgba(59, 130, 246, 0.5)" 
+                  strokeWidth="2" 
+                  strokeDasharray="4 2" 
+                />
+                <circle 
+                  cx={circlePreview.centerX} 
+                  cy={circlePreview.centerY} 
+                  r={circlePreview.radius} 
+                  fill="none" 
+                  stroke="rgba(59, 130, 246, 0.2)" 
+                  strokeWidth="1" 
+                  strokeDasharray="8 4" 
+                />
+              </svg>
+
+              {/* Player ghosts */}
+              {players.map((player, index) => {
+                const angleStep = (2 * Math.PI) / players.length;
+                const ghostX = circlePreview.centerX + circlePreview.radius * Math.cos(index * angleStep + circlePreview.rotation);
+                const ghostY = circlePreview.centerY + circlePreview.radius * Math.sin(index * angleStep + circlePreview.rotation);
+                
+                return (
+                  <div
+                    key={`ghost-${player.id}`}
+                    className="absolute rounded-full border-2 border-dashed border-blue-500/50 bg-blue-500/10 flex items-center justify-center overflow-hidden"
+                    style={{
+                      width: player.size * 2,
+                      height: player.size * 2,
+                      left: ghostX,
+                      top: ghostY,
+                      transform: 'translate(-50%, -50%)',
+                      opacity: 0.6
+                    }}
+                  >
+                    <span className="text-[10px] font-bold text-blue-500/70 drop-shadow-sm text-center px-1 truncate w-full">{player.name}</span>
+                  </div>
+                );
+              })}
+              
+              {/* Instructions tooltip */}
+              <div 
+                className="absolute bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg flex items-center gap-2 whitespace-nowrap"
+                style={{
+                  left: circlePreview.centerX + (circlePreview.radius + 20) * Math.cos(circlePreview.rotation),
+                  top: circlePreview.centerY + (circlePreview.radius + 20) * Math.sin(circlePreview.rotation),
+                }}
+              >
+                <span>Clic gauche : Valider</span>
+                <span className="opacity-50">|</span>
+                <span>Échap : Annuler</span>
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* Context Menu */}
@@ -1896,29 +2023,14 @@ export const Canvas: React.FC = () => {
                   className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
                   onMouseDown={(e) => {
                     e.stopPropagation();
-                    if (!containerRef.current || players.length === 0) {
-                      closeContextMenu();
-                      return;
+                    if (contextMenu && players.length > 0) {
+                      setCirclePreview({
+                        centerX: contextMenu.canvasX,
+                        centerY: contextMenu.canvasY,
+                        radius: 100,
+                        rotation: 0
+                      });
                     }
-                    
-                    const centerX = -canvas.panX / canvas.zoom;
-                    const centerY = -canvas.panY / canvas.zoom;
-                    
-                    const radius = Math.max(150, players.length * 30);
-                    const angleStep = (2 * Math.PI) / players.length;
-                    
-                    players.forEach((player, index) => {
-                        let finalX = centerX + radius * Math.cos(index * angleStep - Math.PI / 2);
-                        let finalY = centerY + radius * Math.sin(index * angleStep - Math.PI / 2);
-                        
-                        if (grid.enabled) {
-                            finalX = snapToGrid(finalX, grid.sizeX);
-                            finalY = snapToGrid(finalY, grid.sizeY);
-                        }
-                        
-                        updatePlayer(player.id, { x: finalX, y: finalY });
-                    });
-                    
                     closeContextMenu();
                   }}
                 >
