@@ -497,8 +497,8 @@ export const useVttStore = create<VttStore>()(
         points: undefined,
         votes: undefined,
         lives: undefined,
-        size: state.displaySettings.defaultPlayerSize || 40,
         ...playerData, 
+        size: playerData.size ?? state.displaySettings.defaultPlayerSize ?? 40,
         id: uuidv4(),
         creationOrder: maxOrder + 1
       }]
