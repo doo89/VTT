@@ -20,7 +20,8 @@ export const Canvas: React.FC = () => {
     markers, updateMarker, addMarker, deleteMarker, clearMarkers,
     roles, teams, grid, room, displaySettings,
     selectedEntityIds, setSelectedEntityIds, clearSelection,
-    interactionMode, setInteractionMode
+    interactionMode, setInteractionMode,
+    magneticPoints, showMagneticPoints, updateMagneticPoint, deleteMagneticPoint
   } = useVttStore();
 
   const { undo, redo, pastStates, futureStates } = useStore(useVttStore.temporal);
@@ -318,6 +319,8 @@ export const Canvas: React.FC = () => {
             }
           }
         });
+      } else if (payload.type === 'magnetic_point') {
+        updateMagneticPoint(payload.id, canvasX, canvasY);
       }
     } catch (err) {
       console.error("Drop error", err);
@@ -1393,6 +1396,39 @@ export const Canvas: React.FC = () => {
               </div>
             );
           })}
+          
+          {/* Render Magnetic Points */}
+          {showMagneticPoints && magneticPoints.map((point) => (
+            <div
+              key={point.id}
+              className="absolute canvas-entity z-[15] select-none"
+              style={{
+                left: point.x,
+                top: point.y,
+                transform: 'translate(-50%, -50%)',
+                cursor: showMagneticPoints ? 'grab' : 'default',
+              }}
+              draggable={showMagneticPoints}
+              onDragStart={(e) => {
+                e.stopPropagation();
+                closeContextMenu();
+                e.dataTransfer.setData('application/json', JSON.stringify({ type: 'magnetic_point', id: point.id }));
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (confirm(`Supprimer le point aimanté ${point.order} ?`)) {
+                  deleteMagneticPoint(point.id);
+                }
+              }}
+            >
+              <div className="w-8 h-8 rounded-full bg-blue-500/10 border-2 border-blue-500/50 flex items-center justify-center shadow-lg backdrop-blur-[2px] group hover:border-blue-400 hover:bg-blue-500/20 transition-all">
+                <span className="text-[12px] font-black text-blue-400 group-hover:text-blue-300 drop-shadow-sm select-none">{point.order}</span>
+                <div className="absolute inset-0 rounded-full bg-blue-500/5 animate-pulse -z-10" />
+              </div>
+            </div>
+          ))}
 
         </div>
 

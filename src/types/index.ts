@@ -142,6 +142,13 @@ export interface Team {
   color: string;
 }
 
+export interface MagneticPoint {
+  id: string;
+  x: number;
+  y: number;
+  order: number;
+}
+
 export type BadgeType = 'none' | 'team' | 'lives' | 'votes' | 'points' | 'uses' | 'callOrderDay' | 'callOrderNight' | 'connection' | 'creationOrder' | 'sleeping';
 
 export interface BadgeConfig {
@@ -387,6 +394,8 @@ export interface GameState {
   markers: Marker[];
   markerParameters: MarkerParameter[];
   teams: Team[];
+  magneticPoints: MagneticPoint[];
+  showMagneticPoints: boolean;
   tags: TagModel[];
   tagCategories: TagCategory[];
   handouts: Handout[];

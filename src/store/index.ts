@@ -150,6 +150,14 @@ interface VttStore extends GameState {
 
   // Checklist
   setChecklist: (checklist: ChecklistItem[] | ((prev: ChecklistItem[]) => ChecklistItem[])) => void;
+
+  // Magnetic Points
+  addMagneticPoint: (x?: number, y?: number) => void;
+  updateMagneticPoint: (id: string, x: number, y: number) => void;
+  deleteMagneticPoint: (id: string) => void;
+  clearMagneticPoints: () => void;
+  setShowMagneticPoints: (show: boolean) => void;
+  snapPlayersToPoints: () => void;
 }
 
 export const initialState = {
@@ -167,6 +175,8 @@ export const initialState = {
   markers: [],
   markerParameters: [],
   teams: [],
+  magneticPoints: [],
+  showMagneticPoints: false,
   tagCategories: [],
   handouts: [],
   logs: [],
@@ -1478,6 +1488,71 @@ export const useVttStore = create<VttStore>()(
         })),
         setPendingEffects: (effects) => set({ pendingActionEffects: effects }),
         clearPendingEffects: () => set({ pendingActionEffects: [] }),
+
+        addMagneticPoint: (x, y) => set((state) => {
+          const maxOrder = state.magneticPoints.reduce((max, p) => Math.max(max, p.order), 0);
+          const { panX, panY, zoom } = state.canvas;
+          const defaultX = x ?? (-panX + 500) / zoom;
+          const defaultY = y ?? (-panY + 400) / zoom;
+          return {
+            magneticPoints: [...state.magneticPoints, {
+              id: uuidv4(),
+              x: defaultX,
+              y: defaultY,
+              order: maxOrder + 1
+            }]
+          };
+        }),
+        updateMagneticPoint: (id, x, y) => set((state) => ({
+          magneticPoints: state.magneticPoints.map(p => p.id === id ? { ...p, x, y } : p)
+        })),
+        deleteMagneticPoint: (id) => set((state) => ({
+          magneticPoints: state.magneticPoints.filter(p => p.id !== id)
+        })),
+        clearMagneticPoints: () => set({ magneticPoints: [] }),
+        setShowMagneticPoints: (show) => set({ showMagneticPoints: show }),
+        snapPlayersToPoints: () => set((state) => {
+          const alivePlayers = state.players.filter(p => !p.isDead);
+          const points = [...state.magneticPoints].sort((a, b) => a.order - b.order);
+          
+          if (points.length === 0 || alivePlayers.length === 0) return state;
+
+          const playerUpdates: { id: string, updates: Partial<Player> }[] = [];
+          const remainingPlayers = [...alivePlayers];
+          
+          // For each point, find the closest available player
+          for (const point of points) {
+            if (remainingPlayers.length === 0) break;
+            
+            let closestPlayerIndex = -1;
+            let minDistance = Infinity;
+
+            remainingPlayers.forEach((player, idx) => {
+              const dx = player.x - point.x;
+              const dy = player.y - point.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist < minDistance) {
+                minDistance = dist;
+                closestPlayerIndex = idx;
+              }
+            });
+
+            if (closestPlayerIndex !== -1) {
+              const player = remainingPlayers[closestPlayerIndex];
+              playerUpdates.push({ id: player.id, updates: { x: point.x, y: point.y } });
+              remainingPlayers.splice(closestPlayerIndex, 1);
+            }
+          }
+
+          if (playerUpdates.length === 0) return state;
+
+          const newPlayers = state.players.map(p => {
+            const update = playerUpdates.find(u => u.id === p.id);
+            return update ? { ...p, ...update.updates } : p;
+          });
+
+          return { players: newPlayers };
+        }),
       }),
       {
         partialize: (state) => ({
@@ -1496,6 +1571,8 @@ export const useVttStore = create<VttStore>()(
           checklist: state.checklist,
           checklistState: state.checklistState,
           tagDistributorState: state.tagDistributorState,
+          magneticPoints: state.magneticPoints,
+          showMagneticPoints: state.showMagneticPoints,
         }),
         limit: 50, // Keep last 50 states to prevent memory issues
         equality: (pastState, currentState) => {
@@ -1533,6 +1610,8 @@ export const useVttStore = create<VttStore>()(
           pendingActionEnabled,
           pendingElseActionId,
           tagDistributorState,
+          magneticPoints,
+          showMagneticPoints,
           checklistState,
           activeCustomPopupId,
           ...rest 
