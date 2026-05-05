@@ -562,5 +562,6 @@ export interface GameState {
     distributionDeletePublicNotes?: boolean;
     timerDefaultMinutes?: number;
     timerDefaultSeconds?: number;
+    defaultPlayerSize?: number;
   };
 }

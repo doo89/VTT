@@ -382,6 +382,7 @@ export const initialState = {
     distributionDeletePublicNotes: true,
     timerDefaultMinutes: 5,
     timerDefaultSeconds: 0,
+    defaultPlayerSize: 40,
   },
   downloadLogs: () => {
     const logs = useVttStore.getState().logs;
@@ -496,6 +497,7 @@ export const useVttStore = create<VttStore>()(
         points: undefined,
         votes: undefined,
         lives: undefined,
+        size: state.displaySettings.defaultPlayerSize || 40,
         ...playerData, 
         id: uuidv4(),
         creationOrder: maxOrder + 1
