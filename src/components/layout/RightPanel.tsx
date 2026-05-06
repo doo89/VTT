@@ -26,7 +26,8 @@ export const RightPanel: React.FC = () => {
     actions, deleteAction, executeAction, setPendingConditions, setPendingEffects,
     resetCycle,
     editingEntity, setEditingEntity,
-    magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints
+    magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints,
+    displaySettings
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -205,17 +206,22 @@ export const RightPanel: React.FC = () => {
             clearInterval(interval);
             setTimer({ isRunning: false, seconds: 0 });
             if (timer.playSoundAtZero) {
-              // Beep sound
-              const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-              const osc = ctx.createOscillator();
-              const gainNode = ctx.createGain();
-              osc.connect(gainNode);
-              gainNode.connect(ctx.destination);
-              osc.type = 'sine';
-              osc.frequency.setValueAtTime(880, ctx.currentTime);
-              gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-              osc.start();
-              osc.stop(ctx.currentTime + 0.5);
+              if (displaySettings.timerEndSoundUrl) {
+                const audio = new Audio(displaySettings.timerEndSoundUrl);
+                audio.play().catch(e => console.error("Failed to play timer sound:", e));
+              } else {
+                // Beep sound
+                const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.5);
+              }
             }
             return;
           }
@@ -227,7 +233,7 @@ export const RightPanel: React.FC = () => {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [timer.isRunning, timer.minutes, timer.seconds, timer.playSoundAtZero, setTimer]);
+  }, [timer.isRunning, timer.minutes, timer.seconds, timer.playSoundAtZero, setTimer, displaySettings]);
 
   const handleTimerToggle = () => setTimer({ isRunning: !timer.isRunning });
   const handleTimerReset = () => {

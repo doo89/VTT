@@ -43,6 +43,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   } = useVttStore();
 
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const timerSoundInputRef = useRef<HTMLInputElement>(null);
 
   const [draggedTool, setDraggedTool] = useState<string | null>(null);
 
@@ -73,6 +74,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
   const handleToolDragEnd = () => {
     setDraggedTool(null);
+  };
+  
+  const handleTimerSoundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        updateDisplaySettings({ timerEndSoundUrl: e.target?.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1442,6 +1454,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             onChange={(e) => updateDisplaySettings({ timerDefaultSeconds: Math.max(0, parseInt(e.target.value) || 0) })}
                             className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 text-center font-mono font-bold"
                           />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Son de fin</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={displaySettings.timerEndSoundUrl || ''}
+                              onChange={(e) => updateDisplaySettings({ timerEndSoundUrl: e.target.value })}
+                              placeholder="URL du son (mp3, wav...)"
+                              className="flex-1 bg-background border border-border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+                            />
+                            <input
+                              type="file"
+                              ref={timerSoundInputRef}
+                              onChange={handleTimerSoundUpload}
+                              className="hidden"
+                              accept="audio/*"
+                            />
+                            <button
+                              onClick={() => timerSoundInputRef.current?.click()}
+                              className="p-1.5 bg-muted border border-border rounded hover:bg-accent transition-colors"
+                              title="Charger un fichier"
+                            >
+                              <icons.Music size={14} className="text-amber-500" />
+                            </button>
+                            {displaySettings.timerEndSoundUrl && (
+                              <button
+                                onClick={() => updateDisplaySettings({ timerEndSoundUrl: null })}
+                                className="p-1.5 bg-destructive/10 text-destructive border border-destructive/20 rounded hover:bg-destructive hover:text-white transition-colors"
+                                title="Supprimer le son"
+                              >
+                                <icons.Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-amber-500 transition-colors mt-1">
                           <input

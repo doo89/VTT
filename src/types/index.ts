@@ -531,6 +531,7 @@ export interface GameState {
       showNotePreview: boolean;
     };
     showTimerOnSmartphone?: boolean;
+    timerEndSoundUrl?: string | null;
     wikiTitle?: string;
     wikiLightMode?: boolean;
     showWikiNotes?: boolean;

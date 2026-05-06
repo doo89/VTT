@@ -347,6 +347,7 @@ export const initialState = {
       showNotePreview: true,
     },
     showTimerOnSmartphone: true,
+    timerEndSoundUrl: null,
     wikiTitle: 'Régles du jeu',
     wikiLightMode: true,
     showWikiNotes: true,
