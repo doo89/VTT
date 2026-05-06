@@ -959,6 +959,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             {expandedSmartphone.game ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                           </button>
                         </div>
+                        <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors ml-7 -mt-1 mb-2">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showTimerOnSmartphone ?? true}
+                            onChange={(e) => updateDisplaySettings({ showTimerOnSmartphone: e.target.checked })}
+                            className="rounded border-border w-3.5 h-3.5 text-primary"
+                          />
+                          Afficher le chronomètre sur le smartphone
+                        </label>
                         {(displaySettings.smartphoneTabs?.game ?? true) && expandedSmartphone.game && (
                    <div className="flex flex-col gap-1.5 w-fit ml-7 mt-1">
                     <label className="text-xs font-bold text-foreground">Style de l'image (Avatar / Rôle)</label>
@@ -1434,6 +1443,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500 text-center font-mono font-bold"
                           />
                         </div>
+                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-amber-500 transition-colors mt-1">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showTimerOnSmartphone ?? true}
+                            onChange={(e) => updateDisplaySettings({ showTimerOnSmartphone: e.target.checked })}
+                            className="rounded border-border w-3.5 h-3.5 text-amber-500"
+                          />
+                          Afficher sur le smartphone
+                        </label>
                       </div>
                     )}
                     {key === 'wiki' && (displaySettings.panels?.wiki ?? true) && expandedOutils.wiki && (

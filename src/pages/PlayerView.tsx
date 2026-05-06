@@ -49,6 +49,7 @@ export const PlayerView: React.FC = () => {
   const channelRef = useRef<any>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [smartphoneCountdown, setSmartphoneCountdown] = useState<any>(null);
+  const [timer, setTimer] = useState<any>({ minutes: 5, seconds: 0, isRunning: false });
 
   // Local timer for smartphone countdown
   useEffect(() => {
@@ -159,6 +160,7 @@ export const PlayerView: React.FC = () => {
         setDisplaySettings(data.displaySettings || null);
         setWiki(data.wiki || null);
         setSmartphoneCountdown((data as any).smartphoneCountdown || null);
+        setTimer((data as any).timer || { minutes: 5, seconds: 0, isRunning: false });
         
         // Initial light mode from GM settings if not already toggled by user
         if (data.displaySettings?.wikiLightMode !== undefined) {
@@ -485,7 +487,7 @@ export const PlayerView: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col gap-6 z-10 pb-20 overflow-y-auto custom-scrollbar pr-2">
+        <div className={`flex-1 flex flex-col gap-6 z-10 ${activeTab === 'game' && (displaySettings?.showTimerOnSmartphone !== false) ? 'pb-44' : 'pb-20'} overflow-y-auto custom-scrollbar pr-2`}>
           
           {localPlayer.isSleeping && (
             <div className="absolute inset-0 bg-zinc-950 z-[100] flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-700">
@@ -1257,6 +1259,33 @@ export const PlayerView: React.FC = () => {
             </div>
           )}
 
+        </div>
+      )}
+
+      {/* Timer Banner */}
+      {activeTab === 'game' && isConnected && localPlayer && displaySettings?.showTimerOnSmartphone !== false && (
+        <div className="fixed bottom-24 left-0 right-0 px-6 z-[50] animate-in slide-in-from-bottom-10 duration-700">
+          <div className="bg-zinc-900/90 backdrop-blur-xl border border-amber-500/30 rounded-3xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between group">
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center transition-all duration-500 ${timer.isRunning ? 'scale-110 shadow-[0_0_20px_rgba(245,158,11,0.2)]' : ''}`}>
+                <icons.Clock size={24} className={`text-amber-500 transition-all duration-500 ${timer.isRunning ? 'animate-pulse' : 'opacity-40'}`} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-0.5">Temps restant</span>
+                <div className="flex items-baseline gap-1">
+                  <span className={`text-3xl font-black font-mono tracking-tighter transition-colors duration-500 ${timer.isRunning ? 'text-amber-500' : 'text-zinc-600'}`}>
+                    {String(timer.minutes).padStart(2, '0')}:{String(timer.seconds).padStart(2, '0')}
+                  </span>
+                </div>
+              </div>
+            </div>
+            {timer.isRunning && (
+              <div className="relative flex items-center justify-center w-6 h-6 mr-2">
+                <div className="absolute inset-0 bg-amber-500 rounded-full animate-ping opacity-20" />
+                <div className="w-2.5 h-2.5 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+              </div>
+            )}
+          </div>
         </div>
       )}
 

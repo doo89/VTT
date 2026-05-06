@@ -466,6 +466,7 @@ export const forceBroadcastState = () => {
     })),
     activeCustomPopupId: state.activeCustomPopupId,
     smartphoneCountdown: state.smartphoneCountdown,
+    timer: state.timer,
   };
 
   const payloadSize = JSON.stringify(payload).length;
@@ -506,6 +507,7 @@ export const setupHostRealtimeSubscription = () => {
       state.customPopups !== prevState.customPopups ||
       state.activeCustomPopupId !== prevState.activeCustomPopupId ||
       state.smartphoneCountdown !== prevState.smartphoneCountdown ||
+      state.timer !== prevState.timer ||
       state.room !== prevState.room;
 
     if (state.roomCode !== prevState.roomCode) {

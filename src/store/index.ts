@@ -346,6 +346,7 @@ export const initialState = {
       allowNotesForDeadPlayers: true,
       showNotePreview: true,
     },
+    showTimerOnSmartphone: true,
     wikiTitle: 'Régles du jeu',
     wikiLightMode: true,
     showWikiNotes: true,

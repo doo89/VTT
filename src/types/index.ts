@@ -530,6 +530,7 @@ export interface GameState {
       allowNotesForDeadPlayers: boolean;
       showNotePreview: boolean;
     };
+    showTimerOnSmartphone?: boolean;
     wikiTitle?: string;
     wikiLightMode?: boolean;
     showWikiNotes?: boolean;
