@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState, ActionEffect, ActionEffectCreatorState, PlayerShape } from '../types';
+import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState, ActionEffect, ActionEffectCreatorState, PlayerShape, RoleSelectorState } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface VttStore extends GameState {
@@ -14,6 +14,7 @@ interface VttStore extends GameState {
   setWiki: (wikiUpdate: Partial<GameState['wiki']>) => void;
   setChecklistState: (checklistUpdate: Partial<GameState['checklistState']>) => void;
   setTagDistributorState: (distributorUpdate: Partial<GameState['tagDistributorState']>) => void;
+  setRoleSelectorState: (roleSelectorUpdate: Partial<GameState['roleSelectorState']>) => void;
   playerTemplates: PlayerTemplate[];
 
   // Selection & Interaction
@@ -241,6 +242,11 @@ export const initialState = {
     x: 100,
     y: 100,
   },
+  roleSelectorState: {
+    isOpen: false,
+    x: 100,
+    y: 100,
+  },
   actionCreatorState: {
     isOpen: false,
     isDetached: false,
@@ -465,6 +471,7 @@ export const useVttStore = create<VttStore>()(
   setWiki: (update) => set((state) => ({ wiki: { ...state.wiki, ...update } })),
   setChecklistState: (update) => set((state) => ({ checklistState: { ...state.checklistState, ...update } })),
   setTagDistributorState: (update) => set((state) => ({ tagDistributorState: { ...state.tagDistributorState, ...update } })),
+  setRoleSelectorState: (update) => set((state) => ({ roleSelectorState: { ...state.roleSelectorState, ...update } })),
   updateSoundButton: (index, updates) => set((state) => {
     const newButtons = [...state.soundboard.buttons];
     const existingIndex = newButtons.findIndex(b => b.index === index);

@@ -251,6 +251,12 @@ export interface TagDistributorState {
   y: number;
 }
 
+export interface RoleSelectorState {
+  isOpen: boolean;
+  x: number;
+  y: number;
+}
+
 export interface WikiState {
   isOpen: boolean;
   isDetached: boolean;
@@ -434,6 +440,7 @@ export interface GameState {
   wiki: WikiState;
   checklistState: ChecklistState;
   tagDistributorState: TagDistributorState;
+  roleSelectorState: RoleSelectorState;
   actionCreatorState: ActionCreatorState;
   actionConditionCreatorState: ActionConditionCreatorState;
   actionEffectCreatorState: ActionEffectCreatorState;

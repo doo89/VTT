@@ -1,4 +1,5 @@
 import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play, Magnet, Eye, EyeOff } from 'lucide-react';
+import * as icons from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
@@ -26,7 +27,8 @@ export const RightPanel: React.FC = () => {
     actions, deleteAction, executeAction, setPendingConditions, setPendingEffects,
     resetCycle,
     editingEntity, setEditingEntity,
-    magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints
+    magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints,
+    roleSelectorState, setRoleSelectorState
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -342,6 +344,13 @@ export const RightPanel: React.FC = () => {
               </button>
               {activeSection === 'distribution' && (
                 <div className="flex flex-col gap-3 p-3 border-t border-border">
+                  <button
+                    onClick={() => setRoleSelectorState({ isOpen: !roleSelectorState.isOpen })}
+                    className="flex items-center justify-center gap-2 w-full py-1.5 bg-muted hover:bg-accent border border-border rounded text-xs font-bold transition-colors mb-1"
+                  >
+                    <icons.Plus size={14} className="text-purple-400" />
+                    Choisir les Rôles
+                  </button>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">Joueurs en salle :</span>
                     <span className="font-bold">{totalPlayersInRoom}</span>
