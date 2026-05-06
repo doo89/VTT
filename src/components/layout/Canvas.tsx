@@ -259,22 +259,22 @@ export const Canvas: React.FC = () => {
 
     // Magnetic Snap
     if (isMagneticEnabled && magneticPoints.length > 0) {
-      let closestPoint: MagneticPoint | null = null;
+      let closest: MagneticPoint | null = null;
       let minDistance = 50 / canvas.zoom; // Adjust threshold by zoom
       
-      magneticPoints.forEach((p: MagneticPoint) => {
+      for (const p of magneticPoints) {
         const dx = canvasX - p.x;
         const dy = canvasY - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < minDistance) {
           minDistance = dist;
-          closestPoint = p;
+          closest = p;
         }
-      });
+      }
       
-      if (closestPoint) {
-        canvasX = closestPoint.x;
-        canvasY = closestPoint.y;
+      if (closest) {
+        canvasX = (closest as any).x;
+        canvasY = (closest as any).y;
       }
     }
 
