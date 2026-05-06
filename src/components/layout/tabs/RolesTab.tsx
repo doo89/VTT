@@ -31,8 +31,13 @@ export const RolesTab: React.FC = () => {
     setExpandedTeams(prev => ({ ...prev, [teamId]: !prev[teamId] }));
   };
 
-  const toggleAll = (expand: boolean) => {
+  const isAnyCollapsed = useMemo(() => {
+    return Object.keys(rolesByTeam).some(id => expandedTeams[id] === false);
+  }, [rolesByTeam, expandedTeams]);
+
+  const toggleAll = () => {
     const newState: Record<string, boolean> = {};
+    const expand = isAnyCollapsed;
     Object.keys(rolesByTeam).forEach(id => {
       newState[id] = expand;
     });
@@ -98,18 +103,11 @@ export const RolesTab: React.FC = () => {
           </h3>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => toggleAll(true)}
+              onClick={toggleAll}
               className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground"
-              title="Tout déplier"
+              title={isAnyCollapsed ? "Tout déplier" : "Tout replier"}
             >
-              <ChevronsUpDown size={14} />
-            </button>
-            <button
-              onClick={() => toggleAll(false)}
-              className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground"
-              title="Tout replier"
-            >
-              <ChevronsDownUp size={14} />
+              {isAnyCollapsed ? <ChevronsUpDown size={14} /> : <ChevronsDownUp size={14} />}
             </button>
           </div>
         </div>
