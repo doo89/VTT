@@ -154,18 +154,21 @@ export const TagsTab: React.FC = () => {
             />
 
             <div className="flex items-end gap-3">
-              <ColorPicker
-                color={newTagColor}
-                onChange={setNewTagColor}
-                label="Couleur"
-                className="flex-shrink-0"
-              />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-muted-foreground">Couleur</label>
+                <ColorPicker
+                  color={newTagColor}
+                  onChange={setNewTagColor}
+                  label="Couleur"
+                  className="w-10 h-10"
+                />
+              </div>
               <div className="flex flex-col gap-1 flex-1">
                 <label className="text-xs font-medium text-muted-foreground">Catégorie</label>
                 <select
                   value={newTagCategoryId || ''}
                   onChange={(e) => setNewTagCategoryId(e.target.value || null)}
-                  className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring h-[38px]"
+                  className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring h-10"
                 >
                   <option value="">Sans catégorie</option>
                   {tagCategories.map(cat => (
