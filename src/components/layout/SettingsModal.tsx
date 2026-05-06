@@ -238,7 +238,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       onChange={(e) => setGrid({ ...grid, enabled: e.target.checked })}
                       className="rounded border-border"
                     />
-                    Activer la grille
+                    Activer l'aimantage
+                   </label>
+                   <label className="flex items-center gap-2 text-sm cursor-pointer">
+                     <input
+                       type="checkbox"
+                       checked={grid.show}
+                       onChange={(e) => setGrid({ ...grid, show: e.target.checked })}
+                       className="rounded border-border w-4 h-4 text-primary"
+                     />
+                     Afficher la grille
                   </label>
                   {grid.enabled && (
                     <div className="flex items-center gap-2 ml-6">

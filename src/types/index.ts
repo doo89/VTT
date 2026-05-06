@@ -472,6 +472,7 @@ export interface GameState {
   };
   grid: {
     enabled: boolean;
+    show: boolean;
     sizeX: number;
     sizeY: number;
   };

@@ -289,6 +289,7 @@ export const initialState = {
   },
   grid: {
     enabled: true,
+    show: true,
     sizeX: 120,
     sizeY: 120,
   },

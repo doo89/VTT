@@ -33,7 +33,7 @@ export const Canvas: React.FC = () => {
     canvas, setPan, setZoom, isNight, nextCycle, cycleMode,
     players, updatePlayer, updatePlayers, addPlayer, deletePlayer, clearPlayers,
     markers, updateMarker, addMarker, deleteMarker, clearMarkers,
-    roles, teams, grid, room, displaySettings,
+    roles, teams, grid, setGrid, room, displaySettings,
     selectedEntityIds, setSelectedEntityIds, clearSelection,
     interactionMode, setInteractionMode,
     magneticPoints, showMagneticPoints, setShowMagneticPoints, updateMagneticPoint, deleteMagneticPoint,
@@ -831,7 +831,7 @@ export const Canvas: React.FC = () => {
         )}
 
         {/* Grid Overlay */}
-        {grid.enabled && (
+        {grid.show && (
           <div
             className="absolute inset-0 pointer-events-none opacity-20"
             style={{
@@ -882,18 +882,18 @@ export const Canvas: React.FC = () => {
           </button>
           <div className="w-px h-6 bg-border mx-1" />
           <button
-            onClick={() => setIsMagneticEnabled(!isMagneticEnabled)}
-            className={`p-1 rounded-md transition-all ${isMagneticEnabled ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'hover:bg-accent text-muted-foreground'}`}
-            title={isMagneticEnabled ? "Désactiver la grille magnétique" : "Activer la grille magnétique"}
+            onClick={() => setGrid({ ...grid, enabled: !grid.enabled })}
+            className={`p-1 rounded-md transition-all ${grid.enabled ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'hover:bg-accent text-muted-foreground'}`}
+            title={grid.enabled ? "Désactiver la grille" : "Activer la grille"}
           >
             <icons.Magnet size={20} />
           </button>
           <button
-            onClick={() => setShowMagneticPoints(!showMagneticPoints)}
-            className={`p-1 rounded-md transition-all ${showMagneticPoints ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30' : 'hover:bg-accent text-muted-foreground'}`}
-            title={showMagneticPoints ? "Masquer la grille magnétique" : "Afficher la grille magnétique"}
+            onClick={() => setGrid({ ...grid, show: !grid.show })}
+            className={`p-1 rounded-md transition-all ${grid.show ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30' : 'hover:bg-accent text-muted-foreground'}`}
+            title={grid.show ? "Masquer la grille" : "Afficher la grille"}
           >
-            {showMagneticPoints ? <icons.Eye size={20} /> : <icons.EyeOff size={20} />}
+            {grid.show ? <icons.Eye size={20} /> : <icons.EyeOff size={20} />}
           </button>
         </div>
 
