@@ -1358,17 +1358,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         <icons.GripVertical size={16} className="text-muted-foreground cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity" />
                         <input
                           type="checkbox"
-                          checked={(displaySettings.panels || {})[key as keyof typeof displaySettings.panels] ?? true}
+                          checked={((displaySettings.panels || {}) as any)[key] ?? true}
                           onChange={(e) => updateDisplaySettings({ 
                             panels: { 
                               ...(displaySettings.panels || {}), 
                               [key]: e.target.checked 
-                            } 
+                            } as any
                           })}
                           className="rounded border-border w-5 h-5 text-primary"
                         />
                         <span className="font-semibold text-sm flex-1">{label}</span>
-                        {['distribution', 'chrono', 'wiki', 'soundboard', 'scoreboard', 'logs'].includes(key) && (displaySettings.panels || {})[key as keyof typeof displaySettings.panels] !== false && (
+                        {['distribution', 'chrono', 'wiki', 'soundboard', 'scoreboard', 'logs'].includes(key) && ((displaySettings.panels || {}) as any)[key] !== false && (
                           <button 
                             onClick={(e) => {
                               e.preventDefault();
