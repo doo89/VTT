@@ -8,6 +8,7 @@ export const TagsTab: React.FC = () => {
   const { tags, tagCategories, addTagModel, updateTagModel, deleteTagModel, setEditingEntity, addTagCategory, deleteTagCategory } = useVttStore();
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('#10b981');
+  const [newTagCategoryId, setNewTagCategoryId] = useState<string | null>(null);
 
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryColor, setNewCategoryColor] = useState('#6366f1');
@@ -64,10 +65,11 @@ export const TagsTab: React.FC = () => {
       icon: "Tag",
       showInTooltip: true,
       showInGameTab: true,
-      categoryId: null,
+      categoryId: newTagCategoryId,
     });
     setNewTagName('');
     setNewTagColor('#10b981');
+    setNewTagCategoryId(null);
   };
 
   const handleAddCategory = () => {
@@ -151,11 +153,27 @@ export const TagsTab: React.FC = () => {
               className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
             />
 
-            <ColorPicker
-              color={newTagColor}
-              onChange={setNewTagColor}
-              label="Couleur"
-            />
+            <div className="flex items-end gap-3">
+              <ColorPicker
+                color={newTagColor}
+                onChange={setNewTagColor}
+                label="Couleur"
+                className="flex-shrink-0"
+              />
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-xs font-medium text-muted-foreground">Catégorie</label>
+                <select
+                  value={newTagCategoryId || ''}
+                  onChange={(e) => setNewTagCategoryId(e.target.value || null)}
+                  className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring h-[38px]"
+                >
+                  <option value="">Sans catégorie</option>
+                  {tagCategories.map(cat => (
+                    <option key={cat.id} value={cat.id} style={{ color: cat.color }}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
             <div className="flex items-center justify-between border-t border-border pt-4">
               <button
