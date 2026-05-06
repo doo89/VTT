@@ -1,4 +1,4 @@
-import { Plus, Trash2, Edit2, Tag, icons, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Edit2, Tag, icons, ChevronDown, ChevronRight, Copy } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
 import { useVttStore } from '../../../store';
 import { ColorPicker } from '../../ColorPicker';
@@ -80,6 +80,15 @@ export const TagsTab: React.FC = () => {
     setNewCategoryName('');
     setNewCategoryColor('#6366f1');
     setNewCategoryIcon('Folder');
+  };
+
+  const handleDuplicateTag = (tag: typeof tags[0]) => {
+    const { id, ...tagData } = tag;
+    addTagModel({
+      ...tagData,
+      name: `${tag.name} (Copie)`,
+      isInDistributor: false
+    });
   };
 
   return (
@@ -236,6 +245,13 @@ export const TagsTab: React.FC = () => {
                               </div>
                               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                                 <button
+                                  onClick={() => handleDuplicateTag(tag)}
+                                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
+                                  title="Dupliquer"
+                                >
+                                  <Copy size={14} />
+                                </button>
+                                <button
                                   onClick={() => setEditingEntity({ type: 'tagModel', id: tag.id })}
                                   className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
                                   title="Modifier"
@@ -296,6 +312,13 @@ export const TagsTab: React.FC = () => {
                               <span className="text-sm font-medium truncate">{tag.name}</span>
                             </div>
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                              <button
+                                onClick={() => handleDuplicateTag(tag)}
+                                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
+                                title="Dupliquer"
+                              >
+                                <Copy size={14} />
+                              </button>
                               <button
                                 onClick={() => setEditingEntity({ type: 'tagModel', id: tag.id })}
                                 className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
