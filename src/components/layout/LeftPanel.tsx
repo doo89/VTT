@@ -33,7 +33,7 @@ export const LeftPanel: React.FC = () => {
   ] as const;
 
   return (
-    <div className="w-[320px] h-full bg-card border-r border-border flex flex-col relative z-40 shrink-0">
+    <div className="w-[384px] h-full bg-card border-r border-border flex flex-col relative z-40 shrink-0">
       <div className="flex border-b border-border p-2 gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
