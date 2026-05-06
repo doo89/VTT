@@ -83,9 +83,10 @@ export const RolesTab: React.FC = () => {
         </div>
       </section>
 
-      {/* List Roles Section */}
       <section className="flex flex-col gap-3">
-        <h3 className="font-semibold text-sm border-b border-border pb-1">Rôles Disponibles</h3>
+        <h3 className="font-semibold text-sm border-b border-border pb-1">
+          Rôles Disponibles ({roles.filter(r => r.isSelectableForDistribution).length}/{roles.length})
+        </h3>
         <div className="flex flex-col gap-2">
           {roles.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">Aucun rôle défini.</p>
