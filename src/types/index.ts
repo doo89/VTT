@@ -534,6 +534,7 @@ export interface GameState {
     showWikiNotes?: boolean;
     showWikiRoles?: boolean;
     showWikiTags?: boolean;
+    showWikiTeams?: boolean;
     wikiOnlySelectedRoles?: boolean;
     wikiOnlyInPlayRoles?: boolean;
     smartphoneImageBlur?: number;

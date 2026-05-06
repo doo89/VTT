@@ -1226,6 +1226,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             />
                             Afficher les Tags
                           </label>
+                          <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showWikiTeams ?? true}
+                              onChange={(e) => updateDisplaySettings({ showWikiTeams: e.target.checked })}
+                              className="rounded border-border w-3.5 h-3.5 text-primary"
+                            />
+                            Afficher les Équipes
+                          </label>
                         </div>
                         )}
                      </div>
@@ -1410,6 +1419,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             className="rounded border-border w-3.5 h-3.5 text-primary"
                           />
                           Afficher les Tags
+                        </label>
+                        <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showWikiTeams ?? true}
+                            onChange={(e) => updateDisplaySettings({ showWikiTeams: e.target.checked })}
+                            className="rounded border-border w-3.5 h-3.5 text-primary"
+                          />
+                          Afficher les Équipes
                         </label>
                       </div>
                     )}

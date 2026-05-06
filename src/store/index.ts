@@ -348,6 +348,7 @@ export const initialState = {
     showWikiNotes: true,
     showWikiRoles: true,
     showWikiTags: true,
+    showWikiTeams: true,
     wikiOnlySelectedRoles: false,
     wikiOnlyInPlayRoles: false,
     smartphoneImageBlur: 20,

@@ -35,6 +35,7 @@ export const PlayerView: React.FC = () => {
   const [isWikiNotesOpen, setIsWikiNotesOpen] = useState(false);
   const [isWikiRolesOpen, setIsWikiRolesOpen] = useState(false);
   const [isWikiTagsOpen, setIsWikiTagsOpen] = useState(false);
+  const [isWikiTeamsOpen, setIsWikiTeamsOpen] = useState(false);
   const [allTags, setAllTags] = useState<TagModel[]>([]);
   const [expandedPlayerNotesId, setExpandedPlayerNotesId] = useState<string | null>(null);
   const [playerNotes, setPlayerNotes] = useState<Record<string, string>>(() => {
@@ -1141,8 +1142,64 @@ export const PlayerView: React.FC = () => {
                  )}
               </section>
               )}
+              
+              {/* Part 3.5: Teams Guide */}
+              {(displaySettings?.showWikiTeams !== false) && (
+              <section className="flex flex-col gap-3 mt-4">
+                 <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
+                    <button 
+                       onClick={() => setIsWikiTeamsOpen(!isWikiTeamsOpen)}
+                       className="flex items-center gap-2 flex-1 text-left"
+                    >
+                       <icons.Flag size={18} className="text-amber-400" />
+                       <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-100 italic">Guide des Équipes</h3>
+                       {isWikiTeamsOpen ? <icons.ChevronUp size={16} className="text-zinc-600" /> : <icons.ChevronDown size={16} className="text-zinc-600" />}
+                    </button>
+                 </div>
+                 
+                 {isWikiTeamsOpen && (
+                   <div className="flex flex-col gap-3 animate-in slide-in-from-top-2">
+                     {allTeams && allTeams.length > 0 ? (
+                        allTeams.map(team => (
+                           <div 
+                              key={team.id} 
+                              className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl overflow-hidden p-4 flex flex-col gap-3"
+                           >
+                              <div className="flex items-center gap-3">
+                                <div 
+                                   className="w-10 h-10 rounded-full flex items-center justify-center border-2 shrink-0"
+                                   style={{ borderColor: team.color + '60', backgroundColor: team.color + '15' }}
+                                >
+                                   {team.imageUrl ? (
+                                     <img src={team.imageUrl} className="w-full h-full rounded-full object-cover" alt="" />
+                                   ) : (
+                                     (() => {
+                                       const TeamIcon = (icons as any)[team.icon] || (icons as any).Users;
+                                       return <TeamIcon size={18} style={{ color: team.color }} />;
+                                     })()
+                                   )}
+                                </div>
+                                <span className="font-bold text-zinc-100 text-lg" style={{ color: team.color }}>{team.name}</span>
+                              </div>
+                              {team.description && (
+                                <p className="text-sm text-zinc-300 italic leading-relaxed whitespace-pre-wrap pl-1 border-l-2 border-zinc-800">
+                                  {team.description}
+                                </p>
+                              )}
+                           </div>
+                        ))
+                     ) : (
+                        <div className="flex flex-col items-center justify-center py-6 text-zinc-600 gap-2 grayscale">
+                           <icons.Flag size={40} className="opacity-20" />
+                           <p className="text-xs font-bold uppercase tracking-tighter opacity-30">Aucune équipe définie...</p>
+                        </div>
+                     )}
+                   </div>
+                 )}
+              </section>
+              )}
 
-              {/* Part 3: Tags Guide */}
+              {/* Part 4: Tags Guide */}
               {(displaySettings?.showWikiTags !== false) && (
               <section className="flex flex-col gap-3 mt-4">
                  <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
