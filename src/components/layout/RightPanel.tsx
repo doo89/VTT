@@ -26,8 +26,7 @@ export const RightPanel: React.FC = () => {
     actions, deleteAction, executeAction, setPendingConditions, setPendingEffects,
     resetCycle,
     editingEntity, setEditingEntity,
-    magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints,
-    displaySettings
+    magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
