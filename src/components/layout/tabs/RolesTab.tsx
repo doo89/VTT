@@ -119,7 +119,7 @@ export const RolesTab: React.FC = () => {
                         ) : (
                           <span className="text-muted-foreground">Sans Équipe</span>
                         )}
-                        <span className="text-xs text-muted-foreground ml-1">({teamRoles.length})</span>
+                        <span className="text-xs text-muted-foreground ml-1">({teamRoles.filter(r => r.isSelectableForDistribution).length}/{teamRoles.length})</span>
                       </div>
                     </button>
 
