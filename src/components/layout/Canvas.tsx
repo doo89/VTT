@@ -36,8 +36,8 @@ export const Canvas: React.FC = () => {
     roles, teams, grid, setGrid, room, displaySettings,
     selectedEntityIds, setSelectedEntityIds, clearSelection,
     interactionMode, setInteractionMode,
-    magneticPoints, showMagneticPoints, setShowMagneticPoints, updateMagneticPoint, deleteMagneticPoint,
-    isMagneticEnabled, setIsMagneticEnabled
+    magneticPoints, showMagneticPoints, updateMagneticPoint, deleteMagneticPoint,
+    isMagneticEnabled
   } = useVttStore();
 
   const { undo, redo, pastStates, futureStates } = useStore(useVttStore.temporal);
