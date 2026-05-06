@@ -886,7 +886,7 @@ export const Canvas: React.FC = () => {
             className={`p-1 rounded-md transition-all ${isMagneticEnabled ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'hover:bg-accent text-muted-foreground'}`}
             title={isMagneticEnabled ? "Désactiver la grille magnétique" : "Activer la grille magnétique"}
           >
-            <Magnet size={20} />
+            <icons.Magnet size={20} />
           </button>
           <button
             onClick={() => setShowMagneticPoints(!showMagneticPoints)}

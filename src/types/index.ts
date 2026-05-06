@@ -402,6 +402,7 @@ export interface GameState {
   teams: Team[];
   magneticPoints: MagneticPoint[];
   showMagneticPoints: boolean;
+  isMagneticEnabled: boolean;
   tags: TagModel[];
   tagCategories: TagCategory[];
   handouts: Handout[];
