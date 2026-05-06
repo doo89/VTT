@@ -157,6 +157,7 @@ interface VttStore extends GameState {
   deleteMagneticPoint: (id: string) => void;
   clearMagneticPoints: () => void;
   setShowMagneticPoints: (show: boolean) => void;
+  setIsMagneticEnabled: (enabled: boolean) => void;
   snapPlayersToPoints: () => void;
   resetStore: () => void;
 }
@@ -177,7 +178,8 @@ export const initialState = {
   markerParameters: [],
   teams: [],
   magneticPoints: [],
-  showMagneticPoints: false,
+  showMagneticPoints: true,
+  isMagneticEnabled: true,
   tagCategories: [],
   handouts: [],
   logs: [],
@@ -1522,6 +1524,7 @@ export const useVttStore = create<VttStore>()(
         })),
         clearMagneticPoints: () => set({ magneticPoints: [] }),
         setShowMagneticPoints: (show) => set({ showMagneticPoints: show }),
+        setIsMagneticEnabled: (enabled) => set({ isMagneticEnabled: enabled }),
         snapPlayersToPoints: () => set((state) => {
           const alivePlayers = state.players.filter(p => !p.isDead);
           const points = [...state.magneticPoints].sort((a, b) => a.order - b.order);

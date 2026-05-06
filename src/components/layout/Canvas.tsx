@@ -36,7 +36,8 @@ export const Canvas: React.FC = () => {
     roles, teams, grid, room, displaySettings,
     selectedEntityIds, setSelectedEntityIds, clearSelection,
     interactionMode, setInteractionMode,
-    magneticPoints, showMagneticPoints, updateMagneticPoint, deleteMagneticPoint
+    magneticPoints, showMagneticPoints, setShowMagneticPoints, updateMagneticPoint, deleteMagneticPoint,
+    isMagneticEnabled, setIsMagneticEnabled
   } = useVttStore();
 
   const { undo, redo, pastStates, futureStates } = useStore(useVttStore.temporal);
@@ -254,6 +255,27 @@ export const Canvas: React.FC = () => {
     if (grid.enabled) {
       canvasX = snapToGrid(canvasX, grid.sizeX);
       canvasY = snapToGrid(canvasY, grid.sizeY);
+    }
+
+    // Magnetic Snap
+    if (isMagneticEnabled && magneticPoints.length > 0) {
+      let closestPoint = null;
+      let minDistance = 50 / canvas.zoom; // Adjust threshold by zoom
+      
+      magneticPoints.forEach(p => {
+        const dx = canvasX - p.x;
+        const dy = canvasY - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestPoint = p;
+        }
+      });
+      
+      if (closestPoint) {
+        canvasX = closestPoint.x;
+        canvasY = closestPoint.y;
+      }
     }
 
     try {
@@ -857,6 +879,21 @@ export const Canvas: React.FC = () => {
             title="Mode Sélection Multiple"
           >
             <MousePointer2 size={20} />
+          </button>
+          <div className="w-px h-6 bg-border mx-1" />
+          <button
+            onClick={() => setIsMagneticEnabled(!isMagneticEnabled)}
+            className={`p-1 rounded-md transition-all ${isMagneticEnabled ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'hover:bg-accent text-muted-foreground'}`}
+            title={isMagneticEnabled ? "Désactiver la grille magnétique" : "Activer la grille magnétique"}
+          >
+            <Magnet size={20} />
+          </button>
+          <button
+            onClick={() => setShowMagneticPoints(!showMagneticPoints)}
+            className={`p-1 rounded-md transition-all ${showMagneticPoints ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30' : 'hover:bg-accent text-muted-foreground'}`}
+            title={showMagneticPoints ? "Masquer la grille magnétique" : "Afficher la grille magnétique"}
+          >
+            {showMagneticPoints ? <icons.Eye size={20} /> : <icons.EyeOff size={20} />}
           </button>
         </div>
 
