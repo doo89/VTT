@@ -26,6 +26,8 @@ const TOOL_LABELS: Record<string, string> = {
   system: 'Système & Connexion'
 };
 
+const DEFAULT_PANELS_ORDER = ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system'];
+
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils' | 'remote'>('salle');
   const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ distribution: true, chrono: true, wiki: true, soundboard: true, scoreboard: true, logs: true });
@@ -53,7 +55,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     e.preventDefault();
     if (!draggedTool || draggedTool === key) return;
     
-    const order = [...(displaySettings.panels?.panelsOrder || [])];
+    const order = [...(displaySettings.panels?.panelsOrder || DEFAULT_PANELS_ORDER)];
     const fromIndex = order.indexOf(draggedTool);
     const toIndex = order.indexOf(key);
     
@@ -1342,7 +1344,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 </div>
                 
                 <div className="flex flex-col gap-3">
-                  {(displaySettings.panels?.panelsOrder || ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system']).map(key => {
+                  {(displaySettings.panels?.panelsOrder || DEFAULT_PANELS_ORDER).map(key => {
                     const label = TOOL_LABELS[key];
                     if (!label) return null;
                     return (
