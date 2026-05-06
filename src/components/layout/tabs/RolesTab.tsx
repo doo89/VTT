@@ -1,4 +1,4 @@
-import { Plus, Trash2, Edit2, ChevronDown, ChevronRight, icons, ChevronsUpDown, ChevronsDownUp } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronDown, ChevronRight, icons, ChevronsUpDown, ChevronsDownUp, Copy } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
 import { useVttStore } from '../../../store';
 import { ColorPicker } from '../../ColorPicker';
@@ -63,6 +63,15 @@ export const RolesTab: React.FC = () => {
       isMinMandatory: false,
     });
     setNewRoleName('');
+  };
+
+  const handleDuplicateRole = (role: typeof roles[0]) => {
+    const { id, ...roleData } = role;
+    addRole({
+      ...roleData,
+      name: `${role.name} (Copie)`,
+      isSelectableForDistribution: false,
+    });
   };
 
   return (
@@ -174,6 +183,13 @@ export const RolesTab: React.FC = () => {
                               </div>
                             </div>
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => handleDuplicateRole(role)}
+                                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
+                                title="Dupliquer"
+                              >
+                                <Copy size={14} />
+                              </button>
                               <button
                                 onClick={() => setEditingEntity({ type: 'role', id: role.id })}
                                 className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
