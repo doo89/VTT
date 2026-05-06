@@ -89,16 +89,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             <Smartphone size={16} /> Smartphone
           </button>
           <button
-            onClick={() => setActiveTab('outils')}
-            className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'outils' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-          >
-            <SettingsIcon size={16} /> Outils
-          </button>
-          <button
             onClick={() => setActiveTab('remote')}
             className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'remote' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
           >
             <Smartphone size={16} /> Télécommande
+          </button>
+          <button
+            onClick={() => setActiveTab('outils')}
+            className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 whitespace-nowrap transition-colors ${activeTab === 'outils' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            <SettingsIcon size={16} /> Outils
           </button>
         </div>
 
@@ -1247,6 +1247,44 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             </div>
           )}
 
+          {/* TAB: REMOTE */}
+          {activeTab === 'remote' && (
+            <div className="flex flex-col gap-6">
+              <section>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Configuration de la Télécommande</h3>
+                <div className="flex flex-col gap-4 p-4 bg-muted/20 rounded-lg border border-border">
+                  <label className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={soundboard.remoteEnabled || false}
+                      onChange={(e) => setSoundboard({ remoteEnabled: e.target.checked })}
+                      className="rounded border-border w-5 h-5 text-primary"
+                    />
+                    Activer le portail "Soundboard / Télécommande"
+                  </label>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed pl-8">
+                    Si activé, l'URL <code>/remote</code> permettra à un appareil de se connecter à la boîte à sons et à la checklist du MJ à distance.
+                  </p>
+                  
+                  {soundboard.remoteEnabled && (
+                    <div className="pl-8 pt-3 border-t border-border/50 flex flex-col gap-4 mt-2">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] uppercase font-bold text-foreground tracking-widest">Code d'accès obligatoire</label>
+                        <input
+                          type="text"
+                          value={soundboard.remotePasscode || ''}
+                          onChange={(e) => setSoundboard({ remotePasscode: e.target.value })}
+                          className="bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-fit font-mono tracking-widest"
+                          placeholder="EX: 1234"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          )}
+
           {/* TAB: OUTILS */}
           {activeTab === 'outils' && (
             <div className="flex flex-col gap-6">
@@ -1482,43 +1520,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             </div>
           )}
 
-          {/* TAB: REMOTE */}
-          {activeTab === 'remote' && (
-            <div className="flex flex-col gap-6">
-              <section>
-                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Configuration de la Télécommande</h3>
-                <div className="flex flex-col gap-4 p-4 bg-muted/20 rounded-lg border border-border">
-                  <label className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={soundboard.remoteEnabled || false}
-                      onChange={(e) => setSoundboard({ remoteEnabled: e.target.checked })}
-                      className="rounded border-border w-5 h-5 text-primary"
-                    />
-                    Activer le portail "Soundboard / Télécommande"
-                  </label>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed pl-8">
-                    Si activé, l'URL <code>/remote</code> permettra à un appareil de se connecter à la boîte à sons et à la checklist du MJ à distance.
-                  </p>
-                  
-                  {soundboard.remoteEnabled && (
-                    <div className="pl-8 pt-3 border-t border-border/50 flex flex-col gap-4 mt-2">
-                      <div className="flex flex-col gap-2">
-                        <label className="text-[10px] uppercase font-bold text-foreground tracking-widest">Code d'accès obligatoire</label>
-                        <input
-                          type="text"
-                          value={soundboard.remotePasscode || ''}
-                          onChange={(e) => setSoundboard({ remotePasscode: e.target.value })}
-                          className="bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-fit font-mono tracking-widest"
-                          placeholder="EX: 1234"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </section>
-            </div>
-          )}
+
 
         </div>
       </div>
