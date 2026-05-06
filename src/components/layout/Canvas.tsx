@@ -4,7 +4,7 @@ import { useVttStore } from '../../store';
 import * as icons from 'lucide-react';
 import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, Sun, Moon, Copy, Heart, Users, Hand, MousePointer2, Undo2, Redo2, Radio, Lock, Globe, Bell, Check, X, WifiOff, FileText, FastForward, Smartphone, QrCode } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import type { Marker, Player } from '../../types';
+import type { Marker, Player, MagneticPoint } from '../../types';
 import { supabase, getEnvUrl, getEnvKey } from '../../lib/supabase';
 import { calculateTagEffect, getEffectiveStats } from '../../lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
@@ -262,7 +262,7 @@ export const Canvas: React.FC = () => {
       let closestPoint = null;
       let minDistance = 50 / canvas.zoom; // Adjust threshold by zoom
       
-      magneticPoints.forEach(p => {
+      magneticPoints.forEach((p: MagneticPoint) => {
         const dx = canvasX - p.x;
         const dy = canvasY - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);

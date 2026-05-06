@@ -14,7 +14,7 @@ interface VttStore extends GameState {
   setWiki: (wikiUpdate: Partial<GameState['wiki']>) => void;
   setChecklistState: (checklistUpdate: Partial<GameState['checklistState']>) => void;
   setTagDistributorState: (distributorUpdate: Partial<GameState['tagDistributorState']>) => void;
-  setRoleSelectorState: (roleSelectorUpdate: Partial<GameState['roleSelectorState']>) => void;
+  setRoleSelectorState: (roleSelectorUpdate: Partial<RoleSelectorState>) => void;
   playerTemplates: PlayerTemplate[];
 
   // Selection & Interaction
