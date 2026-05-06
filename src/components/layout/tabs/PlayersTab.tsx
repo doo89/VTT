@@ -32,6 +32,9 @@ export const PlayersTab: React.FC = () => {
 
   // Mass Import states
   const [massImportCount, setMassImportCount] = useState(10);
+  const [massImportMode, setMassImportMode] = useState<'circle' | 'grid'>('circle');
+  const [massImportCols, setMassImportCols] = useState(5);
+  const [massImportRows, setMassImportRows] = useState(2);
   const [showMassImportModal, setShowMassImportModal] = useState(false);
   const [massImportNames, setMassImportNames] = useState<string[]>([]);
 
@@ -50,7 +53,7 @@ export const PlayersTab: React.FC = () => {
   };
 
   const openMassImportModal = () => {
-    const count = Math.max(1, massImportCount);
+    const count = massImportMode === 'circle' ? Math.max(1, massImportCount) : (massImportCols * massImportRows);
     // Fill array with empty strings
     setMassImportNames(Array(count).fill(''));
     setShowMassImportModal(true);
@@ -67,39 +70,81 @@ export const PlayersTab: React.FC = () => {
 
   const handleValidateMassImport = () => {
     const N = massImportNames.length;
+    // Central position (0,0) as base, but room dimensions are used for R
     const cx = 0;
     const cy = 0;
-    // Calculate radius to fit nicely inside the room
-    const R = Math.min(room.width, room.height) * 0.35;
 
-    massImportNames.forEach((name, i) => {
-      const finalName = name.trim() || `Joueur ${i + 1}`;
-      const color = getRandomColor();
-      
-      addPlayerTemplate({
-        name: finalName,
-        color: color,
-        roleId: null,
-        teamId: null,
-        size: 40,
+    if (massImportMode === 'circle') {
+      // Calculate radius to fit nicely inside the room
+      const R = Math.min(room.width, room.height) * 0.35;
+
+      massImportNames.forEach((name, i) => {
+        const finalName = name.trim() || `Joueur ${i + 1}`;
+        const color = getRandomColor();
+        
+        addPlayerTemplate({
+          name: finalName,
+          color: color,
+          roleId: null,
+          teamId: null,
+          size: 40,
+        });
+
+        const angle = (i * 2 * Math.PI) / N;
+        const x = cx + R * Math.cos(angle);
+        const y = cy + R * Math.sin(angle);
+
+        addPlayer({
+          name: finalName,
+          color: color,
+          roleId: null,
+          teamId: null,
+          size: 40,
+          x: x,
+          y: y,
+          isDead: false,
+          tags: []
+        });
       });
+    } else {
+      // Grid mode
+      const spacing = 100; // Spacing between tokens
+      const totalWidth = (massImportCols - 1) * spacing;
+      const totalHeight = (massImportRows - 1) * spacing;
+      const startX = cx - totalWidth / 2;
+      const startY = cy - totalHeight / 2;
 
-      const angle = (i * 2 * Math.PI) / N;
-      const x = cx + R * Math.cos(angle);
-      const y = cy + R * Math.sin(angle);
+      massImportNames.forEach((name, i) => {
+        const finalName = name.trim() || `Joueur ${i + 1}`;
+        const color = getRandomColor();
+        
+        addPlayerTemplate({
+          name: finalName,
+          color: color,
+          roleId: null,
+          teamId: null,
+          size: 40,
+        });
 
-      addPlayer({
-        name: finalName,
-        color: color,
-        roleId: null,
-        teamId: null,
-        size: 40,
-        x: x,
-        y: y,
-        isDead: false,
-        tags: []
+        const col = i % massImportCols;
+        const row = Math.floor(i / massImportCols);
+        const x = startX + col * spacing;
+        const y = startY + row * spacing;
+
+        addPlayer({
+          name: finalName,
+          color: color,
+          roleId: null,
+          teamId: null,
+          size: 40,
+          x: x,
+          y: y,
+          isDead: false,
+          tags: []
+        });
       });
-    });
+    }
+    
     setShowMassImportModal(false);
   };
 
@@ -218,20 +263,72 @@ export const PlayersTab: React.FC = () => {
         </div>
 
         {openSections.massImport && (
-          <div className="flex items-center gap-2 px-1">
-            <input
-              type="number"
-              min={1}
-              max={100}
-              value={massImportCount}
-              onChange={(e) => setMassImportCount(parseInt(e.target.value) || 1)}
-              className="w-20 bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring text-center"
-            />
+          <div className="flex flex-col gap-3 px-1">
+            <div className="flex flex-col gap-2 p-2 bg-muted/30 rounded-md border border-border/50">
+              <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={massImportMode === 'circle'}
+                  onChange={() => setMassImportMode('circle')}
+                  className="rounded border-border text-primary focus:ring-primary w-3.5 h-3.5"
+                />
+                Organiser en cercle
+              </label>
+              <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={massImportMode === 'grid'}
+                  onChange={() => setMassImportMode('grid')}
+                  className="rounded border-border text-primary focus:ring-primary w-3.5 h-3.5"
+                />
+                Organiser en rangs
+              </label>
+            </div>
+
+            {massImportMode === 'circle' ? (
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Nombre de joueurs</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={massImportCount}
+                    onChange={(e) => setMassImportCount(parseInt(e.target.value) || 1)}
+                    className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Colonnes</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={massImportCols}
+                    onChange={(e) => setMassImportCols(parseInt(e.target.value) || 1)}
+                    className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Lignes</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={massImportRows}
+                    onChange={(e) => setMassImportRows(parseInt(e.target.value) || 1)}
+                    className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </div>
+              </div>
+            )}
+
             <button
               onClick={openMassImportModal}
-              className="bg-accent text-foreground hover:bg-accent/80 p-2 flex items-center justify-center rounded-md font-bold text-lg aspect-square h-[38px] w-[38px]"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-2 rounded-md font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all"
             >
-              <Plus size={20} />
+              <Plus size={18} /> Configurer l'import
             </button>
           </div>
         )}
