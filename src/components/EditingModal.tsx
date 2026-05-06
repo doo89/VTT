@@ -952,6 +952,56 @@ export const EditingModal: React.FC = () => {
         </div>
       </div>
     );
+  } else if (editingEntity.type === 'tagCategory') {
+    const category = tagCategories.find(c => c.id === editingEntity.id);
+    if (!category) return null;
+
+    entityTitle = `Modifier Catégorie: ${category.name}`;
+    entityContent = (
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Nom de la catégorie</label>
+          <input
+            type="text"
+            value={category.name}
+            onChange={(e) => updateTagCategory(category.id, { name: e.target.value })}
+            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+        </div>
+        <div className="flex flex-col gap-1 mt-2">
+          <label className="text-sm font-medium">Icône</label>
+          <div className="flex flex-wrap gap-1 bg-input border border-border rounded-md p-2 max-h-32 overflow-y-auto custom-scrollbar">
+            {TAG_ICONS.map((iconName: string) => {
+              const IconComponent = (icons as any)[iconName];
+              if (!IconComponent) return null;
+              return (
+                <button
+                  key={iconName}
+                  onClick={() => updateTagCategory(category.id, { icon: iconName })}
+                  className={`p-1.5 rounded-md transition-colors flex items-center justify-center ${
+                    category.icon === iconName
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'hover:bg-accent hover:text-accent-foreground text-muted-foreground'
+                  }`}
+                  title={iconName}
+                >
+                  <IconComponent size={16} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Couleur</label>
+          <ColorPicker
+            color={category.color}
+            onChange={(c) => updateTagCategory(category.id, { color: c })}
+            label="Couleur"
+            className="!w-10 !h-10"
+          />
+        </div>
+      </div>
+    );
   } else if (editingEntity.type === 'tagModel') {
     const tag = tags.find(t => t.id === editingEntity.id);
     if (!tag) return null;

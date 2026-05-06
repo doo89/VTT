@@ -188,19 +188,28 @@ export const TagsTab: React.FC = () => {
                       <div className="p-1 rounded bg-background shadow-sm" style={{ color: cat.color }}>
                         <CatIcon size={14} />
                       </div>
-                      <span className="font-semibold text-sm flex-1">{cat.name}</span>
+                      <span className="font-semibold text-sm flex-1" style={{ color: cat.color }}>{cat.name}</span>
                       <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">
                         {catTags.length}
                       </span>
                       {expandedCategories[cat.id] ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronRight size={14} className="text-muted-foreground" />}
                     </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); deleteTagCategory(cat.id); }}
-                      className="p-1.5 ml-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Supprimer catégorie"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setEditingEntity({ type: 'tagCategory', id: cat.id }); }}
+                        className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
+                        title="Modifier catégorie"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteTagCategory(cat.id); }}
+                        className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md"
+                        title="Supprimer catégorie"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                   
                   {expandedCategories[cat.id] && (
