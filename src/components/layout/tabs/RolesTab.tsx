@@ -1,4 +1,4 @@
-import { Plus, Trash2, Edit2, ChevronDown, ChevronRight, icons } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronDown, ChevronRight, icons, ChevronsUpDown, ChevronsDownUp } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
 import { useVttStore } from '../../../store';
 import { ColorPicker } from '../../ColorPicker';
@@ -29,6 +29,14 @@ export const RolesTab: React.FC = () => {
 
   const toggleTeam = (teamId: string) => {
     setExpandedTeams(prev => ({ ...prev, [teamId]: !prev[teamId] }));
+  };
+
+  const toggleAll = (expand: boolean) => {
+    const newState: Record<string, boolean> = {};
+    Object.keys(rolesByTeam).forEach(id => {
+      newState[id] = expand;
+    });
+    setExpandedTeams(newState);
   };
 
   const handleAddRole = () => {
@@ -84,9 +92,27 @@ export const RolesTab: React.FC = () => {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h3 className="font-semibold text-sm border-b border-border pb-1">
-          Rôles Disponibles ({roles.filter(r => r.isSelectableForDistribution).length}/{roles.length})
-        </h3>
+        <div className="flex items-center justify-between border-b border-border pb-1">
+          <h3 className="font-semibold text-sm">
+            Rôles Disponibles ({roles.filter(r => r.isSelectableForDistribution).length}/{roles.length})
+          </h3>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => toggleAll(true)}
+              className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground"
+              title="Tout déplier"
+            >
+              <ChevronsUpDown size={14} />
+            </button>
+            <button
+              onClick={() => toggleAll(false)}
+              className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground"
+              title="Tout replier"
+            >
+              <ChevronsDownUp size={14} />
+            </button>
+          </div>
+        </div>
         <div className="flex flex-col gap-2">
           {roles.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">Aucun rôle défini.</p>
