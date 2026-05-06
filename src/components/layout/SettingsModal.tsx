@@ -11,6 +11,21 @@ interface SettingsModalProps {
   onClose: () => void;
 }
 
+const TOOL_LABELS: Record<string, string> = {
+  distribution: 'Distribution des Rôles',
+  chrono: 'Chronomètre',
+  soundboard: 'Boîte à Sons (Soundboard)',
+  scoreboard: 'Tableau des Scores',
+  logs: 'Log / Historique',
+  tagDistributor: 'Distributeur de Tags',
+  wiki: 'Wiki / Notes GM',
+  popupCreator: 'Créateur de Popup',
+  actionCreator: "Créateur d'Actions",
+  checklist: 'Checklist pour le MJ',
+  magneticPoints: 'Points aimantés',
+  system: 'Système & Connexion'
+};
+
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils' | 'remote'>('salle');
   const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ distribution: true, chrono: true, wiki: true, soundboard: true, scoreboard: true, logs: true });
@@ -26,6 +41,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   } = useVttStore();
 
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const [draggedTool, setDraggedTool] = useState<string | null>(null);
+
+  const handleToolDragStart = (e: React.DragEvent, key: string) => {
+    setDraggedTool(key);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleToolDragOver = (e: React.DragEvent, key: string) => {
+    e.preventDefault();
+    if (!draggedTool || draggedTool === key) return;
+    
+    const order = [...(displaySettings.panels?.panelsOrder || [])];
+    const fromIndex = order.indexOf(draggedTool);
+    const toIndex = order.indexOf(key);
+    
+    if (fromIndex !== -1 && toIndex !== -1) {
+      order.splice(fromIndex, 1);
+      order.splice(toIndex, 0, draggedTool);
+      updateDisplaySettings({
+        panels: {
+          ...(displaySettings.panels || {}),
+          panelsOrder: order
+        }
+      });
+    }
+  };
+
+  const handleToolDragEnd = () => {
+    setDraggedTool(null);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1296,48 +1342,46 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 </div>
                 
                 <div className="flex flex-col gap-3">
-                  {[
-                    { key: 'distribution', label: 'Distribution des Rôles' },
-                    { key: 'chrono', label: 'Chronomètre' },
-                    { key: 'soundboard', label: 'Boîte à Sons (Soundboard)' },
-                    { key: 'scoreboard', label: 'Tableau des Scores' },
-                    { key: 'logs', label: 'Log / Historique' },
-                    { key: 'tagDistributor', label: 'Distributeur de Tags' },
-                    { key: 'wiki', label: 'Wiki / Notes GM' },
-                    { key: 'popupCreator', label: 'Créateur de Popup' },
-                    { key: 'actionCreator', label: "Créateur d'Actions" },
-                    { key: 'checklist', label: 'Checklist pour le MJ' },
-                    { key: 'magneticPoints', label: 'Points aimantés' },
-                    { key: 'system', label: 'Système & Connexion' }
-                  ].map(tool => (
-                    <div key={tool.key} className="flex flex-col gap-2">
-                    <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={(displaySettings.panels || {})[tool.key as keyof typeof displaySettings.panels] ?? true}
-                        onChange={(e) => updateDisplaySettings({ 
-                          panels: { 
-                            ...(displaySettings.panels || {}), 
-                            [tool.key]: e.target.checked 
-                          } 
-                        })}
-                        className="rounded border-border w-5 h-5 text-primary"
-                      />
-                      <span className="font-semibold text-sm flex-1">{tool.label}</span>
-                      {['distribution', 'chrono', 'wiki', 'soundboard', 'scoreboard', 'logs'].includes(tool.key) && (displaySettings.panels || {})[tool.key as keyof typeof displaySettings.panels] !== false && (
-                        <button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setExpandedOutils(prev => ({ ...prev, [tool.key]: !prev[tool.key] }));
-                          }}
-                          className="p-1 hover:bg-accent rounded-full transition-colors text-muted-foreground"
-                        >
-                          {expandedOutils[tool.key as keyof typeof expandedOutils] ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                        </button>
-                      )}
-                    </label>
-                    {tool.key === 'distribution' && (displaySettings.panels?.distribution ?? true) && expandedOutils.distribution && (
+                  {(displaySettings.panels?.panelsOrder || ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system']).map(key => {
+                    const label = TOOL_LABELS[key];
+                    if (!label) return null;
+                    return (
+                      <div 
+                        key={key} 
+                        className={`flex flex-col gap-2 transition-all ${draggedTool === key ? 'opacity-50' : ''}`}
+                        draggable
+                        onDragStart={(e) => handleToolDragStart(e, key)}
+                        onDragOver={(e) => handleToolDragOver(e, key)}
+                        onDragEnd={handleToolDragEnd}
+                      >
+                      <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors group">
+                        <icons.GripVertical size={16} className="text-muted-foreground cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <input
+                          type="checkbox"
+                          checked={(displaySettings.panels || {})[key as keyof typeof displaySettings.panels] ?? true}
+                          onChange={(e) => updateDisplaySettings({ 
+                            panels: { 
+                              ...(displaySettings.panels || {}), 
+                              [key]: e.target.checked 
+                            } 
+                          })}
+                          className="rounded border-border w-5 h-5 text-primary"
+                        />
+                        <span className="font-semibold text-sm flex-1">{label}</span>
+                        {['distribution', 'chrono', 'wiki', 'soundboard', 'scoreboard', 'logs'].includes(key) && (displaySettings.panels || {})[key as keyof typeof displaySettings.panels] !== false && (
+                          <button 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setExpandedOutils(prev => ({ ...prev, [key]: !prev[key] }));
+                            }}
+                            className="p-1 hover:bg-accent rounded-full transition-colors text-muted-foreground"
+                          >
+                            {expandedOutils[key as keyof typeof expandedOutils] ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                          </button>
+                        )}
+                      </label>
+                      {key === 'distribution' && (displaySettings.panels?.distribution ?? true) && expandedOutils.distribution && (
                       <div className="ml-8 flex flex-col gap-2 p-2 bg-muted/10 border-l-2 border-purple-500/30 rounded-r-lg mt-1 mb-2">
                         {[
                           { key: 'distributionResurrectAll', label: 'Ressusciter tous les joueurs' },
@@ -1364,7 +1408,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         ))}
                       </div>
                     )}
-                    {tool.key === 'chrono' && (displaySettings.panels?.chrono ?? true) && expandedOutils.chrono && (
+                    {key === 'chrono' && (displaySettings.panels?.chrono ?? true) && expandedOutils.chrono && (
                       <div className="ml-8 flex flex-col gap-3 p-3 bg-muted/10 border-l-2 border-amber-500/30 rounded-r-lg mt-1 mb-2">
                         <div className="flex flex-col gap-1.5">
                           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Minutes par défaut</label>
@@ -1390,7 +1434,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </div>
                       </div>
                     )}
-                    {tool.key === 'wiki' && (displaySettings.panels?.wiki ?? true) && expandedOutils.wiki && (
+                    {key === 'wiki' && (displaySettings.panels?.wiki ?? true) && expandedOutils.wiki && (
                       <div className="ml-8 flex flex-col gap-3 p-3 bg-muted/10 border-l-2 border-blue-500/30 rounded-r-lg mt-1 mb-2">
                         <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                           <input
@@ -1469,7 +1513,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </label>
                       </div>
                     )}
-                    {tool.key === 'scoreboard' && (displaySettings.panels?.scoreboard ?? true) && expandedOutils.scoreboard && (
+                    {key === 'scoreboard' && (displaySettings.panels?.scoreboard ?? true) && expandedOutils.scoreboard && (
                       <div className="ml-8 grid grid-cols-2 gap-2 p-3 bg-muted/10 border-l-2 border-yellow-500/30 rounded-r-lg">
                         {[
                           { key: 'showRoles', label: 'Afficher le rôle' },
@@ -1496,7 +1540,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         ))}
                       </div>
                     )}
-                    {tool.key === 'logs' && (displaySettings.panels?.logs ?? true) && expandedOutils.logs && (
+                    {key === 'logs' && (displaySettings.panels?.logs ?? true) && expandedOutils.logs && (
                       <div className="ml-8 flex items-center gap-3 p-2 bg-muted/10 border-l-2 border-primary/30">
                         <label className="flex items-center gap-2 cursor-pointer group">
                           <input
@@ -1511,8 +1555,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </label>
                       </div>
                     )}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
 

@@ -513,6 +513,7 @@ export interface GameState {
       checklist?: boolean;
       tagDistributor?: boolean;
       magneticPoints?: boolean;
+      panelsOrder?: string[];
     };
     recordLogs: boolean;
     smartphoneTabs: {

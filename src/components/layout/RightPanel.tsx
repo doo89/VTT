@@ -323,795 +323,790 @@ export const RightPanel: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 custom-scrollbar min-h-0">
 
-        {/* Distribution des rôles */}
-        {displaySettings.panels?.distribution !== false && (
-        <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('distribution')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'distribution' ? 'text-purple-400' : ''}`}>
-              <Shuffle size={16} /> Distribution Rôles
-            </div>
-            {activeSection === 'distribution' ? <ChevronDown size={16} className="text-purple-400" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'distribution' && (
-            <div className="flex flex-col gap-3 p-3 border-t border-border">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Joueurs en salle :</span>
-                <span className="font-bold">{totalPlayersInRoom}</span>
-              </div>
+        {(displaySettings.panels?.panelsOrder || ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system']).map(key => {
+          if (key === 'distribution') return displaySettings.panels?.distribution !== false && (
+            <section key="distribution" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('distribution')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'distribution' ? 'text-purple-400' : ''}`}>
+                  <Shuffle size={16} /> Distribution Rôles
+                </div>
+                {activeSection === 'distribution' ? <ChevronDown size={16} className="text-purple-400" /> : <ChevronRight size={16} />}
+              </button>
+              {activeSection === 'distribution' && (
+                <div className="flex flex-col gap-3 p-3 border-t border-border">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Joueurs en salle :</span>
+                    <span className="font-bold">{totalPlayersInRoom}</span>
+                  </div>
 
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Rôles sélectionnés :</span>
-                <span className={`font-bold ${totalRolesToDistribute < totalPlayersInRoom ? 'text-destructive' : 'text-primary'}`}>
-                  {totalRolesToDistribute}
-                </span>
-              </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Rôles sélectionnés :</span>
+                    <span className={`font-bold ${totalRolesToDistribute < totalPlayersInRoom ? 'text-destructive' : 'text-primary'}`}>
+                      {totalRolesToDistribute}
+                    </span>
+                  </div>
 
-              {selectedRolesForDistribution.length > 0 && (
-                <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/50">
-                  {selectedRolesForDistribution.map(role => (
-                    <div key={role.id} className="flex items-center justify-between gap-2 text-sm">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: role.color }} />
-                        <span className="truncate">{role.name}</span>
+                  {selectedRolesForDistribution.length > 0 && (
+                    <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/50">
+                      {selectedRolesForDistribution.map(role => (
+                        <div key={role.id} className="flex items-center justify-between gap-2 text-sm">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <div className="w-3 h-3 rounded-sm shrink-0" style={{ backgroundColor: role.color }} />
+                            <span className="truncate">{role.name}</span>
+                          </div>
+
+                          {!role.isUnique ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground">Qté:</span>
+                              <input
+                                type="number"
+                                min="1"
+                                value={role.distributionQuantity || 1}
+                                onChange={(e) => updateRole(role.id, { distributionQuantity: Math.max(1, parseInt(e.target.value) || 1) })}
+                                className="w-16 bg-background border border-border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring text-center"
+                              />
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic mr-6">Unique</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleDistributeRoles}
+                    disabled={!canDistribute}
+                    className={`mt-2 flex items-center justify-center gap-2 w-full py-2 rounded-md text-sm font-medium transition-colors ${
+                      canDistribute
+                        ? (needsFilling ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-primary text-primary-foreground hover:bg-primary/90')
+                        : 'bg-muted text-muted-foreground cursor-not-allowed'
+                    }`}
+                  >
+                    <Shuffle size={16} />
+                    Distribuer
+                  </button>
+
+                  {!canDistribute && totalPlayersInRoom > 0 && (
+                    <p className="text-[10px] text-destructive text-center mt-1">
+                      Le nombre de rôles ({totalRolesToDistribute}) doit être supérieur ou égal au nombre de joueurs ({totalPlayersInRoom}).
+                    </p>
+                  )}
+
+                  {canDistribute && needsFilling && (
+                    <p className="text-[10px] text-orange-500 text-center mt-1">
+                      Le nombre de rôles ({totalRolesToDistribute}) sera complété par le rôle {fillerRole?.name} pour avoir un nombre de rôles égal au nombre de joueurs ({totalPlayersInRoom}).
+                    </p>
+                  )}
+                </div>
+              )}
+            </section>
+          );
+
+          if (key === 'chrono') return displaySettings.panels?.chrono !== false && (
+            <section key="chrono" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('chrono')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'chrono' ? 'text-amber-500' : ''}`}>
+                  <Clock size={16} /> Chronomètre
+                </div>
+                {activeSection === 'chrono' ? <ChevronDown size={16} className="text-amber-500" /> : <ChevronRight size={16} />}
+              </button>
+              {activeSection === 'chrono' && (
+                <div className="flex flex-col items-center gap-3 p-3 border-t border-border">
+                  {timer.isDetached ? (
+                    <div className="flex flex-col items-center gap-2 w-full text-center py-2">
+                      <span className="text-sm text-muted-foreground italic">Le chronomètre est détaché.</span>
+                      <button
+                        onClick={() => setTimer({ isDetached: false })}
+                        className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded hover:bg-primary/90"
+                      >
+                        Rattacher
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-1 text-3xl font-mono font-bold bg-input px-3 py-2 rounded-md border border-border">
+                        <input
+                          type="number"
+                          min="0"
+                          max="99"
+                          value={String(timer.minutes).padStart(2, '0')}
+                          onChange={(e) => {
+                            if (!timer.isRunning) {
+                              setTimer({ minutes: Math.min(99, Math.max(0, parseInt(e.target.value) || 0)) });
+                            }
+                          }}
+                          disabled={timer.isRunning}
+                          className="w-16 bg-transparent text-center focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
+                        />
+                        <span className="text-muted-foreground pb-1">:</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="59"
+                          value={String(timer.seconds).padStart(2, '0')}
+                          onChange={(e) => {
+                            if (!timer.isRunning) {
+                              setTimer({ seconds: Math.min(59, Math.max(0, parseInt(e.target.value) || 0)) });
+                            }
+                          }}
+                          disabled={timer.isRunning}
+                          className="w-16 bg-transparent text-center focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
+                        />
                       </div>
 
-                      {!role.isUnique ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Qté:</span>
+                      <label className="flex items-center gap-2 text-xs text-muted-foreground w-full cursor-pointer mt-1 mb-1">
+                        <input
+                          type="checkbox"
+                          checked={timer.playSoundAtZero}
+                          onChange={(e) => setTimer({ playSoundAtZero: e.target.checked })}
+                          className="rounded border-border w-3.5 h-3.5"
+                        />
+                        Jouer un son à la fin
+                      </label>
+
+                      <div className="flex gap-2 w-full">
+                        <button
+                          onClick={handleTimerToggle}
+                          className={`flex-[2] py-2 rounded text-sm font-medium text-white ${timer.isRunning ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-500 hover:bg-green-600'}`}
+                        >
+                          {timer.isRunning ? 'Pause' : 'Démarrer'}
+                        </button>
+                        <button
+                          onClick={handleTimerReset}
+                          className="flex-1 bg-destructive text-destructive-foreground py-2 rounded text-sm hover:bg-destructive/90"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                      <div className="w-full mt-1 border-t border-border pt-2">
+                        <button
+                          onClick={() => setTimer({ isDetached: true })}
+                          className="w-full flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent py-1.5 rounded transition-colors"
+                        >
+                          <ArrowUpRight size={14} /> Détacher en fenêtre volante
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </section>
+          );
+
+          if (key === 'soundboard') return displaySettings.panels?.soundboard !== false && (
+            <section key="soundboard" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('soundboard')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'soundboard' ? 'text-pink-400' : ''}`}>
+                  <Music size={16} /> Soundboard ({soundboard.buttons.filter(b => b.audioUrl).length}/{soundboard.cols * soundboard.rows})
+                </div>
+                {activeSection === 'soundboard' ? <ChevronDown size={16} className="text-pink-400" /> : <ChevronRight size={16} />}
+              </button>
+              {activeSection === 'soundboard' && (
+                <div className="flex flex-col gap-3 p-3 border-t border-border">
+                  {soundboard.isDetached ? (
+                    <div className="flex flex-col items-center gap-2 w-full text-center py-2">
+                      <span className="text-sm text-muted-foreground italic">La boîte à sons est détachée.</span>
+                      <button
+                        onClick={() => setSoundboard({ isDetached: false })}
+                        className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded hover:bg-primary/90"
+                      >
+                        Rattacher
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col gap-1 flex-1">
+                          <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Colonnes</label>
                           <input
                             type="number"
-                            min="1"
-                            value={role.distributionQuantity || 1}
-                            onChange={(e) => updateRole(role.id, { distributionQuantity: Math.max(1, parseInt(e.target.value) || 1) })}
-                            className="w-16 bg-background border border-border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring text-center"
+                            min="1" max="10"
+                            value={soundboard.cols}
+                            onChange={e => setSoundboard({ cols: parseInt(e.target.value) || 4 })}
+                            className="bg-input border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                           />
                         </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground italic mr-6">Unique</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <button
-                onClick={handleDistributeRoles}
-                disabled={!canDistribute}
-                className={`mt-2 flex items-center justify-center gap-2 w-full py-2 rounded-md text-sm font-medium transition-colors ${
-                  canDistribute
-                    ? (needsFilling ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-primary text-primary-foreground hover:bg-primary/90')
-                    : 'bg-muted text-muted-foreground cursor-not-allowed'
-                }`}
-              >
-                <Shuffle size={16} />
-                Distribuer
-              </button>
-
-              {!canDistribute && totalPlayersInRoom > 0 && (
-                <p className="text-[10px] text-destructive text-center mt-1">
-                  Le nombre de rôles ({totalRolesToDistribute}) doit être supérieur ou égal au nombre de joueurs ({totalPlayersInRoom}).
-                </p>
-              )}
-
-              {canDistribute && needsFilling && (
-                <p className="text-[10px] text-orange-500 text-center mt-1">
-                  Le nombre de rôles ({totalRolesToDistribute}) sera complété par le rôle {fillerRole?.name} pour avoir un nombre de rôles égal au nombre de joueurs ({totalPlayersInRoom}).
-                </p>
-              )}
-            </div>
-          )}
-        </section>
-        )}
-
-        {/* Timer */}
-        {displaySettings.panels?.chrono !== false && (
-        <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('chrono')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'chrono' ? 'text-amber-500' : ''}`}>
-              <Clock size={16} /> Chronomètre
-            </div>
-            {activeSection === 'chrono' ? <ChevronDown size={16} className="text-amber-500" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'chrono' && (
-            <div className="flex flex-col items-center gap-3 p-3 border-t border-border">
-              {timer.isDetached ? (
-                <div className="flex flex-col items-center gap-2 w-full text-center py-2">
-                  <span className="text-sm text-muted-foreground italic">Le chronomètre est détaché.</span>
-                  <button
-                    onClick={() => setTimer({ isDetached: false })}
-                    className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded hover:bg-primary/90"
-                  >
-                    Rattacher
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-1 text-3xl font-mono font-bold bg-input px-3 py-2 rounded-md border border-border">
-                    <input
-                      type="number"
-                      min="0"
-                      max="99"
-                      value={String(timer.minutes).padStart(2, '0')}
-                      onChange={(e) => {
-                        if (!timer.isRunning) {
-                          setTimer({ minutes: Math.min(99, Math.max(0, parseInt(e.target.value) || 0)) });
-                        }
-                      }}
-                      disabled={timer.isRunning}
-                      className="w-16 bg-transparent text-center focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
-                    />
-                    <span className="text-muted-foreground pb-1">:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={String(timer.seconds).padStart(2, '0')}
-                      onChange={(e) => {
-                        if (!timer.isRunning) {
-                          setTimer({ seconds: Math.min(59, Math.max(0, parseInt(e.target.value) || 0)) });
-                        }
-                      }}
-                      disabled={timer.isRunning}
-                      className="w-16 bg-transparent text-center focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
-                    />
-                  </div>
-
-                  <label className="flex items-center gap-2 text-xs text-muted-foreground w-full cursor-pointer mt-1 mb-1">
-                    <input
-                      type="checkbox"
-                      checked={timer.playSoundAtZero}
-                      onChange={(e) => setTimer({ playSoundAtZero: e.target.checked })}
-                      className="rounded border-border w-3.5 h-3.5"
-                    />
-                    Jouer un son à la fin
-                  </label>
-
-                  <div className="flex gap-2 w-full">
-                    <button
-                      onClick={handleTimerToggle}
-                      className={`flex-[2] py-2 rounded text-sm font-medium text-white ${timer.isRunning ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-500 hover:bg-green-600'}`}
-                    >
-                      {timer.isRunning ? 'Pause' : 'Démarrer'}
-                    </button>
-                    <button
-                      onClick={handleTimerReset}
-                      className="flex-1 bg-destructive text-destructive-foreground py-2 rounded text-sm hover:bg-destructive/90"
-                    >
-                      Reset
-                    </button>
-                  </div>
-                  <div className="w-full mt-1 border-t border-border pt-2">
-                    <button
-                      onClick={() => setTimer({ isDetached: true })}
-                      className="w-full flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground hover:bg-accent py-1.5 rounded transition-colors"
-                    >
-                      <ArrowUpRight size={14} /> Détacher en fenêtre volante
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </section>
-        )}
-
-        {/* Soundboard */}
-        {displaySettings.panels?.soundboard !== false && (
-        <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('soundboard')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'soundboard' ? 'text-pink-400' : ''}`}>
-              <Music size={16} /> Soundboard ({soundboard.buttons.filter(b => b.audioUrl).length}/{soundboard.cols * soundboard.rows})
-            </div>
-            {activeSection === 'soundboard' ? <ChevronDown size={16} className="text-pink-400" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'soundboard' && (
-            <div className="flex flex-col gap-3 p-3 border-t border-border">
-              {soundboard.isDetached ? (
-                <div className="flex flex-col items-center gap-2 w-full text-center py-2">
-                  <span className="text-sm text-muted-foreground italic">La boîte à sons est détachée.</span>
-                  <button
-                    onClick={() => setSoundboard({ isDetached: false })}
-                    className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded hover:bg-primary/90"
-                  >
-                    Rattacher
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col gap-1 flex-1">
-                      <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Colonnes</label>
-                      <input
-                        type="number"
-                        min="1" max="10"
-                        value={soundboard.cols}
-                        onChange={e => setSoundboard({ cols: parseInt(e.target.value) || 4 })}
-                        className="bg-input border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 flex-1">
-                      <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Lignes</label>
-                      <input
-                        type="number"
-                        min="1" max="10"
-                        value={soundboard.rows}
-                        onChange={e => setSoundboard({ rows: parseInt(e.target.value) || 3 })}
-                        className="bg-input border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setSoundboard({ isDetached: true })}
-                    className="w-full mt-3 bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
-                  >
-                    <ArrowUpRight size={14} /> Afficher la boîte à sons
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-        </section>
-        )}
-
-        {/* Tableau des Scores */}
-        {displaySettings.panels?.scoreboard !== false && (
-        <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('scoreboard')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'scoreboard' ? 'text-yellow-400' : ''}`}>
-              <Trophy size={16} /> Tableau des Scores
-            </div>
-            {activeSection === 'scoreboard' ? <ChevronDown size={16} className="text-yellow-400" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'scoreboard' && (
-            <div className="flex flex-col p-3 border-t border-border gap-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Mode détaché</span>
-                <button
-                  onClick={() => setScoreboard({ isDetached: !scoreboard.isDetached })}
-                  className={`w-10 h-5 rounded-full transition-colors relative ${scoreboard.isDetached ? 'bg-primary' : 'bg-muted'}`}
-                >
-                  <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${scoreboard.isDetached ? 'left-6' : 'left-1'}`} />
-                </button>
-              </div>
-
-              <button
-                onClick={() => setScoreboard({ isOpen: !scoreboard.isOpen })}
-                className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
-              >
-                <Trophy size={14} /> {scoreboard.isOpen ? 'Masquer le tableau' : 'Afficher le tableau'}
-              </button>
-
-              {scoreboard.isOpen && !scoreboard.isDetached && (
-                <div className="mt-2 border border-border rounded-lg overflow-hidden bg-muted/10">
-                  <table className="w-full text-left text-[10px]">
-                    <thead className="bg-muted">
-                      <tr>
-                        <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground">Joueur</th>
-                        {scoreboard.showPoints && <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Pts</th>}
-                        {scoreboard.showLives && <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Vie</th>}
-                        {scoreboard.showStatus && <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Statut</th>}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/50">
-                      {[...players].sort((a, b) => {
-                        const roleA = roles.find(r => r.id === a.roleId);
-                        const roleB = roles.find(r => r.id === b.roleId);
-                        const effectiveA = getEffectiveStats(a, roleA);
-                        const effectiveB = getEffectiveStats(b, roleB);
-                        return (effectiveB.points || 0) - (effectiveA.points || 0);
-                      }).map((player) => {
-                        const role = roles.find(r => r.id === player.roleId);
-                        const effective = getEffectiveStats(player, role);
-                        return (
-                          <tr key={player.id} className={`${player.isDead ? 'opacity-50' : ''}`}>
-                            <td className="p-1.5">
-                              <div className="font-bold truncate max-w-[80px]">{player.name}</div>
-                              {scoreboard.showRoles && <div className="text-[8px] text-muted-foreground uppercase truncate max-w-[80px]">{role?.name || 'Sans Rôle'}</div>}
-                            </td>
-                            {scoreboard.showPoints && <td className="p-1.5 text-center font-bold text-blue-400">{effective.points}</td>}
-                            {scoreboard.showLives && (
-                              <td className="p-1.5 text-center">
-                                 <div className="flex items-center justify-center gap-0.5 text-red-500">
-                                   <Heart size={8} fill={effective.lives > 0 ? "currentColor" : "none"} />
-                                   <span>{effective.lives ?? 0}</span>
-                                 </div>
-                              </td>
-                            )}
-                            {scoreboard.showStatus && (
-                              <td className="p-1.5 text-center">
-                                 {player.isDead ? (
-                                   <span className="text-destructive font-bold">Mort</span>
-                                 ) : (
-                                   <span className="text-green-500 font-bold">Vif</span>
-                                 )}
-                              </td>
-                            )}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-        </section>
-        )}
-
-        {/* Historique / Logs */}
-        {displaySettings.panels?.logs !== false && (
-        <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('logs')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'logs' ? 'text-teal-400' : ''}`}>
-              <History size={16} /> Log / Historique ({logs.length})
-            </div>
-            {activeSection === 'logs' ? <ChevronDown size={16} className="text-teal-400" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'logs' && (
-            <div className="flex flex-col p-0 border-t border-border">
-              <div className="flex justify-between items-center p-2 border-b border-border bg-muted/20">
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{logs.length} Événements</span>
-                <button
-                  onClick={clearLogs}
-                  className="text-xs flex items-center gap-1 text-destructive hover:text-white hover:bg-destructive px-2 py-1 rounded transition-colors"
-                  title="Effacer l'historique"
-                >
-                  <Trash2 size={12} /> Vider
-                </button>
-              </div>
-              <div className="flex flex-col max-h-[300px] overflow-y-auto custom-scrollbar p-2 gap-2">
-                {logs.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic text-center py-4">Aucune action enregistrée pour le moment.</p>
-                ) : (
-                  <>
-                  {logs.map((log) => {
-                    let dotColor = "bg-primary";
-                    if (log.type === 'death') dotColor = "bg-destructive";
-                    else if (log.type === 'action') dotColor = "bg-amber-500";
-                    else if (log.type === 'system') dotColor = "bg-blue-500";
-                    else if (log.type === 'note') dotColor = "bg-purple-500";
-                    else if (log.type === 'role') dotColor = "bg-emerald-500";
-
-                    return (
-                      <div key={log.id} className="flex gap-2 items-start text-sm">
-                        <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-foreground leading-snug">{log.message}</span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {new Date(log.timestamp).toLocaleTimeString()}
-                          </span>
+                        <div className="flex flex-col gap-1 flex-1">
+                          <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Lignes</label>
+                          <input
+                            type="number"
+                            min="1" max="10"
+                            value={soundboard.rows}
+                            onChange={e => setSoundboard({ rows: parseInt(e.target.value) || 3 })}
+                            className="bg-input border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                          />
                         </div>
                       </div>
-                    );
-                  })}
-                  <div className="pt-2 border-t border-border mt-1">
+
+                      <button
+                        onClick={() => setSoundboard({ isDetached: true })}
+                        className="w-full mt-3 bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                      >
+                        <ArrowUpRight size={14} /> Afficher la boîte à sons
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </section>
+          );
+
+          if (key === 'scoreboard') return displaySettings.panels?.scoreboard !== false && (
+            <section key="scoreboard" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('scoreboard')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'scoreboard' ? 'text-yellow-400' : ''}`}>
+                  <Trophy size={16} /> Tableau des Scores
+                </div>
+                {activeSection === 'scoreboard' ? <ChevronDown size={16} className="text-yellow-400" /> : <ChevronRight size={16} />}
+              </button>
+              {activeSection === 'scoreboard' && (
+                <div className="flex flex-col p-3 border-t border-border gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Mode détaché</span>
                     <button
-                      onClick={initialState.downloadLogs}
-                      className="w-full flex items-center justify-center gap-2 py-1.5 px-2 bg-accent hover:bg-accent/80 text-xs font-medium rounded transition-colors"
+                      onClick={() => setScoreboard({ isDetached: !scoreboard.isDetached })}
+                      className={`w-10 h-5 rounded-full transition-colors relative ${scoreboard.isDetached ? 'bg-primary' : 'bg-muted'}`}
                     >
-                      <Download size={14} /> Enregistrer JSON
+                      <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${scoreboard.isDetached ? 'left-6' : 'left-1'}`} />
                     </button>
                   </div>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-        </section>
-        )}
 
-        {/* Wiki */}
-        {displaySettings.panels?.wiki !== false && (
-        <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('wiki')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'wiki' ? 'text-blue-400' : ''}`}>
-              <Book size={16} /> Wiki
-            </div>
-            {activeSection === 'wiki' ? <ChevronDown size={16} className="text-blue-400" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'wiki' && (
-            <div className="flex flex-col p-3 border-t border-border gap-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Mode détaché</span>
-                <button
-                  onClick={() => setWiki({ isDetached: !wiki.isDetached })}
-                  className={`w-10 h-5 rounded-full transition-colors relative ${wiki.isDetached ? 'bg-primary' : 'bg-muted'}`}
-                >
-                  <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${wiki.isDetached ? 'left-6' : 'left-1'}`} />
-                </button>
-              </div>
-
-              {!wiki.isDetached && wiki.isOpen ? (
-                <div className="flex flex-col gap-2">
-                   <p className="text-[10px] text-muted-foreground italic text-center py-2 bg-muted/20 rounded">
-                     Le Wiki est intégré ci-dessous (lecture seule ici, détachez-le pour éditer).
-                   </p>
-                   <div 
-                      className="p-3 bg-zinc-950/50 border border-border rounded-lg min-h-[100px] max-h-[300px] overflow-y-auto custom-scrollbar text-xs leading-relaxed text-foreground wiki-content"
-                      dangerouslySetInnerHTML={{ __html: wiki.content || '<em class="opacity-30">Aucun contenu...</em>' }}
-                   />
-                    <button
-                      onClick={() => setWiki({ isOpen: false })}
-                      className="w-full bg-muted text-muted-foreground text-[10px] py-1.5 rounded font-bold hover:bg-accent transition-colors uppercase tracking-wider"
-                    >
-                      Fermer l'aperçu
-                    </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setWiki({ isOpen: !wiki.isOpen, isDetached: true })}
-                  className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
-                >
-                  <Book size={14} /> {wiki.isOpen && wiki.isDetached ? 'Wiki Ouvert' : 'Ouvrir la Fenêtre Wiki'}
-                </button>
-              )}
-            </div>
-          )}
-        </section>
-        )}
-
-        {/* Système & Connexion */}
-        {displaySettings.panels?.system !== false && (
-        <section className="flex flex-col border border-border rounded-md bg-background">
-          <button
-            onClick={() => toggleSection('systeme')}
-            className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-          >
-            <div className={`flex items-center gap-2 ${activeSection === 'systeme' ? 'text-amber-500' : ''}`}>
-              <Zap size={16} /> Système & Connexion
-            </div>
-            {activeSection === 'systeme' ? <ChevronDown size={16} className="text-amber-500" /> : <ChevronRight size={16} />}
-          </button>
-          {activeSection === 'systeme' && (
-            <div className="p-4 pt-3 flex flex-col gap-3 border-t border-border">
-              <div className="flex flex-col gap-1.5">
-                <button
-                  onClick={() => forceBroadcastState()}
-                  className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
-                >
-                  <RefreshCw size={14} /> Forcer la Synchronisation
-                </button>
-                <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
-                  Envoie immédiatement l'état actuel à tous les joueurs connectés.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-1.5 mt-2">
-                <button
-                  onClick={() => {
-                    const code = useVttStore.getState().roomCode;
-                    if (code) initHostRealtime(code);
-                  }}
-                  className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-border"
-                >
-                  <Zap size={14} /> Réinitialiser le Canal
-                </button>
-                <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
-                  Relance la connexion Supabase en cas de coupure réseau.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-border/30 text-foreground">
-                <button
-                  onClick={() => setShowSupabaseSettings(true)}
-                  className="w-full py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-blue-500/30 shadow-sm"
-                >
-                  <Database size={14} /> Paramètres Supabase
-                </button>
-                <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
-                  Clé d'API (Sauvegardée localement ou .env).
-                </p>
-              </div>
-            </div>
-          )}
-        </section>
-        )}
-
-        {/* Créateur de Popup */}
-        {(displaySettings.panels?.popupCreator ?? true) && (
-          <section className="flex flex-col border border-border rounded-md bg-background">
-            <button
-              onClick={() => toggleSection('popups')}
-              className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-            >
-              <div className={`flex items-center gap-2 ${activeSection === 'popups' ? 'text-indigo-400' : ''}`}>
-                <MessageSquare size={16} /> Créateur de Popup ({customPopups.length})
-              </div>
-              {activeSection === 'popups' ? <ChevronDown size={16} className="text-indigo-400" /> : <ChevronRight size={16} />}
-            </button>
-            {activeSection === 'popups' && (
-              <div className="p-3 flex flex-col gap-3 border-t border-border">
-                 <button
-                    onClick={() => {
-                      setEditingPopupId(null);
-                      setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, showToGM: true, showToSmartphone: true });
-                      setShowPopupCreator(true);
-                    }}
+                  <button
+                    onClick={() => setScoreboard({ isOpen: !scoreboard.isOpen })}
                     className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
                   >
-                    <Plus size={14} /> Ajouter popup
+                    <Trophy size={14} /> {scoreboard.isOpen ? 'Masquer le tableau' : 'Afficher le tableau'}
                   </button>
-  
-                  <div className="flex flex-col gap-2 mt-2">
-                    {customPopups.map(popup => (
-                      <div key={popup.id} className="flex flex-col gap-1 w-full bg-muted/20 border border-border/50 rounded-md p-2">
-                        <div className="flex justify-between items-center w-full">
-                          <span className="text-xs font-bold truncate pr-2">{popup.title}</span>
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => {
-                              setEditingPopupId(popup.id);
-                              setNewPopupData({
-                                title: popup.title,
-                                imageUrl: popup.imageUrl || '',
-                                soundUrl: popup.soundUrl || '',
-                                content: popup.content,
-                                showCloseButton: popup.showCloseButton,
-                                autoCloseTimer: popup.autoCloseTimer,
-                                showToGM: popup.showToGM ?? true,
-                                showToSmartphone: popup.showToSmartphone ?? true
-                              });
-                              setShowPopupCreator(true);
-                            }} className="text-muted-foreground hover:text-primary transition-colors p-1" title="Modifier">
+
+                  {scoreboard.isOpen && !scoreboard.isDetached && (
+                    <div className="mt-2 border border-border rounded-lg overflow-hidden bg-muted/10">
+                      <table className="w-full text-left text-[10px]">
+                        <thead className="bg-muted">
+                          <tr>
+                            <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground">Joueur</th>
+                            {scoreboard.showPoints && <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Pts</th>}
+                            {scoreboard.showLives && <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Vie</th>}
+                            {scoreboard.showStatus && <th className="p-1.5 font-bold uppercase tracking-wider text-muted-foreground text-center">Statut</th>}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/50">
+                          {[...players].sort((a, b) => {
+                            const roleA = roles.find(r => r.id === a.roleId);
+                            const roleB = roles.find(r => r.id === b.roleId);
+                            const effectiveA = getEffectiveStats(a, roleA);
+                            const effectiveB = getEffectiveStats(b, roleB);
+                            return (effectiveB.points || 0) - (effectiveA.points || 0);
+                          }).map((player) => {
+                            const role = roles.find(r => r.id === player.roleId);
+                            const effective = getEffectiveStats(player, role);
+                            return (
+                              <tr key={player.id} className={`${player.isDead ? 'opacity-50' : ''}`}>
+                                <td className="p-1.5">
+                                  <div className="font-bold truncate max-w-[80px]">{player.name}</div>
+                                  {scoreboard.showRoles && <div className="text-[8px] text-muted-foreground uppercase truncate max-w-[80px]">{role?.name || 'Sans Rôle'}</div>}
+                                </td>
+                                {scoreboard.showPoints && <td className="p-1.5 text-center font-bold text-blue-400">{effective.points}</td>}
+                                {scoreboard.showLives && (
+                                  <td className="p-1.5 text-center">
+                                     <div className="flex items-center justify-center gap-0.5 text-red-500">
+                                       <Heart size={8} fill={effective.lives > 0 ? "currentColor" : "none"} />
+                                       <span>{effective.lives ?? 0}</span>
+                                     </div>
+                                  </td>
+                                )}
+                                {scoreboard.showStatus && (
+                                  <td className="p-1.5 text-center">
+                                     {player.isDead ? (
+                                       <span className="text-destructive font-bold">Mort</span>
+                                     ) : (
+                                       <span className="text-green-500 font-bold">Vif</span>
+                                     )}
+                                  </td>
+                                )}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+          );
+
+          if (key === 'logs') return displaySettings.panels?.logs !== false && (
+            <section key="logs" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('logs')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'logs' ? 'text-teal-400' : ''}`}>
+                  <History size={16} /> Log / Historique ({logs.length})
+                </div>
+                {activeSection === 'logs' ? <ChevronDown size={16} className="text-teal-400" /> : <ChevronRight size={16} />}
+              </button>
+              {activeSection === 'logs' && (
+                <div className="flex flex-col p-0 border-t border-border">
+                  <div className="flex justify-between items-center p-2 border-b border-border bg-muted/20">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{logs.length} Événements</span>
+                    <button
+                      onClick={clearLogs}
+                      className="text-xs flex items-center gap-1 text-destructive hover:text-white hover:bg-destructive px-2 py-1 rounded transition-colors"
+                      title="Effacer l'historique"
+                    >
+                      <Trash2 size={12} /> Vider
+                    </button>
+                  </div>
+                  <div className="flex flex-col max-h-[300px] overflow-y-auto custom-scrollbar p-2 gap-2">
+                    {logs.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic text-center py-4">Aucune action enregistrée pour le moment.</p>
+                    ) : (
+                      <>
+                      {logs.map((log) => {
+                        let dotColor = "bg-primary";
+                        if (log.type === 'death') dotColor = "bg-destructive";
+                        else if (log.type === 'action') dotColor = "bg-amber-500";
+                        else if (log.type === 'system') dotColor = "bg-blue-500";
+                        else if (log.type === 'note') dotColor = "bg-purple-500";
+                        else if (log.type === 'role') dotColor = "bg-emerald-500";
+
+                        return (
+                          <div key={log.id} className="flex gap-2 items-start text-sm">
+                            <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-foreground leading-snug">{log.message}</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {new Date(log.timestamp).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div className="pt-2 border-t border-border mt-1">
+                        <button
+                          onClick={initialState.downloadLogs}
+                          className="w-full flex items-center justify-center gap-2 py-1.5 px-2 bg-accent hover:bg-accent/80 text-xs font-medium rounded transition-colors"
+                        >
+                          <Download size={14} /> Enregistrer JSON
+                        </button>
+                      </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </section>
+          );
+
+          if (key === 'wiki') return displaySettings.panels?.wiki !== false && (
+            <section key="wiki" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('wiki')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'wiki' ? 'text-blue-400' : ''}`}>
+                  <Book size={16} /> Wiki
+                </div>
+                {activeSection === 'wiki' ? <ChevronDown size={16} className="text-blue-400" /> : <ChevronRight size={16} />}
+              </button>
+              {activeSection === 'wiki' && (
+                <div className="flex flex-col p-3 border-t border-border gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Mode détaché</span>
+                    <button
+                      onClick={() => setWiki({ isDetached: !wiki.isDetached })}
+                      className={`w-10 h-5 rounded-full transition-colors relative ${wiki.isDetached ? 'bg-primary' : 'bg-muted'}`}
+                    >
+                      <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${wiki.isDetached ? 'left-6' : 'left-1'}`} />
+                    </button>
+                  </div>
+
+                  {!wiki.isDetached && wiki.isOpen ? (
+                    <div className="flex flex-col gap-2">
+                       <p className="text-[10px] text-muted-foreground italic text-center py-2 bg-muted/20 rounded">
+                         Le Wiki est intégré ci-dessous (lecture seule ici, détachez-le pour éditer).
+                       </p>
+                       <div 
+                          className="p-3 bg-zinc-950/50 border border-border rounded-lg min-h-[100px] max-h-[300px] overflow-y-auto custom-scrollbar text-xs leading-relaxed text-foreground wiki-content"
+                          dangerouslySetInnerHTML={{ __html: wiki.content || '<em class="opacity-30">Aucun contenu...</em>' }}
+                       />
+                        <button
+                          onClick={() => setWiki({ isOpen: false })}
+                          className="w-full bg-muted text-muted-foreground text-[10px] py-1.5 rounded font-bold hover:bg-accent transition-colors uppercase tracking-wider"
+                        >
+                          Fermer l'aperçu
+                        </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setWiki({ isOpen: !wiki.isOpen, isDetached: true })}
+                      className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      <Book size={14} /> {wiki.isOpen && wiki.isDetached ? 'Wiki Ouvert' : 'Ouvrir la Fenêtre Wiki'}
+                    </button>
+                  )}
+                </div>
+              )}
+            </section>
+          );
+
+          if (key === 'system') return displaySettings.panels?.system !== false && (
+            <section key="system" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('systeme')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'systeme' ? 'text-amber-500' : ''}`}>
+                  <Zap size={16} /> Système & Connexion
+                </div>
+                {activeSection === 'systeme' ? <ChevronDown size={16} className="text-amber-500" /> : <ChevronRight size={16} />}
+              </button>
+              {activeSection === 'systeme' && (
+                <div className="p-4 pt-3 flex flex-col gap-3 border-t border-border">
+                  <div className="flex flex-col gap-1.5">
+                    <button
+                      onClick={() => forceBroadcastState()}
+                      className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
+                    >
+                      <RefreshCw size={14} /> Forcer la Synchronisation
+                    </button>
+                    <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
+                      Envoie immédiatement l'état actuel à tous les joueurs connectés.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 mt-2">
+                    <button
+                      onClick={() => {
+                        const code = useVttStore.getState().roomCode;
+                        if (code) initHostRealtime(code);
+                      }}
+                      className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-border"
+                    >
+                      <Zap size={14} /> Réinitialiser le Canal
+                    </button>
+                    <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
+                      Relance la connexion Supabase en cas de coupure réseau.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-border/30 text-foreground">
+                    <button
+                      onClick={() => setShowSupabaseSettings(true)}
+                      className="w-full py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-blue-500/30 shadow-sm"
+                    >
+                      <Database size={14} /> Paramètres Supabase
+                    </button>
+                    <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
+                      Clé d'API (Sauvegardée localement ou .env).
+                    </p>
+                  </div>
+                </div>
+              )}
+            </section>
+          );
+
+          if (key === 'popupCreator') return (displaySettings.panels?.popupCreator ?? true) && (
+            <section key="popupCreator" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('popups')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'popups' ? 'text-indigo-400' : ''}`}>
+                  <MessageSquare size={16} /> Créateur de Popup ({customPopups.length})
+                </div>
+                {activeSection === 'popups' ? <ChevronDown size={16} className="text-indigo-400" /> : <ChevronRight size={16} />}
+              </button>
+              {activeSection === 'popups' && (
+                <div className="p-3 flex flex-col gap-3 border-t border-border">
+                   <button
+                      onClick={() => {
+                        setEditingPopupId(null);
+                        setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, showToGM: true, showToSmartphone: true });
+                        setShowPopupCreator(true);
+                      }}
+                      className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      <Plus size={14} /> Ajouter popup
+                    </button>
+    
+                    <div className="flex flex-col gap-2 mt-2">
+                      {customPopups.map(popup => (
+                        <div key={popup.id} className="flex flex-col gap-1 w-full bg-muted/20 border border-border/50 rounded-md p-2">
+                          <div className="flex justify-between items-center w-full">
+                            <span className="text-xs font-bold truncate pr-2">{popup.title}</span>
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => {
+                                setEditingPopupId(popup.id);
+                                setNewPopupData({
+                                  title: popup.title,
+                                  imageUrl: popup.imageUrl || '',
+                                  soundUrl: popup.soundUrl || '',
+                                  content: popup.content,
+                                  showCloseButton: popup.showCloseButton,
+                                  autoCloseTimer: popup.autoCloseTimer,
+                                  showToGM: popup.showToGM ?? true,
+                                  showToSmartphone: popup.showToSmartphone ?? true
+                                });
+                                setShowPopupCreator(true);
+                              }} className="text-muted-foreground hover:text-primary transition-colors p-1" title="Modifier">
+                                <Edit2 size={12} />
+                              </button>
+                              <button onClick={async () => {
+                                if (popup.imageUrl) await deleteFileFromStorage(popup.imageUrl);
+                                deleteCustomPopup(popup.id);
+                              }} className="text-destructive hover:text-white hover:bg-destructive p-1 rounded transition-colors" title="Supprimer">
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => triggerCustomPopup(popup.id)}
+                            className="w-full mt-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded text-[10px] uppercase font-bold py-1.5 transition-colors border border-indigo-500/30 flex justify-center items-center gap-1.5"
+                          >
+                             <MonitorUp size={12} /> Afficher à tous
+                          </button>
+                        </div>
+                      ))}
+                      {customPopups.length === 0 && (
+                        <p className="text-xs text-muted-foreground italic text-center py-2">Aucune popup créée.</p>
+                      )}
+                    </div>
+                </div>
+              )}
+            </section>
+          );
+
+          if (key === 'actionCreator') return (displaySettings.panels?.actionCreator ?? true) && (
+            <section key="actionCreator" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('actions')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'actions' ? 'text-orange-400' : ''}`}>
+                  <Zap size={16} /> Créateur d'Actions ({actions.length})
+                </div>
+                {activeSection === 'actions' ? <ChevronDown size={16} className="text-orange-400" /> : <ChevronRight size={16} />}
+              </button>
+              {activeSection === 'actions' && (
+                <div className="p-3 flex flex-col gap-3 border-t border-border">
+                   <button
+                      onClick={() => setActionCreatorState({ isOpen: true, isDetached: true })}
+                      className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      <Plus size={14} /> Ajouter Action
+                    </button>
+    
+                    <div className="flex flex-col gap-2 mt-2">
+                      {actions.map(action => (
+                        <div key={action.id} className="flex items-center gap-1.5 w-full group animate-in slide-in-from-right-2 duration-200">
+                          <button
+                            onClick={() => executeAction(action.id)}
+                            disabled={action.enabled === false}
+                            className={`flex-1 rounded-md text-[10px] uppercase font-bold py-2 px-3 transition-all border flex items-center gap-2 shadow-sm truncate ${
+                              action.enabled !== false 
+                                ? (action.currentRepeatExecution && action.currentRepeatExecution > 0 
+                                    ? 'bg-red-600/20 text-red-400 border-red-500/30 font-black animate-pulse' 
+                                    : action.effects?.some((e: any) => e.type === 'triggerAction')
+                                      ? 'bg-orange-600/10 hover:bg-orange-600/20 text-orange-400 border-orange-500/20'
+                                      : 'bg-green-600/10 hover:bg-green-600/20 text-green-400 border-green-500/20')
+                                : 'bg-muted/30 text-muted-foreground border-border/10 cursor-not-allowed opacity-60'
+                            }`}
+                          >
+                            <Play size={10} className="shrink-0" />
+                            <span className="truncate">{action.name}</span>
+                          </button>
+                          
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button 
+                              onClick={() => {
+                                setPendingConditions(action.conditions || []);
+                                setPendingEffects(action.effects || []);
+                                setActionCreatorState({ isOpen: true, isDetached: true, editingActionId: action.id });
+                              }}
+                              className="p-1.5 bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary rounded-md transition-colors border border-border/50" 
+                              title="Modifier"
+                            >
                               <Edit2 size={12} />
                             </button>
-                            <button onClick={async () => {
-                              if (popup.imageUrl) await deleteFileFromStorage(popup.imageUrl);
-                              deleteCustomPopup(popup.id);
-                            }} className="text-destructive hover:text-white hover:bg-destructive p-1 rounded transition-colors" title="Supprimer">
+                            <button 
+                              onClick={() => deleteAction(action.id)} 
+                              className="p-1.5 bg-muted/50 hover:bg-destructive/20 text-muted-foreground hover:text-destructive rounded-md transition-colors border border-border/50" 
+                              title="Supprimer"
+                            >
                               <Trash2 size={12} />
                             </button>
                           </div>
                         </div>
-                        <button
-                          onClick={() => triggerCustomPopup(popup.id)}
-                          className="w-full mt-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded text-[10px] uppercase font-bold py-1.5 transition-colors border border-indigo-500/30 flex justify-center items-center gap-1.5"
-                        >
-                           <MonitorUp size={12} /> Afficher à tous
-                        </button>
-                      </div>
-                    ))}
-                    {customPopups.length === 0 && (
-                      <p className="text-xs text-muted-foreground italic text-center py-2">Aucune popup créée.</p>
-                    )}
-                  </div>
-              </div>
-            )}
-          </section>
-        )}
-        {/* Créateur d'Actions */}
-        {(displaySettings.panels?.actionCreator ?? true) && (
-          <section className="flex flex-col border border-border rounded-md bg-background">
-            <button
-              onClick={() => toggleSection('actions')}
-              className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-            >
-              <div className={`flex items-center gap-2 ${activeSection === 'actions' ? 'text-orange-400' : ''}`}>
-                <Zap size={16} /> Créateur d'Actions ({actions.length})
-              </div>
-              {activeSection === 'actions' ? <ChevronDown size={16} className="text-orange-400" /> : <ChevronRight size={16} />}
-            </button>
-            {activeSection === 'actions' && (
-              <div className="p-3 flex flex-col gap-3 border-t border-border">
-                 <button
-                    onClick={() => setActionCreatorState({ isOpen: true, isDetached: true })}
-                    className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
-                  >
-                    <Plus size={14} /> Ajouter Action
-                  </button>
-  
-                  <div className="flex flex-col gap-2 mt-2">
-                    {actions.map(action => (
-                      <div key={action.id} className="flex items-center gap-1.5 w-full group animate-in slide-in-from-right-2 duration-200">
-                        <button
-                          onClick={() => executeAction(action.id)}
-                          disabled={action.enabled === false}
-                          className={`flex-1 rounded-md text-[10px] uppercase font-bold py-2 px-3 transition-all border flex items-center gap-2 shadow-sm truncate ${
-                            action.enabled !== false 
-                              ? (action.currentRepeatExecution && action.currentRepeatExecution > 0 
-                                  ? 'bg-red-600/20 text-red-400 border-red-500/30 font-black animate-pulse' 
-                                  : action.effects?.some((e: any) => e.type === 'triggerAction')
-                                    ? 'bg-orange-600/10 hover:bg-orange-600/20 text-orange-400 border-orange-500/20'
-                                    : 'bg-green-600/10 hover:bg-green-600/20 text-green-400 border-green-500/20')
-                              : 'bg-muted/30 text-muted-foreground border-border/10 cursor-not-allowed opacity-60'
-                          }`}
-                        >
-                          <Play size={10} className="shrink-0" />
-                          <span className="truncate">{action.name}</span>
-                        </button>
-                        
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button 
-                            onClick={() => {
-                              setPendingConditions(action.conditions || []);
-                              setPendingEffects(action.effects || []);
-                              setActionCreatorState({ isOpen: true, isDetached: true, editingActionId: action.id });
-                            }}
-                            className="p-1.5 bg-muted/50 hover:bg-primary/20 text-muted-foreground hover:text-primary rounded-md transition-colors border border-border/50" 
-                            title="Modifier"
-                          >
-                            <Edit2 size={12} />
-                          </button>
-                          <button 
-                            onClick={() => deleteAction(action.id)} 
-                            className="p-1.5 bg-muted/50 hover:bg-destructive/20 text-muted-foreground hover:text-destructive rounded-md transition-colors border border-border/50" 
-                            title="Supprimer"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {actions.length === 0 && (
-                      <p className="text-xs text-muted-foreground italic text-center py-2">Aucune action créée.</p>
-                    )}
-                  </div>
-              </div>
-            )}
-          </section>
-        )}
-        {/* Checklist pour le MJ */}
-        {(displaySettings.panels?.checklist ?? true) && (
-          <section className="flex flex-col border border-border rounded-md bg-background">
-            <div className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors group">
-              <button 
-                onClick={() => toggleSection('checklist')}
-                className="flex items-center gap-2 flex-1 text-left"
-              >
-                <div className={`flex items-center gap-2 ${activeSection === 'checklist' ? 'text-green-500' : ''}`}>
-                  <CheckSquare size={16} /> Checklist pour le MJ ({checklist?.length || 0})
+                      ))}
+                      {actions.length === 0 && (
+                        <p className="text-xs text-muted-foreground italic text-center py-2">Aucune action créée.</p>
+                      )}
+                    </div>
                 </div>
-              </button>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setChecklistState({ isDetached: true, isOpen: true });
-                  }}
-                  className="p-1 text-muted-foreground hover:text-green-500 transition-colors"
-                  title="Détacher la checklist"
-                >
-                  <ArrowUpRight size={14} />
-                </button>
-                <button onClick={() => toggleSection('checklist')}>
-                  {activeSection === 'checklist' ? <ChevronDown size={16} className="text-green-500" /> : <ChevronRight size={16} />}
-                </button>
-              </div>
-            </div>
-            {activeSection === 'checklist' && !checklistState.isDetached && (
-              <div className="p-3 border-t border-border max-h-[500px] flex flex-col min-h-[300px]">
-                <ChecklistContent />
-              </div>
-            )}
-            {activeSection === 'checklist' && checklistState.isDetached && (
-              <div className="p-4 border-t border-border text-center flex flex-col gap-3">
-                <p className="text-xs text-muted-foreground italic">La checklist est détachée.</p>
-                <button
-                  onClick={() => setChecklistState({ isDetached: false })}
-                  className="bg-primary/10 hover:bg-primary/20 text-primary text-[10px] font-bold uppercase py-2 rounded-md transition-colors border border-primary/20"
-                >
-                  Rattacher ici
-                </button>
-              </div>
-            )}
-          </section>
-        )}
-        {/* Distributeur de Tag */}
-        {(displaySettings.panels?.tagDistributor ?? true) && (
-          <section className="flex flex-col border border-border rounded-md bg-background overflow-hidden p-2">
-            <div className="flex items-center justify-between font-semibold text-sm transition-colors group">
-              <div className="flex items-center gap-2 flex-1 text-left">
-                <Tag size={16} /> Distributeur de Tags
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTagDistributorState({ isDetached: true, isOpen: true });
-                  }}
-                  disabled={tagDistributorState.isDetached}
-                  className={`p-1 transition-colors flex items-center justify-center ${tagDistributorState.isDetached ? 'opacity-30 cursor-not-allowed' : 'text-primary hover:bg-primary/20 bg-primary/10 rounded-md'}`}
-                  title="Détacher le distributeur"
-                >
-                  <ArrowUpRight size={14} />
-                </button>
-              </div>
-            </div>
-            {tagDistributorState.isDetached && (
-              <p className="text-[10px] text-muted-foreground mt-1 px-1">Géré dans une fenêtre flottante.</p>
-            )}
-            {!tagDistributorState.isDetached && (
-              <p className="text-[10px] text-muted-foreground mt-1 px-1">Cliquez sur l'icône pour détacher la liste de distribution rapide.</p>
-            )}
-          </section>
-        )}
+              )}
+            </section>
+          );
 
-        {/* Points Aimantés */}
-        {(displaySettings.panels?.magneticPoints ?? true) && (
-          <section className="flex flex-col border border-border rounded-md bg-background">
-            <button
-              onClick={() => toggleSection('magneticPoints')}
-              className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-            >
-              <div className={`flex items-center gap-2 ${activeSection === 'magneticPoints' ? 'text-blue-500' : ''}`}>
-                <Magnet size={16} /> Points aimantés
-              </div>
-              {activeSection === 'magneticPoints' ? <ChevronDown size={16} className="text-blue-500" /> : <ChevronRight size={16} />}
-            </button>
-            {activeSection === 'magneticPoints' && (
-              <div className="p-3 flex flex-col gap-3 border-t border-border">
-                <button
-                  onClick={() => addMagneticPoint()}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-600/10 text-blue-500 border border-blue-500/20 rounded-md text-xs font-bold hover:bg-blue-600/20 transition-colors justify-center"
+          if (key === 'checklist') return (displaySettings.panels?.checklist ?? true) && (
+            <section key="checklist" className="flex flex-col border border-border rounded-md bg-background">
+              <div className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors group">
+                <button 
+                  onClick={() => toggleSection('checklist')}
+                  className="flex items-center gap-2 flex-1 text-left"
                 >
-                  <Plus size={14} /> Ajouter un point
-                </button>
-
-                <div className="flex flex-col gap-1 px-1">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
-                    <span>Points :</span>
-                    <span className="text-foreground">
-                      {magneticPoints.length} / {players.length}
-                    </span>
+                  <div className={`flex items-center gap-2 ${activeSection === 'checklist' ? 'text-green-500' : ''}`}>
+                    <CheckSquare size={16} /> Checklist pour le MJ ({checklist?.length || 0})
                   </div>
-                </div>
-
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">Afficher</span>
+                </button>
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setShowMagneticPoints(!showMagneticPoints)}
-                    className={`p-1.5 rounded-md transition-all ${showMagneticPoints ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-muted text-muted-foreground'}`}
-                    title={showMagneticPoints ? 'Masquer les points' : 'Afficher les points'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setChecklistState({ isDetached: true, isOpen: true });
+                    }}
+                    className="p-1 text-muted-foreground hover:text-green-500 transition-colors"
+                    title="Détacher la checklist"
                   >
-                    {showMagneticPoints ? <Eye size={14} /> : <EyeOff size={14} />}
+                    <ArrowUpRight size={14} />
+                  </button>
+                  <button onClick={() => toggleSection('checklist')}>
+                    {activeSection === 'checklist' ? <ChevronDown size={16} className="text-green-500" /> : <ChevronRight size={16} />}
                   </button>
                 </div>
-
-                <button
-                  onClick={() => snapPlayersToPoints()}
-                  disabled={magneticPoints.length === 0}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-md text-xs font-black uppercase tracking-wider transition-all justify-center shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
-                    magneticPoints.length < players.length 
-                      ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20' 
-                      : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
-                  }`}
-                >
-                  <Magnet size={14} className={magneticPoints.length > 0 ? "animate-pulse" : ""} /> Aimanter
-                </button>
-
-                <button
-                  onClick={() => {
-                    if (confirm('Supprimer tous les points aimantés ?')) {
-                      clearMagneticPoints();
-                    }
-                  }}
-                  disabled={magneticPoints.length === 0}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[10px] font-bold rounded-md transition-all justify-center hover:text-destructive-foreground disabled:opacity-50"
-                >
-                  <Trash2 size={12} /> Tout supprimer
-                </button>
               </div>
-            )}
-          </section>
-        )}
+              {activeSection === 'checklist' && !checklistState.isDetached && (
+                <div className="p-3 border-t border-border max-h-[500px] flex flex-col min-h-[300px]">
+                  <ChecklistContent />
+                </div>
+              )}
+              {activeSection === 'checklist' && checklistState.isDetached && (
+                <div className="p-4 border-t border-border text-center flex flex-col gap-3">
+                  <p className="text-xs text-muted-foreground italic">La checklist est détachée.</p>
+                  <button
+                    onClick={() => setChecklistState({ isDetached: false })}
+                    className="bg-primary/10 hover:bg-primary/20 text-primary text-[10px] font-bold uppercase py-2 rounded-md transition-colors border border-primary/20"
+                  >
+                    Rattacher ici
+                  </button>
+                </div>
+              )}
+            </section>
+          );
+
+          if (key === 'tagDistributor') return (displaySettings.panels?.tagDistributor ?? true) && (
+            <section key="tagDistributor" className="flex flex-col border border-border rounded-md bg-background overflow-hidden p-2">
+              <div className="flex items-center justify-between font-semibold text-sm transition-colors group">
+                <div className="flex items-center gap-2 flex-1 text-left">
+                  <Tag size={16} /> Distributeur de Tags
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTagDistributorState({ isDetached: true, isOpen: true });
+                    }}
+                    disabled={tagDistributorState.isDetached}
+                    className={`p-1 transition-colors flex items-center justify-center ${tagDistributorState.isDetached ? 'opacity-30 cursor-not-allowed' : 'text-primary hover:bg-primary/20 bg-primary/10 rounded-md'}`}
+                    title="Détacher le distributeur"
+                  >
+                    <ArrowUpRight size={14} />
+                  </button>
+                </div>
+              </div>
+              {tagDistributorState.isDetached && (
+                <p className="text-[10px] text-muted-foreground mt-1 px-1">Géré dans une fenêtre flottante.</p>
+              )}
+              {!tagDistributorState.isDetached && (
+                <p className="text-[10px] text-muted-foreground mt-1 px-1">Cliquez sur l'icône pour détacher la liste de distribution rapide.</p>
+              )}
+            </section>
+          );
+
+          if (key === 'magneticPoints') return (displaySettings.panels?.magneticPoints ?? true) && (
+            <section key="magneticPoints" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('magneticPoints')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'magneticPoints' ? 'text-blue-500' : ''}`}>
+                  <Magnet size={16} /> Points aimantés
+                </div>
+                {activeSection === 'magneticPoints' ? <ChevronDown size={16} className="text-blue-500" /> : <ChevronRight size={16} />}
+              </button>
+              {activeSection === 'magneticPoints' && (
+                <div className="p-3 flex flex-col gap-3 border-t border-border">
+                  <button
+                    onClick={() => addMagneticPoint()}
+                    className="flex items-center gap-2 px-3 py-2 bg-blue-600/10 text-blue-500 border border-blue-500/20 rounded-md text-xs font-bold hover:bg-blue-600/20 transition-colors justify-center"
+                  >
+                    <Plus size={14} /> Ajouter un point
+                  </button>
+
+                  <div className="flex flex-col gap-1 px-1">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
+                      <span>Points :</span>
+                      <span className="text-foreground">
+                        {magneticPoints.length} / {players.length}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">Afficher</span>
+                    <button
+                      onClick={() => setShowMagneticPoints(!showMagneticPoints)}
+                      className={`p-1.5 rounded-md transition-all ${showMagneticPoints ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-muted text-muted-foreground'}`}
+                      title={showMagneticPoints ? 'Masquer les points' : 'Afficher les points'}
+                    >
+                      {showMagneticPoints ? <Eye size={14} /> : <EyeOff size={14} />}
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => snapPlayersToPoints()}
+                    disabled={magneticPoints.length === 0}
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-md text-xs font-black uppercase tracking-wider transition-all justify-center shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
+                      magneticPoints.length < players.length 
+                        ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20' 
+                        : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
+                    }`}
+                  >
+                    <Magnet size={14} className={magneticPoints.length > 0 ? "animate-pulse" : ""} /> Aimanter
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (confirm('Supprimer tous les points aimantés ?')) {
+                        clearMagneticPoints();
+                      }
+                    }}
+                    disabled={magneticPoints.length === 0}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[10px] font-bold rounded-md transition-all justify-center hover:text-destructive-foreground disabled:opacity-50"
+                  >
+                    <Trash2 size={12} /> Tout supprimer
+                  </button>
+                </div>
+              )}
+            </section>
+          );
+          
+          return null;
+        })}
 
       </div>
 
