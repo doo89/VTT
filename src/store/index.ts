@@ -489,6 +489,7 @@ export const useVttStore = create<VttStore>()(
         isOneShot: updates.isOneShot ?? true,
         color: updates.color || '#3b82f6',
         icon: updates.icon || 'Music',
+        volume: updates.volume ?? 1.0,
         ...updates
       });
     }

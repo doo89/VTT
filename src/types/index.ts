@@ -190,6 +190,7 @@ export interface SoundButton {
   icon?: string;
   color?: string;
   imageUrl?: string;
+  volume?: number;
 }
 
 export interface LogEvent {

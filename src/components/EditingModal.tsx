@@ -1,7 +1,7 @@
 import React from 'react';
 import { useVttStore } from '../store';
 import * as icons from 'lucide-react';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, Play, Pause, Square } from 'lucide-react';
 import { uploadFileToStorage, deleteFileFromStorage } from '../lib/supabase';
 import { ColorPicker } from './ColorPicker';
 
@@ -52,6 +52,21 @@ export const EditingModal: React.FC = () => {
   const [tagSearchQuery, setTagSearchQuery] = React.useState('');
   const [expandedContainerCategories, setExpandedContainerCategories] = React.useState<Record<string, boolean>>({});
   const [isSmartphoneFiltersExpanded, setIsSmartphoneFiltersExpanded] = React.useState(false);
+  
+  // Test audio for sound buttons
+  const testAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const [isTesting, setIsTesting] = React.useState(false);
+
+  // Stop test audio when closing or changing entity
+  React.useEffect(() => {
+    return () => {
+      if (testAudioRef.current) {
+        testAudioRef.current.pause();
+        testAudioRef.current = null;
+        setIsTesting(false);
+      }
+    };
+  }, [editingEntity?.id, editingEntity?.type]);
 
   const tagsByCategory = React.useMemo(() => {
     const grouped: Record<string, typeof tags> = {
@@ -2551,11 +2566,75 @@ export const EditingModal: React.FC = () => {
             />
           </div>
           {btn.audioUrl && (
-            <div className="text-xs text-green-500 font-medium mt-1 flex items-center gap-1">
-              Fichier chargé.
-            </div>
+            <>
+              <div className="text-xs text-green-500 font-medium mt-1 flex items-center gap-1">
+                Fichier chargé.
+              </div>
+
+              {/* Volume & Test Section */}
+              <div className="flex flex-col gap-2 mt-2 p-3 bg-muted/20 rounded-lg border border-border/50">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Volume : {Math.round((btn.volume ?? 1) * 100)}%
+                  </label>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={btn.volume ?? 1}
+                  onChange={(e) => {
+                    const newVol = parseFloat(e.target.value);
+                    updateSoundButton(index, { volume: newVol });
+                    if (testAudioRef.current) {
+                      testAudioRef.current.volume = newVol;
+                    }
+                  }}
+                  className="w-full h-1.5 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                />
+                <div className="flex gap-2 mt-1">
+                  <button
+                    onClick={() => {
+                      if (isTesting && testAudioRef.current) {
+                        testAudioRef.current.pause();
+                        setIsTesting(false);
+                      } else {
+                        if (testAudioRef.current) {
+                          testAudioRef.current.pause();
+                        }
+                        const audio = new Audio(btn.audioUrl);
+                        audio.volume = btn.volume ?? 1;
+                        audio.onended = () => setIsTesting(false);
+                        testAudioRef.current = audio;
+                        audio.play();
+                        setIsTesting(true);
+                      }
+                    }}
+                    className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white text-[10px] py-2 rounded flex items-center justify-center gap-2 font-bold uppercase transition-colors"
+                  >
+                    {isTesting ? <Pause size={12} /> : <Play size={12} />}
+                    {isTesting ? 'Pause' : 'Tester'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (testAudioRef.current) {
+                        testAudioRef.current.pause();
+                        testAudioRef.current.currentTime = 0;
+                        testAudioRef.current = null;
+                        setIsTesting(false);
+                      }
+                    }}
+                    className="flex-1 bg-red-900/20 hover:bg-red-900/40 text-red-400 text-[10px] py-2 rounded flex items-center justify-center gap-2 border border-red-900/30 font-bold uppercase transition-colors"
+                  >
+                    <Square size={12} /> Stop
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </div>
+
         <div className="flex flex-col gap-1 mt-2">
           <label className="text-sm font-medium">Icône</label>
           <div className="flex flex-wrap gap-1 bg-input border border-border rounded-md p-2 max-h-32 overflow-y-auto custom-scrollbar">

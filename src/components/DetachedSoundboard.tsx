@@ -25,6 +25,15 @@ export const DetachedSoundboard: React.FC = () => {
     };
   }, []);
 
+  // Sync volumes when they change in the store
+  useEffect(() => {
+    soundboard.buttons.forEach(btn => {
+      if (audioRefs.current[btn.index]) {
+        audioRefs.current[btn.index].volume = btn.volume ?? 1.0;
+      }
+    });
+  }, [soundboard.buttons]);
+
   const broadcastPlaybackStatus = () => {
     const channel = getChannel();
     if (!channel) return;
@@ -91,6 +100,7 @@ export const DetachedSoundboard: React.FC = () => {
     // Existing audio -> Play / Pause
     if (!audioRefs.current[index]) {
       const newAudio = new Audio(btn.audioUrl);
+      newAudio.volume = btn.volume ?? 1.0;
 
       newAudio.addEventListener('play', () => {
         setAudioStates(prev => ({ ...prev, [index]: { ...prev[index], isPlaying: true } }));
