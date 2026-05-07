@@ -12,7 +12,7 @@ import { ChecklistContent } from '../ChecklistContent';
 export const RightPanel: React.FC = () => {
   const {
     isRightPanelOpen, toggleRightPanel,
-    displaySettings,
+    displaySettings, updateDisplaySettings,
     timer, setTimer,
     soundboard, setSoundboard,
     roles, updateRole, players, updatePlayers,
@@ -827,6 +827,21 @@ export const RightPanel: React.FC = () => {
                     </button>
                     <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
                       Clé d'API (Sauvegardée localement ou .env).
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-border/30">
+                    <label className="flex items-center gap-2 text-xs font-medium cursor-pointer hover:text-primary transition-colors px-1">
+                      <input
+                        type="checkbox"
+                        checked={displaySettings.includeRoomCodeInLinks}
+                        onChange={(e) => updateDisplaySettings({ includeRoomCodeInLinks: e.target.checked })}
+                        className="rounded border-border text-primary focus:ring-primary w-3.5 h-3.5"
+                      />
+                      Inclure le Code de la salle
+                    </label>
+                    <p className="text-[10px] text-muted-foreground italic px-1 leading-tight">
+                      Ajoute le code dans les liens/QR pour préremplir le champ de connexion.
                     </p>
                   </div>
                 </div>

@@ -342,6 +342,7 @@ export const initialState = {
       magneticPoints: true,
       panelsOrder: ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system'],
     },
+    includeRoomCodeInLinks: false,
     recordLogs: false,
     smartphoneTabs: {
       game: true,

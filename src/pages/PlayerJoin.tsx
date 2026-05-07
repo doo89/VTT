@@ -7,6 +7,14 @@ export const PlayerJoin: React.FC = () => {
   const [playerName, setPlayerName] = useState('');
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      setRoomCode(code.toUpperCase());
+    }
+  }, []);
+
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!roomCode.trim() || !playerName.trim()) return;

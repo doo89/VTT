@@ -525,6 +525,7 @@ export interface GameState {
       magneticPoints?: boolean;
       panelsOrder?: string[];
     };
+    includeRoomCodeInLinks: boolean;
     recordLogs: boolean;
     smartphoneTabs: {
       game: boolean;

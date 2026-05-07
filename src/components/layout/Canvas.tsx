@@ -741,8 +741,16 @@ export const Canvas: React.FC = () => {
                     sbParams = `?sburl=${encodeURIComponent(btoa(sbUrl))}&sbkey=${encodeURIComponent(btoa(sbKey))}`;
                   }
                   
-                  const joinHref = `${window.location.origin}/join${sbParams}`;
-                  const sbHref = `${window.location.origin}/remote${sbParams}`;
+                  let joinParams = sbParams;
+                  let remoteParams = sbParams;
+                  if (displaySettings.includeRoomCodeInLinks && roomCode) {
+                    const codeParam = `code=${encodeURIComponent(roomCode)}`;
+                    joinParams += (joinParams ? '&' : '?') + codeParam;
+                    remoteParams += (remoteParams ? '&' : '?') + codeParam;
+                  }
+                  
+                  const joinHref = `${window.location.origin}/join${joinParams}`;
+                  const sbHref = `${window.location.origin}/remote${remoteParams}`;
                   
                   return (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -7,6 +7,14 @@ export const SoundboardJoin: React.FC = () => {
   const [passcode, setPasscode] = useState('');
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      setRoomCode(code.toUpperCase());
+    }
+  }, []);
+
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!roomCode.trim() || !passcode.trim()) return;
