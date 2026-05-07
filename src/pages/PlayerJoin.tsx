@@ -1,19 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LogIn, User } from 'lucide-react';
 
 export const PlayerJoin: React.FC = () => {
-  const [roomCode, setRoomCode] = useState('');
+  const [searchParams] = useSearchParams();
+  const [roomCode, setRoomCode] = useState(searchParams.get('code')?.toUpperCase() || '');
   const [playerName, setPlayerName] = useState('');
   const navigate = useNavigate();
-
-  React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    if (code) {
-      setRoomCode(code.toUpperCase());
-    }
-  }, []);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
