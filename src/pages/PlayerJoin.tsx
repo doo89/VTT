@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LogIn, User } from 'lucide-react';
 
 export const PlayerJoin: React.FC = () => {
   const [searchParams] = useSearchParams();
-  
-  const [roomCode, setRoomCode] = useState(() => {
-    return searchParams.get('code')?.toUpperCase() || '';
-  });
-  
+  const hasUserTyped = useRef(false);
+
+  const [roomCode, setRoomCode] = useState('');
   const [playerName, setPlayerName] = useState('');
   const navigate = useNavigate();
+
+  // Sync code from URL after mount — most reliable approach
+  useEffect(() => {
+    if (!hasUserTyped.current) {
+      const code = searchParams.get('code');
+      if (code) setRoomCode(code.toUpperCase());
+    }
+  }, [searchParams]);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,12 +48,14 @@ export const PlayerJoin: React.FC = () => {
             <input
               type="text"
               value={roomCode}
-              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+              onChange={(e) => { hasUserTyped.current = true; setRoomCode(e.target.value.toUpperCase()); }}
               placeholder="ABCD"
               maxLength={6}
               id="room-code-vtt-input"
-              name={`room-code-${Math.random().toString(36).substring(7)}`}
+              name="room-code-vtt"
               autoComplete="off"
+              autoCorrect="off"
+              spellCheck="false"
               className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-center text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-zinc-700"
               required
             />
