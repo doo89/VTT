@@ -1532,9 +1532,13 @@ export const useVttStore = create<VttStore>()(
         updateMagneticPoint: (id, x, y) => set((state) => ({
           magneticPoints: state.magneticPoints.map(p => p.id === id ? { ...p, x, y } : p)
         })),
-        deleteMagneticPoint: (id) => set((state) => ({
-          magneticPoints: state.magneticPoints.filter(p => p.id !== id)
-        })),
+        deleteMagneticPoint: (id) => set((state) => {
+          const filtered = state.magneticPoints.filter(p => p.id !== id);
+          const reordered = [...filtered]
+            .sort((a, b) => a.order - b.order)
+            .map((p, index) => ({ ...p, order: index + 1 }));
+          return { magneticPoints: reordered };
+        }),
         clearMagneticPoints: () => set({ magneticPoints: [] }),
         setShowMagneticPoints: (show) => set({ showMagneticPoints: show }),
         setIsMagneticEnabled: (enabled) => set({ isMagneticEnabled: enabled }),
