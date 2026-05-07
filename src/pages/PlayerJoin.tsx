@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { LogIn, User, Lock } from 'lucide-react';
 
 export const PlayerJoin: React.FC = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Read code directly from URL — never from state to avoid any sync issues
-  const codeFromUrl = searchParams.get('code')?.toUpperCase() || '';
+  // Read directly from window.location.search — same approach as supabase.ts for sburl/sbkey
+  // This is guaranteed to work since Vercel preserves query params on rewrites
+  const rawParams = new URLSearchParams(window.location.search);
+  const codeFromUrl = rawParams.get('code')?.toUpperCase() || '';
   const hasCodeInUrl = codeFromUrl.length > 0;
 
   const [roomCode, setRoomCode] = useState('');
@@ -22,7 +23,7 @@ export const PlayerJoin: React.FC = () => {
     const cleanRoomCode = effectiveCode.trim().toUpperCase();
     const cleanName = playerName.trim();
 
-    const search = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    const search = window.location.search;
     navigate(`/player/${cleanRoomCode}/${encodeURIComponent(cleanName)}${search}`);
   };
 
