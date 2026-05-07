@@ -4,20 +4,28 @@ import { X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 export const CustomPopupOverlay: React.FC = () => {
-  const { customPopups, activeCustomPopupId, triggerCustomPopup } = useVttStore();
+  const { customPopups, activeCustomPopupId, triggerCustomPopup, previewPopup, setPreviewPopup } = useVttStore();
   const location = useLocation();
 
-  const activePopup = customPopups?.find(p => p.id === activeCustomPopupId);
+  const activePopup = previewPopup || customPopups?.find(p => p.id === activeCustomPopupId);
   const lastPlayedId = React.useRef<string | null>(null);
+
+  const handleClose = () => {
+    if (previewPopup) {
+      setPreviewPopup(null);
+    } else {
+      triggerCustomPopup(null);
+    }
+  };
 
   useEffect(() => {
     if (activePopup?.autoCloseTimer) {
       const timer = setTimeout(() => {
-        triggerCustomPopup(null);
+        handleClose();
       }, 10000); // 10 seconds
       return () => clearTimeout(timer);
     }
-  }, [activeCustomPopupId, activePopup?.autoCloseTimer, triggerCustomPopup]);
+  }, [activeCustomPopupId, activePopup?.autoCloseTimer, previewPopup, triggerCustomPopup, setPreviewPopup]);
 
   useEffect(() => {
     if (activePopup?.soundUrl && activeCustomPopupId !== lastPlayedId.current) {
@@ -54,7 +62,7 @@ export const CustomPopupOverlay: React.FC = () => {
           <h2 className="text-xl font-black uppercase tracking-widest text-primary">{activePopup.title}</h2>
           {activePopup.showCloseButton && (
             <button
-              onClick={() => triggerCustomPopup(null)}
+              onClick={handleClose}
               className="p-1.5 bg-background/50 hover:bg-destructive hover:text-white rounded-full transition-colors"
             >
               <X size={24} />

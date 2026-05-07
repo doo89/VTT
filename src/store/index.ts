@@ -144,6 +144,7 @@ interface VttStore extends GameState {
   updateCustomPopup: (id: string, updates: Partial<CustomPopup>) => void;
   deleteCustomPopup: (id: string) => void;
   triggerCustomPopup: (id: string | null) => void;
+  setPreviewPopup: (popup: CustomPopup | null) => void;
 
   // Logs
   addLog: (message: string, type: LogEvent['type']) => void;
@@ -187,6 +188,7 @@ export const initialState = {
   recentColors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff', '#000000', '#6b7280'], // default colors
   customPopups: [],
   activeCustomPopupId: null,
+  previewPopup: null,
   checklist: [],
   isNight: false,
   cycleNumber: 1,
@@ -682,6 +684,7 @@ export const useVttStore = create<VttStore>()(
           activeCustomPopupId: state.activeCustomPopupId === id ? null : state.activeCustomPopupId
         })),
         triggerCustomPopup: (id) => set({ activeCustomPopupId: id }),
+        setPreviewPopup: (popup) => set({ previewPopup: popup }),
 
         // Smartphone action message
         setSmartphoneActionMessage: (message) => set({ smartphoneActionMessage: message }),

@@ -416,6 +416,7 @@ export interface GameState {
   recentColors: string[];
   customPopups: CustomPopup[];
   activeCustomPopupId: string | null;
+  previewPopup: CustomPopup | null;
   checklist: ChecklistItem[];
   isNight: boolean;
   cycleNumber: number;

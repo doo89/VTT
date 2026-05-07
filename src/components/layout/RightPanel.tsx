@@ -19,7 +19,7 @@ export const RightPanel: React.FC = () => {
     logs, clearLogs, addLog,
     scoreboard, setScoreboard,
     wiki: storeWiki, setWiki,
-    customPopups, addCustomPopup, updateCustomPopup, deleteCustomPopup, triggerCustomPopup,
+    customPopups, addCustomPopup, updateCustomPopup, deleteCustomPopup, triggerCustomPopup, setPreviewPopup,
     checklist,
     checklistState, setChecklistState,
     tagDistributorState, setTagDistributorState,
@@ -1381,6 +1381,18 @@ export const RightPanel: React.FC = () => {
                 className="px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded font-medium transition-colors border border-destructive/20"
               >
                 Annuler
+              </button>
+              <button 
+                onClick={() => {
+                  setPreviewPopup({
+                    id: 'preview',
+                    ...newPopupData
+                  });
+                }} 
+                disabled={!newPopupData.title.trim()}
+                className="px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+              >
+                Prévisualisation
               </button>
               <button 
                 onClick={() => {
