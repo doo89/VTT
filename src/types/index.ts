@@ -347,7 +347,7 @@ export interface ActionEffect {
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected';
-export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=' | '';
+export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=' | 'modulo' | '';
 
 export interface ActionCondition {
   id: string;

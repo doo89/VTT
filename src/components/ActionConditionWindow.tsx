@@ -356,6 +356,7 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value=">">&gt;</option>
                   <option value="<=">&lt;=</option>
                   <option value=">=">&gt;=</option>
+                  <option value="modulo">Tous les</option>
                 </select>
               </div>
 

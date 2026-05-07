@@ -1022,6 +1022,7 @@ export const useVttStore = create<VttStore>()(
                       case '!=': return compareVal !== c.value;
                       case '<=': return compareVal <= c.value;
                       case '>=': return compareVal >= c.value;
+                      case 'modulo': return c.value > 0 && compareVal % c.value === 0;
                       default: return isActive;
                     }
                   }
@@ -1044,6 +1045,7 @@ export const useVttStore = create<VttStore>()(
                     case '!=': return compareVal !== c.value;
                     case '<=': return compareVal <= c.value;
                     case '>=': return compareVal >= c.value;
+                    case 'modulo': return c.value > 0 && compareVal % c.value === 0;
                     default: return false;
                   }
                 };
@@ -1092,10 +1094,12 @@ export const useVttStore = create<VttStore>()(
                   if (c.type === 'cycleCheck') {
                     const op: string = c.operator;
                     if (!op || op === '') return `${c.cycleCheckType} (Actif)`;
-                    return `${c.cycleCheckType} ${c.operator} ${c.value}`;
+                    const opLabel = c.operator === 'modulo' ? 'Tous les' : c.operator;
+                    return `${c.cycleCheckType} ${opLabel} ${c.value}`;
                   }
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
-                  return `${typeLabel} ${c.operator} ${c.value}`;
+                  const opLabel = c.operator === 'modulo' ? 'Tous les' : c.operator;
+                  return `${typeLabel} ${opLabel} ${c.value}`;
                 };
 
                 const andGroups: { result: boolean, label: string }[] = [];
