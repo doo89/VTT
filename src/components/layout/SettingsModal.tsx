@@ -1414,7 +1414,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         )}
                       </label>
                       {key === 'distribution' && (displaySettings.panels?.distribution ?? true) && expandedOutils.distribution && (
-                      <div className="ml-8 flex flex-col gap-2 p-2 bg-muted/10 border-l-2 border-purple-500/30 rounded-r-lg mt-1 mb-2">
+                      <div className="ml-8 grid grid-cols-2 gap-2 p-2 bg-muted/10 border-l-2 border-purple-500/30 rounded-r-lg mt-1 mb-2">
                         {[
                           { key: 'distributionResurrectAll', label: 'Ressusciter tous les joueurs' },
                           { key: 'distributionDeleteTags', label: 'Supprimer les tags des joueurs' },
