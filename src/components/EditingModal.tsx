@@ -2752,7 +2752,7 @@ export const EditingModal: React.FC = () => {
   const isRoleModal = editingEntity.type === 'role';
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4">
       <div className={`bg-card w-full ${isRoleModal ? 'max-w-3xl min-h-[500px]' : isWiderModal ? 'max-w-2xl min-h-[400px]' : 'max-w-md'} rounded-xl shadow-xl border border-border flex flex-col overflow-hidden max-h-[90vh]`}>
         <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
           <h2 className="font-bold text-lg">{entityTitle}</h2>
