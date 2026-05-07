@@ -786,7 +786,7 @@ export const Canvas: React.FC = () => {
                           <h4 className="text-sm font-bold text-pink-400">Télécommande MJ</h4>
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed h-12">
-                          Faites scanner ce QR Code pour contrôler la boîte à sons depuis un autre appareil (Nécessite le code configuré).
+                          Scanner ce QR Code pour prendre le contrôle de la salle depuis un autre appareil (Nécessite le code configuré).
                         </p>
                         <div className="mx-auto bg-white p-3 rounded-lg shadow-inner group-hover:scale-105 transition-transform duration-300">
                           <QRCodeSVG value={sbHref} size={150} />
