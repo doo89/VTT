@@ -1,39 +1,26 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LogIn, User } from 'lucide-react';
 
 export const PlayerJoin: React.FC = () => {
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   
-  // Initialize directly from URL
   const [roomCode, setRoomCode] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('code')?.toUpperCase() || '';
+    return searchParams.get('code')?.toUpperCase() || '';
   });
   
   const [playerName, setPlayerName] = useState('');
   const navigate = useNavigate();
 
-  // Fallback / Sync effect
-  React.useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const codeFromUrl = params.get('code');
-    if (codeFromUrl && !roomCode) {
-      setRoomCode(codeFromUrl.toUpperCase());
-    }
-  }, [location.search, roomCode]);
-
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!roomCode.trim() || !playerName.trim()) return;
 
-    // Pour l'instant, on redirige simplement vers une vue joueur fictive avec le nom
-    // Plus tard, cela se connectera à la base de données pour vérifier le code et créer l'entrée
     const cleanRoomCode = roomCode.trim().toUpperCase();
     const cleanName = playerName.trim();
     
     // Transmettre les paramètres de l'URL s'ils existent
-    const search = window.location.search;
+    const search = searchParams.toString() ? `?${searchParams.toString()}` : '';
     navigate(`/player/${cleanRoomCode}/${encodeURIComponent(cleanName)}${search}`);
   };
 
