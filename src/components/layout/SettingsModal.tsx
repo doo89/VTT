@@ -1669,6 +1669,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                               Aimanter dans l'ordre des joueurs
                             </span>
                           </label>
+                          <label className="flex items-center gap-3 text-xs cursor-pointer group">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.magneticPointsFreeSnap ?? false}
+                              onChange={(e) => updateDisplaySettings({ magneticPointsFreeSnap: e.target.checked })}
+                              className="rounded border-border w-4 h-4 text-blue-500 focus:ring-blue-500"
+                            />
+                            <span className="font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                              Aimant libre (Automatique lors du mouvement)
+                            </span>
+                          </label>
                         </div>
                       </div>
                     )}

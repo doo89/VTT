@@ -258,7 +258,7 @@ export const Canvas: React.FC = () => {
     }
 
     // Magnetic Snap
-    if (isMagneticEnabled && magneticPoints.length > 0) {
+    if (displaySettings.magneticPointsFreeSnap && magneticPoints.length > 0) {
       let closest: MagneticPoint | null = null;
       let minDistance = 50 / canvas.zoom; // Adjust threshold by zoom
       

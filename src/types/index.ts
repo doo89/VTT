@@ -588,5 +588,6 @@ export interface GameState {
     defaultPlayerShape?: PlayerShape;
     magneticPointsColor?: string;
     magneticPointsSnapMode?: 'nearest' | 'order';
+    magneticPointsFreeSnap?: boolean;
   };
 }
