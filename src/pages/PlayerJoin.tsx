@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { LogIn, User } from 'lucide-react';
 
 export const PlayerJoin: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const [roomCode, setRoomCode] = useState(searchParams.get('code')?.toUpperCase() || '');
+  const location = useLocation();
+  const [roomCode, setRoomCode] = useState('');
   const [playerName, setPlayerName] = useState('');
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const code = params.get('code');
+    if (code && !roomCode) {
+      setRoomCode(code.toUpperCase());
+    }
+  }, [location.search, roomCode]);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +51,9 @@ export const PlayerJoin: React.FC = () => {
               onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
               placeholder="ABCD"
               maxLength={6}
+              id="vtt-room-code"
+              name="vtt-room-code"
+              autoComplete="off"
               className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-center text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-zinc-700"
               required
             />

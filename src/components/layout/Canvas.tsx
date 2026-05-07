@@ -743,7 +743,7 @@ export const Canvas: React.FC = () => {
                   
                   let joinParams = sbParams;
                   let remoteParams = sbParams;
-                  if (displaySettings.includeRoomCodeInLinks && roomCode) {
+                  if (displaySettings.includeRoomCodeInLinks && typeof roomCode === 'string' && roomCode.length > 0) {
                     const codeParam = `code=${encodeURIComponent(roomCode)}`;
                     joinParams += (joinParams ? '&' : '?') + codeParam;
                     remoteParams += (remoteParams ? '&' : '?') + codeParam;

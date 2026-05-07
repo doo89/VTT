@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { LogIn, Music } from 'lucide-react';
 
 export const SoundboardJoin: React.FC = () => {
-  const [searchParams] = useSearchParams();
-  const [roomCode, setRoomCode] = useState(searchParams.get('code')?.toUpperCase() || '');
+  const location = useLocation();
+  const [roomCode, setRoomCode] = useState('');
   const [passcode, setPasscode] = useState('');
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const code = params.get('code');
+    if (code && !roomCode) {
+      setRoomCode(code.toUpperCase());
+    }
+  }, [location.search, roomCode]);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +45,9 @@ export const SoundboardJoin: React.FC = () => {
               onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
               placeholder="ABCD"
               maxLength={6}
+              id="vtt-sb-room-code"
+              name="vtt-sb-room-code"
+              autoComplete="off"
               className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-center text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-zinc-700"
               required
             />
