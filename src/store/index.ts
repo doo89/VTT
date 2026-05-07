@@ -1016,13 +1016,13 @@ export const useVttStore = create<VttStore>()(
                     if (!op || op === '') return isActive;
 
                     switch (c.operator) {
-                      case '=': return compareVal === c.value;
-                      case '<': return compareVal < c.value;
-                      case '>': return compareVal > c.value;
-                      case '!=': return compareVal !== c.value;
-                      case '<=': return compareVal <= c.value;
-                      case '>=': return compareVal >= c.value;
-                      case 'modulo': return c.value > 0 && compareVal % c.value === 0;
+                      case '=': return isActive && compareVal === c.value;
+                      case '<': return isActive && compareVal < c.value;
+                      case '>': return isActive && compareVal > c.value;
+                      case '!=': return isActive && compareVal !== c.value;
+                      case '<=': return isActive && compareVal <= c.value;
+                      case '>=': return isActive && compareVal >= c.value;
+                      case 'modulo': return isActive && c.value > 0 && compareVal % c.value === 0;
                       default: return isActive;
                     }
                   }
