@@ -1590,9 +1590,23 @@ export const Canvas: React.FC = () => {
                 }
               }}
             >
-              <div className="w-8 h-8 rounded-full bg-blue-500/10 border-2 border-blue-500/50 flex items-center justify-center shadow-lg backdrop-blur-[2px] group hover:border-blue-400 hover:bg-blue-500/20 transition-all">
-                <span className="text-[12px] font-black text-blue-400 group-hover:text-blue-300 drop-shadow-sm select-none">{point.order}</span>
-                <div className="absolute inset-0 rounded-full bg-blue-500/5 animate-pulse -z-10" />
+              <div 
+                className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg backdrop-blur-[2px] group transition-all"
+                style={{
+                  backgroundColor: `${displaySettings.magneticPointsColor || '#3b82f6'}1a`,
+                  border: `2px solid ${displaySettings.magneticPointsColor || '#3b82f6'}80`,
+                }}
+              >
+                <span 
+                  className="text-[12px] font-black drop-shadow-sm select-none"
+                  style={{ color: displaySettings.magneticPointsColor || '#3b82f6' }}
+                >
+                  {point.order}
+                </span>
+                <div 
+                  className="absolute inset-0 rounded-full animate-pulse -z-10" 
+                  style={{ backgroundColor: `${displaySettings.magneticPointsColor || '#3b82f6'}0d` }}
+                />
               </div>
             </div>
           ))}

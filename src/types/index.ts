@@ -586,5 +586,7 @@ export interface GameState {
     timerDefaultSeconds?: number;
     defaultPlayerSize?: number;
     defaultPlayerShape?: PlayerShape;
+    magneticPointsColor?: string;
+    magneticPointsSnapMode?: 'nearest' | 'order';
   };
 }

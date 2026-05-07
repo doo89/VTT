@@ -30,7 +30,7 @@ const DEFAULT_PANELS_ORDER = ['distribution', 'chrono', 'soundboard', 'scoreboar
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils' | 'remote'>('salle');
-  const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ distribution: true, chrono: true, wiki: true, soundboard: true, scoreboard: true, logs: true });
+  const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ distribution: true, chrono: true, wiki: true, soundboard: true, scoreboard: true, logs: true, magneticPoints: true });
   const [expandedSmartphone, setExpandedSmartphone] = useState<Record<string, boolean>>({ game: true, players: true, room: true, wiki: true });
 
   const {
@@ -1400,7 +1400,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           className="rounded border-border w-5 h-5 text-primary"
                         />
                         <span className="font-semibold text-sm flex-1">{label}</span>
-                        {['distribution', 'chrono', 'wiki', 'soundboard', 'scoreboard', 'logs'].includes(key) && ((displaySettings.panels || {}) as any)[key] !== false && (
+                        {['distribution', 'chrono', 'wiki', 'soundboard', 'scoreboard', 'logs', 'magneticPoints'].includes(key) && ((displaySettings.panels || {}) as any)[key] !== false && (
                           <button 
                             onClick={(e) => {
                               e.preventDefault();
@@ -1629,6 +1629,47 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             {displaySettings.recordLogs ?? true ? 'Écoute activée' : 'Écoute désactivée'}
                           </span>
                         </label>
+                      </div>
+                    )}
+                    {key === 'magneticPoints' && (displaySettings.panels?.magneticPoints ?? true) && expandedOutils.magneticPoints && (
+                      <div className="ml-8 flex flex-col gap-3 p-3 bg-muted/10 border-l-2 border-blue-500/30 rounded-r-lg mt-1 mb-2">
+                        <div className="flex items-center gap-3">
+                          <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[120px]">Couleur des points</label>
+                          <div className="flex items-center gap-2">
+                            <ColorPicker
+                              color={displaySettings.magneticPointsColor || '#3b82f6'}
+                              onChange={(c) => updateDisplaySettings({ magneticPointsColor: c })}
+                              label="Couleur des points"
+                              className="!w-6 !h-6"
+                            />
+                            <span className="text-[10px] font-mono text-muted-foreground uppercase">{displaySettings.magneticPointsColor || '#3B82F6'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2 pt-2 border-t border-border/10">
+                          <label className="flex items-center gap-3 text-xs cursor-pointer group">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.magneticPointsSnapMode === 'nearest' || !displaySettings.magneticPointsSnapMode}
+                              onChange={() => updateDisplaySettings({ magneticPointsSnapMode: 'nearest' })}
+                              className="rounded-full border-border w-4 h-4 text-blue-500 focus:ring-blue-500"
+                            />
+                            <span className="font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                              Aimanter le joueur le plus proche (Par rapport au pixel)
+                            </span>
+                          </label>
+                          <label className="flex items-center gap-3 text-xs cursor-pointer group">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.magneticPointsSnapMode === 'order'}
+                              onChange={() => updateDisplaySettings({ magneticPointsSnapMode: 'order' })}
+                              className="rounded-full border-border w-4 h-4 text-blue-500 focus:ring-blue-500"
+                            />
+                            <span className="font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                              Aimanter dans l'ordre des joueurs
+                            </span>
+                          </label>
+                        </div>
                       </div>
                     )}
                       </div>

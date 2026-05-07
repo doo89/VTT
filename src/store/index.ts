@@ -1549,7 +1549,16 @@ export const useVttStore = create<VttStore>()(
           if (points.length === 0 || alivePlayers.length === 0) return state;
 
           const playerUpdates: { id: string, updates: Partial<Player> }[] = [];
-          const remainingPlayers = [...alivePlayers];
+          const snapMode = state.displaySettings.magneticPointsSnapMode || 'nearest';
+
+          if (snapMode === 'order') {
+            points.forEach((point, idx) => {
+              if (alivePlayers[idx]) {
+                playerUpdates.push({ id: alivePlayers[idx].id, updates: { x: point.x, y: point.y } });
+              }
+            });
+          } else {
+            const remainingPlayers = [...alivePlayers];
           
           // For each point, find the closest available player
           for (const point of points) {
@@ -1568,10 +1577,11 @@ export const useVttStore = create<VttStore>()(
               }
             });
 
-            if (closestPlayerIndex !== -1) {
-              const player = remainingPlayers[closestPlayerIndex];
-              playerUpdates.push({ id: player.id, updates: { x: point.x, y: point.y } });
-              remainingPlayers.splice(closestPlayerIndex, 1);
+              if (closestPlayerIndex !== -1) {
+                const player = remainingPlayers[closestPlayerIndex];
+                playerUpdates.push({ id: player.id, updates: { x: point.x, y: point.y } });
+                remainingPlayers.splice(closestPlayerIndex, 1);
+              }
             }
           }
 
