@@ -4,15 +4,22 @@ import { LogIn, Music } from 'lucide-react';
 
 export const SoundboardJoin: React.FC = () => {
   const location = useLocation();
-  const [roomCode, setRoomCode] = useState('');
+  
+  // Initialize directly from URL
+  const [roomCode, setRoomCode] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('code')?.toUpperCase() || '';
+  });
+  
   const [passcode, setPasscode] = useState('');
   const navigate = useNavigate();
 
+  // Fallback / Sync effect
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const code = params.get('code');
-    if (code && !roomCode) {
-      setRoomCode(code.toUpperCase());
+    const codeFromUrl = params.get('code');
+    if (codeFromUrl && !roomCode) {
+      setRoomCode(codeFromUrl.toUpperCase());
     }
   }, [location.search, roomCode]);
 
@@ -45,8 +52,8 @@ export const SoundboardJoin: React.FC = () => {
               onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
               placeholder="ABCD"
               maxLength={6}
-              id="vtt-sb-room-code"
-              name="vtt-sb-room-code"
+              id="room-code-vtt-sb-input"
+              name={`room-code-sb-${Math.random().toString(36).substring(7)}`}
               autoComplete="off"
               className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-center text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-zinc-700"
               required
