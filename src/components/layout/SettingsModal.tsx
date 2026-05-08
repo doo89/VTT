@@ -407,7 +407,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                   {displaySettings.showPlayers && (
                     <div className="pl-6 flex flex-col gap-4">
                       {/* Affichages basiques */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-3 mt-1">
                         <label className="flex items-center gap-2 text-sm cursor-pointer">
                           <input
                             type="checkbox"
@@ -415,7 +415,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             onChange={(e) => updateDisplaySettings({ showPlayerImage: e.target.checked })}
                             className="rounded border-border w-4 h-4 text-primary"
                           />
-                          Afficher l'image du joueur (si définie)
+                          Afficher l'image du joueur
                         </label>
                         <label className="flex items-center gap-2 text-sm cursor-pointer">
                           <input
@@ -424,28 +424,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             onChange={(e) => updateDisplaySettings({ showOfflineStatus: e.target.checked })}
                             className="rounded border-border w-4 h-4 text-primary"
                           />
-                          Indiquer lorsqu'un joueur est Hors Ligne
+                          Indiquer Hors Ligne
                         </label>
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                          <label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
-                            <input
-                              type="checkbox"
-                              checked={displaySettings.showRoleImage}
-                              onChange={(e) => updateDisplaySettings({ showRoleImage: e.target.checked })}
-                              className="rounded border-border w-4 h-4 text-primary"
-                            />
-                            Afficher l'image du rôle (si définie)
-                          </label>
-                          <label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
-                            <input
-                              type="checkbox"
-                              checked={displaySettings.showRoleColor}
-                              onChange={(e) => updateDisplaySettings({ showRoleColor: e.target.checked })}
-                              className="rounded border-border w-4 h-4 text-primary"
-                            />
-                            Afficher la couleur du rôle
-                          </label>
-                        </div>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showRoleImage}
+                            onChange={(e) => updateDisplaySettings({ showRoleImage: e.target.checked })}
+                            className="rounded border-border w-4 h-4 text-primary"
+                          />
+                          Afficher l'image du rôle
+                        </label>
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showRoleColor}
+                            onChange={(e) => updateDisplaySettings({ showRoleColor: e.target.checked })}
+                            className="rounded border-border w-4 h-4 text-primary"
+                          />
+                          Afficher la couleur du rôle
+                        </label>
                       </div>
 
                       {/* Selects */}
