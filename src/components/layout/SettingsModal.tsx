@@ -197,29 +197,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     </select>
                    </div>
                    
-                     <div className="flex flex-col gap-3">
-                       <label className="flex items-center gap-2 text-sm cursor-pointer mt-2">
-                         <input
-                           type="checkbox"
-                           checked={displaySettings.showCenter}
-                           onChange={(e) => updateDisplaySettings({ showCenter: e.target.checked })}
-                           className="rounded border-border w-4 h-4 text-primary"
-                         />
-                         Afficher le réticule du centre de la salle
-                       </label>
+                      <div className="grid grid-cols-2 gap-4 mt-2">
+                        <label className="flex items-center gap-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showCenter}
+                            onChange={(e) => updateDisplaySettings({ showCenter: e.target.checked })}
+                            className="rounded border-border w-4 h-4 text-primary"
+                          />
+                          Afficher le réticule du centre
+                        </label>
 
-                       {cycleMode !== 'none' && (
-                         <label className="flex items-center gap-2 text-sm cursor-pointer">
-                           <input
-                             type="checkbox"
-                             checked={displaySettings.showCycleIcon}
-                             onChange={(e) => updateDisplaySettings({ showCycleIcon: e.target.checked })}
-                             className="rounded border-border w-4 h-4 text-primary"
-                           />
-                           Afficher l'icône {cycleMode === 'dayNight' ? 'Jour/Nuit' : 'Tours'} au centre
-                         </label>
-                       )}
-                     </div>
+                        {cycleMode !== 'none' && (
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={displaySettings.showCycleIcon}
+                              onChange={(e) => updateDisplaySettings({ showCycleIcon: e.target.checked })}
+                              className="rounded border-border w-4 h-4 text-primary"
+                            />
+                            Afficher l'icône {cycleMode === 'dayNight' ? 'Jour/Nuit' : 'Tours'}
+                          </label>
+                        )}
+                      </div>
 
 
                  </div>
@@ -230,37 +230,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3 flex items-center gap-2">
                    <Grid3X3 size={16} /> Grille Magnétique
                  </h3>
-                 <div className="flex flex-col gap-3">
-                   <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={grid.enabled}
-                      onChange={(e) => setGrid({ ...grid, enabled: e.target.checked })}
-                      className="rounded border-border"
-                    />
-                    Activer l'aimantage
-                   </label>
-                   <label className="flex items-center gap-2 text-sm cursor-pointer">
-                     <input
-                       type="checkbox"
-                       checked={grid.show}
-                       onChange={(e) => setGrid({ ...grid, show: e.target.checked })}
-                       className="rounded border-border w-4 h-4 text-primary"
-                     />
-                     Afficher la grille
-                  </label>
-                  {grid.enabled && (
-                    <div className="flex items-center gap-2 ml-6">
-                      <span className="text-xs text-muted-foreground">Taille (px):</span>
-                      <input
-                        type="number"
-                        value={grid.sizeX}
-                        onChange={(e) => setGrid({ ...grid, sizeX: Math.max(10, parseInt(e.target.value) || 50), sizeY: Math.max(10, parseInt(e.target.value) || 50) })}
-                        className="w-20 bg-input border border-border rounded px-2 py-1 text-sm outline-none focus:ring-1 focus:ring-primary"
-                      />
+                 <div className="grid grid-cols-2 gap-4 mt-1">
+                    <div className="flex flex-col gap-3">
+                      <label className="flex items-center gap-2 text-sm cursor-pointer">
+                       <input
+                         type="checkbox"
+                         checked={grid.enabled}
+                         onChange={(e) => setGrid({ ...grid, enabled: e.target.checked })}
+                         className="rounded border-border"
+                       />
+                       Activer l'aimantage
+                      </label>
+                      {grid.enabled && (
+                        <div className="flex items-center gap-2 ml-6">
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">Taille:</span>
+                          <input
+                            type="number"
+                            value={grid.sizeX}
+                            onChange={(e) => setGrid({ ...grid, sizeX: Math.max(10, parseInt(e.target.value) || 50), sizeY: Math.max(10, parseInt(e.target.value) || 50) })}
+                            className="w-16 bg-input border border-border rounded px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                          />
+                          <span className="text-[10px] text-muted-foreground">px</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                 </div>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer self-start">
+                      <input
+                        type="checkbox"
+                        checked={grid.show}
+                        onChange={(e) => setGrid({ ...grid, show: e.target.checked })}
+                        className="rounded border-border w-4 h-4 text-primary"
+                      />
+                      Afficher la grille
+                   </label>
+                  </div>
                </section>
 
                {/* Dimensions & Fond */}
@@ -472,39 +475,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                              <option value="inside">À l'intérieur de la pastille</option>
                           </select>
                          </div>
-                      </div>
-
-                      <div className="flex flex-col gap-1.5 mt-2">
-                        <label className="text-xs text-muted-foreground">Taille par défaut des pions (Rayon px) :</label>
-                        <div className="flex items-center gap-3">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-2">
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Taille par défaut (Rayon px)</label>
                           <input
                             type="number"
                             min="5"
                             max="500"
                             value={displaySettings.defaultPlayerSize ?? 40}
                             onChange={(e) => updateDisplaySettings({ defaultPlayerSize: parseInt(e.target.value) || 40 })}
-                            className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-24"
+                            className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-full"
                           />
-                          <span className="text-[10px] text-muted-foreground italic">S'applique aux nouveaux joueurs s'ils n'ont pas de taille définie.</span>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Forme par défaut</label>
+                          <select
+                            value={displaySettings.defaultPlayerShape || 'circle'}
+                            onChange={(e) => updateDisplaySettings({ defaultPlayerShape: e.target.value as any })}
+                            className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-full"
+                          >
+                            <option value="circle">Rond</option>
+                            <option value="square">Carré</option>
+                            <option value="oval">Ovale</option>
+                            <option value="triangle">Triangle</option>
+                            <option value="trapezoid">Trapèze</option>
+                            <option value="octagon">Octogone</option>
+                            <option value="star">Étoile</option>
+                            <option value="pentagon">Pentagone</option>
+                          </select>
                         </div>
                       </div>
-
-                      <div className="flex flex-col gap-1.5 mt-2">
-                        <label className="text-xs text-muted-foreground">Forme par défaut des pions :</label>
-                        <select
-                          value={displaySettings.defaultPlayerShape || 'circle'}
-                          onChange={(e) => updateDisplaySettings({ defaultPlayerShape: e.target.value as any })}
-                          className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-fit"
-                        >
-                          <option value="circle">Rond</option>
-                          <option value="square">Carré</option>
-                          <option value="oval">Ovale</option>
-                          <option value="triangle">Triangle</option>
-                          <option value="trapezoid">Trapèze</option>
-                          <option value="octagon">Octogone</option>
-                          <option value="star">Étoile</option>
-                          <option value="pentagon">Pentagone</option>
-                        </select>
                       </div>
 
                       {/* Info-Bulle */}
