@@ -785,7 +785,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </p>
                         
                         {displaySettings.showTagName && (
-                          <div className="pl-8 mt-4 flex flex-col gap-3 border-l-2 border-border/10 ml-2.5 anim-fade-down">
+                          <div className="pl-8 mt-4 grid grid-cols-2 gap-3 border-l-2 border-border/10 ml-2.5 anim-fade-down">
                             <label className="flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors">
                               <input
                                 type="checkbox"
@@ -822,7 +822,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           Détails au survol d'un tag.
                         </p>
                         {displaySettings.showTagTooltip !== false && (
-                          <div className="pl-6 mt-3 grid grid-cols-1 gap-y-2 border-l border-border/10 ml-2.5 anim-fade-down">
+                          <div className="pl-6 mt-3 grid grid-cols-2 gap-y-2 border-l border-border/10 ml-2.5 anim-fade-down">
                             <label className="flex items-center gap-2 text-[10px] cursor-pointer hover:text-primary transition-colors pr-2">
                               <input
                                 type="checkbox"
