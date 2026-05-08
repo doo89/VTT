@@ -272,36 +272,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                    <PaintBucket size={16} /> Dimensions & Fond de la salle
                  </h3>
                  <div className="flex flex-col gap-4">
-                  <div className="flex gap-4">
-                    <div className="flex flex-col gap-1 flex-1">
-                      <label className="text-xs text-muted-foreground">Largeur (px)</label>
-                      <input
-                        type="number"
-                        value={room.width}
-                        onChange={(e) => setRoom({ width: Math.max(100, parseInt(e.target.value) || 2000) })}
-                        className="w-full bg-input border border-border rounded px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1 flex-1">
-                      <label className="text-xs text-muted-foreground">Hauteur (px)</label>
-                      <input
-                        type="number"
-                        value={room.height}
-                        onChange={(e) => setRoom({ height: Math.max(100, parseInt(e.target.value) || 1500) })}
-                        className="w-full bg-input border border-border rounded px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs text-muted-foreground">Couleur de fond</label>
-                    <div className="flex gap-3 items-center">
-                      <ColorPicker
-                        color={room.backgroundColor}
-                        onChange={(c) => setRoom({ backgroundColor: c })}
-                        label="Couleur de fond"
-                      />
-                      <span className="text-sm uppercase font-mono">{room.backgroundColor}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Largeur (px)</label>
+                        <input
+                          type="number"
+                          value={room.width}
+                          onChange={(e) => setRoom({ width: Math.max(100, parseInt(e.target.value) || 2000) })}
+                          className="w-full bg-input border border-border rounded px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Hauteur (px)</label>
+                        <input
+                          type="number"
+                          value={room.height}
+                          onChange={(e) => setRoom({ height: Math.max(100, parseInt(e.target.value) || 1500) })}
+                          className="w-full bg-input border border-border rounded px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Couleur de fond</label>
+                        <div className="flex gap-2 items-center h-full">
+                          <ColorPicker
+                            color={room.backgroundColor}
+                            onChange={(c) => setRoom({ backgroundColor: c })}
+                            label="Couleur de fond"
+                          />
+                          <span className="text-xs uppercase font-mono text-muted-foreground">{room.backgroundColor}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
