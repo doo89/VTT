@@ -15,7 +15,13 @@ const ACTION_CATEGORIES = [
   { id: 'system', label: 'Système & Divers' }
 ];
 
-const ACTION_OPTIONS: { value: ActionEffectType, label: string, category: string }[] = [
+interface ActionOption {
+  value: ActionEffectType;
+  label: string;
+  category: string;
+}
+
+const ACTION_OPTIONS: ActionOption[] = [
   { value: 'modifyVariable', label: 'Modifier Variable ($Ordre, $Cycle...)', category: 'variables' },
   { value: 'incrementCallOrder', label: '$Ordre + 1', category: 'variables' },
   { value: 'decrementCallOrder', label: '$Ordre - 1', category: 'variables' },

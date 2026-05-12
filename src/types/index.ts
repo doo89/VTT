@@ -307,7 +307,6 @@ export type ActionEffectType =
   | 'showRoleImage'
   | 'hideRoleImage'
   | 'deleteSelectionPastilles' 
-  | 'resurrectAllPlayers'
   | 'showAllPlayers'
   | 'hideAllPlayers'
   | 'deleteAllPlayerTags'
