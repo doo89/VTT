@@ -21,7 +21,7 @@ interface ActionOption {
   category: string;
 }
 
-const ACTION_OPTIONS: ActionOption[] = [
+const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'modifyVariable', label: 'Modifier Variable ($Ordre, $Cycle...)', category: 'variables' },
   { value: 'incrementCallOrder', label: '$Ordre + 1', category: 'variables' },
   { value: 'decrementCallOrder', label: '$Ordre - 1', category: 'variables' },
