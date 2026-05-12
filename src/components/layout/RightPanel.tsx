@@ -310,6 +310,8 @@ export const RightPanel: React.FC = () => {
         <button
           onClick={toggleRightPanel}
           className="bg-card border border-border rounded-l-md p-2 shadow-md hover:bg-accent"
+          aria-label="Ouvrir le panneau latéral"
+          title="Ouvrir le panneau latéral"
         >
           <ChevronLeft size={20} />
         </button>
@@ -380,8 +382,9 @@ export const RightPanel: React.FC = () => {
 
                           {!role.isUnique ? (
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">Qté:</span>
+                              <label htmlFor={`dist-qty-${role.id}`} className="text-xs text-muted-foreground">Qté:</label>
                               <input
+                                id={`dist-qty-${role.id}`}
                                 type="number"
                                 min="1"
                                 value={role.distributionQuantity || 1}
@@ -464,6 +467,8 @@ export const RightPanel: React.FC = () => {
                           }}
                           disabled={timer.isRunning}
                           className="w-16 bg-transparent text-center focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
+                          aria-label="Minutes"
+                          title="Minutes"
                         />
                         <span className="text-muted-foreground pb-1">:</span>
                         <input
@@ -478,6 +483,8 @@ export const RightPanel: React.FC = () => {
                           }}
                           disabled={timer.isRunning}
                           className="w-16 bg-transparent text-center focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
+                          aria-label="Secondes"
+                          title="Secondes"
                         />
                       </div>
 
@@ -547,8 +554,9 @@ export const RightPanel: React.FC = () => {
                     <>
                       <div className="flex items-center gap-4">
                         <div className="flex flex-col gap-1 flex-1">
-                          <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Colonnes</label>
+                          <label htmlFor="soundboard-cols" className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Colonnes</label>
                           <input
+                            id="soundboard-cols"
                             type="number"
                             min="1" max="10"
                             value={soundboard.cols}
@@ -557,8 +565,9 @@ export const RightPanel: React.FC = () => {
                           />
                         </div>
                         <div className="flex flex-col gap-1 flex-1">
-                          <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Lignes</label>
+                          <label htmlFor="soundboard-rows" className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Lignes</label>
                           <input
+                            id="soundboard-rows"
                             type="number"
                             min="1" max="10"
                             value={soundboard.rows}
@@ -596,12 +605,23 @@ export const RightPanel: React.FC = () => {
                 <div className="flex flex-col p-3 border-t border-border gap-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground">Mode détaché</span>
-                    <button
-                      onClick={() => setScoreboard({ isDetached: !scoreboard.isDetached })}
-                      className={`w-10 h-5 rounded-full transition-colors relative ${scoreboard.isDetached ? 'bg-primary' : 'bg-muted'}`}
-                    >
-                      <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${scoreboard.isDetached ? 'left-6' : 'left-1'}`} />
-                    </button>
+                    <div className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="scoreboard-detach-toggle"
+                        checked={!!scoreboard.isDetached}
+                        onChange={() => setScoreboard({ isDetached: !scoreboard.isDetached })}
+                        className="sr-only peer"
+                      />
+                      <label 
+                        htmlFor="scoreboard-detach-toggle"
+                        className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${scoreboard.isDetached ? 'bg-primary' : 'bg-muted'}`}
+                        title="Mode détaché du tableau des scores"
+                      >
+                        <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${scoreboard.isDetached ? 'left-6' : 'left-1'}`} />
+                        <span className="sr-only">Mode détaché du tableau des scores</span>
+                      </label>
+                    </div>
                   </div>
 
                   <button
@@ -747,12 +767,23 @@ export const RightPanel: React.FC = () => {
                 <div className="flex flex-col p-3 border-t border-border gap-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground">Mode détaché</span>
-                    <button
-                      onClick={() => setWiki({ isDetached: !wiki.isDetached })}
-                      className={`w-10 h-5 rounded-full transition-colors relative ${wiki.isDetached ? 'bg-primary' : 'bg-muted'}`}
-                    >
-                      <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${wiki.isDetached ? 'left-6' : 'left-1'}`} />
-                    </button>
+                    <div className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="wiki-detach-toggle"
+                        checked={!!wiki.isDetached}
+                        onChange={() => setWiki({ isDetached: !wiki.isDetached })}
+                        className="sr-only peer"
+                      />
+                      <label 
+                        htmlFor="wiki-detach-toggle"
+                        className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${wiki.isDetached ? 'bg-primary' : 'bg-muted'}`}
+                        title="Mode détaché du Wiki"
+                      >
+                        <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${wiki.isDetached ? 'left-6' : 'left-1'}`} />
+                        <span className="sr-only">Mode détaché du Wiki</span>
+                      </label>
+                    </div>
                   </div>
 
                   {!wiki.isDetached && wiki.isOpen ? (
@@ -1280,6 +1311,7 @@ export const RightPanel: React.FC = () => {
                   ref={popupImageInputRef} 
                   accept="image/*" 
                   className="hidden" 
+                  title="Charger une image pour le popup"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
@@ -1294,12 +1326,13 @@ export const RightPanel: React.FC = () => {
 
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold flex items-center gap-2">
+                <label htmlFor="popup-sound-url" className="text-sm font-semibold flex items-center gap-2">
                   <Volume2 size={16} className="text-blue-500" />
                   <span>Son au déclenchement (Optionnel)</span>
                 </label>
                 <div className="flex gap-2">
                   <input
+                    id="popup-sound-url"
                     type="text"
                     value={newPopupData.soundUrl || ''}
                     onChange={e => setNewPopupData({...newPopupData, soundUrl: e.target.value})}
@@ -1328,6 +1361,7 @@ export const RightPanel: React.FC = () => {
                   type="file" 
                   accept="audio/*" 
                   className="hidden" 
+                  title="Charger un son pour le popup"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
@@ -1451,6 +1485,7 @@ export const RightPanel: React.FC = () => {
           accept=".json"
           ref={fileInputRef}
           style={{ display: 'none' }}
+          title="Importer un fichier de sauvegarde JSON"
           onChange={handleImport}
         />
       </div>
@@ -1464,6 +1499,8 @@ export const RightPanel: React.FC = () => {
       <button
         onClick={toggleRightPanel}
         className="absolute -left-8 top-1/2 transform -translate-y-1/2 bg-card border border-r-0 border-border rounded-l-md p-2 shadow-md hover:bg-accent"
+        aria-label="Fermer le panneau latéral"
+        title="Fermer le panneau latéral"
       >
         <ChevronRight size={20} />
       </button>

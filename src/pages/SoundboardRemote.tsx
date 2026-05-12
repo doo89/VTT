@@ -166,6 +166,27 @@ export const SoundboardRemote: React.FC = () => {
       payload: { actionId, passcode }
     }).catch(console.error);
   };
+  
+  const handleUpdatePrivateNotes = (playerId: string, notes: string) => {
+    if (!channel || !passcode) return;
+    
+    // Optimism
+    setGameState((prev: any) => {
+      if (!prev || !prev.players) return prev;
+      return {
+        ...prev,
+        players: prev.players.map((p: any) => 
+          p.id === playerId ? { ...p, privateNotes: notes } : p
+        )
+      };
+    });
+
+    channel.send({
+      type: 'broadcast',
+      event: 'remote_player_update',
+      payload: { type: 'notes', playerId, notes, passcode }
+    }).catch(console.error);
+  };
 
   const handleDisconnect = () => {
     navigate('/remote');
@@ -215,7 +236,7 @@ export const SoundboardRemote: React.FC = () => {
   }
 
   const soundboardData = gameState?.soundboard || {};
-  const { cols = 4, rows = 3, buttons = [], remoteShowSounds = true, remoteShowTasks = true, remoteShowHandouts = true, remoteShowActions = true, remoteShowPlayers = false, remoteShowDeadPlayers = false } = soundboardData;
+  const { cols = 4, rows = 3, buttons = [], remoteShowSounds = true, remoteShowTasks = true, remoteShowHandouts = true, remoteShowActions = true, remoteShowPlayers = false, remoteShowDeadPlayers = false, remoteAllowPrivateNotes = false } = soundboardData;
   const checklist = gameState.checklist || [];
   const actions = gameState.actions || [];
   const players = gameState.players || [];
@@ -505,6 +526,14 @@ export const SoundboardRemote: React.FC = () => {
                             </>
                           )}
                         </div>
+                        {remoteAllowPrivateNotes && (
+                          <textarea
+                            value={player.privateNotes || ''}
+                            onChange={(e) => handleUpdatePrivateNotes(player.id, e.target.value)}
+                            placeholder="Notes privées (MJ uniquement)..."
+                            className="w-full mt-2 bg-black/40 border border-zinc-700/50 rounded-lg p-2 text-xs text-zinc-200 focus:outline-none focus:border-pink-500/50 transition-colors resize-none h-16"
+                          />
+                        )}
                       </div>
                     </div>
                   );

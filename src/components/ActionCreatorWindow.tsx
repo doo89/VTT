@@ -187,6 +187,8 @@ export const ActionCreatorWindow: React.FC = () => {
           onClick={handleClose}
           onMouseDown={e => e.stopPropagation()}
           className="p-1.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-full transition-all"
+          title="Fermer la fenêtre"
+          aria-label="Fermer la fenêtre"
         >
           <X size={16} />
         </button>
@@ -194,8 +196,9 @@ export const ActionCreatorWindow: React.FC = () => {
 
       <div className="p-5 flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Nom de l'action</label>
+          <label htmlFor="action-name-input" className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Nom de l'action</label>
           <input
+            id="action-name-input"
             autoFocus
             type="text"
             value={actionName}
@@ -210,11 +213,12 @@ export const ActionCreatorWindow: React.FC = () => {
         </div>
 
         <div className="flex items-center justify-between bg-zinc-800/10 p-2.5 rounded-lg border border-border/20">
-          <div className="flex flex-col gap-0.5">
+          <label htmlFor="action-active-toggle" className="flex flex-col gap-0.5 cursor-pointer">
             <span className="text-xs font-bold text-foreground">Action active</span>
             <span className="text-[10px] text-muted-foreground">Désactiver pour griser le bouton dans les outils</span>
-          </div>
+          </label>
           <input
+            id="action-active-toggle"
             type="checkbox"
             checked={pendingActionEnabled}
             onChange={(e) => setPendingActionEnabled(e.target.checked)}
@@ -262,6 +266,8 @@ export const ActionCreatorWindow: React.FC = () => {
                       value={condition.logic || 'AND'}
                       onChange={(e) => updatePendingCondition(condition.id, { logic: e.target.value as 'AND' | 'OR' })}
                       className="bg-card border border-border rounded px-1 py-0.5 text-[9px] font-bold uppercase cursor-pointer hover:border-primary transition-colors outline-none shadow-sm"
+                      title="Liaison logique (Et/Ou)"
+                      aria-label="Liaison logique"
                     >
                       <option value="AND">Et</option>
                       <option value="OR">Ou</option>
@@ -289,6 +295,7 @@ export const ActionCreatorWindow: React.FC = () => {
                            condition.type === 'turn' ? 'Tour' :
                            ['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(condition.type) ? 'Distance' :
                            condition.type === 'cycleCheck' ? 'Variable' :
+                           condition.type === 'roleTeamCheck' ? (roles.find(r => r.id === condition.roleId)?.name || 'Rôle') :
                            'Sélection'}
                         </span>
                         <span className="font-mono font-bold text-muted-foreground">{condition.type === 'playerDistance' ? '' : condition.operator}</span>
@@ -327,6 +334,9 @@ export const ActionCreatorWindow: React.FC = () => {
                             condition.type === 'cycleCheck' ? (
                               `${condition.cycleCheckType || 'Variable'} ${condition.operator} ${condition.value}`
                             ) :
+                            condition.type === 'roleTeamCheck' ? (
+                              teams.find(t => t.id === condition.teamId)?.name || 'Équipe'
+                            ) :
                             condition.value}
                         </span>
                       </>
@@ -336,6 +346,8 @@ export const ActionCreatorWindow: React.FC = () => {
                     <button
                       onClick={() => setActionConditionCreatorState({ isOpen: true, editingConditionId: condition.id })}
                       className="text-muted-foreground hover:text-primary transition-colors p-0.5"
+                      title="Modifier la condition"
+                      aria-label="Modifier la condition"
                     >
                       <Edit2 size={12} />
                     </button>
@@ -345,6 +357,8 @@ export const ActionCreatorWindow: React.FC = () => {
                         deletePendingCondition(condition.id);
                       }}
                       className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                      title="Supprimer la condition"
+                      aria-label="Supprimer la condition"
                     >
                       <Trash2 size={12} />
                     </button>
@@ -424,12 +438,16 @@ export const ActionCreatorWindow: React.FC = () => {
                     <button
                       onClick={() => setActionEffectCreatorState({ isOpen: true, editingEffectId: effect.id })}
                       className="text-muted-foreground hover:text-indigo-400 transition-colors p-0.5"
+                      title="Modifier l'action"
+                      aria-label="Modifier l'action"
                     >
                       <Edit2 size={12} />
                     </button>
                     <button
                       onClick={() => deletePendingEffect(effect.id)}
                       className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                      title="Supprimer l'action"
+                      aria-label="Supprimer l'action"
                     >
                       <Trash2 size={12} />
                     </button>
@@ -443,9 +461,10 @@ export const ActionCreatorWindow: React.FC = () => {
         {/* ELSE Section */}
         <div className="flex flex-col gap-3 pt-1">
           <div className="flex items-center justify-between px-1">
-            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-[#94a3b8]">Sinon (Appeler Action)</label>
+            <label htmlFor="else-action-select" className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-[#94a3b8]">Sinon (Appeler Action)</label>
           </div>
           <select
+            id="else-action-select"
             value={pendingElseActionId || ''}
             onChange={(e) => setPendingElseActionId(e.target.value || null)}
             className="w-full bg-[#1e293b]/50 border border-[#334155]/50 rounded-lg px-3 py-2 text-[11px] font-bold outline-none transition-all hover:border-[#475569] focus:border-primary/50"

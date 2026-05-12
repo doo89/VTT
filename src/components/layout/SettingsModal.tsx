@@ -1481,6 +1481,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         />
                         <span className="text-xs font-bold uppercase text-muted-foreground">Afficher les morts</span>
                       </label>
+                      <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors flex-1 ml-4 mt-2">
+                        <input
+                          type="checkbox"
+                          checked={soundboard.remoteAllowPrivateNotes ?? false}
+                          onChange={(e) => setSoundboard({ remoteAllowPrivateNotes: e.target.checked })}
+                          className="rounded border-border w-4 h-4 text-primary"
+                        />
+                        <span className="text-xs font-bold uppercase text-muted-foreground">Mettre des notes privés (Même aux morts)</span>
+                      </label>
                     </div>
                   )}
                 </div>
@@ -1566,11 +1575,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             ))}
                           </div>
                           <div className="ml-8 mt-2 p-3 bg-muted/10 border-l-2 border-purple-500/30 rounded-r-lg flex flex-col gap-2">
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                            <label htmlFor="distribution-action-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                               <icons.Play size={10} /> Exécuter une action
                             </label>
                             <div className="flex gap-2">
                               <select
+                                id="distribution-action-select"
                                 value={displaySettings.distributionActionId || ''}
                                 onChange={(e) => updateDisplaySettings({ distributionActionId: e.target.value || null })}
                                 className="flex-1 bg-background border border-border rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"

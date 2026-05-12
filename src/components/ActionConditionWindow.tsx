@@ -42,6 +42,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [distanceTargetRoleId, setDistanceTargetRoleId] = useState<string | null>(null);
   const [cycleCheckType, setCycleCheckType] = useState<'$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | '$Timer' | '$NbEnLigne' | '$NbTotal' | '$NbVivants' | '$NbMorts' | null>('$Jour');
   const [distanceTargetTeamId, setDistanceTargetTeamId] = useState<string | null>(null);
+  const [teamId, setTeamId] = useState<string | null>(null);
   const [distanceTargetStatus, setDistanceTargetStatus] = useState<'alive' | 'dead' | null>('alive');
   const [distanceUnit, setDistanceUnit] = useState<'logical' | 'physical'>('logical');
 
@@ -74,6 +75,7 @@ export const ActionConditionWindow: React.FC = () => {
         setCycleCheckType(condition.cycleCheckType || '$Jour');
         setSelectionTeamId(condition.selectionTeamId || (teams[0]?.id || null));
         setDistanceTargetTeamId(condition.distanceTargetTeamId || (teams[0]?.id || null));
+        setTeamId(condition.teamId || (teams[0]?.id || null));
         setDistanceTargetStatus(condition.distanceTargetStatus || 'alive');
         setDistanceUnit(condition.distanceUnit || 'logical');
       }
@@ -94,6 +96,7 @@ export const ActionConditionWindow: React.FC = () => {
       setCycleCheckType('$Jour');
       setSelectionTeamId(teams[0]?.id || null);
       setDistanceTargetTeamId(teams[0]?.id || null);
+      setTeamId(teams[0]?.id || null);
       setDistanceTargetStatus('alive');
       setDistanceUnit('logical');
     }
@@ -160,7 +163,8 @@ export const ActionConditionWindow: React.FC = () => {
       distanceTargetStatus: (type === 'playerDistanceStatus') ? distanceTargetStatus : null,
       distanceUnit: isDist ? distanceUnit : null,
       cycleCheckType: type === 'cycleCheck' ? cycleCheckType : null,
-      selectionTeamId: type === 'playerSelectionTeam' ? selectionTeamId : null
+      selectionTeamId: type === 'playerSelectionTeam' ? selectionTeamId : null,
+      teamId: type === 'roleTeamCheck' ? teamId : null
     };
 
     if (isEditing && actionConditionCreatorState.editingConditionId) {
@@ -325,8 +329,9 @@ export const ActionConditionWindow: React.FC = () => {
 
               <div className="flex flex-col gap-1 flex-1">
                 <label htmlFor="cycle-variable" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Variable</label>
-                <select
+                <input
                   id="cycle-variable"
+                  list="cycle-variable-list"
                   disabled={!enabled || !['cycleCheck', 'day', 'night', 'turn'].includes(type)}
                   value={
                     type === 'day' ? '$Jour' :
@@ -337,10 +342,12 @@ export const ActionConditionWindow: React.FC = () => {
                   onChange={(e) => {
                     const val = e.target.value;
                     setType('cycleCheck');
-                    setCycleCheckType(val as any);
+                    setCycleCheckType(val);
                   }}
+                  placeholder="Ex: $Temp1"
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+                />
+                <datalist id="cycle-variable-list">
                   <option value="$Jour">$Jour</option>
                   <option value="$Nuit">$Nuit</option>
                   <option value="$Cycle">$Cycle</option>
@@ -352,7 +359,7 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="$NbTotal">$NbTotal (Joueurs total)</option>
                   <option value="$NbVivants">$NbVivants (Joueurs en vie)</option>
                   <option value="$NbMorts">$NbMorts (Joueurs morts)</option>
-                </select>
+                </datalist>
               </div>
 
               <div className="flex flex-col gap-1 flex-[0.5]">
@@ -796,6 +803,80 @@ export const ActionConditionWindow: React.FC = () => {
                     Sélectionnez un type...
                   </div>
                 )}
+              </div>
+            </div>
+
+            <div className="h-px bg-border/20 my-1" />
+
+            {/* Nouveau : Rôle vs Équipe */}
+            <div className={`flex items-end gap-3 transition-all duration-300 ${type !== 'roleTeamCheck' ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
+              <div className="flex flex-col gap-1.5 pb-2">
+                <label htmlFor="roleteam-enabled" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 cursor-pointer">Actif</label>
+                <div className="flex items-center h-[38px] justify-center">
+                  <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">3.</span>
+                  <input
+                    id="roleteam-enabled"
+                    type="checkbox"
+                    checked={type === 'roleTeamCheck' && enabled}
+                    onChange={() => {
+                      if (type !== 'roleTeamCheck') {
+                        setType('roleTeamCheck');
+                        setEnabled(true);
+                        setOperator('=');
+                        if (!roleId && roles.length > 0) setRoleId(roles[0].id);
+                        if (!teamId && teams.length > 0) setTeamId(teams[0].id);
+                      } else {
+                        setEnabled(!enabled);
+                      }
+                    }}
+                    className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-1">
+                <label htmlFor="roleteam-role" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle</label>
+                <select
+                  id="roleteam-role"
+                  disabled={type !== 'roleTeamCheck' || !enabled}
+                  value={roleId || ''}
+                  onChange={(e) => setRoleId(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                >
+                  {roles.map(role => (
+                    <option key={role.id} value={role.id}>{role.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-[0.5]">
+                <label htmlFor="roleteam-operator" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
+                <select
+                  id="roleteam-operator"
+                  disabled={type !== 'roleTeamCheck' || !enabled}
+                  value={operator}
+                  onChange={(e) => setOperator(e.target.value as ActionOperator)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="=">=</option>
+                  <option value="!=">!=</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1 flex-1">
+                <label htmlFor="roleteam-team" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Équipe</label>
+                <select
+                  id="roleteam-team"
+                  disabled={type !== 'roleTeamCheck' || !enabled}
+                  value={teamId || ''}
+                  onChange={(e) => setTeamId(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                >
+                  <option value="">-- Aucune --</option>
+                  {teams.map(team => (
+                    <option key={team.id} value={team.id}>{team.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

@@ -215,6 +215,7 @@ export interface SoundboardState {
   remoteShowActions?: boolean;
   remoteShowPlayers?: boolean;
   remoteShowDeadPlayers?: boolean;
+  remoteAllowPrivateNotes?: boolean;
   remotePlayTrigger?: { index: number, timestamp: number } | null;
 }
 
@@ -313,6 +314,11 @@ export type ActionEffectType =
   | 'setCycleDayNight'
   | 'setCycleTurn'
   | 'setCycleNone'
+  | 'setDayNumber'
+  | 'setNightNumber'
+  | 'shuffleCallOrder'
+  | 'reverseCallOrder'
+  | 'sortCallOrderByStat'
   | 'popupPlayer'
   | 'showPlayerTooltip'
   | 'hidePlayerTooltip'
@@ -321,10 +327,8 @@ export type ActionEffectType =
   | 'showRoleColor'
   | 'hideRoleColor'
   | 'alertPlayerName'
-  | 'alertDayNumber'
-  | 'alertNightNumber'
-  | 'alertCycleNumber'
-  | 'alertCallOrder'
+  | 'alertVariable'
+  | 'popupVariable'
   | 'incrementCallOrder'
   | 'decrementCallOrder'
   | 'resetCallOrder'
@@ -334,9 +338,16 @@ export type ActionEffectType =
   | 'assignTagToRole'
   | 'removeTagFromRole'
   | 'assignTeam'
+  | 'assignTeamToRole'
   | 'showTimerOnSmartphone'
   | 'hideTimerOnSmartphone'
-  | 'wait';
+  | 'wait'
+  | 'togglePhaseTimer'
+  | 'setPhaseDuration'
+  | 'playSound'
+  | 'showHandout'
+  | 'sendPrivateMessage'
+  | 'addSystemLog';
 
 export interface ActionEffect {
   id: string;
@@ -352,9 +363,13 @@ export interface ActionEffect {
   roleTeamId?: string;
   showCountdown?: boolean;
   countdownMessage?: string;
+  soundName?: string;
+  handoutId?: string;
+  privateMessage?: string;
+  logMessage?: string;
 }
 
-export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected';
+export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';
 export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=' | 'modulo' | '';
 
 export interface ActionCondition {
@@ -371,9 +386,10 @@ export interface ActionCondition {
   selectionRoleId?: string | null;
   distanceFromPlayerId?: string | null;
   distanceTargetRoleId?: string | null;
-  cycleCheckType?: '$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | '$Timer' | '$NbEnLigne' | '$NbTotal' | '$NbVivants' | '$NbMorts' | null;
+  cycleCheckType?: string | null;
   selectionTeamId?: string | null;
   distanceTargetTeamId?: string | null;
+  teamId?: string | null;
   distanceTargetStatus?: 'alive' | 'dead' | null;
   distanceUnit?: 'logical' | 'physical' | null;
   enabled: boolean;
@@ -430,6 +446,7 @@ export interface GameState {
   isNight: boolean;
   cycleNumber: number;
   callOrderIndex: number;
+  customVariables: Record<string, number>;
   cycleMode: 'dayNight' | 'turns' | 'none';
   timer: {
     minutes: number;

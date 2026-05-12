@@ -3,6 +3,76 @@ import { useVttStore } from '../store';
 import { X, Check } from 'lucide-react';
 import type { ActionEffectType } from '../types';
 
+const ACTION_CATEGORIES = [
+  { id: 'all', label: 'Toutes les actions' },
+  { id: 'cycle', label: 'Cycle & Phase' },
+  { id: 'variables', label: 'Variables & Ordre' },
+  { id: 'alerts', label: 'Alertes & Popups' },
+  { id: 'visibility', label: 'Visibilité & Interface' },
+  { id: 'players', label: 'Gestion des Joueurs' },
+  { id: 'attributes', label: 'Tags, Rôles & Équipes' },
+  { id: 'remote', label: 'Smartphone & Outils' },
+  { id: 'system', label: 'Système & Divers' }
+];
+
+const ACTION_OPTIONS: { value: ActionEffectType, label: string, category: string }[] = [
+  { value: 'modifyVariable', label: 'Modifier Variable ($Ordre, $Cycle...)', category: 'variables' },
+  { value: 'incrementCallOrder', label: '$Ordre + 1', category: 'variables' },
+  { value: 'decrementCallOrder', label: '$Ordre - 1', category: 'variables' },
+  { value: 'alertVariable', label: 'Afficher $Variable', category: 'alerts' },
+  { value: 'alertPlayerName', label: 'Afficher $Joueur', category: 'alerts' },
+  { value: 'popupVariable', label: 'Popup $Variable', category: 'alerts' },
+  { value: 'showRoleImage', label: "Afficher l'image du Rôle", category: 'visibility' },
+  { value: 'showPlayerImage', label: "Afficher l'image du joueur", category: 'visibility' },
+  { value: 'showPlayerTooltip', label: "Afficher l'info bulle des joueurs", category: 'visibility' },
+  { value: 'showTagTooltip', label: "Afficher l'info bulle des tags", category: 'visibility' },
+  { value: 'showRoleColor', label: "Afficher la couleur du rôle", category: 'visibility' },
+  { value: 'showAllPlayers', label: 'Afficher tous les joueurs', category: 'visibility' },
+  { value: 'hideRoleImage', label: "Cacher l'image du Rôle", category: 'visibility' },
+  { value: 'hidePlayerImage', label: "Cacher l'image du joueur", category: 'visibility' },
+  { value: 'setCycleNone', label: 'Cycle : Aucun', category: 'cycle' },
+  { value: 'setCycleDayNight', label: 'Cycle : Jour/Nuit', category: 'cycle' },
+  { value: 'setCycleTurn', label: 'Cycle : par Tour', category: 'cycle' },
+  { value: 'setDayNumber', label: 'Aller au Jour X', category: 'cycle' },
+  { value: 'setNightNumber', label: 'Aller à la Nuit X', category: 'cycle' },
+  { value: 'togglePhaseTimer', label: 'Mettre en pause / Reprendre le cycle', category: 'cycle' },
+  { value: 'setPhaseDuration', label: 'Définir la durée de la phase', category: 'cycle' },
+  { value: 'distributeRoles', label: 'Distribuer (Rôles)', category: 'attributes' },
+  { value: 'triggerAction', label: 'Exécuter une Action', category: 'system' },
+  { value: 'assignTagToRole', label: 'Assigner un tag à un rôle', category: 'attributes' },
+  { value: 'removeTagFromRole', label: 'Enlever un tag à un rôle', category: 'attributes' },
+  { value: 'assignTeam', label: 'Assigner une équipe ($Joueur)', category: 'attributes' },
+  { value: 'assignTeamToRole', label: 'Assigner une équipe à un rôle', category: 'attributes' },
+  { value: 'hidePlayerTooltip', label: "Masquer l'info bulle des joueurs", category: 'visibility' },
+  { value: 'hideTagTooltip', label: "Masquer l'info bulle des tags", category: 'visibility' },
+  { value: 'hideRoleColor', label: "Masquer la couleur du rôle", category: 'visibility' },
+  { value: 'hideAllPlayers', label: 'Masquer tous les joueurs', category: 'visibility' },
+  { value: 'nextPhase', label: 'Passer à la phase suivante', category: 'cycle' },
+  { value: 'popupPlayer', label: 'Popup $Joueur', category: 'alerts' },
+  { value: 'resurrectAllPlayers', label: 'Ressusciter tous les joueurs', category: 'players' },
+  { value: 'previousPhase', label: 'Revenir à la phase précédente', category: 'cycle' },
+  { value: 'resetCallOrder', label: 'Réinitialiser $Ordre', category: 'variables' },
+  { value: 'resetCycle', label: 'Réinitialiser le Cycle (Jour 1)', category: 'cycle' },
+  { value: 'wakeAllPlayers', label: 'Réveil de tous les Joueurs', category: 'players' },
+  { value: 'selectCallOrderPlayer', label: 'Sélectionner joueur $Ordre', category: 'variables' },
+  { value: 'shuffleCallOrder', label: "Mélanger l'ordre d'appel ($Ordre)", category: 'variables' },
+  { value: 'selectPlayer', label: 'Sélectionner $Joueur', category: 'players' },
+  { value: 'sleepAllPlayers', label: 'Tous les Joueurs dorment', category: 'players' },
+  { value: 'sleepPlayer', label: '$Joueur dort', category: 'players' },
+  { value: 'wakePlayer', label: '$Joueur réveil', category: 'players' },
+  { value: 'switchSleepPlayer', label: '$Joueur switch éveille', category: 'players' },
+  { value: 'deleteSelectionPastilles', label: 'Supprimer les pastilles tags', category: 'attributes' },
+  { value: 'deleteAllTags', label: 'Supprimer tous les tags dans la salle', category: 'attributes' },
+  { value: 'deleteAllPlayerTags', label: 'Supprimer tous les tags des joueurs', category: 'attributes' },
+  { value: 'showTimerOnSmartphone', label: 'Afficher le chronomètre (Smartphone)', category: 'remote' },
+  { value: 'hideTimerOnSmartphone', label: 'Masquer le chronomètre (Smartphone)', category: 'remote' },
+  { value: 'wait', label: 'Attendre x secondes', category: 'system' },
+  { value: 'playSound', label: 'Jouer un effet sonore', category: 'alerts' },
+  { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
+  { value: 'sendPrivateMessage', label: 'Envoyer un Message Privé ($Joueur)', category: 'alerts' },
+  { value: 'addSystemLog', label: "Ajouter un Log Système (Journal)", category: 'system' }
+].sort((a, b) => a.label.localeCompare(b.label));
+
 export const ActionEffectWindow: React.FC = () => {
   const { 
     actionEffectCreatorState, 
@@ -13,10 +83,13 @@ export const ActionEffectWindow: React.FC = () => {
     actions,
     roles,
     tags,
-    teams
+    teams,
+    soundboard,
+    handouts
   } = useVttStore();
   
   const [type, setType] = useState<ActionEffectType>('deleteAllTags');
+  const [category, setCategory] = useState<string>('attributes');
   const [enabled, setEnabled] = useState(true);
   const [variable, setVariable] = useState('$Ordre');
   const [operator, setOperator] = useState('=');
@@ -28,6 +101,10 @@ export const ActionEffectWindow: React.FC = () => {
   const [roleTeamId, setRoleTeamId] = useState<string>('unchanged');
   const [showCountdown, setShowCountdown] = useState(false);
   const [countdownMessage, setCountdownMessage] = useState('');
+  const [soundName, setSoundName] = useState<string>('');
+  const [handoutId, setHandoutId] = useState<string>('');
+  const [privateMessage, setPrivateMessage] = useState<string>('');
+  const [logMessage, setLogMessage] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -38,6 +115,8 @@ export const ActionEffectWindow: React.FC = () => {
       const effect = pendingActionEffects.find(e => e.id === actionEffectCreatorState.editingEffectId);
       if (effect) {
         setType(effect.type);
+        const effectCategory = ACTION_OPTIONS.find(o => o.value === effect.type)?.category || 'all';
+        setCategory(effectCategory);
         setEnabled(effect.enabled);
         setVariable(effect.variable || '$Ordre');
         setOperator(effect.operator || '=');
@@ -49,9 +128,14 @@ export const ActionEffectWindow: React.FC = () => {
         setRoleTeamId(effect.roleTeamId || 'unchanged');
         setShowCountdown(effect.showCountdown || false);
         setCountdownMessage(effect.countdownMessage || '');
+        setSoundName(effect.soundName || (soundboard.buttons.length > 0 ? soundboard.buttons[0].name : ''));
+        setHandoutId(effect.handoutId || (handouts.length > 0 ? handouts[0].id : ''));
+        setPrivateMessage(effect.privateMessage || '');
+        setLogMessage(effect.logMessage || '');
       }
     } else {
       setType('deleteAllTags');
+      setCategory('attributes');
       setEnabled(true);
       setVariable('$Ordre');
       setOperator('=');
@@ -63,6 +147,10 @@ export const ActionEffectWindow: React.FC = () => {
       setRoleTeamId('unchanged');
       setShowCountdown(false);
       setCountdownMessage('');
+      setSoundName(soundboard.buttons.length > 0 ? soundboard.buttons[0].name : '');
+      setHandoutId(handouts.length > 0 ? handouts[0].id : '');
+      setPrivateMessage('');
+      setLogMessage('');
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -105,16 +193,20 @@ export const ActionEffectWindow: React.FC = () => {
     const data = { 
       type, 
       enabled,
-      variable: type === 'modifyVariable' ? variable : undefined,
-      operator: type === 'modifyVariable' ? operator : undefined,
-      value: (type === 'modifyVariable' || type === 'wait') ? value : undefined,
+      variable: (type === 'modifyVariable' || type === 'sortCallOrderByStat' || type === 'alertVariable' || type === 'popupVariable') ? variable : undefined,
+      operator: (type === 'modifyVariable' || type === 'sortCallOrderByStat') ? operator : undefined,
+      value: (type === 'modifyVariable' || type === 'wait' || type === 'setDayNumber' || type === 'setNightNumber' || type === 'setPhaseDuration') ? value : undefined,
       targetActionId: type === 'triggerAction' ? targetActionId : undefined,
       tagId: (type === 'assignTagToRole' || type === 'removeTagFromRole') ? tagId : undefined,
-      roleId: (type === 'assignTagToRole' || type === 'removeTagFromRole') ? roleId : undefined,
-      teamId: type === 'assignTeam' ? teamId : undefined,
+      roleId: (type === 'assignTagToRole' || type === 'removeTagFromRole' || type === 'assignTeamToRole') ? roleId : undefined,
+      teamId: (type === 'assignTeam' || type === 'assignTeamToRole') ? teamId : undefined,
       roleTeamId: type === 'assignTeam' ? roleTeamId : undefined,
       showCountdown: type === 'wait' ? showCountdown : undefined,
-      countdownMessage: type === 'wait' ? countdownMessage : undefined
+      countdownMessage: type === 'wait' ? countdownMessage : undefined,
+      soundName: type === 'playSound' ? soundName : undefined,
+      handoutId: type === 'showHandout' ? handoutId : undefined,
+      privateMessage: type === 'sendPrivateMessage' ? privateMessage : undefined,
+      logMessage: type === 'addSystemLog' ? logMessage : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -151,6 +243,8 @@ export const ActionEffectWindow: React.FC = () => {
           onClick={handleClose}
           onMouseDown={e => e.stopPropagation()}
           className="p-1.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-full transition-all"
+          title="Fermer la fenêtre"
+          aria-label="Fermer la fenêtre"
         >
           <X size={16} />
         </button>
@@ -159,8 +253,9 @@ export const ActionEffectWindow: React.FC = () => {
       <div className="p-5 flex flex-col gap-5 bg-background/50">
         <div className="flex flex-col gap-4">
           {/* Status first */}
-          <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
+          <label htmlFor="effect-enabled-toggle" className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
             <input
+              id="effect-enabled-toggle"
               type="checkbox"
               checked={enabled}
               onChange={(e) => setEnabled(e.target.checked)}
@@ -172,69 +267,109 @@ export const ActionEffectWindow: React.FC = () => {
             </div>
           </label>
 
-          {/* Type second */}
+          {/* Catégorie */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type d'action</label>
+            <label htmlFor="effect-category-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Catégorie d'action</label>
             <select
-              value={type}
-              onChange={(e) => setType(e.target.value as any)}
-              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-sm focus:border-indigo-500/50"
+              id="effect-category-select"
+              value={category}
+              onChange={(e) => {
+                const newCat = e.target.value;
+                setCategory(newCat);
+                const availableOptions = ACTION_OPTIONS.filter(o => newCat === 'all' || o.category === newCat);
+                if (availableOptions.length > 0 && !availableOptions.some(o => o.value === type)) {
+                  const newType = availableOptions[0].value;
+                  setType(newType);
+                  if (newType === 'sortCallOrderByStat') {
+                    setVariable('lives');
+                    setOperator('asc');
+                  }
+                }
+              }}
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-sm focus:border-indigo-500/50 font-bold"
             >
-              <option value="modifyVariable">Modifier Variable ($Ordre, $Cycle...)</option>
-              <option value="incrementCallOrder">$Ordre + 1</option>
-              <option value="decrementCallOrder">$Ordre - 1</option>
-              <option value="alertCycleNumber">Afficher $Cycle</option>
-              <option value="alertDayNumber">Afficher $Jour</option>
-              <option value="alertPlayerName">Afficher $Joueur</option>
-              <option value="alertNightNumber">Afficher $Nuit</option>
-              <option value="alertCallOrder">Afficher $Ordre</option>
-              <option value="showRoleImage">Afficher l'image du Rôle</option>
-              <option value="showPlayerImage">Afficher l'image du joueur</option>
-              <option value="showPlayerTooltip">Afficher l'info bulle des joueurs</option>
-              <option value="showTagTooltip">Afficher l'info bulle des tags</option>
-              <option value="showRoleColor">Afficher la couleur du rôle</option>
-              <option value="showAllPlayers">Afficher tous les joueurs</option>
-              <option value="hideRoleImage">Cacher l'image du Rôle</option>
-              <option value="hidePlayerImage">Cacher l'image du joueur</option>
-              <option value="setCycleNone">Cycle : Aucun</option>
-              <option value="setCycleDayNight">Cycle : Jour/Nuit</option>
-              <option value="setCycleTurn">Cycle : par Tour</option>
-              <option value="distributeRoles">Distribuer (Rôles)</option>
-              <option value="triggerAction">Exécuter une Action</option>
-              <option value="assignTagToRole">Assigner un tag à un rôle</option>
-              <option value="removeTagFromRole">Enlever un tag à un rôle</option>
-              <option value="assignTeam">Assigner une équipe</option>
-              <option value="hidePlayerTooltip">Masquer l'info bulle des joueurs</option>
-              <option value="hideTagTooltip">Masquer l'info bulle des tags</option>
-              <option value="hideRoleColor">Masquer la couleur du rôle</option>
-              <option value="hideAllPlayers">Masquer tous les joueurs</option>
-              <option value="nextPhase">Passer à la phase suivante</option>
-              <option value="popupPlayer">Popup $Joueur</option>
-              <option value="resurrectAllPlayers">Ressusciter tous les joueurs</option>
-              <option value="previousPhase">Revenir à la phase précédente</option>
-              <option value="resetCallOrder">Réinitialiser $Ordre</option>
-              <option value="resetCycle">Réinitialiser le Cycle (Jour 1)</option>
-              <option value="wakeAllPlayers">Réveil de tous les Joueurs</option>
-              <option value="selectCallOrderPlayer">Sélectionner joueur $Ordre</option>
-              <option value="selectPlayer">Sélectionner $Joueur</option>
-              <option value="sleepAllPlayers">Tous les Joueurs dorment</option>
-              <option value="sleepPlayer">$Joueur dort</option>
-              <option value="wakePlayer">$Joueur réveil</option>
-              <option value="switchSleepPlayer">$Joueur switch éveille</option>
-              <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
-              <option value="deleteAllTags">Supprimer tous les tags dans la salle</option>
-              <option value="deleteAllPlayerTags">Supprimer tous les tags des joueurs</option>
-              <option value="showTimerOnSmartphone">Afficher le chronomètre (Smartphone)</option>
-              <option value="hideTimerOnSmartphone">Masquer le chronomètre (Smartphone)</option>
-              <option value="wait">Attendre x secondes</option>
+              {ACTION_CATEGORIES.map(c => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
             </select>
           </div>
+
+          {/* Type second */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="effect-type-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type d'action</label>
+            <select
+              id="effect-type-select"
+              value={type}
+              onChange={(e) => {
+                const newType = e.target.value as any;
+                setType(newType);
+                if (newType === 'sortCallOrderByStat') {
+                  setVariable('lives');
+                  setOperator('asc');
+                }
+              }}
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-sm focus:border-indigo-500/50"
+            >
+              {ACTION_OPTIONS.filter(o => category === 'all' || o.category === category).map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {(type === 'setDayNumber' || type === 'setNightNumber' || type === 'setPhaseDuration') && (
+            <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="effect-cycle-value" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                  {type === 'setPhaseDuration' ? 'Durée de la phase (en secondes)' : `Numéro du ${type === 'setDayNumber' ? 'Jour' : 'Nuit'}`}
+                </label>
+                <input
+                  id="effect-cycle-value"
+                  type="number"
+                  min={type === 'setPhaseDuration' ? "0" : "1"}
+                  value={value}
+                  onChange={(e) => setValue(Number(e.target.value))}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                />
+              </div>
+            </div>
+          )}
+
+          {type === 'sortCallOrderByStat' && (
+            <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+               <div className="flex flex-col gap-1.5">
+                  <label htmlFor="effect-stat-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Statistique</label>
+                  <select
+                    id="effect-stat-select"
+                    value={variable}
+                    onChange={(e) => setVariable(e.target.value)}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                  >
+                    <option value="lives">Points de Vie</option>
+                    <option value="points">Points de victoire</option>
+                    <option value="votes">Votes reçus</option>
+                  </select>
+               </div>
+               <div className="flex flex-col gap-1.5">
+                  <label htmlFor="effect-sort-direction" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Ordre de tri</label>
+                  <select
+                    id="effect-sort-direction"
+                    value={operator}
+                    onChange={(e) => setOperator(e.target.value)}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                  >
+                    <option value="asc">Croissant (Le plus faible en premier)</option>
+                    <option value="desc">Décroissant (Le plus fort en premier)</option>
+                  </select>
+               </div>
+            </div>
+          )}
 
           {type === 'wait' && (
             <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Durée (secondes)</label>
+                <label htmlFor="effect-wait-value" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Durée (secondes)</label>
                 <input
+                  id="effect-wait-value"
                   type="number"
                   min="0"
                   step="0.1"
@@ -260,8 +395,9 @@ export const ActionEffectWindow: React.FC = () => {
 
                 {showCountdown && (
                   <div className="flex flex-col gap-1.5 animate-in slide-in-from-top-1">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Message sur smartphone</label>
+                    <label htmlFor="effect-countdown-message" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Message sur smartphone</label>
                     <input
+                      id="effect-countdown-message"
                       type="text"
                       value={countdownMessage}
                       onChange={(e) => setCountdownMessage(e.target.value)}
@@ -276,8 +412,9 @@ export const ActionEffectWindow: React.FC = () => {
 
           {type === 'triggerAction' && (
             <div className="flex flex-col gap-1.5 p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg animate-in slide-in-from-top-2">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Action à exécuter</label>
+              <label htmlFor="effect-trigger-action" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Action à exécuter</label>
               <select
+                id="effect-trigger-action"
                 value={targetActionId}
                 onChange={(e) => setTargetActionId(e.target.value)}
                 className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-orange-500/50"
@@ -293,10 +430,11 @@ export const ActionEffectWindow: React.FC = () => {
           {(type === 'assignTagToRole' || type === 'removeTagFromRole') && (
             <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                <label htmlFor="effect-tag-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                   {type === 'assignTagToRole' ? 'Tag à assigner' : 'Tag à enlever'}
                 </label>
                 <select
+                  id="effect-tag-select"
                   value={tagId}
                   onChange={(e) => setTagId(e.target.value)}
                   className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
@@ -308,8 +446,9 @@ export const ActionEffectWindow: React.FC = () => {
                 </select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle cible</label>
+                <label htmlFor="effect-role-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle cible</label>
                 <select
+                  id="effect-role-select"
                   value={roleId}
                   onChange={(e) => setRoleId(e.target.value)}
                   className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
@@ -326,8 +465,9 @@ export const ActionEffectWindow: React.FC = () => {
           {type === 'assignTeam' && (
             <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Équipe à assigner à $Joueur</label>
+                <label htmlFor="effect-team-player-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Équipe à assigner à $Joueur</label>
                 <select
+                  id="effect-team-player-select"
                   value={teamId}
                   onChange={(e) => setTeamId(e.target.value)}
                   className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
@@ -340,8 +480,9 @@ export const ActionEffectWindow: React.FC = () => {
                 </select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Équipe à assigner au rôle du $Joueur</label>
+                <label htmlFor="effect-team-role-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Équipe à assigner au rôle du $Joueur</label>
                 <select
+                  id="effect-team-role-select"
                   value={roleTeamId}
                   onChange={(e) => setRoleTeamId(e.target.value)}
                   className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
@@ -355,48 +496,154 @@ export const ActionEffectWindow: React.FC = () => {
               </div>
             </div>
           )}
+          
+          {type === 'assignTeamToRole' && (
+            <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="effect-role-target-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle cible</label>
+                <select
+                  id="effect-role-target-select"
+                  value={roleId}
+                  onChange={(e) => setRoleId(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-indigo-500/50"
+                >
+                  {roles.length === 0 && <option value="">Aucun rôle disponible</option>}
+                  {roles.map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="effect-team-target-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Équipe à assigner</label>
+                <select
+                  id="effect-team-target-select"
+                  value={teamId}
+                  onChange={(e) => setTeamId(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                >
+                  <option value="unchanged">Ne pas modifier</option>
+                  <option value="">Aucune équipe (Retirer l'équipe)</option>
+                  {teams.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
 
-          {/* New row for variable modification */}
-          {type === 'modifyVariable' && (
+          {/* New row for variable modification and alerts */}
+          {(type === 'modifyVariable' || type === 'alertVariable' || type === 'popupVariable') && (
             <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Variable</label>
-                  <select
+                  <label htmlFor="effect-variable-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Variable</label>
+                  <input
+                    id="effect-variable-select"
+                    list="effect-variable-list"
                     value={variable}
                     onChange={(e) => setVariable(e.target.value)}
+                    placeholder="Saisissez un nom (ex: $Temp1)"
                     className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
-                  >
-                    <option value="$Ordre">$Ordre</option>
-                    <option value="$Cycle">$Cycle</option>
-                    <option value="$Jour">$Jour</option>
-                    <option value="$Nuit">$Nuit</option>
-                  </select>
+                  />
+                  <datalist id="effect-variable-list">
+                    <option value="$Ordre" />
+                    <option value="$Cycle" />
+                    <option value="$Jour" />
+                    <option value="$Nuit" />
+                  </datalist>
                </div>
-               <div className="flex gap-2">
-                  <div className="flex-1 flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Opérateur</label>
-                    <select
-                      value={operator}
-                      onChange={(e) => setOperator(e.target.value)}
-                      className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
-                    >
-                      <option value="=">=</option>
-                      <option value="+">+</option>
-                      <option value="-">-</option>
-                      <option value="*">*</option>
-                      <option value="/">/</option>
-                    </select>
-                  </div>
-                  <div className="flex-1 flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
-                    <input
-                      type="number"
-                      value={value}
-                      onChange={(e) => setValue(Number(e.target.value))}
-                      className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50 shadow-inner"
-                    />
-                  </div>
-               </div>
+               
+               {type === 'modifyVariable' && (
+                 <div className="flex gap-2">
+                    <div className="flex-1 flex flex-col gap-1.5">
+                      <label htmlFor="effect-operator-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Opérateur</label>
+                      <select
+                        id="effect-operator-select"
+                        value={operator}
+                        onChange={(e) => setOperator(e.target.value)}
+                        className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                      >
+                        <option value="=">=</option>
+                        <option value="+">+</option>
+                        <option value="-">-</option>
+                        <option value="*">*</option>
+                        <option value="/">/</option>
+                      </select>
+                    </div>
+                    <div className="flex-1 flex flex-col gap-1.5">
+                      <label htmlFor="effect-variable-value" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
+                      <input
+                        id="effect-variable-value"
+                        type="number"
+                        value={value}
+                        onChange={(e) => setValue(Number(e.target.value))}
+                        className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50 shadow-inner"
+                      />
+                    </div>
+                 </div>
+               )}
+            </div>
+          )}
+
+          {type === 'playSound' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-sound-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Effet sonore</label>
+              <select
+                id="effect-sound-select"
+                value={soundName}
+                onChange={(e) => setSoundName(e.target.value)}
+                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+              >
+                {soundboard.buttons.length === 0 && <option value="">Aucun son disponible</option>}
+                {soundboard.buttons.map(b => (
+                  <option key={b.index} value={b.name}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {type === 'showHandout' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-handout-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Document / Handout</label>
+              <select
+                id="effect-handout-select"
+                value={handoutId}
+                onChange={(e) => setHandoutId(e.target.value)}
+                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+              >
+                {handouts.length === 0 && <option value="">Aucun document disponible</option>}
+                {handouts.map(h => (
+                  <option key={h.id} value={h.id}>{h.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {type === 'sendPrivateMessage' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-private-message" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Message Privé ($Joueur)</label>
+              <textarea
+                id="effect-private-message"
+                value={privateMessage}
+                onChange={(e) => setPrivateMessage(e.target.value)}
+                placeholder="Ex: Le loup a flairé votre piste..."
+                rows={3}
+                className="w-full bg-input border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500/50 resize-none shadow-inner"
+              />
+            </div>
+          )}
+
+          {type === 'addSystemLog' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-log-message" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Message du Journal</label>
+              <textarea
+                id="effect-log-message"
+                value={logMessage}
+                onChange={(e) => setLogMessage(e.target.value)}
+                placeholder="Ex: Le joueur $Joueur a été infecté."
+                rows={3}
+                className="w-full bg-input border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500/50 resize-none shadow-inner"
+              />
+              <p className="text-[10px] text-muted-foreground px-1">Vous pouvez utiliser <strong>$Joueur</strong> et <strong>$Rôle</strong> pour insérer le nom et le rôle de la cible.</p>
             </div>
           )}
         </div>

@@ -377,6 +377,19 @@ export const initHostRealtime = (roomCode: string) => {
       console.log(`[VTT] Remote action trigger received for action ${payload.actionId}`);
       state.executeAction(payload.actionId, {});
     })
+    .on('broadcast', { event: 'remote_player_update' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      if (!state.soundboard.remoteEnabled) return;
+      if ((state.soundboard.remotePasscode || "").trim() !== (payload.passcode || "").trim()) return;
+
+      if (payload.type === 'notes') {
+        const player = state.players.find(p => p.id === payload.playerId);
+        if (player) {
+          state.updatePlayer(payload.playerId, { privateNotes: payload.notes });
+          state.addLog(`Note privée mise à jour pour ${player.name}`, 'note');
+        }
+      }
+    })
     .on('presence', { event: 'sync' }, () => {
       const state = useVttStore.getState();
       const newState = currentChannel?.presenceState() || {};
@@ -453,6 +466,7 @@ export const forceBroadcastState = () => {
       remoteShowActions: state.soundboard?.remoteShowActions ?? true,
       remoteShowPlayers: state.soundboard?.remoteShowPlayers ?? false,
       remoteShowDeadPlayers: state.soundboard?.remoteShowDeadPlayers ?? false,
+      remoteAllowPrivateNotes: state.soundboard?.remoteAllowPrivateNotes ?? false,
       cols: state.soundboard?.cols || 4,
       rows: state.soundboard?.rows || 3,
       buttons: state.soundboard.buttons.map(b => ({

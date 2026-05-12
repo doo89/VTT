@@ -192,6 +192,8 @@ export const initialState = {
   checklist: [],
   isNight: false,
   cycleNumber: 1,
+  callOrderIndex: 0,
+  customVariables: {},
   cycleMode: 'dayNight' as const,
   timer: {
     minutes: 5,
@@ -218,6 +220,7 @@ export const initialState = {
     remoteShowActions: true,
     remoteShowPlayers: false,
     remoteShowDeadPlayers: false,
+    remoteAllowPrivateNotes: false,
     remotePlayTrigger: null
   },
   scoreboard: {
@@ -1031,6 +1034,10 @@ export const useVttStore = create<VttStore>()(
                     } else if (c.cycleCheckType === '$NbMorts') {
                       isActive = true;
                       compareVal = state.players.filter((p: any) => p.isDead).length;
+                    } else if (c.cycleCheckType) {
+                      // Custom variable check
+                      isActive = true;
+                      compareVal = state.customVariables[c.cycleCheckType] || 0;
                     }
 
                     const op: string = c.operator;
@@ -1046,6 +1053,14 @@ export const useVttStore = create<VttStore>()(
                       case 'modulo': return isActive && c.value > 0 && compareVal % c.value === 0;
                       default: return isActive;
                     }
+                  }
+
+                  if (c.type === 'roleTeamCheck') {
+                    const role = state.roles.find((r: any) => r.id === c.roleId);
+                    const isTeam = (role?.teamId || null) === (c.teamId || null);
+                    if (c.operator === '=') return isTeam;
+                    if (c.operator === '!=') return !isTeam;
+                    return false;
                   }
 
                   let compareVal = 0;
@@ -1118,6 +1133,11 @@ export const useVttStore = create<VttStore>()(
                     const opLabel = c.operator === 'modulo' ? 'Tous les' : c.operator;
                     return `${c.cycleCheckType} ${opLabel} ${c.value}`;
                   }
+                  if (c.type === 'roleTeamCheck') {
+                    const roleName = state.roles.find((r: any) => r.id === c.roleId)?.name || 'Rôle Inconnu';
+                    const teamName = state.teams.find((t: any) => t.id === c.teamId)?.name || 'Aucune équipe';
+                    return `${roleName} ${c.operator} ${teamName}`;
+                  }
                   const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
                   const opLabel = c.operator === 'modulo' ? 'Tous les' : c.operator;
                   return `${typeLabel} ${opLabel} ${c.value}`;
@@ -1164,10 +1184,13 @@ export const useVttStore = create<VttStore>()(
               let nextMarkers = [...state.markers];
               let nextPlayers = [...state.players];
               let nextRoles = [...state.roles];
+              let nextTags = [...state.tags];
+              let nextCustomVars = { ...state.customVariables };
               let phaseShift = 0;
               let resetValue: number | null = null;
               let nextDisplaySettings = { ...state.displaySettings };
               let nextCycleMode = state.cycleMode;
+              let nextHandouts = [...state.handouts];
               let effectUpdates: any = {};
               
               const effectsToRun = action.effects || [];
@@ -1200,6 +1223,8 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'setCycleDayNight') nextCycleMode = 'dayNight';
                 if (effect.type === 'setCycleTurn') nextCycleMode = 'turn';
                 if (effect.type === 'setCycleNone') nextCycleMode = 'none';
+                if (effect.type === 'setDayNumber') { resetValue = effect.value || 1; effectUpdates.isNight = false; }
+                if (effect.type === 'setNightNumber') { resetValue = effect.value || 1; effectUpdates.isNight = true; }
                 if (effect.type === 'deleteSelectionPastilles') nextPlayers = nextPlayers.map(p => ({ ...p, selectionPastilles: [] }));
                 if (effect.type === 'deleteAllPlayerTags') nextPlayers = nextPlayers.map(p => ({ ...p, tags: [] }));
                 if (effect.type === 'resurrectAllPlayers') nextPlayers = nextPlayers.map(p => ({ ...p, isDead: false }));
@@ -1260,12 +1285,24 @@ export const useVttStore = create<VttStore>()(
                     }
                   }
                 }
+                if (effect.type === 'assignTeamToRole' && effect.roleId) {
+                  if (effect.teamId !== 'unchanged' && effect.teamId !== undefined) {
+                    nextRoles = nextRoles.map(r => r.id === effect.roleId ? { ...r, teamId: effect.teamId || null } : r);
+                    // Also update players who have this role
+                    nextPlayers = nextPlayers.map(p => p.roleId === effect.roleId ? { ...p, teamId: effect.teamId || null } : p);
+                  }
+                }
                 if (effect.type === 'selectPlayer') {
                   const player = actionContext['$Joueur'];
                   if (player) {
                     const ids = player._isMultiple ? player._ids : [player.id];
                     state.setSelectedEntityIds(ids);
                   }
+                }
+                if (effect.type === 'showHandout' && effect.handoutId) {
+                  nextHandouts = nextHandouts.map(h => 
+                    h.id === effect.handoutId ? { ...h, isOpen: true } : h
+                  );
                 }
                 if (effect.type === 'selectCallOrderPlayer') {
                   const calledPlayers = state.players.filter((p: any) => {
@@ -1316,17 +1353,32 @@ export const useVttStore = create<VttStore>()(
                     alert(player.name);
                   }
                 }
-                if (effect.type === 'alertDayNumber') {
-                  alert(!state.isNight ? state.cycleNumber.toString() : 'Faux');
-                }
-                if (effect.type === 'alertNightNumber') {
-                  alert(state.isNight ? state.cycleNumber.toString() : 'Faux');
-                }
-                if (effect.type === 'alertCycleNumber') {
-                  alert(state.cycleMode !== 'none' ? state.cycleNumber.toString() : 'Faux');
-                }
-                if (effect.type === 'alertCallOrder') {
-                  alert(state.callOrderIndex.toString());
+                if ((effect.type === 'alertVariable' || effect.type === 'popupVariable') && effect.variable) {
+                  let currentVal: number | string = 0;
+                  const isCustom = !['$Ordre', '$Cycle', '$Jour', '$Nuit'].includes(effect.variable);
+                  
+                  if (effect.variable === '$Ordre') currentVal = state.callOrderIndex;
+                  else if (effect.variable === '$Cycle') currentVal = state.cycleNumber;
+                  else if (effect.variable === '$Jour') currentVal = !state.isNight ? state.cycleNumber : 0;
+                  else if (effect.variable === '$Nuit') currentVal = state.isNight ? state.cycleNumber : 0;
+                  else if (isCustom) currentVal = nextCustomVars[effect.variable] || 0;
+
+                  if (effect.type === 'alertVariable') {
+                    alert(`${effect.variable} : ${currentVal}`);
+                  } else {
+                    const dynamicPopup = {
+                      id: `dynamic-var-${Date.now()}`,
+                      title: `Information`,
+                      content: `<div class="flex flex-col items-center text-center gap-4">
+                        <div class="text-lg font-medium text-muted-foreground uppercase tracking-widest">${effect.variable}</div>
+                        <div class="text-5xl font-black text-primary tracking-tighter">${currentVal}</div>
+                      </div>`,
+                      showCloseButton: true,
+                      autoCloseTimer: true
+                    };
+                    effectUpdates.customPopups = [...(effectUpdates.customPopups || state.customPopups), dynamicPopup];
+                    effectUpdates.activeCustomPopupId = dynamicPopup.id;
+                  }
                 }
                 if (effect.type === 'incrementCallOrder') {
                   state.setCallOrderIndex(state.callOrderIndex + 1);
@@ -1336,6 +1388,107 @@ export const useVttStore = create<VttStore>()(
                 }
                 if (effect.type === 'resetCallOrder') {
                   state.setCallOrderIndex(0);
+                }
+                if (effect.type === 'togglePhaseTimer') {
+                  effectUpdates.timer = {
+                    ...(effectUpdates.timer || state.timer),
+                    isRunning: !(effectUpdates.timer || state.timer).isRunning
+                  };
+                }
+                if (effect.type === 'setPhaseDuration') {
+                  const totalSeconds = Math.max(0, effect.value || 0);
+                  const minutes = Math.floor(totalSeconds / 60);
+                  const seconds = totalSeconds % 60;
+                  effectUpdates.timer = {
+                    ...(effectUpdates.timer || state.timer),
+                    minutes,
+                    seconds,
+                    isRunning: false
+                  };
+                }
+                if (effect.type === 'shuffleCallOrder') {
+                  const isNight = (state.cycleMode === 'dayNight' && state.isNight);
+                  const tagsWithOrder = nextTags.filter((t: any) => {
+                    const order = isNight ? t.callOrderNight : t.callOrderDay;
+                    return order !== null && order !== undefined && order !== '';
+                  });
+                  
+                  if (tagsWithOrder.length > 1) {
+                    const orders = tagsWithOrder.map((t: any) => isNight ? t.callOrderNight : t.callOrderDay);
+                    // Shuffle orders
+                    for (let i = orders.length - 1; i > 0; i--) {
+                      const j = Math.floor(Math.random() * (i + 1));
+                      [orders[i], orders[j]] = [orders[j], orders[i]];
+                    }
+                    // Reassign
+                    nextTags = nextTags.map((t: any) => {
+                      const idx = tagsWithOrder.findIndex((ot: any) => ot.id === t.id);
+                      if (idx !== -1) {
+                        return isNight ? { ...t, callOrderNight: orders[idx] } : { ...t, callOrderDay: orders[idx] };
+                      }
+                      return t;
+                    });
+                  }
+                }
+                if (effect.type === 'reverseCallOrder') {
+                  const isNight = (state.cycleMode === 'dayNight' && state.isNight);
+                  const tagsWithOrder = nextTags.filter((t: any) => {
+                    const order = isNight ? t.callOrderNight : t.callOrderDay;
+                    return order !== null && order !== undefined && order !== '';
+                  });
+                  
+                  if (tagsWithOrder.length > 1) {
+                    const sortedOrders = tagsWithOrder.map((t: any) => Number(isNight ? t.callOrderNight : t.callOrderDay)).sort((a, b) => a - b);
+                    const invertedOrders = [...sortedOrders].reverse();
+                    
+                    nextTags = nextTags.map((t: any) => {
+                      const order = isNight ? t.callOrderNight : t.callOrderDay;
+                      if (order !== null && order !== undefined && order !== '') {
+                        const idx = sortedOrders.indexOf(Number(order));
+                        if (idx !== -1) {
+                          return isNight ? { ...t, callOrderNight: invertedOrders[idx] } : { ...t, callOrderDay: invertedOrders[idx] };
+                        }
+                      }
+                      return t;
+                    });
+                  }
+                }
+                if (effect.type === 'sortCallOrderByStat') {
+                  const isNight = (state.cycleMode === 'dayNight' && state.isNight);
+                  const tagsWithOrder = nextTags.filter((t: any) => {
+                    const order = isNight ? t.callOrderNight : t.callOrderDay;
+                    return order !== null && order !== undefined && order !== '';
+                  });
+                  
+                  if (tagsWithOrder.length > 1) {
+                    const sortedOrders = tagsWithOrder.map((t: any) => Number(isNight ? t.callOrderNight : t.callOrderDay)).sort((a, b) => a - b);
+                    
+                    const statName = effect.variable || 'lives';
+                    const direction = effect.operator === 'desc' ? -1 : 1;
+                    
+                    const tagStats = tagsWithOrder.map((t: any) => {
+                      let statSum = 0;
+                      nextPlayers.forEach((p: any) => {
+                        const hasTagLocally = p.tags && p.tags.some((pt: any) => pt.id === t.id);
+                        const role = nextRoles.find((r: any) => r.id === p.roleId);
+                        const hasTagViaRole = role && role.tags && role.tags.some((rt: any) => rt.id === t.id);
+                        if (hasTagLocally || hasTagViaRole) {
+                          statSum += Number(p[statName] || 0);
+                        }
+                      });
+                      return { tagId: t.id, statSum };
+                    });
+                    
+                    tagStats.sort((a, b) => (a.statSum - b.statSum) * direction);
+                    
+                    nextTags = nextTags.map((t: any) => {
+                      const idx = tagStats.findIndex((ts: any) => ts.tagId === t.id);
+                      if (idx !== -1) {
+                        return isNight ? { ...t, callOrderNight: sortedOrders[idx] } : { ...t, callOrderDay: sortedOrders[idx] };
+                      }
+                      return t;
+                    });
+                  }
                 }
                 if (effect.type === 'distributeRoles') {
                   const rolesToDistribute = state.roles.filter((r: any) => r.isSelectableForDistribution);
@@ -1387,12 +1540,66 @@ export const useVttStore = create<VttStore>()(
                     effectUpdates.activeCustomPopupId = dynamicPopup.id;
                   }
                 }
+                if (effect.type === 'sendPrivateMessage' && effect.privateMessage) {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    let message = effect.privateMessage;
+                    if (message.includes('$Rôle') || message.includes('$Role')) {
+                      const roleNames = player._isMultiple
+                        ? player._ids.map((id: string) => {
+                            const p = state.players.find((p: any) => p.id === id);
+                            const r = state.roles.find((r: any) => r.id === p?.roleId);
+                            return r ? r.name : 'Inconnu';
+                          }).filter(Boolean).join(', ')
+                        : (state.roles.find((r: any) => r.id === player.roleId)?.name || 'Inconnu');
+                      message = message.replace(/\$R[oô]le/g, roleNames);
+                    }
+                    const playerNames = player._isMultiple 
+                      ? player._ids.map((id: string) => state.players.find((p: any) => p.id === id)?.name).filter(Boolean).join(',')
+                      : player.name;
+                    effectUpdates.smartphoneActionMessage = { playerName: playerNames, message: message };
+                  }
+                }
+                if (effect.type === 'addSystemLog' && effect.logMessage) {
+                  let message = effect.logMessage;
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    if (message.includes('$Joueur')) {
+                      const playerNames = player._isMultiple 
+                        ? player._ids.map((id: string) => state.players.find((p: any) => p.id === id)?.name).filter(Boolean).join(', ')
+                        : player.name;
+                      message = message.replace(/\$Joueur/g, playerNames);
+                    }
+                    if (message.includes('$Rôle') || message.includes('$Role')) {
+                      const roleNames = player._isMultiple
+                        ? player._ids.map((id: string) => {
+                            const p = state.players.find((p: any) => p.id === id);
+                            const r = state.roles.find((r: any) => r.id === p?.roleId);
+                            return r ? r.name : 'Inconnu';
+                          }).filter(Boolean).join(', ')
+                        : (state.roles.find((r: any) => r.id === player.roleId)?.name || 'Inconnu');
+                      message = message.replace(/\$R[oô]le/g, roleNames);
+                    }
+                  }
+                  state.addLog(message, 'system');
+                }
+                if (effect.type === 'playSound' && effect.soundName) {
+                  const sound = state.soundboard.buttons.find(b => b.name === effect.soundName);
+                  if (sound && sound.audioUrl) {
+                    const audio = new Audio(sound.audioUrl);
+                    audio.volume = sound.volume !== undefined ? sound.volume : 0.5;
+                    audio.play().catch(e => console.error("Error playing action sound:", e));
+                  }
+                }
                 if (effect.type === 'modifyVariable' && effect.variable) {
                   let currentVal = 0;
+                  const isCustom = !['$Ordre', '$Cycle', '$Jour', '$Nuit'].includes(effect.variable);
+                  
                   if (effect.variable === '$Ordre') currentVal = state.callOrderIndex;
                   else if (effect.variable === '$Cycle') currentVal = state.cycleNumber;
                   else if (effect.variable === '$Jour') currentVal = !state.isNight ? state.cycleNumber : 0;
                   else if (effect.variable === '$Nuit') currentVal = state.isNight ? state.cycleNumber : 0;
+                  else if (isCustom) currentVal = nextCustomVars[effect.variable] || 0;
                   
                   let nextVal = currentVal;
                   const val = effect.value || 0;
@@ -1404,8 +1611,10 @@ export const useVttStore = create<VttStore>()(
                   
                   if (effect.variable === '$Ordre') {
                     state.setCallOrderIndex(Math.max(0, nextVal));
-                  } else {
+                  } else if (effect.variable === '$Cycle' || effect.variable === '$Jour' || effect.variable === '$Nuit') {
                     effectUpdates.cycleNumber = Math.max(0, nextVal);
+                  } else if (isCustom) {
+                    nextCustomVars[effect.variable] = nextVal;
                   }
                 }
               }
@@ -1415,11 +1624,14 @@ export const useVttStore = create<VttStore>()(
                 markers: nextMarkers, 
                 players: nextPlayers, 
                 roles: nextRoles,
+                tags: nextTags,
+                customVariables: nextCustomVars,
                 displaySettings: nextDisplaySettings,
-                cycleMode: nextCycleMode 
+                cycleMode: nextCycleMode,
+                handouts: nextHandouts
               };
               if (resetValue !== null) {
-                newState.isNight = false;
+                newState.isNight = effectUpdates.isNight !== undefined ? effectUpdates.isNight : false;
                 newState.cycleNumber = resetValue;
               } else if (phaseShift !== 0) {
                 let currentIsNight = state.isNight, currentCycle = state.cycleNumber;
