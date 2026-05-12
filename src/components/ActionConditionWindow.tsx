@@ -4,6 +4,7 @@ import * as icons from 'lucide-react';
 import { X, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import type { ActionConditionType, ActionOperator } from '../types';
 import { TAG_ICONS } from './EditingModal';
+import './ActionConditionWindow.css';
 
 export const ActionConditionWindow: React.FC = () => {
   const { 
@@ -98,8 +99,16 @@ export const ActionConditionWindow: React.FC = () => {
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
 
+  const windowRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
+
+  useEffect(() => {
+    if (windowRef.current) {
+      windowRef.current.style.left = `${actionConditionCreatorState.x}px`;
+      windowRef.current.style.top = `${actionConditionCreatorState.y}px`;
+    }
+  }, [actionConditionCreatorState.x, actionConditionCreatorState.y]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -164,14 +173,11 @@ export const ActionConditionWindow: React.FC = () => {
 
   return (
     <div 
-      className={`fixed z-[3100] w-[780px] bg-card border-2 border-orange-500/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''}`}
-      style={{
-        left: actionConditionCreatorState.x,
-        top: actionConditionCreatorState.y,
-      }}
+      ref={windowRef}
+      className={`action-condition-window animate-in zoom-in-95 duration-200 ${isDragging ? 'action-condition-window-dragging' : ''}`}
     >
       <div 
-        className="px-4 py-2 bg-orange-500/10 border-b border-orange-500/20 flex items-center justify-between cursor-move group select-none"
+        className="px-4 py-2 bg-zinc-950 border-b border-orange-500/40 flex items-center justify-between cursor-move group select-none"
         onMouseDown={(e) => {
           setIsDragging(true);
           dragStartRef.current = {
@@ -183,18 +189,21 @@ export const ActionConditionWindow: React.FC = () => {
         }}
       >
         <div className="flex items-center gap-2 text-orange-400">
-          <span className="font-bold text-sm tracking-tight text-foreground uppercase">Conditions d'actions</span>
+          <span className="font-bold text-sm tracking-tight text-white uppercase">Conditions d'actions</span>
         </div>
         <button 
+          type="button"
           onClick={handleClose}
           onMouseDown={e => e.stopPropagation()}
-          className="p-1.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-full transition-all"
+          className="p-1.5 hover:bg-white/10 text-zinc-400 hover:text-white rounded-full transition-all"
+          title="Fermer"
+          aria-label="Fermer la fenêtre"
         >
           <X size={16} />
         </button>
       </div>
 
-      <div className="p-3.5 flex flex-col gap-3.5 bg-background/50 overflow-y-auto max-h-[75vh] custom-scrollbar">
+      <div className="p-3.5 flex flex-col gap-3.5 bg-background overflow-y-auto max-h-[75vh] custom-scrollbar">
         
         {/* Groupe : Autre */}
         <div className="flex flex-col bg-orange-500/5 rounded-xl border border-orange-500/10 shadow-sm transition-all hover:bg-orange-500/[0.08]">
@@ -208,11 +217,12 @@ export const ActionConditionWindow: React.FC = () => {
           </button>
           <div className={`px-2.5 pb-2.5 transition-all duration-300 origin-top flex flex-col gap-1.5 ${isAutreExpanded ? 'opacity-100' : 'hidden opacity-0 overflow-hidden'}`}>
             <div className="flex items-center justify-between px-2 py-1">
-              <div className="flex flex-col gap-0.5">
+              <label htmlFor="action-once" className="flex flex-col gap-0.5 cursor-pointer">
                 <span className="text-xs font-bold text-foreground">Une seule fois</span>
                 <span className="text-[10px] text-muted-foreground">L'action se désactivera après sa première exécution réussie</span>
-              </div>
+              </label>
               <input
+                id="action-once"
                 type="checkbox"
                 checked={pendingActionOnce}
                 onChange={(e) => setPendingOnce(e.target.checked)}
@@ -222,12 +232,13 @@ export const ActionConditionWindow: React.FC = () => {
             <div className="h-px bg-border/20 my-1" />
             <div className="flex items-center gap-3 px-2 py-1">
               <input
+                id="action-recurring"
                 type="checkbox"
                 checked={pendingActionIsRecurring}
                 onChange={(e) => setPendingRecurring(e.target.checked, pendingActionIntervalSeconds, pendingActionRepeatCount)}
                 className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer shrink-0"
               />
-              <div className={`flex items-center gap-1.5 text-xs transition-opacity duration-200 ${!pendingActionIsRecurring ? 'opacity-50 grayscale' : 'opacity-100'}`}>
+              <label htmlFor="action-recurring" className={`flex items-center gap-1.5 text-xs transition-opacity duration-200 cursor-pointer ${!pendingActionIsRecurring ? 'opacity-50 grayscale' : 'opacity-100'}`}>
                 <span className="font-medium">Exécuter toutes les</span>
                 <input
                   disabled={!pendingActionIsRecurring}
@@ -247,17 +258,18 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-12 bg-input border border-border rounded-lg px-2 py-1 text-center font-bold outline-none"
                 />
                 <span className="font-medium">fois.</span>
-              </div>
+              </label>
             </div>
             <div className="h-px bg-border/20 my-1" />
             <div className="flex items-center gap-3 px-2 py-1">
               <input
+                id="action-delay"
                 type="checkbox"
                 checked={pendingActionDelaySeconds > 0}
                 onChange={(e) => setPendingDelay(e.target.checked ? 5 : 0)}
                 className="w-5 h-5 rounded border-border text-orange-500 focus:ring-orange-500 transition-all cursor-pointer shrink-0"
               />
-              <div className={`flex items-center gap-1.5 text-xs transition-opacity duration-200 ${pendingActionDelaySeconds === 0 ? 'opacity-50 grayscale' : 'opacity-100'}`}>
+              <label htmlFor="action-delay" className={`flex items-center gap-1.5 text-xs transition-opacity duration-200 cursor-pointer ${pendingActionDelaySeconds === 0 ? 'opacity-50 grayscale' : 'opacity-100'}`}>
                 <span className="font-medium">Attendre :</span>
                 <input
                   disabled={pendingActionDelaySeconds === 0}
@@ -268,7 +280,7 @@ export const ActionConditionWindow: React.FC = () => {
                   className="w-12 bg-input border border-border rounded-lg px-2 py-1 text-center font-bold outline-none"
                 />
                 <span className="font-medium">secondes avant d'exécuter l'action.</span>
-              </div>
+              </label>
             </div>
           </div>
         </div>
@@ -290,9 +302,10 @@ export const ActionConditionWindow: React.FC = () => {
             {/* Consolidated Cycle Check */}
             <div className={`flex items-end gap-3 transition-all duration-300 ${!['cycleCheck', 'day', 'night', 'turn'].includes(type) ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+                <label htmlFor="cycle-enabled" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 cursor-pointer">Actif</label>
                 <div className="flex items-center h-[38px] justify-center px-1">
                   <input
+                    id="cycle-enabled"
                     type="checkbox"
                     checked={['cycleCheck', 'day', 'night', 'turn'].includes(type) && enabled}
                     onChange={() => {
@@ -311,8 +324,9 @@ export const ActionConditionWindow: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Variable</label>
+                <label htmlFor="cycle-variable" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Variable</label>
                 <select
+                  id="cycle-variable"
                   disabled={!enabled || !['cycleCheck', 'day', 'night', 'turn'].includes(type)}
                   value={
                     type === 'day' ? '$Jour' :
@@ -342,8 +356,9 @@ export const ActionConditionWindow: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">OP.</label>
+                <label htmlFor="cycle-operator" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">OP.</label>
                 <select
+                  id="cycle-operator"
                   disabled={!enabled || !['cycleCheck', 'day', 'night', 'turn'].includes(type)}
                   value={operator}
                   onChange={(e) => setOperator(e.target.value as ActionOperator)}
@@ -361,8 +376,9 @@ export const ActionConditionWindow: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1 flex-[0.7]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
+                <label htmlFor="cycle-value" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Valeur</label>
                 <input
+                  id="cycle-value"
                   disabled={!enabled || !['cycleCheck', 'day', 'night', 'turn'].includes(type) || operator === ''}
                   type="number"
                   value={value}
@@ -392,9 +408,10 @@ export const ActionConditionWindow: React.FC = () => {
             <div className={`flex flex-col gap-4 transition-all duration-300 ${!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex items-end gap-3">
                 <div className="flex flex-col gap-1.5 pb-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+                  <label htmlFor="distance-enabled" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 cursor-pointer">Actif</label>
                   <div className="flex items-center h-[38px] justify-center">
                     <input
+                      id="distance-enabled"
                       type="checkbox"
                       checked={['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) && enabled}
                       onChange={() => {
@@ -411,8 +428,9 @@ export const ActionConditionWindow: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1 flex-[0.6]">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Unité</label>
+                  <label htmlFor="distance-unit" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Unité</label>
                   <select
+                    id="distance-unit"
                     disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) || !enabled}
                     value={distanceUnit || 'logical'}
                     onChange={(e) => setDistanceUnit(e.target.value as any)}
@@ -426,12 +444,13 @@ export const ActionConditionWindow: React.FC = () => {
 
               <div className="flex items-start gap-3">
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur Source</label>
+                  <label htmlFor="distance-source-player" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur Source</label>
                   <select
+                    id="distance-source-player"
                     disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) || !enabled}
                     value={distanceFromPlayerId || '$Joueur'}
                     onChange={(e) => setDistanceFromPlayerId(e.target.value)}
-                    className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="$Joueur">$Joueur</option>
                     <option value="$Selected">Joueur(s) sélectionné(s)</option>
@@ -443,8 +462,9 @@ export const ActionConditionWindow: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type Cible</label>
+                  <label htmlFor="distance-target-type" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type Cible</label>
                   <select
+                    id="distance-target-type"
                     disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) || !enabled}
                     value={
                       type === 'playerDistance' ? 'ROLE' :
@@ -478,9 +498,10 @@ export const ActionConditionWindow: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cible</label>
+                  <label htmlFor="distance-target-value" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Cible</label>
                   {type === 'playerDistance' ? (
                     <select
+                      id="distance-target-value"
                       disabled={!enabled}
                       value={distanceTargetRoleId || ''}
                       onChange={(e) => setDistanceTargetRoleId(e.target.value)}
@@ -492,6 +513,7 @@ export const ActionConditionWindow: React.FC = () => {
                     </select>
                   ) : type === 'playerDistanceTag' ? (
                     <select
+                      id="distance-target-value"
                       disabled={!enabled}
                       value={tagId || ''}
                       onChange={(e) => setTagId(e.target.value)}
@@ -502,7 +524,7 @@ export const ActionConditionWindow: React.FC = () => {
                       ))}
                     </select>
                   ) : type === 'playerDistancePastille' ? (
-                    <div className="flex flex-wrap gap-1 bg-input border border-border rounded-lg p-1 max-h-24 overflow-y-auto custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed">
+                    <div id="distance-target-value" className="flex flex-wrap gap-1 bg-input border border-border rounded-lg p-1 max-h-24 overflow-y-auto custom-scrollbar disabled:opacity-50 disabled:cursor-not-allowed">
                       {allIcons.map((iconName: string) => {
                         const IconComp = (icons as any)[iconName];
                         if (!IconComp) return null;
@@ -517,6 +539,8 @@ export const ActionConditionWindow: React.FC = () => {
                                 ? 'bg-orange-500 text-white shadow-sm'
                                 : 'hover:bg-accent text-muted-foreground'
                             }`}
+                            title={iconName}
+                            aria-label={iconName}
                           >
                             <IconComp size={14} />
                           </button>
@@ -525,6 +549,7 @@ export const ActionConditionWindow: React.FC = () => {
                     </div>
                   ) : type === 'playerDistanceTeam' ? (
                     <select
+                      id="distance-target-value"
                       disabled={!enabled}
                       value={distanceTargetTeamId || ''}
                       onChange={(e) => setDistanceTargetTeamId(e.target.value)}
@@ -536,6 +561,7 @@ export const ActionConditionWindow: React.FC = () => {
                     </select>
                   ) : type === 'playerDistanceStatus' ? (
                     <select
+                      id="distance-target-value"
                       disabled={!enabled}
                       value={distanceTargetStatus || 'alive'}
                       onChange={(e) => setDistanceTargetStatus(e.target.value as any)}
@@ -562,8 +588,9 @@ export const ActionConditionWindow: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Min {distanceUnit === 'physical' ? '(px)' : '(idx)'}</label>
+                  <label htmlFor="distance-min" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Min {distanceUnit === 'physical' ? '(px)' : '(idx)'}</label>
                   <input
+                    id="distance-min"
                     disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) || !enabled}
                     type="number"
                     value={minValue}
@@ -577,8 +604,9 @@ export const ActionConditionWindow: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Max {distanceUnit === 'physical' ? '(px)' : '(idx)'}</label>
+                  <label htmlFor="distance-max" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Max {distanceUnit === 'physical' ? '(px)' : '(idx)'}</label>
                   <input
+                    id="distance-max"
                     disabled={!['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(type) || !enabled}
                     type="number"
                     value={maxValue}
@@ -609,10 +637,11 @@ export const ActionConditionWindow: React.FC = () => {
             {/* Consolidated Identity Selection */}
             <div className={`flex items-end gap-3 transition-all duration-300 ${!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) ? 'opacity-40 grayscale-[0.5]' : 'opacity-100'}`}>
               <div className="flex flex-col gap-1.5 pb-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Actif</label>
+                <label htmlFor="identity-enabled" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 cursor-pointer">Actif</label>
                 <div className="flex items-center h-[38px] justify-center">
                   <span className="text-[11px] font-black text-muted-foreground mr-1.5 opacity-50">2.</span>
                   <input
+                    id="identity-enabled"
                     type="checkbox"
                     checked={['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) && enabled}
                     onChange={() => {
@@ -630,8 +659,9 @@ export const ActionConditionWindow: React.FC = () => {
               </div>
               
               <div className="flex flex-col gap-1 flex-[1.2]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
+                <label htmlFor="identity-selection-type" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
+                  id="identity-selection-type"
                   disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) || !enabled}
                   value={selectionType || 'all'}
                   onChange={(e) => setSelectionType(e.target.value as any)}
@@ -646,6 +676,7 @@ export const ActionConditionWindow: React.FC = () => {
                 </select>
                 {selectionType === 'numeric' && (
                   <input
+                    id="identity-numeric-index"
                     disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) || !enabled}
                     type="number"
                     min="1"
@@ -653,13 +684,15 @@ export const ActionConditionWindow: React.FC = () => {
                     onChange={(e) => setValue(parseInt(e.target.value) || 1)}
                     className="w-full mt-1.5 bg-input border border-border rounded-lg px-2 py-1 text-xs outline-none transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Ordre..."
+                    aria-label="Index de sélection numérique"
                   />
                 )}
               </div>
 
               <div className="flex flex-col gap-1 flex-[0.5]">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
+                <label htmlFor="identity-operator" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
                 <select
+                  id="identity-operator"
                   disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) || !enabled}
                   value={operator}
                   onChange={(e) => setOperator(e.target.value as ActionOperator)}
@@ -671,8 +704,9 @@ export const ActionConditionWindow: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type</label>
+                <label htmlFor="identity-target-type" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type</label>
                 <select
+                  id="identity-target-type"
                   disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam'].includes(type) || !enabled}
                   value={
                     type === 'playerSelectionRole' || type === 'playerSelection' ? 'ROLE' :
@@ -700,9 +734,10 @@ export const ActionConditionWindow: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1 flex-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Sélection</label>
+                <label htmlFor="identity-selection-value" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Sélection</label>
                 {type === 'playerSelectionRole' || type === 'playerSelection' ? (
                   <select
+                    id="identity-selection-value"
                     disabled={!enabled}
                     value={selectionRoleId || ''}
                     onChange={(e) => setSelectionRoleId(e.target.value)}
@@ -714,6 +749,7 @@ export const ActionConditionWindow: React.FC = () => {
                   </select>
                 ) : type === 'playerSelectionTag' ? (
                   <select
+                    id="identity-selection-value"
                     disabled={!enabled}
                     value={tagId || ''}
                     onChange={(e) => setTagId(e.target.value)}
@@ -726,6 +762,7 @@ export const ActionConditionWindow: React.FC = () => {
                 ) : type === 'playerSelectionPastille' ? (
                   <div className="flex items-center gap-2">
                     <select
+                      id="identity-selection-value"
                       disabled={!enabled}
                       value={pastilleIcon || ''}
                       onChange={(e) => setPastilleIcon(e.target.value)}
@@ -743,6 +780,7 @@ export const ActionConditionWindow: React.FC = () => {
                   </div>
                 ) : type === 'playerSelectionTeam' ? (
                   <select
+                    id="identity-selection-value"
                     disabled={!enabled}
                     value={selectionTeamId || ''}
                     onChange={(e) => setSelectionTeamId(e.target.value)}

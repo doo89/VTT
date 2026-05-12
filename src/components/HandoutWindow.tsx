@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useVttStore } from '../store';
+import './HandoutWindow.css';
 import { X, Maximize2, Minimize2, ExternalLink } from 'lucide-react';
 import type { Handout } from '../types';
 
@@ -50,25 +51,22 @@ export const HandoutWindow: React.FC<HandoutWindowProps> = ({ handout }) => {
     };
   }, [isDragging, dragStart, windowStart, handout.id, handout.isMaximized, updateHandout]);
 
-  // If maximized, ignore x/y and cover screen
-  const style: React.CSSProperties = handout.isMaximized ? {
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90vw',
-    height: '90vh',
-  } : {
-    top: handout.y,
-    left: handout.x,
-    width: handout.width,
-    height: handout.height,
-  };
+  // Update dynamic styles via ref to avoid using the 'style' prop in JSX
+  useEffect(() => {
+    if (windowRef.current) {
+      windowRef.current.style.setProperty('--handout-x', `${handout.x}px`);
+      windowRef.current.style.setProperty('--handout-y', `${handout.y}px`);
+      windowRef.current.style.setProperty('--handout-width', `${handout.width}px`);
+      windowRef.current.style.setProperty('--handout-height', `${handout.height}px`);
+    }
+  }, [handout.x, handout.y, handout.width, handout.height]);
 
   return (
     <div
       ref={windowRef}
-      className={`absolute z-[100] bg-card border border-border rounded-lg shadow-2xl flex flex-col overflow-hidden transition-all ${handout.isMaximized ? 'duration-300' : 'duration-0'}`}
-      style={style}
+      className={`handout-window absolute z-[100] bg-card border border-border rounded-lg shadow-2xl flex flex-col overflow-hidden transition-all ${
+        handout.isMaximized ? 'handout-window-maximized duration-300' : 'duration-0'
+      }`}
       onMouseDown={handleMouseDown}
     >
       {/* Header */}
@@ -107,19 +105,19 @@ export const HandoutWindow: React.FC<HandoutWindowProps> = ({ handout }) => {
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-auto custom-scrollbar relative bg-black/5 flex items-center justify-center">
+      <div className="handout-body custom-scrollbar">
         {handout.type === 'pdf' ? (
           <iframe
             src={`${handout.imageUrl}#toolbar=0`}
-            className="w-full h-full border-none bg-white"
+            className="handout-iframe"
             title={handout.name}
           />
         ) : (
-          <div className="p-2 w-full h-full flex items-center justify-center">
+          <div className="handout-image-wrapper">
             <img
               src={handout.imageUrl}
               alt={handout.name}
-              className={`object-contain ${handout.isMaximized ? 'max-w-full max-h-full' : 'w-full h-full'}`}
+              className={`handout-image ${handout.isMaximized ? 'handout-image-maximized' : 'handout-image-normal'}`}
               draggable={false}
             />
           </div>

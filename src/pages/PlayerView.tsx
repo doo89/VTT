@@ -403,7 +403,24 @@ export const PlayerView: React.FC = () => {
       <div className="flex items-center justify-between border-b border-zinc-800 pb-4 mb-6 z-10">
         <div className="flex flex-col">
           <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Salle : {roomId}</span>
-          <h2 className="text-xl font-bold tracking-tight text-white truncate max-w-[200px]">{decodeURIComponent(playerName || 'Joueur')}</h2>
+          <div className="flex items-center gap-2 mt-1">
+            {localPlayer && (
+              <div 
+                className={`shrink-0 ${localPlayer.shape === 'circle' ? 'rounded-full' : 'rounded-sm'}`}
+                style={{ 
+                  width: '1.2rem', 
+                  height: '1.2rem', 
+                  backgroundColor: localPlayer.color || '#3b82f6',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  clipPath: localPlayer.shape === 'pentagon' ? 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)' :
+                            localPlayer.shape === 'hexagon' ? 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)' :
+                            localPlayer.shape === 'star' ? 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' : 
+                            'none'
+                }}
+              />
+            )}
+            <h2 className="text-xl font-bold tracking-tight text-white truncate max-w-[200px]">{decodeURIComponent(playerName || 'Joueur')}</h2>
+          </div>
         </div>
         <button
           onClick={() => navigate('/join')}

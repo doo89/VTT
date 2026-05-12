@@ -224,6 +224,8 @@ export const ActionEffectWindow: React.FC = () => {
               <option value="deleteSelectionPastilles">Supprimer les pastilles tags</option>
               <option value="deleteAllTags">Supprimer tous les tags dans la salle</option>
               <option value="deleteAllPlayerTags">Supprimer tous les tags des joueurs</option>
+              <option value="showTimerOnSmartphone">Afficher le chronomètre (Smartphone)</option>
+              <option value="hideTimerOnSmartphone">Masquer le chronomètre (Smartphone)</option>
               <option value="wait">Attendre x secondes</option>
             </select>
           </div>

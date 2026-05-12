@@ -2,6 +2,21 @@ import { Plus, Trash2, Edit2, ChevronDown, ChevronRight, icons, ChevronsUpDown, 
 import React, { useState, useMemo } from 'react';
 import { useVttStore } from '../../../store';
 import { ColorPicker } from '../../ColorPicker';
+import './RolesTab.css';
+
+const DynamicColor: React.FC<{ color: string; children?: React.ReactNode; className?: string; isBackground?: boolean }> = ({ color, children, className, isBackground }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (ref.current) {
+      if (isBackground) {
+        ref.current.style.backgroundColor = color;
+      } else {
+        ref.current.style.color = color;
+      }
+    }
+  }, [color, isBackground]);
+  return <div ref={ref} className={className}>{children}</div>;
+};
 
 export const RolesTab: React.FC = () => {
   const { roles, teams, setEditingEntity, addRole, updateRole, deleteRole } = useVttStore();
@@ -141,14 +156,14 @@ export const RolesTab: React.FC = () => {
                       <div className="flex items-center gap-2">
                         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                         {team ? (
-                          <div className="flex items-center gap-1.5" style={{ color: team.color }}>
+                          <DynamicColor color={team.color} className="team-header-content">
                             {team.imageUrl ? (
-                              <img src={team.imageUrl} className="w-3.5 h-3.5 rounded-full object-cover" alt="" />
+                              <img src={team.imageUrl} className="team-image-icon" alt="" />
                             ) : (
                               TeamIcon && React.createElement(TeamIcon, { size: 14 })
                             )}
                             {team.name}
-                          </div>
+                          </DynamicColor>
                         ) : (
                           <span className="text-muted-foreground">Sans Équipe</span>
                         )}
@@ -171,10 +186,11 @@ export const RolesTab: React.FC = () => {
                                 className="w-4 h-4 rounded border-border text-primary focus:ring-ring cursor-pointer"
                                 title="Sélectionner pour la distribution aléatoire"
                               />
-                              <div
-                                className="w-4 h-4 rounded-sm border border-border"
-                                style={{ backgroundColor: role.color }}
-                              />
+                                <DynamicColor 
+                                  color={role.color} 
+                                  isBackground 
+                                  className="role-color-preview" 
+                                />
                               <div className="flex flex-col">
                                 <span className="text-sm font-medium leading-none">{role.name}</span>
                                 <span className="text-[10px] text-muted-foreground mt-1">

@@ -191,6 +191,12 @@ export const RightPanel: React.FC = () => {
           addLog(`Distribution : ${player.name} reçoit ${role.name}`, 'role');
         }
       });
+
+      if (displaySettings.distributionActionId) {
+        setTimeout(() => {
+          executeAction(displaySettings.distributionActionId!);
+        }, 100);
+      }
     }
   };
 

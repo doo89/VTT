@@ -153,7 +153,7 @@ export interface MagneticPoint {
   order: number;
 }
 
-export type PlayerShape = 'circle' | 'square' | 'oval' | 'triangle' | 'trapezoid' | 'octagon' | 'star' | 'pentagon';
+export type PlayerShape = 'circle' | 'square' | 'oval' | 'triangle' | 'trapezoid' | 'octagon' | 'star' | 'pentagon' | 'hexagon';
 
 export type BadgeType = 'none' | 'team' | 'lives' | 'votes' | 'points' | 'uses' | 'callOrderDay' | 'callOrderNight' | 'connection' | 'creationOrder' | 'sleeping';
 
@@ -209,6 +209,12 @@ export interface SoundboardState {
   buttons: SoundButton[];
   remoteEnabled: boolean;
   remotePasscode: string;
+  remoteShowSounds?: boolean;
+  remoteShowTasks?: boolean;
+  remoteShowHandouts?: boolean;
+  remoteShowActions?: boolean;
+  remoteShowPlayers?: boolean;
+  remoteShowDeadPlayers?: boolean;
   remotePlayTrigger?: { index: number, timestamp: number } | null;
 }
 
@@ -328,6 +334,8 @@ export type ActionEffectType =
   | 'assignTagToRole'
   | 'removeTagFromRole'
   | 'assignTeam'
+  | 'showTimerOnSmartphone'
+  | 'hideTimerOnSmartphone'
   | 'wait';
 
 export interface ActionEffect {
@@ -589,5 +597,6 @@ export interface GameState {
     magneticPointsColor?: string;
     magneticPointsSnapMode?: 'nearest' | 'order';
     magneticPointsFreeSnap?: boolean;
+    distributionActionId?: string | null;
   };
 }

@@ -1,0 +1,31 @@
+.canvas-grid {
+  background-image: linear-gradient(to right, currentColor 1px, transparent 1px), 
+                    linear-gradient(to bottom, currentColor 1px, transparent 1px);
+  background-size: var(--grid-size-x) var(--grid-size-y);
+  background-position: var(--grid-pos-x) var(--grid-pos-y);
+}
+
+/* On peut aussi en profiter pour déplacer d'autres styles statiques si besoin */
+.room-area {
+  border: 2px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+  pointer-events: none;
+  background-color: var(--room-bg-color);
+  background-image: var(--room-bg-image);
+  background-repeat: var(--room-bg-repeat);
+  background-position: var(--room-bg-pos);
+  background-size: var(--room-bg-size);
+  width: var(--room-width);
+  height: var(--room-height);
+  left: var(--room-left);
+  top: var(--room-top);
+}
+
+.infinite-canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform: translate(var(--canvas-pan-x), var(--canvas-pan-y)) scale(var(--canvas-zoom));
+}

@@ -326,6 +326,7 @@ export const initHostRealtime = (roomCode: string) => {
       
       const hostPasscode = (state.soundboard.remotePasscode || "").trim();
       const clientPasscode = (payload.passcode || "").trim();
+      console.log(`[VTT] soundboard_action reçu de la télécommande. Index: ${payload.index}, Passcode client: "${clientPasscode}", Passcode hôte: "${hostPasscode}"`);
       
       if (hostPasscode !== clientPasscode) {
         console.warn("[VTT] Remote soundboard action ignored: invalid passcode.");
@@ -367,6 +368,14 @@ export const initHostRealtime = (roomCode: string) => {
           item.id === payload.itemId ? { ...item, collapsed: !item.collapsed } : item
         ));
       }
+    })
+    .on('broadcast', { event: 'action_trigger' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      if (!state.soundboard.remoteEnabled) return;
+      if ((state.soundboard.remotePasscode || "").trim() !== (payload.passcode || "").trim()) return;
+      
+      console.log(`[VTT] Remote action trigger received for action ${payload.actionId}`);
+      state.executeAction(payload.actionId, {});
     })
     .on('presence', { event: 'sync' }, () => {
       const state = useVttStore.getState();
@@ -437,9 +446,15 @@ export const forceBroadcastState = () => {
       referenceImageUrl: stripImage((h as any).referenceImageUrl),
     })),
     soundboard: {
-      remoteEnabled: state.soundboard.remoteEnabled,
-      cols: state.soundboard.cols,
-      rows: state.soundboard.rows,
+      remoteEnabled: state.soundboard?.remoteEnabled || false,
+      remoteShowSounds: state.soundboard?.remoteShowSounds ?? true,
+      remoteShowTasks: state.soundboard?.remoteShowTasks ?? true,
+      remoteShowHandouts: state.soundboard?.remoteShowHandouts ?? true,
+      remoteShowActions: state.soundboard?.remoteShowActions ?? true,
+      remoteShowPlayers: state.soundboard?.remoteShowPlayers ?? false,
+      remoteShowDeadPlayers: state.soundboard?.remoteShowDeadPlayers ?? false,
+      cols: state.soundboard?.cols || 4,
+      rows: state.soundboard?.rows || 3,
       buttons: state.soundboard.buttons.map(b => ({
         index: b.index,
         name: b.name,
@@ -467,6 +482,7 @@ export const forceBroadcastState = () => {
     activeCustomPopupId: state.activeCustomPopupId,
     smartphoneCountdown: state.smartphoneCountdown,
     timer: state.timer,
+    actions: state.actions.map(a => ({ id: a.id, name: a.name, enabled: a.enabled })),
   };
 
   const payloadSize = JSON.stringify(payload).length;

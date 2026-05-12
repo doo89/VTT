@@ -2,12 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
 import * as icons from 'lucide-react';
 import { Music, X, Settings, Repeat } from 'lucide-react';
+import './DetachedSoundboard.css';
 
 import { getChannel } from '../lib/realtime-host';
 
 export const DetachedSoundboard: React.FC = () => {
   const { soundboard, setSoundboard, setEditingEntity } = useVttStore();
   const [isDragging, setIsDragging] = useState(false);
+  const windowRef = useRef<HTMLDivElement>(null);
+  const buttonRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
+  const progressRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
 
   // Track playing audios to toggle/pause them
@@ -47,47 +51,6 @@ export const DetachedSoundboard: React.FC = () => {
       payload: { playingIndices: playing }
     }).catch(() => {});
   };
-
-  const lastTriggerTimestamp = useRef<number | null>(null);
-  useEffect(() => {
-    if (soundboard.remotePlayTrigger && soundboard.remotePlayTrigger.timestamp !== lastTriggerTimestamp.current) {
-      lastTriggerTimestamp.current = soundboard.remotePlayTrigger.timestamp;
-      handleButtonClick(soundboard.remotePlayTrigger.index);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [soundboard.remotePlayTrigger]);
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (!(e.target as HTMLElement).closest('.drag-handle')) return;
-    setIsDragging(true);
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      initX: soundboard.x,
-      initY: soundboard.y
-    };
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging || !dragRef.current) return;
-    const dx = e.clientX - dragRef.current.startX;
-    const dy = e.clientY - dragRef.current.startY;
-    setSoundboard({
-      x: dragRef.current.initX + dx,
-      y: dragRef.current.initY + dy
-    });
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (isDragging) {
-      setIsDragging(false);
-      e.currentTarget.releasePointerCapture(e.pointerId);
-      dragRef.current = null;
-    }
-  };
-
-  const totalButtons = soundboard.cols * soundboard.rows;
 
   const handleButtonClick = (index: number) => {
     const btn = soundboard.buttons.find(b => b.index === index);
@@ -132,7 +95,84 @@ export const DetachedSoundboard: React.FC = () => {
       setAudioStates(prev => ({ ...prev, [index]: { isPlaying: false, progress: 0 } }));
     } else {
       audio.loop = !btn.isOneShot;
-      audio.play().catch(e => console.error("Audio playback error", e));
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+          if (e.name !== 'AbortError') {
+            console.error("Audio playback error", e);
+          }
+        });
+      }
+    }
+  };
+
+  const lastTriggerTimestamp = useRef<number | null>(null);
+  useEffect(() => {
+    if (soundboard.remotePlayTrigger && soundboard.remotePlayTrigger.timestamp !== lastTriggerTimestamp.current) {
+      lastTriggerTimestamp.current = soundboard.remotePlayTrigger.timestamp;
+      handleButtonClick(soundboard.remotePlayTrigger.index);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soundboard.remotePlayTrigger]);
+
+  // Update window transition via ref
+  useEffect(() => {
+    if (windowRef.current) {
+      windowRef.current.style.transition = isDragging ? 'none' : 'opacity 0.2s';
+    }
+  }, [isDragging]);
+
+  // Update all button styles via refs
+  useEffect(() => {
+    buttonRefs.current.forEach((el, i) => {
+      const btn = soundboard.buttons.find(b => b.index === i);
+      const isPlaying = audioStates[i]?.isPlaying || false;
+      
+      el.style.setProperty('--btn-color', btn?.color || 'transparent');
+      el.style.setProperty('--btn-bg-image', btn?.imageUrl ? `url(${btn.imageUrl})` : 'none');
+      el.style.setProperty('--is-playing', isPlaying ? '1' : '0');
+    });
+  }, [soundboard.buttons, audioStates]);
+
+  // Update progress bars
+  useEffect(() => {
+    progressRefs.current.forEach((el, i) => {
+      const state = audioStates[i];
+      const btn = soundboard.buttons.find(b => b.index === i);
+      if (state?.isPlaying) {
+        el.style.width = `${state.progress}%`;
+        el.style.backgroundColor = btn?.color || '#fff';
+      }
+    });
+  }, [audioStates, soundboard.buttons]);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (!(e.target as HTMLElement).closest('.drag-handle')) return;
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initX: soundboard.x,
+      initY: soundboard.y
+    };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging || !dragRef.current) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    setSoundboard({
+      x: dragRef.current.initX + dx,
+      y: dragRef.current.initY + dy
+    });
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (isDragging) {
+      setIsDragging(false);
+      e.currentTarget.releasePointerCapture(e.pointerId);
+      dragRef.current = null;
     }
   };
 
@@ -141,15 +181,19 @@ export const DetachedSoundboard: React.FC = () => {
     setEditingEntity({ type: 'soundButton', id: index.toString() });
   };
 
-  if (!soundboard.isDetached) return null;
+  if (!soundboard.isDetached) {
+    return null;
+  }
+
+  const totalButtons = soundboard.cols * soundboard.rows;
 
   return (
     <div
-      className="absolute bg-card border border-border shadow-2xl rounded-xl overflow-hidden flex flex-col z-[150] touch-none min-w-[300px]"
-      style={{
-        left: soundboard.x,
-        top: soundboard.y,
-        transition: isDragging ? 'none' : 'opacity 0.2s',
+      ref={windowRef}
+      className="detached-soundboard z-[150] touch-none"
+      style={{ 
+        left: `${soundboard.x}px`, 
+        top: `${soundboard.y}px` 
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -162,7 +206,7 @@ export const DetachedSoundboard: React.FC = () => {
         </div>
         <button
           onPointerDown={(e) => {
-            e.stopPropagation(); // Stop drag from initiating
+            e.stopPropagation();
             setSoundboard({ isDetached: false });
           }}
           className="p-1 hover:bg-accent hover:text-foreground text-muted-foreground rounded transition-colors z-50 pointer-events-auto"
@@ -173,8 +217,9 @@ export const DetachedSoundboard: React.FC = () => {
       </div>
 
       <div
-        className="p-4 grid gap-2"
-        style={{
+        className="soundboard-grid p-4"
+        style={{ 
+          display: 'grid',
           gridTemplateColumns: `repeat(${soundboard.cols}, minmax(0, 1fr))`,
           gridTemplateRows: `repeat(${soundboard.rows}, minmax(0, 1fr))`
         }}
@@ -184,35 +229,27 @@ export const DetachedSoundboard: React.FC = () => {
           const hasSound = !!btn && !!btn.audioUrl;
           const state = audioStates[i];
           const isPlaying = state?.isPlaying || false;
-          const progress = state?.progress || 0;
 
           const IconComponent = btn?.icon && icons[btn.icon as keyof typeof icons] ? icons[btn.icon as keyof typeof icons] : Music;
 
           return (
             <button
               key={i}
+              ref={el => { if (el) buttonRefs.current.set(i, el); else buttonRefs.current.delete(i); }}
               onClick={() => handleButtonClick(i)}
               onContextMenu={(e) => handleButtonContextMenu(e, i)}
-              className={`relative aspect-square rounded-md flex flex-col items-center justify-center p-1 text-center transition-all border overflow-hidden ${
+              className={`soundboard-btn ${
                 hasSound
-                  ? 'bg-primary border-primary text-primary-foreground hover:bg-primary/90'
-                  : 'bg-muted border-dashed border-muted-foreground/30 hover:bg-accent text-muted-foreground hover:text-foreground'
+                  ? 'soundboard-btn-active'
+                  : 'soundboard-btn-empty'
               }`}
-              style={{
-                boxShadow: isPlaying && btn?.color ? `0 0 15px ${btn.color}, inset 0 0 10px ${btn.color}40` : undefined,
-                borderColor: isPlaying && btn?.color ? btn.color : undefined,
-                backgroundImage: btn?.imageUrl ? `url(${btn.imageUrl})` : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                textShadow: btn?.imageUrl ? '0 1px 3px rgba(0,0,0,0.8)' : undefined
-              }}
             >
               {btn?.imageUrl && <div className="absolute inset-0 bg-black/40 z-0" />}
 
               {hasSound ? (
                 <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
                   {React.createElement(IconComponent as any, { size: 20, className: "mb-1 drop-shadow-md", color: btn.color || 'currentColor' })}
-                  <span className="text-[10px] font-bold leading-tight break-words w-full truncate px-1" style={{ color: btn.color || 'inherit' }}>
+                  <span className="text-[10px] font-bold leading-tight break-words w-full truncate px-1">
                     {btn.name || `Son ${i+1}`}
                   </span>
 
@@ -225,7 +262,10 @@ export const DetachedSoundboard: React.FC = () => {
                   {/* Progress bar at bottom */}
                   {isPlaying && (
                     <div className="absolute bottom-0 left-0 h-1 bg-black/50 w-full">
-                      <div className="h-full transition-all duration-100 ease-linear" style={{ width: `${progress}%`, backgroundColor: btn.color || '#fff' }} />
+                      <div 
+                        ref={el => { if (el) progressRefs.current.set(i, el); else progressRefs.current.delete(i); }}
+                        className="h-full transition-all duration-100 ease-linear bg-white" 
+                      />
                     </div>
                   )}
                 </div>

@@ -1,0 +1,38 @@
+.action-condition-window {
+  position: fixed;
+  z-index: 3100;
+  left: var(--window-x);
+  top: var(--window-y);
+  width: 780px;
+  background-color: hsl(var(--card));
+  border: 2px solid rgba(249, 115, 22, 0.3);
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition-property: opacity;
+  transition-duration: 200ms;
+}
+
+.action-condition-window-dragging {
+  opacity: 0.9;
+}
+
+/* Custom scrollbar for the content area */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.2);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.4);
+}

@@ -12,7 +12,41 @@ export const SoundboardRemote: React.FC = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error' | 'unauthorized'>('connecting');
   const [gameState, setGameState] = useState<any>(null);
   const [playingIndices, setPlayingIndices] = useState<number[]>([]);
-  const [activeTab, setActiveTab] = useState<'soundboard' | 'checklist' | 'handouts'>('soundboard');
+  const [activeTab, setActiveTab] = useState<'soundboard' | 'checklist' | 'handouts' | 'actions' | 'players'>('soundboard');
+
+  // Handle tab visibility changes from host
+  useEffect(() => {
+    if (!gameState?.soundboard) return;
+    const { remoteShowSounds, remoteShowTasks, remoteShowHandouts, remoteShowActions, remoteShowPlayers } = gameState.soundboard;
+    
+    // If current tab becomes hidden, switch to the first available one
+    if (activeTab === 'soundboard' && remoteShowSounds === false) {
+      if (remoteShowTasks !== false) setActiveTab('checklist');
+      else if (remoteShowHandouts !== false) setActiveTab('handouts');
+      else if (remoteShowActions !== false) setActiveTab('actions');
+      else if (remoteShowPlayers !== false) setActiveTab('players');
+    } else if (activeTab === 'checklist' && remoteShowTasks === false) {
+      if (remoteShowSounds !== false) setActiveTab('soundboard');
+      else if (remoteShowHandouts !== false) setActiveTab('handouts');
+      else if (remoteShowActions !== false) setActiveTab('actions');
+      else if (remoteShowPlayers !== false) setActiveTab('players');
+    } else if (activeTab === 'handouts' && remoteShowHandouts === false) {
+      if (remoteShowSounds !== false) setActiveTab('soundboard');
+      else if (remoteShowTasks !== false) setActiveTab('checklist');
+      else if (remoteShowActions !== false) setActiveTab('actions');
+      else if (remoteShowPlayers !== false) setActiveTab('players');
+    } else if (activeTab === 'actions' && remoteShowActions === false) {
+      if (remoteShowSounds !== false) setActiveTab('soundboard');
+      else if (remoteShowTasks !== false) setActiveTab('checklist');
+      else if (remoteShowHandouts !== false) setActiveTab('handouts');
+      else if (remoteShowPlayers !== false) setActiveTab('players');
+    } else if (activeTab === 'players' && remoteShowPlayers === false) {
+      if (remoteShowSounds !== false) setActiveTab('soundboard');
+      else if (remoteShowTasks !== false) setActiveTab('checklist');
+      else if (remoteShowHandouts !== false) setActiveTab('handouts');
+      else if (remoteShowActions !== false) setActiveTab('actions');
+    }
+  }, [gameState, activeTab]);
 
   useEffect(() => {
     if (!roomId || !supabase) return;
@@ -72,6 +106,8 @@ export const SoundboardRemote: React.FC = () => {
       setPlayingIndices(prev => [...prev, index]);
     }
     
+    console.log(`[Remote] Sending soundboard_action for index ${index} with passcode "${passcode}"`);
+    
     channel.send({
       type: 'broadcast',
       event: 'soundboard_action',
@@ -118,6 +154,16 @@ export const SoundboardRemote: React.FC = () => {
       type: 'broadcast',
       event: 'checklist_action',
       payload: { type: 'toggle_collapse', itemId, passcode }
+    }).catch(console.error);
+  };
+
+  const handleTriggerAction = (actionId: string) => {
+    if (!channel || !passcode) return;
+    
+    channel.send({
+      type: 'broadcast',
+      event: 'action_trigger',
+      payload: { actionId, passcode }
     }).catch(console.error);
   };
 
@@ -168,9 +214,15 @@ export const SoundboardRemote: React.FC = () => {
     );
   }
 
-  const { cols, rows, buttons } = gameState.soundboard;
+  const soundboardData = gameState?.soundboard || {};
+  const { cols = 4, rows = 3, buttons = [], remoteShowSounds = true, remoteShowTasks = true, remoteShowHandouts = true, remoteShowActions = true, remoteShowPlayers = false, remoteShowDeadPlayers = false } = soundboardData;
   const checklist = gameState.checklist || [];
+  const actions = gameState.actions || [];
+  const players = gameState.players || [];
+  const roles = gameState.roles || [];
+  const teams = gameState.teams || [];
   const totalButtons = cols * rows;
+  const visibleTabsCount = [remoteShowSounds, remoteShowTasks, remoteShowHandouts, remoteShowActions, remoteShowPlayers].filter(v => v !== false).length;
 
   return (
     <div className="h-screen w-screen bg-zinc-950 text-zinc-50 flex flex-col max-w-md mx-auto shadow-2xl relative overflow-hidden">
@@ -180,7 +232,7 @@ export const SoundboardRemote: React.FC = () => {
       <header className="flex items-center justify-between p-4 bg-zinc-900/80 backdrop-blur-md border-b border-zinc-800 shrink-0 z-10">
         <div className="flex items-center gap-3">
           <div className="bg-pink-600 p-2 rounded-xl text-white shadow-lg shadow-pink-900/40">
-            {activeTab === 'soundboard' ? <Music size={20} /> : activeTab === 'checklist' ? <CheckSquare size={20} /> : <icons.FileText size={20} />}
+            {activeTab === 'soundboard' ? <Music size={20} /> : activeTab === 'checklist' ? <CheckSquare size={20} /> : activeTab === 'actions' ? <icons.Zap size={20} /> : activeTab === 'players' ? <icons.Users size={20} /> : <icons.FileText size={20} />}
           </div>
           <div>
             <h1 className="font-extrabold text-lg tracking-tight leading-none">Télécommande MJ</h1>
@@ -362,6 +414,109 @@ export const SoundboardRemote: React.FC = () => {
               })
             })()}
           </div>
+        ) : activeTab === 'actions' ? (
+          <div className="flex flex-col gap-4 pb-8">
+            <h2 className="text-xl font-black uppercase tracking-widest text-zinc-400 mb-2">Actions</h2>
+            <div className="grid grid-cols-1 gap-3">
+              {actions.map((action: any) => (
+                <button
+                  key={action.id}
+                  onClick={() => handleTriggerAction(action.id)}
+                  disabled={action.enabled === false}
+                  className={`flex items-center gap-4 p-4 rounded-2xl border transition-all active:scale-[0.98] text-left ${
+                    action.enabled === false
+                      ? 'bg-zinc-900/30 border-zinc-800 opacity-50 cursor-not-allowed'
+                      : 'bg-zinc-900/80 border-zinc-700 shadow-lg shadow-black/20 hover:border-purple-500/30'
+                  }`}
+                >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                    action.enabled === false ? 'bg-zinc-800 text-zinc-600' : 'bg-purple-600 text-white shadow-lg shadow-purple-900/40'
+                  }`}>
+                    <icons.Zap size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm leading-tight text-zinc-100">{action.name}</p>
+                    <p className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mt-1">
+                      {action.enabled === false ? 'Désactivée' : 'Prête à jouer'}
+                    </p>
+                  </div>
+                  {action.enabled !== false && (
+                    <icons.ChevronRight size={16} className="text-zinc-600" />
+                  )}
+                </button>
+              ))}
+              {actions.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20 text-zinc-500 opacity-50">
+                  <icons.Zap size={48} className="mb-4 stroke-[1px]" />
+                  <p className="text-sm font-medium">Aucune action disponible</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : activeTab === 'players' ? (
+          <div className="flex flex-col gap-4 pb-8">
+            <h2 className="text-xl font-black uppercase tracking-widest text-zinc-400 mb-2">Joueurs</h2>
+            <div className="flex flex-col gap-3">
+              {players
+                .filter((p: any) => remoteShowDeadPlayers || !p.isDead)
+                .map((player: any) => {
+                  const role = roles.find((r: any) => r.id === player.roleId);
+                  const team = teams.find((t: any) => t.id === player.teamId);
+                  
+                  return (
+                    <div
+                      key={player.id}
+                      className={`flex items-center gap-4 p-3 rounded-2xl border bg-zinc-900/80 border-zinc-700 shadow-lg shadow-black/20 ${
+                        player.isDead ? 'opacity-50 grayscale' : ''
+                      }`}
+                    >
+                      <div className="relative shrink-0">
+                        <div 
+                          className="w-12 h-12 rounded-xl border-2 flex items-center justify-center overflow-hidden bg-zinc-950"
+                          style={{ borderColor: player.color || '#3b82f6' }}
+                        >
+                          {player.imageUrl ? (
+                            <img src={player.imageUrl} alt={player.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <icons.User size={24} style={{ color: player.color || '#3b82f6' }} />
+                          )}
+                        </div>
+                        {player.isDead && (
+                          <div className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full p-1 shadow-lg">
+                            <icons.Skull size={10} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                           <p className="font-bold text-sm text-zinc-100 truncate">{player.name}</p>
+                           {player.isDead && <span className="text-[8px] font-black uppercase text-red-500 tracking-tighter">Mort</span>}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate">
+                            {role?.name || 'Sans Rôle'}
+                          </span>
+                          {team && (
+                            <>
+                              <span className="text-zinc-700">•</span>
+                              <span className="text-[10px] font-bold uppercase tracking-widest truncate" style={{ color: team.color || 'inherit' }}>
+                                {team.name}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              {players.filter((p: any) => remoteShowDeadPlayers || !p.isDead).length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20 text-zinc-500 opacity-50">
+                  <icons.Users size={48} className="mb-4 stroke-[1px]" />
+                  <p className="text-sm font-medium">Aucun joueur visible</p>
+                </div>
+              )}
+            </div>
+          </div>
         ) : (
           <div className="flex flex-col gap-4 pb-8">
             <h2 className="text-xl font-black uppercase tracking-widest text-zinc-400 mb-2">Aides de Jeu</h2>
@@ -408,41 +563,78 @@ export const SoundboardRemote: React.FC = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <nav className="grid grid-cols-3 bg-zinc-900/90 backdrop-blur-lg border-t border-zinc-800 p-2 gap-2 z-20 shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-        <button
-          onClick={() => setActiveTab('soundboard')}
-          className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
-            activeTab === 'soundboard'
-              ? 'bg-pink-600 text-white shadow-lg shadow-pink-900/40'
-              : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
-          }`}
-        >
-          <Music size={20} className={activeTab === 'soundboard' ? 'scale-110' : ''} />
-          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Sons</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('checklist')}
-          className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
-            activeTab === 'checklist'
-              ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
-              : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
-          }`}
-        >
-          <CheckSquare size={20} className={activeTab === 'checklist' ? 'scale-110' : ''} />
-          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Tâches</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('handouts')}
-          className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
-            activeTab === 'handouts'
-              ? 'bg-teal-600 text-white shadow-lg shadow-teal-900/40'
-              : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
-          }`}
-        >
-          <icons.FileText size={20} className={activeTab === 'handouts' ? 'scale-110' : ''} />
-          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Aides</span>
-        </button>
+      {visibleTabsCount > 1 && (
+      <nav 
+        className="grid bg-zinc-900/90 backdrop-blur-lg border-t border-zinc-800 p-2 gap-2 z-20 shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]"
+        style={{ gridTemplateColumns: `repeat(${visibleTabsCount}, minmax(0, 1fr))` }}
+      >
+        {remoteShowSounds !== false && (
+          <button
+            onClick={() => setActiveTab('soundboard')}
+            className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
+              activeTab === 'soundboard'
+                ? 'bg-pink-600 text-white shadow-lg shadow-pink-900/40'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+            }`}
+          >
+            <Music size={20} className={activeTab === 'soundboard' ? 'scale-110' : ''} />
+            <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Sons</span>
+          </button>
+        )}
+        {remoteShowTasks !== false && (
+          <button
+            onClick={() => setActiveTab('checklist')}
+            className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
+              activeTab === 'checklist'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+            }`}
+          >
+            <CheckSquare size={20} className={activeTab === 'checklist' ? 'scale-110' : ''} />
+            <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Tâches</span>
+          </button>
+        )}
+        {remoteShowHandouts !== false && (
+          <button
+            onClick={() => setActiveTab('handouts')}
+            className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
+              activeTab === 'handouts'
+                ? 'bg-teal-600 text-white shadow-lg shadow-teal-900/40'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+            }`}
+          >
+            <icons.FileText size={20} className={activeTab === 'handouts' ? 'scale-110' : ''} />
+            <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Aides</span>
+          </button>
+        )}
+        {remoteShowActions !== false && (
+          <button
+            onClick={() => setActiveTab('actions')}
+            className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
+              activeTab === 'actions'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+            }`}
+          >
+            <icons.Zap size={20} className={activeTab === 'actions' ? 'scale-110' : ''} />
+            <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Actions</span>
+          </button>
+        )}
+        {remoteShowPlayers !== false && (
+          <button
+            onClick={() => setActiveTab('players')}
+            className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all ${
+              activeTab === 'players'
+                ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/40'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50'
+            }`}
+          >
+            <icons.Users size={20} className={activeTab === 'players' ? 'scale-110' : ''} />
+            <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">Joueurs</span>
+          </button>
+        )}
       </nav>
+      )}
     </div>
   );
 };

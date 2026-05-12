@@ -1,0 +1,21 @@
+/* SettingsModal.css */
+.badge-preview {
+    position: absolute;
+    width: 1.75rem; /* 7 * 0.25rem = w-7 */
+    height: 1.75rem; /* h-7 */
+    border-radius: 9999px; /* rounded-full */
+    border-width: 2px;
+    border-color: #18181b; /* border-zinc-900 */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    overflow: hidden;
+}
+
+.badge-top-left { top: -4px; left: -4px; }
+.badge-top-right { top: -4px; right: -4px; }
+.badge-bottom-left { bottom: -4px; left: -4px; }
+.badge-bottom-right { bottom: -4px; right: -4px; }

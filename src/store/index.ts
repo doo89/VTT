@@ -212,6 +212,12 @@ export const initialState = {
     buttons: [],
     remoteEnabled: false,
     remotePasscode: '1234',
+    remoteShowSounds: true,
+    remoteShowTasks: true,
+    remoteShowHandouts: true,
+    remoteShowActions: true,
+    remoteShowPlayers: false,
+    remoteShowDeadPlayers: false,
     remotePlayTrigger: null
   },
   scoreboard: {
@@ -402,6 +408,10 @@ export const initialState = {
     timerDefaultSeconds: 0,
     defaultPlayerSize: 40,
     defaultPlayerShape: 'circle' as PlayerShape,
+    magneticPointsColor: '#3B82F6',
+    magneticPointsSnapMode: 'nearest' as 'nearest' | 'order',
+    magneticPointsFreeSnap: false,
+    distributionActionId: null,
   },
   downloadLogs: () => {
     const logs = useVttStore.getState().logs;
@@ -512,19 +522,24 @@ export const useVttStore = create<VttStore>()(
 
   // Players
   addPlayer: (playerData) => set((state) => {
-    const maxOrder = state.players.reduce((max, p) => Math.max(max, p.creationOrder || 0), 0);
-    return {
-      players: [...state.players, { 
-        points: undefined,
-        votes: undefined,
-        lives: undefined,
-        ...playerData, 
-        size: playerData.size ?? state.displaySettings.defaultPlayerSize ?? 40,
-        shape: playerData.shape ?? state.displaySettings.defaultPlayerShape ?? 'circle',
-        id: uuidv4(),
-        creationOrder: maxOrder + 1
-      }]
+    // On crée le nouveau joueur
+    const newPlayer = { 
+      points: undefined,
+      votes: undefined,
+      lives: undefined,
+      ...playerData, 
+      size: playerData.size ?? state.displaySettings.defaultPlayerSize ?? 40,
+      shape: playerData.shape ?? state.displaySettings.defaultPlayerShape ?? 'circle',
+      id: uuidv4(),
+      creationOrder: 999999 // Valeur temporaire haute pour le mettre à la fin avant tri
     };
+
+    // On ajoute et on re-numérote tout le monde pour garantir la séquence 1, 2, 3...
+    const updatedPlayers = [...state.players, newPlayer]
+      .sort((a, b) => (a.creationOrder || 0) - (b.creationOrder || 0))
+      .map((p, index) => ({ ...p, creationOrder: index + 1 }));
+
+    return { players: updatedPlayers };
   }),
   updatePlayer: (id, updates) => set((state) => {
     // Check if the player exists, if not, do nothing to avoid unnecessary re-renders
@@ -545,9 +560,15 @@ export const useVttStore = create<VttStore>()(
     });
     return { players: newPlayers };
   }),
-  deletePlayer: (id) => set((state) => ({
-    players: state.players.filter(p => p.id !== id)
-  })),
+  deletePlayer: (id) => set((state) => {
+    const filteredPlayers = state.players.filter(p => p.id !== id);
+    // On re-numérote pour boucher les trous après suppression
+    const reorderedPlayers = filteredPlayers
+      .sort((a, b) => (a.creationOrder || 0) - (b.creationOrder || 0))
+      .map((p, index) => ({ ...p, creationOrder: index + 1 }));
+    
+    return { players: reorderedPlayers };
+  }),
   clearPlayers: () => set({ players: [] }),
   clearAllSelectionPastilles: () => set((state) => ({
     players: state.players.map(p => ({ ...p, selectionPastilles: [] }))
@@ -1194,6 +1215,8 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'hideTagTooltip') nextDisplaySettings.showTagTooltip = false;
                 if (effect.type === 'showRoleColor') nextDisplaySettings.showRoleColor = true;
                 if (effect.type === 'hideRoleColor') nextDisplaySettings.showRoleColor = false;
+                if (effect.type === 'showTimerOnSmartphone') nextDisplaySettings.showTimerOnSmartphone = true;
+                if (effect.type === 'hideTimerOnSmartphone') nextDisplaySettings.showTimerOnSmartphone = false;
                 if (effect.type === 'triggerAction' && effect.targetActionId) {
                   if (depth < 5) {
                     setTimeout(() => {

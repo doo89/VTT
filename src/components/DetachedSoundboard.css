@@ -1,0 +1,96 @@
+.detached-soundboard {
+  position: fixed;
+  z-index: 3100;
+  width: fit-content;
+  min-width: 200px;
+  max-width: 95vw;
+  max-height: 85vh;
+  background-color: #ffffff;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* La fenêtre elle-même ne défile pas, c'est la grille */
+}
+
+.drag-handle {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #eeeeee !important;
+}
+
+.drag-handle .text-muted-foreground {
+  color: #495057 !important;
+}
+
+.soundboard-grid {
+  display: grid;
+  gap: 0.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Scrollbar personnalisée pour la grille */
+.soundboard-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.soundboard-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.soundboard-grid::-webkit-scrollbar-thumb {
+  background: hsla(var(--muted-foreground), 0.2);
+  border-radius: 10px;
+}
+
+.soundboard-grid::-webkit-scrollbar-thumb:hover {
+  background: hsla(var(--muted-foreground), 0.4);
+}
+
+.soundboard-btn {
+  position: relative;
+  width: 70px;
+  aspect-ratio: 1 / 1;
+  border-radius: 0.375rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  text-align: center;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-image: var(--btn-bg-image, none);
+}
+
+.soundboard-btn-active {
+  background-color: #000000;
+  border-color: #333333;
+  color: var(--btn-color, #ffffff);
+}
+
+.soundboard-btn-active:hover {
+  background-color: #111111;
+  border-color: var(--btn-color);
+}
+
+.soundboard-btn-active[style*="--is-playing: 1"] {
+  box-shadow: 0 0 15px var(--btn-color), inset 0 0 10px rgba(var(--btn-color), 0.4);
+  border-color: var(--btn-color);
+}
+
+.soundboard-btn-empty {
+  background-color: hsl(var(--muted));
+  border-style: dashed;
+  border-color: hsla(var(--muted-foreground), 0.3);
+  color: hsl(var(--muted-foreground));
+}
+
+.soundboard-btn-empty:hover {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}

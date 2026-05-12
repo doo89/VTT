@@ -2,6 +2,8 @@ import { Plus, Trash2, Edit2, Users, icons, ChevronDown, ChevronRight, X } from 
 import React, { useState } from 'react';
 import { useVttStore } from '../../../store';
 import { ColorPicker } from '../../ColorPicker';
+import { DynamicColor } from '../../DynamicColor';
+import './PlayersTab.css';
 
 const TEAM_ICONS = [
   'Users', 'Shield', 'Sword', 'Heart', 'Star', 'Flag', 'Skull', 'Ghost',
@@ -214,15 +216,16 @@ export const PlayersTab: React.FC = () => {
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div
-                        className="w-6 h-6 rounded-full border border-border"
-                        style={{ backgroundColor: player.color }}
+                      <DynamicColor 
+                        color={player.color} 
+                        isBackground 
+                        className="player-avatar-preview" 
                       />
                       {team && (
-                        <div
-                          className="absolute -top-1 -left-1 w-2.5 h-2.5 rounded-full border border-background"
-                          style={{ backgroundColor: team.color }}
-                          title={`Équipe: ${team.name}`}
+                        <DynamicColor
+                          color={team.color}
+                          isBackground
+                          className="player-team-pastille"
                         />
                       )}
                     </div>
@@ -288,8 +291,9 @@ export const PlayersTab: React.FC = () => {
             {massImportMode === 'circle' ? (
               <div className="flex items-center gap-2">
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Nombre de joueurs</label>
+                  <label htmlFor="mass-import-count" className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Nombre de joueurs</label>
                   <input
+                    id="mass-import-count"
                     type="number"
                     min={1}
                     max={100}
@@ -302,8 +306,9 @@ export const PlayersTab: React.FC = () => {
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Colonnes</label>
+                  <label htmlFor="mass-import-cols" className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Colonnes</label>
                   <input
+                    id="mass-import-cols"
                     type="number"
                     min={1}
                     value={massImportCols}
@@ -312,8 +317,9 @@ export const PlayersTab: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Lignes</label>
+                  <label htmlFor="mass-import-rows" className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Lignes</label>
                   <input
+                    id="mass-import-rows"
                     type="number"
                     min={1}
                     value={massImportRows}
@@ -402,14 +408,14 @@ export const PlayersTab: React.FC = () => {
                   let IconComponent = icons[team.icon as keyof typeof icons] || Users;
 
                   return (
-                    <div key={team.id} className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group">
+                    <div key={team.id} className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group" style={{ '--team-color': team.color } as React.CSSProperties}>
                       <div className="flex items-center gap-3">
                         {team.imageUrl ? (
                           <img src={team.imageUrl} className="w-4 h-4 rounded-full object-cover" alt="" />
                         ) : (
-                          <IconComponent size={16} style={{ color: team.color }} />
+                          <IconComponent size={16} className="team-item-icon" />
                         )}
-                        <span className="text-sm font-medium" style={{ color: team.color }}>{team.name}</span>
+                        <span className="team-item-name">{team.name}</span>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
@@ -448,7 +454,13 @@ export const PlayersTab: React.FC = () => {
                 <Users size={20} className="text-blue-500" />
                 Importer {massImportNames.length} Joueurs
               </h2>
-              <button onClick={() => setShowMassImportModal(false)} className="text-muted-foreground hover:text-foreground">
+              <button 
+                type="button"
+                onClick={() => setShowMassImportModal(false)} 
+                className="text-muted-foreground hover:text-foreground"
+                title="Fermer"
+                aria-label="Fermer la fenêtre"
+              >
                 <X size={20} />
               </button>
             </div>

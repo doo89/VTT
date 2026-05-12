@@ -1,0 +1,16 @@
+.tag-category-option {
+  color: var(--cat-color);
+}
+
+.tag-category-icon-wrapper {
+  color: var(--cat-color);
+}
+
+.tag-category-name {
+  color: var(--cat-color);
+}
+
+.tag-model-icon-wrapper {
+  background-color: var(--tag-color);
+  color: #fff;
+}

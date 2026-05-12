@@ -36,8 +36,10 @@ export const HandoutsTab: React.FC = () => {
         <h3 className="font-semibold text-sm border-b border-border pb-1">Ajouter une Aide de Jeu</h3>
         <div className="flex flex-col gap-2">
           <input
+            id="handout-name"
             type="text"
             placeholder="Nom (optionnel)"
+            aria-label="Nom de l'aide de jeu"
             value={newHandoutName}
             onChange={(e) => setNewHandoutName(e.target.value)}
             className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -49,8 +51,10 @@ export const HandoutsTab: React.FC = () => {
             <Upload size={16} /> Uploader Image ou PDF
           </button>
           <input
+            id="handout-file-upload"
             type="file"
             accept="image/*,application/pdf"
+            aria-label="Uploader une image ou un PDF"
             ref={fileInputRef}
             onChange={handleUpload}
             className="hidden"

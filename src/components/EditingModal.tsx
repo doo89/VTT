@@ -131,8 +131,9 @@ export const EditingModal: React.FC = () => {
     entityContent = (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Nom</label>
+          <label className="text-sm font-medium" htmlFor={`template-name-${template.id}`}>Nom</label>
           <input
+            id={`template-name-${template.id}`}
             type="text"
             value={template.name}
             onChange={(e) => updatePlayerTemplate(template.id, { name: e.target.value })}
@@ -152,8 +153,9 @@ export const EditingModal: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-col gap-1 flex-1">
-            <label className="text-sm font-medium">Taille (Rayon px)</label>
+            <label className="text-sm font-medium" htmlFor={`template-size-${template.id}`}>Taille (Rayon px)</label>
             <input
+              id={`template-size-${template.id}`}
               type="number"
               value={template.size}
               onChange={(e) => updatePlayerTemplate(template.id, { size: Math.max(10, parseInt(e.target.value) || 40) })}
@@ -162,8 +164,9 @@ export const EditingModal: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Forme du pion</label>
+          <label className="text-sm font-medium" htmlFor={`template-shape-${template.id}`}>Forme du pion</label>
           <select
+            id={`template-shape-${template.id}`}
             value={template.shape || ''}
             onChange={(e) => updatePlayerTemplate(template.id, { shape: (e.target.value || undefined) as any })}
             className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -177,13 +180,15 @@ export const EditingModal: React.FC = () => {
             <option value="octagon">Octogone</option>
             <option value="star">Étoile</option>
             <option value="pentagon">Pentagone</option>
+            <option value="hexagon">Hexagone</option>
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Image / Icône (Modèle)</label>
+          <label className="text-sm font-medium" htmlFor={`template-image-file-${template.id}`}>Image / Icône (Modèle)</label>
           <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
             <div className="flex flex-col gap-2">
               <input
+                id={`template-image-file-${template.id}`}
                 type="file"
                 accept="image/*"
                 onChange={async (e) => {
@@ -197,7 +202,9 @@ export const EditingModal: React.FC = () => {
                 }}
                 className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
               />
+              <label className="sr-only" htmlFor={`template-image-url-${template.id}`}>URL de l'image (Modèle)</label>
               <input
+                id={`template-image-url-${template.id}`}
                 type="text"
                 value={template.imageUrl || ''}
                 onChange={(e) => updatePlayerTemplate(template.id, { imageUrl: e.target.value })}
@@ -214,7 +221,9 @@ export const EditingModal: React.FC = () => {
                 <div className="flex flex-col flex-1">
                   <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu & Style Smartphone</span>
                   <div className="flex items-center gap-2">
+                    <label className="sr-only" htmlFor={`template-image-style-${template.id}`}>Style Smartphone</label>
                     <select
+                      id={`template-image-style-${template.id}`}
                       value={template.smartphoneImageStyle || 'circle'}
                       onChange={(e) => updatePlayerTemplate(template.id, { smartphoneImageStyle: e.target.value as any })}
                       className="bg-background border border-border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1"
@@ -241,8 +250,9 @@ export const EditingModal: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Équipe par défaut</label>
+          <label className="text-sm font-medium" htmlFor={`template-team-${template.id}`}>Équipe par défaut</label>
           <select
+            id={`template-team-${template.id}`}
             value={template.teamId || ''}
             onChange={(e) => updatePlayerTemplate(template.id, { teamId: e.target.value || null })}
             className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -261,8 +271,9 @@ export const EditingModal: React.FC = () => {
     entityContent = (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Nom</label>
+          <label className="text-sm font-medium" htmlFor={`player-name-${player.id}`}>Nom</label>
           <input
+            id={`player-name-${player.id}`}
             type="text"
             value={player.name}
             onChange={(e) => updatePlayer(player.id, { name: e.target.value })}
@@ -282,8 +293,9 @@ export const EditingModal: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-col gap-1 flex-1">
-            <label className="text-sm font-medium">Taille (Rayon px)</label>
+            <label className="text-sm font-medium" htmlFor={`player-size-${player.id}`}>Taille (Rayon px)</label>
             <input
+              id={`player-size-${player.id}`}
               type="number"
               value={player.size}
               onChange={(e) => updatePlayer(player.id, { size: Math.max(10, parseInt(e.target.value) || 40) })}
@@ -292,8 +304,9 @@ export const EditingModal: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Forme du pion</label>
+          <label className="text-sm font-medium" htmlFor={`player-shape-${player.id}`}>Forme du pion</label>
           <select
+            id={`player-shape-${player.id}`}
             value={player.shape || ''}
             onChange={(e) => updatePlayer(player.id, { shape: (e.target.value || undefined) as any })}
             className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -307,13 +320,15 @@ export const EditingModal: React.FC = () => {
             <option value="octagon">Octogone</option>
             <option value="star">Étoile</option>
             <option value="pentagon">Pentagone</option>
+            <option value="hexagon">Hexagone</option>
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Image / Icône</label>
+          <label className="text-sm font-medium" htmlFor={`player-image-file-${player.id}`}>Image / Icône</label>
           <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
             <div className="flex flex-col gap-2">
               <input
+                id={`player-image-file-${player.id}`}
                 type="file"
                 accept="image/*"
                 onChange={async (e) => {
@@ -327,7 +342,9 @@ export const EditingModal: React.FC = () => {
                 }}
                 className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
               />
+              <label className="sr-only" htmlFor={`player-image-url-${player.id}`}>URL de l'image (Joueur)</label>
               <input
+                id={`player-image-url-${player.id}`}
                 type="text"
                 value={player.imageUrl || ''}
                 onChange={(e) => updatePlayer(player.id, { imageUrl: e.target.value })}
@@ -342,7 +359,9 @@ export const EditingModal: React.FC = () => {
                 <div className="flex flex-col flex-1">
                   <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu & Style Smartphone</span>
                   <div className="flex items-center gap-2">
+                    <label className="sr-only" htmlFor={`player-image-style-${player.id}`}>Style Smartphone</label>
                     <select
+                      id={`player-image-style-${player.id}`}
                       value={player.smartphoneImageStyle || 'circle'}
                       onChange={(e) => updatePlayer(player.id, { smartphoneImageStyle: e.target.value as any })}
                       className="bg-background border border-border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1"
@@ -369,8 +388,9 @@ export const EditingModal: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Rôle</label>
+          <label className="text-sm font-medium" htmlFor={`player-role-${player.id}`}>Rôle</label>
           <select
+            id={`player-role-${player.id}`}
             value={player.roleId || ''}
             onChange={(e) => updatePlayer(player.id, { roleId: e.target.value || null })}
             className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -380,8 +400,9 @@ export const EditingModal: React.FC = () => {
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Équipe</label>
+          <label className="text-sm font-medium" htmlFor={`player-team-${player.id}`}>Équipe</label>
           <select
+            id={`player-team-${player.id}`}
             value={player.teamId || ''}
             onChange={(e) => updatePlayer(player.id, { teamId: e.target.value || null })}
             className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -394,8 +415,9 @@ export const EditingModal: React.FC = () => {
         {/* Persistent Stats */}
         <div className="grid grid-cols-3 gap-3 border-t border-border pt-4">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-muted-foreground uppercase">Vies Actuelles</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase" htmlFor={`player-lives-${player.id}`}>Vies Actuelles</label>
             <input
+              id={`player-lives-${player.id}`}
               type="number"
               value={player.lives ?? roles.find(r => r.id === player.roleId)?.lives ?? 0}
               onChange={(e) => updatePlayer(player.id, { lives: parseInt(e.target.value) || 0 })}
@@ -403,8 +425,9 @@ export const EditingModal: React.FC = () => {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-muted-foreground uppercase">Points</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase" htmlFor={`player-points-${player.id}`}>Points</label>
             <input
+              id={`player-points-${player.id}`}
               type="number"
               value={player.points || 0}
               onChange={(e) => updatePlayer(player.id, { points: parseInt(e.target.value) || 0 })}
@@ -412,8 +435,9 @@ export const EditingModal: React.FC = () => {
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-muted-foreground uppercase">Votes</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase" htmlFor={`player-votes-${player.id}`}>Votes</label>
             <input
+              id={`player-votes-${player.id}`}
               type="number"
               value={player.votes || 0}
               onChange={(e) => updatePlayer(player.id, { votes: parseInt(e.target.value) || 0 })}
@@ -482,8 +506,9 @@ export const EditingModal: React.FC = () => {
           {activeRoleTab === 'general' && (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Nom</label>
+                <label className="text-sm font-medium" htmlFor={`role-name-${role.id}`}>Nom</label>
                 <input
+                  id={`role-name-${role.id}`}
                   type="text"
                   value={role.name}
                   onChange={(e) => updateRole(role.id, { name: e.target.value })}
@@ -492,8 +517,9 @@ export const EditingModal: React.FC = () => {
               </div>
               <div className="flex gap-4 items-end">
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-sm font-medium">Équipe (réelle)</label>
+                  <label className="text-sm font-medium" htmlFor={`role-team-${role.id}`}>Équipe (réelle)</label>
                   <select
+                    id={`role-team-${role.id}`}
                     value={role.teamId || ''}
                     onChange={(e) => updateRole(role.id, { teamId: e.target.value || null })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -515,8 +541,9 @@ export const EditingModal: React.FC = () => {
                 </div>
               </div>
               <div className="flex flex-col gap-1 flex-1">
-                <label className="text-sm font-medium">Vies</label>
+                <label className="text-sm font-medium" htmlFor={`role-lives-${role.id}`}>Vies</label>
                 <input
+                  id={`role-lives-${role.id}`}
                   type="number"
                   value={role.lives}
                   onChange={(e) => updateRole(role.id, { lives: parseInt(e.target.value) || 0 })}
@@ -539,9 +566,10 @@ export const EditingModal: React.FC = () => {
               {!role.isUnique && (
                 <div className="ml-6 flex flex-col gap-3 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
                   <div className="flex items-center gap-3">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Par défaut:</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]" htmlFor={`role-default-count-${role.id}`}>Par défaut:</label>
                     <div className="flex items-center gap-4">
                       <input
+                        id={`role-default-count-${role.id}`}
                         type="number"
                         min="0"
                         value={role.defaultCount ?? role.distributionQuantity ?? 1}
@@ -577,8 +605,9 @@ export const EditingModal: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Minimum:</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]" htmlFor={`role-min-count-${role.id}`}>Minimum:</label>
                     <input
+                      id={`role-min-count-${role.id}`}
                       type="number"
                       min="0"
                       value={role.minCount ?? 0}
@@ -587,8 +616,9 @@ export const EditingModal: React.FC = () => {
                     />
                   </div>
                   <div className="flex items-center gap-3">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]">Maximum:</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]" htmlFor={`role-max-count-${role.id}`}>Maximum:</label>
                     <input
+                      id={`role-max-count-${role.id}`}
                       type="number"
                       min="0"
                       value={role.maxCount ?? 99}
@@ -600,8 +630,9 @@ export const EditingModal: React.FC = () => {
               )}
               
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Description libre</label>
+                <label className="text-sm font-medium" htmlFor={`role-description-${role.id}`}>Description libre</label>
                 <textarea
+                  id={`role-description-${role.id}`}
                   value={role.description || ''}
                   onChange={(e) => updateRole(role.id, { description: e.target.value })}
                   placeholder="Ex: Si tué la nuit, ressuscite le lendemain..."
@@ -616,10 +647,11 @@ export const EditingModal: React.FC = () => {
               {/* Left Column: Settings */}
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium">Image du rôle</label>
+                  <label className="text-sm font-medium" htmlFor={`role-image-file-${role.id}`}>Image du rôle</label>
                   <div className="flex flex-col gap-3 p-4 bg-muted/30 rounded-xl border border-border/50">
                     <div className="flex flex-col gap-2">
                       <input
+                        id={`role-image-file-${role.id}`}
                         type="file"
                         accept="image/*"
                         onChange={async (e) => {
@@ -634,7 +666,9 @@ export const EditingModal: React.FC = () => {
                         className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
                       />
                       <div className="flex items-center gap-2">
+                        <label className="sr-only" htmlFor={`role-image-url-${role.id}`}>URL de l'image du rôle</label>
                         <input
+                          id={`role-image-url-${role.id}`}
                           type="text"
                           value={role.imageUrl || ''}
                           onChange={(e) => updateRole(role.id, { imageUrl: e.target.value })}
@@ -657,8 +691,9 @@ export const EditingModal: React.FC = () => {
                     </div>
 
                     <div className="pt-3 border-t border-border/30 flex flex-col gap-2">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Style d'affichage</label>
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest" htmlFor={`role-image-style-${role.id}`}>Style d'affichage</label>
                       <select
+                        id={`role-image-style-${role.id}`}
                         value={role.smartphoneImageStyle || 'circle'}
                         onChange={(e) => updateRole(role.id, { smartphoneImageStyle: e.target.value as any })}
                         className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -772,10 +807,12 @@ export const EditingModal: React.FC = () => {
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-sm font-medium">Tags attachés</label>
+                  <label className="text-sm font-medium" htmlFor={`role-tags-${role.id}`}>Tags attachés</label>
                   <div className="relative">
                     <icons.Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <label className="sr-only" htmlFor={`role-tag-filter-${role.id}`}>Filtrer les tags</label>
                     <input
+                      id={`role-tag-filter-${role.id}`}
                       type="text"
                       placeholder="Filtrer les tags..."
                       value={tagSearchQuery}
@@ -788,6 +825,7 @@ export const EditingModal: React.FC = () => {
                   <p className="text-xs text-muted-foreground italic">Aucun tag défini dans le jeu.</p>
                 ) : (
                   <select
+                    id={`role-tags-${role.id}`}
                     multiple
                     value={(role.tags || []).map(t => t.id)}
                     onChange={(e) => {
@@ -829,8 +867,9 @@ export const EditingModal: React.FC = () => {
     entityContent = (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Nom de l'équipe</label>
+          <label className="text-sm font-medium" htmlFor={`team-name-${team.id}`}>Nom de l'équipe</label>
           <input
+            id={`team-name-${team.id}`}
             type="text"
             value={team.name}
             onChange={(e) => updateTeam(team.id, { name: e.target.value })}
@@ -838,19 +877,21 @@ export const EditingModal: React.FC = () => {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Description de l'équipe (Mémo)</label>
+          <label className="text-sm font-medium" htmlFor={`team-description-${team.id}`}>Description de l'équipe (Mémo)</label>
           <textarea
+            id={`team-description-${team.id}`}
             value={team.description || ''}
             onChange={(e) => updateTeam(team.id, { description: e.target.value })}
-            placeholder="Description, objectifs ou notes sur l'équipe..."
+            placeholder="Description, objectives ou notes sur l'équipe..."
             className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[80px] resize-none"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Image de l'équipe</label>
+          <label className="text-sm font-medium" htmlFor={`team-image-file-${team.id}`}>Image de l'équipe</label>
           <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
             <div className="flex flex-col gap-2">
               <input
+                id={`team-image-file-${team.id}`}
                 type="file"
                 accept="image/*"
                 onChange={async (e) => {
@@ -864,7 +905,9 @@ export const EditingModal: React.FC = () => {
                 }}
                 className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
               />
+              <label className="sr-only" htmlFor={`team-image-url-${team.id}`}>URL de l'image de l'équipe</label>
               <input
+                id={`team-image-url-${team.id}`}
                 type="text"
                 value={team.imageUrl || ''}
                 onChange={(e) => updateTeam(team.id, { imageUrl: e.target.value })}
@@ -932,8 +975,9 @@ export const EditingModal: React.FC = () => {
     entityContent = (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Nom de la catégorie</label>
+          <label className="text-sm font-medium" htmlFor={`tag-category-name-${category.id}`}>Nom de la catégorie</label>
           <input
+            id={`tag-category-name-${category.id}`}
             type="text"
             value={category.name}
             onChange={(e) => updateTagCategory(category.id, { name: e.target.value })}
@@ -1020,8 +1064,9 @@ export const EditingModal: React.FC = () => {
           {activeTagTab === 'general' && (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Nom</label>
+                <label className="text-sm font-medium" htmlFor={`tag-name-${tag.id}`}>Nom</label>
                 <input
+                  id={`tag-name-${tag.id}`}
                   type="text"
                   value={tag.name}
                   onChange={(e) => updateTagModel(tag.id, { name: e.target.value })}
@@ -1029,8 +1074,9 @@ export const EditingModal: React.FC = () => {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Catégorie</label>
+                <label className="text-sm font-medium" htmlFor={`tag-category-${tag.id}`}>Catégorie</label>
                 <select
+                  id={`tag-category-${tag.id}`}
                   value={tag.categoryId || ''}
                   onChange={(e) => updateTagModel(tag.id, { categoryId: e.target.value || null })}
                   className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -1232,10 +1278,11 @@ export const EditingModal: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Image personnalisée</label>
+                <label className="text-sm font-medium" htmlFor={`tag-image-file-${tag.id}`}>Image personnalisée</label>
                 <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
                   <div className="flex flex-col gap-2">
                     <input
+                      id={`tag-image-file-${tag.id}`}
                       type="file"
                       accept="image/*"
                       onChange={async (e) => {
@@ -1249,7 +1296,9 @@ export const EditingModal: React.FC = () => {
                       }}
                       className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
                     />
+                    <label className="sr-only" htmlFor={`tag-image-url-${tag.id}`}>URL de l'image personnalisée</label>
                     <input
+                      id={`tag-image-url-${tag.id}`}
                       type="text"
                       value={tag.imageUrl || ''}
                       onChange={(e) => updateTagModel(tag.id, { imageUrl: e.target.value })}
@@ -1296,8 +1345,9 @@ export const EditingModal: React.FC = () => {
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium" title="Ordre d'Appel Jour">Appel Jour</label>
+                  <label className="text-sm font-medium" title="Ordre d'Appel Jour" htmlFor={`tag-call-day-${tag.id}`}>Appel Jour</label>
                   <input
+                    id={`tag-call-day-${tag.id}`}
                     type="text"
                     value={tag.callOrderDay ?? ''}
                     onChange={(e) => updateTagModel(tag.id, { callOrderDay: e.target.value })}
@@ -1306,8 +1356,9 @@ export const EditingModal: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium" title="Ordre d'Appel Nuit">Appel Nuit</label>
+                  <label className="text-sm font-medium" title="Ordre d'Appel Nuit" htmlFor={`tag-call-night-${tag.id}`}>Appel Nuit</label>
                   <input
+                    id={`tag-call-night-${tag.id}`}
                     type="text"
                     value={tag.callOrderNight ?? ''}
                     onChange={(e) => updateTagModel(tag.id, { callOrderNight: e.target.value })}
@@ -1319,8 +1370,9 @@ export const EditingModal: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground">Ajout Vie</label>
+                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-lives-${tag.id}`}>Ajout Vie</label>
                   <input
+                    id={`tag-lives-${tag.id}`}
                     type="text"
                     value={tag.lives ?? ''}
                     onChange={(e) => updateTagModel(tag.id, { lives: e.target.value })}
@@ -1329,8 +1381,9 @@ export const EditingModal: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground">Votes</label>
+                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-votes-${tag.id}`}>Votes</label>
                   <input
+                    id={`tag-votes-${tag.id}`}
                     type="text"
                     value={tag.votes ?? ''}
                     onChange={(e) => updateTagModel(tag.id, { votes: e.target.value })}
@@ -1339,8 +1392,9 @@ export const EditingModal: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground">Points</label>
+                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-points-${tag.id}`}>Points</label>
                   <input
+                    id={`tag-points-${tag.id}`}
                     type="text"
                     value={tag.points ?? ''}
                     onChange={(e) => updateTagModel(tag.id, { points: e.target.value })}
@@ -1349,8 +1403,9 @@ export const EditingModal: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground">Uses</label>
+                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-uses-${tag.id}`}>Uses</label>
                   <input
+                    id={`tag-uses-${tag.id}`}
                     type="text"
                     value={tag.uses ?? ''}
                     onChange={(e) => updateTagModel(tag.id, { uses: e.target.value })}
@@ -1371,8 +1426,9 @@ export const EditingModal: React.FC = () => {
 
               <div className="flex gap-4 mb-2">
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground">Vu comme rôle (info-bulle)</label>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-seen-role-${tag.id}`}>Vu comme rôle (info-bulle)</label>
                   <select
+                    id={`tag-seen-role-${tag.id}`}
                     value={tag.seenAsRoleId || ''}
                     onChange={(e) => updateTagModel(tag.id, { seenAsRoleId: e.target.value || null })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -1385,8 +1441,9 @@ export const EditingModal: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground">Vu dans équipe (info-bulle)</label>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-seen-team-${tag.id}`}>Vu dans équipe (info-bulle)</label>
                   <select
+                    id={`tag-seen-team-${tag.id}`}
                     value={tag.seenInTeamId || ''}
                     onChange={(e) => updateTagModel(tag.id, { seenInTeamId: e.target.value || null })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -1400,8 +1457,9 @@ export const EditingModal: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1 mt-2">
-                <label className="text-sm font-medium text-muted-foreground">Texte libre</label>
+                <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-description-${tag.id}`}>Texte libre</label>
                 <textarea
+                  id={`tag-description-${tag.id}`}
                   value={tag.description || ''}
                   onChange={(e) => updateTagModel(tag.id, { description: e.target.value })}
                   className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[100px] resize-y"
@@ -1509,7 +1567,9 @@ export const EditingModal: React.FC = () => {
                               <input type="checkbox" checked={tag.smartphoneFilterNotThisTag || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotThisTag: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
                               <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant ce tag :</span>
                             </label>
+                            <label className="sr-only" htmlFor={`tag-exclude-filter-${tag.id}`}>Tag à exclure du filtre</label>
                             <select 
+                              id={`tag-exclude-filter-${tag.id}`}
                               value={tag.smartphoneFilterExcludeTagId || ''} 
                               onChange={e => updateTagModel(tag.id, { smartphoneFilterExcludeTagId: e.target.value || null })}
                               className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
@@ -1556,7 +1616,9 @@ export const EditingModal: React.FC = () => {
                               />
                               <span className="group-hover:text-primary transition-colors">A bien le rôle de :</span>
                             </label>
+                            <label className="sr-only" htmlFor={`tag-role-check-${tag.id}`}>Rôle à vérifier</label>
                             <select 
+                              id={`tag-role-check-${tag.id}`}
                               value={tag.smartphoneCheckRoleId || ''} 
                               onChange={e => updateTagModel(tag.id, { smartphoneCheckRoleId: e.target.value || null })}
                               className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
@@ -1598,9 +1660,10 @@ export const EditingModal: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground">Texte du bouton d'action</label>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-button-text-${tag.id}`}>Texte du bouton d'action</label>
                   <div className="flex items-center gap-4">
                     <input
+                      id={`tag-button-text-${tag.id}`}
                       type="text"
                       value={tag.smartphoneButtonText || ''}
                       onChange={(e) => updateTagModel(tag.id, { smartphoneButtonText: e.target.value })}
@@ -1632,8 +1695,9 @@ export const EditingModal: React.FC = () => {
 
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground">Retour au smartphone (popup)</label>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-player-feedback-${tag.id}`}>Retour au smartphone (popup)</label>
                   <input
+                    id={`tag-player-feedback-${tag.id}`}
                     type="text"
                     value={tag.smartphonePlayerFeedback || ''}
                     onChange={(e) => updateTagModel(tag.id, { smartphonePlayerFeedback: e.target.value })}
@@ -1645,8 +1709,9 @@ export const EditingModal: React.FC = () => {
 
 
                 <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-medium text-muted-foreground">Message retour au MJ (popup)</label>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-mj-feedback-${tag.id}`}>Message retour au MJ (popup)</label>
                   <input
+                    id={`tag-mj-feedback-${tag.id}`}
                     type="text"
                     value={tag.smartphoneButtonFeedback || ''}
                     onChange={(e) => updateTagModel(tag.id, { smartphoneButtonFeedback: e.target.value })}
@@ -1658,8 +1723,9 @@ export const EditingModal: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Fusionner aux joueurs</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-merge-${tag.id}`}>Fusionner aux joueurs</label>
                     <select
+                      id={`tag-merge-${tag.id}`}
                       value={tag.smartphoneMergeTagId || ''}
                       onChange={(e) => updateTagModel(tag.id, { smartphoneMergeTagId: e.target.value || null })}
                       className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
@@ -1672,8 +1738,9 @@ export const EditingModal: React.FC = () => {
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Me fusionner ce Tag</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-self-merge-${tag.id}`}>Me fusionner ce Tag</label>
                     <select
+                      id={`tag-self-merge-${tag.id}`}
                       value={tag.smartphoneSelfMergeTagId || ''}
                       onChange={(e) => updateTagModel(tag.id, { smartphoneSelfMergeTagId: e.target.value || null })}
                       className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
@@ -1687,8 +1754,9 @@ export const EditingModal: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Déclencher une Action</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-action-${tag.id}`}>Déclencher une Action</label>
                   <select
+                    id={`tag-action-${tag.id}`}
                     value={tag.smartphoneActionId || ''}
                     onChange={(e) => updateTagModel(tag.id, { smartphoneActionId: e.target.value || null })}
                     className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
@@ -1703,11 +1771,12 @@ export const EditingModal: React.FC = () => {
 
 
                 <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2" htmlFor={`tag-handout-${tag.id}`}>
                     <icons.BookOpen size={12} className="text-primary/50" />
                     Associer une Aide de Jeu
                   </label>
                   <select
+                    id={`tag-handout-${tag.id}`}
                     value={tag.handoutId || ''}
                     onChange={(e) => updateTagModel(tag.id, { handoutId: e.target.value || null })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -1796,8 +1865,9 @@ export const EditingModal: React.FC = () => {
           {activeTagTab === 'general' && (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Nom</label>
+                <label className="text-sm font-medium" htmlFor={`tag-instance-name-${tag.instanceId}`}>Nom</label>
                 <input
+                  id={`tag-instance-name-${tag.instanceId}`}
                   type="text"
                   value={tag.name}
                   onChange={(e) => updateTagInstance({ name: e.target.value })}
@@ -1863,9 +1933,10 @@ export const EditingModal: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Image personnalisée</label>
+                <label className="text-sm font-medium" htmlFor={`tag-instance-image-file-${tag.instanceId}`}>Image personnalisée</label>
                 <div className="flex items-center gap-2">
                   <input
+                    id={`tag-instance-image-file-${tag.instanceId}`}
                     type="file"
                     accept="image/*"
                     onChange={async (e) => {
@@ -1914,8 +1985,9 @@ export const EditingModal: React.FC = () => {
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium" title="Ordre d'Appel Jour">Appel Jour</label>
+                  <label className="text-sm font-medium" title="Ordre d'Appel Jour" htmlFor={`tag-instance-call-day-${tag.instanceId}`}>Appel Jour</label>
                   <input
+                    id={`tag-instance-call-day-${tag.instanceId}`}
                     type="text"
                     value={tag.callOrderDay ?? ''}
                     onChange={(e) => updateTagInstance({ callOrderDay: e.target.value })}
@@ -1924,8 +1996,9 @@ export const EditingModal: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium" title="Ordre d'Appel Nuit">Appel Nuit</label>
+                  <label className="text-sm font-medium" title="Ordre d'Appel Nuit" htmlFor={`tag-instance-call-night-${tag.instanceId}`}>Appel Nuit</label>
                   <input
+                    id={`tag-instance-call-night-${tag.instanceId}`}
                     type="text"
                     value={tag.callOrderNight ?? ''}
                     onChange={(e) => updateTagInstance({ callOrderNight: e.target.value })}
@@ -1937,8 +2010,9 @@ export const EditingModal: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground">Ajout Vie</label>
+                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-instance-lives-${tag.instanceId}`}>Ajout Vie</label>
                   <input
+                    id={`tag-instance-lives-${tag.instanceId}`}
                     type="text"
                     value={tag.lives ?? ''}
                     onChange={(e) => updateTagInstance({ lives: e.target.value })}
@@ -1947,8 +2021,9 @@ export const EditingModal: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground">Votes</label>
+                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-instance-votes-${tag.instanceId}`}>Votes</label>
                   <input
+                    id={`tag-instance-votes-${tag.instanceId}`}
                     type="text"
                     value={tag.votes ?? ''}
                     onChange={(e) => updateTagInstance({ votes: e.target.value })}
@@ -1957,8 +2032,9 @@ export const EditingModal: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground">Points</label>
+                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-instance-points-${tag.instanceId}`}>Points</label>
                   <input
+                    id={`tag-instance-points-${tag.instanceId}`}
                     type="text"
                     value={tag.points ?? ''}
                     onChange={(e) => updateTagInstance({ points: e.target.value })}
@@ -1967,8 +2043,9 @@ export const EditingModal: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground">Uses</label>
+                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-instance-uses-${tag.instanceId}`}>Uses</label>
                   <input
+                    id={`tag-instance-uses-${tag.instanceId}`}
                     type="text"
                     value={tag.uses ?? ''}
                     onChange={(e) => updateTagInstance({ uses: e.target.value })}
@@ -1989,8 +2066,9 @@ export const EditingModal: React.FC = () => {
 
               <div className="flex gap-4 mb-2">
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground">Vu comme rôle (info-bulle)</label>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-instance-seen-role-${tag.instanceId}`}>Vu comme rôle (info-bulle)</label>
                   <select
+                    id={`tag-instance-seen-role-${tag.instanceId}`}
                     value={tag.seenAsRoleId || ''}
                     onChange={(e) => updateTagInstance({ seenAsRoleId: e.target.value || null })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -2003,8 +2081,9 @@ export const EditingModal: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground">Vu dans équipe (info-bulle)</label>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-instance-seen-team-${tag.instanceId}`}>Vu dans équipe (info-bulle)</label>
                   <select
+                    id={`tag-instance-seen-team-${tag.instanceId}`}
                     value={tag.seenInTeamId || ''}
                     onChange={(e) => updateTagInstance({ seenInTeamId: e.target.value || null })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -2018,8 +2097,9 @@ export const EditingModal: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1 mt-2">
-                <label className="text-sm font-medium text-muted-foreground">Texte libre</label>
+                <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-instance-description-${tag.instanceId}`}>Texte libre</label>
                 <textarea
+                  id={`tag-instance-description-${tag.instanceId}`}
                   value={tag.description || ''}
                   onChange={(e) => updateTagInstance({ description: e.target.value })}
                   className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[100px] resize-y"
@@ -2127,7 +2207,9 @@ export const EditingModal: React.FC = () => {
                               <input type="checkbox" checked={tag.smartphoneFilterNotThisTag || false} onChange={e => updateTagInstance({ smartphoneFilterNotThisTag: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
                               <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant ce tag :</span>
                             </label>
+                            <label className="sr-only" htmlFor={`tag-instance-exclude-filter-${tag.instanceId}`}>Tag à exclure du filtre</label>
                             <select 
+                              id={`tag-instance-exclude-filter-${tag.instanceId}`}
                               value={tag.smartphoneFilterExcludeTagId || ''} 
                               onChange={e => updateTagInstance({ smartphoneFilterExcludeTagId: e.target.value || null })}
                               className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
@@ -2174,7 +2256,9 @@ export const EditingModal: React.FC = () => {
                               />
                               <span className="group-hover:text-primary transition-colors">A bien le rôle de :</span>
                             </label>
+                            <label className="sr-only" htmlFor={`tag-instance-role-check-${tag.instanceId}`}>Rôle à vérifier</label>
                             <select 
+                              id={`tag-instance-role-check-${tag.instanceId}`}
                               value={tag.smartphoneCheckRoleId || ''} 
                               onChange={e => updateTagInstance({ smartphoneCheckRoleId: e.target.value || null })}
                               className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
@@ -2216,9 +2300,10 @@ export const EditingModal: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground">Texte du bouton d'action</label>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-instance-button-text-${tag.instanceId}`}>Texte du bouton d'action</label>
                   <div className="flex items-center gap-4">
                     <input
+                      id={`tag-instance-button-text-${tag.instanceId}`}
                       type="text"
                       value={tag.smartphoneButtonText || ''}
                       onChange={(e) => updateTagInstance({ smartphoneButtonText: e.target.value })}
@@ -2251,8 +2336,9 @@ export const EditingModal: React.FC = () => {
 
 
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground">Message retour au smartphone (popup)</label>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-instance-player-feedback-${tag.instanceId}`}>Message retour au smartphone (popup)</label>
                   <input
+                    id={`tag-instance-player-feedback-${tag.instanceId}`}
                     type="text"
                     value={tag.smartphonePlayerFeedback || ''}
                     onChange={(e) => updateTagInstance({ smartphonePlayerFeedback: e.target.value })}
@@ -2264,8 +2350,9 @@ export const EditingModal: React.FC = () => {
 
 
                 <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-medium text-muted-foreground">Message retour au MJ (popup)</label>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-instance-mj-feedback-${tag.instanceId}`}>Message retour au MJ (popup)</label>
                   <input
+                    id={`tag-instance-mj-feedback-${tag.instanceId}`}
                     type="text"
                     value={tag.smartphoneButtonFeedback || ''}
                     onChange={(e) => updateTagInstance({ smartphoneButtonFeedback: e.target.value })}
@@ -2277,8 +2364,9 @@ export const EditingModal: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Fusionner aux joueurs</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-instance-merge-${tag.instanceId}`}>Fusionner aux joueurs</label>
                     <select
+                      id={`tag-instance-merge-${tag.instanceId}`}
                       value={tag.smartphoneMergeTagId || ''}
                       onChange={(e) => updateTagInstance({ smartphoneMergeTagId: e.target.value || null })}
                       className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
@@ -2291,8 +2379,9 @@ export const EditingModal: React.FC = () => {
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Me fusionner ce Tag</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-instance-self-merge-${tag.instanceId}`}>Me fusionner ce Tag</label>
                     <select
+                      id={`tag-instance-self-merge-${tag.instanceId}`}
                       value={tag.smartphoneSelfMergeTagId || ''}
                       onChange={(e) => updateTagInstance({ smartphoneSelfMergeTagId: e.target.value || null })}
                       className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
@@ -2306,8 +2395,9 @@ export const EditingModal: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic">Déclencher une Action</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-instance-action-${tag.instanceId}`}>Déclencher une Action</label>
                   <select
+                    id={`tag-instance-action-${tag.instanceId}`}
                     value={tag.smartphoneActionId || ''}
                     onChange={(e) => updateTagInstance({ smartphoneActionId: e.target.value || null })}
                     className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
@@ -2322,11 +2412,12 @@ export const EditingModal: React.FC = () => {
 
 
                 <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2" htmlFor={`tag-instance-handout-${tag.instanceId}`}>
                     <icons.BookOpen size={12} className="text-primary/50" />
                     Associer une Aide de Jeu
                   </label>
                   <select
+                    id={`tag-instance-handout-${tag.instanceId}`}
                     value={tag.handoutId || ''}
                     onChange={(e) => updateTagInstance({ handoutId: e.target.value || null })}
                     className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -2477,8 +2568,9 @@ export const EditingModal: React.FC = () => {
     entityContent = (
       <div className="flex flex-col gap-4 min-h-[300px]">
         <div className="flex flex-col gap-2 h-full flex-1">
-          <label className="text-sm font-medium text-muted-foreground">Ces notes sont visibles uniquement par vous (MJ)</label>
+          <label className="text-sm font-medium text-muted-foreground" htmlFor={`player-private-notes-${player.id}`}>Ces notes sont visibles uniquement par vous (MJ)</label>
           <textarea
+            id={`player-private-notes-${player.id}`}
             value={player.privateNotes || ''}
             onChange={(e) => updatePlayer(player.id, { privateNotes: e.target.value })}
             placeholder="Ajouter des notes secrètes sur ce joueur..."
@@ -2496,7 +2588,9 @@ export const EditingModal: React.FC = () => {
     entityContent = (
       <div className="flex flex-col gap-4 min-h-[300px]">
         <div className="flex flex-col gap-2 h-full flex-1">
+          <label className="sr-only" htmlFor={`player-public-notes-${player.id}`}>Notes publiques</label>
           <textarea
+            id={`player-public-notes-${player.id}`}
             value={player.publicNotes || ''}
             onChange={(e) => updatePlayer(player.id, {
               publicNotes: e.target.value,
@@ -2537,8 +2631,9 @@ export const EditingModal: React.FC = () => {
     entityContent = (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Nom du son</label>
+          <label className="text-sm font-medium" htmlFor={`sound-name-${index}`}>Nom du son</label>
           <input
+            id={`sound-name-${index}`}
             type="text"
             value={btn.name}
             onChange={(e) => updateSoundButton(index, { name: e.target.value })}
@@ -2549,7 +2644,9 @@ export const EditingModal: React.FC = () => {
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Fichier audio (.mp3, .wav, .ogg)</label>
           <div className="flex items-center gap-2">
+            <label className="sr-only" htmlFor={`sound-file-${index}`}>Sélectionner un fichier audio</label>
             <input
+              id={`sound-file-${index}`}
               type="file"
               accept=".mp3,audio/mpeg,.wav,audio/wav,.ogg,audio/ogg"
               onChange={(e) => {
@@ -2574,11 +2671,12 @@ export const EditingModal: React.FC = () => {
               {/* Volume & Test Section */}
               <div className="flex flex-col gap-2 mt-2 p-3 bg-muted/20 rounded-lg border border-border/50">
                 <div className="flex justify-between items-center">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground" htmlFor={`sound-volume-${index}`}>
                     Volume : {Math.round((btn.volume ?? 1) * 100)}%
                   </label>
                 </div>
                 <input
+                  id={`sound-volume-${index}`}
                   type="range"
                   min="0"
                   max="1"
@@ -2663,7 +2761,9 @@ export const EditingModal: React.FC = () => {
           <label className="text-sm font-medium">Image de fond optionnelle</label>
           <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
             <div className="flex flex-col gap-2">
+              <label className="sr-only" htmlFor={`sound-image-file-${index}`}>Sélectionner une image de fond</label>
               <input
+                id={`sound-image-file-${index}`}
                 type="file"
                 accept="image/*"
                 onChange={async (e) => {
@@ -2677,7 +2777,9 @@ export const EditingModal: React.FC = () => {
                 }}
                 className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
               />
+              <label className="sr-only" htmlFor={`sound-image-url-${index}`}>URL de l'image de fond</label>
               <input
+                id={`sound-image-url-${index}`}
                 type="text"
                 value={btn.imageUrl || ''}
                 onChange={(e) => updateSoundButton(index, { imageUrl: e.target.value })}
@@ -2717,8 +2819,9 @@ export const EditingModal: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-1 mt-2 border-t border-border pt-4">
-          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer" htmlFor={`sound-oneshot-${index}`}>
             <input
+              id={`sound-oneshot-${index}`}
               type="checkbox"
               checked={btn.isOneShot}
               onChange={(e) => updateSoundButton(index, { isOneShot: e.target.checked })}
@@ -2759,6 +2862,8 @@ export const EditingModal: React.FC = () => {
           <button
             onClick={handleClose}
             className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md transition-colors"
+            aria-label="Fermer"
+            title="Fermer"
           >
             <X size={20} />
           </button>

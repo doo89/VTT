@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Sun, UserCircle2, Tag, ChevronDown, ChevronRight, Moon } from 'lucide-react';
 import * as icons from 'lucide-react';
 import { useVttStore } from '../../store';
 import { ColorPicker } from '../ColorPicker';
 import { ThemeToggle } from '../ThemeToggle';
 import type { BadgeConfig, BadgeType } from '../../types';
+import './SettingsModal.css';
 
 
 interface SettingsModalProps {
@@ -28,6 +29,34 @@ const TOOL_LABELS: Record<string, string> = {
 
 const DEFAULT_PANELS_ORDER = ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system'];
 
+const BadgePreview: React.FC<{ corner: string; config: any; children: React.ReactNode }> = ({ corner, config, children }) => {
+  const badgeRef = useRef<HTMLDivElement>(null);
+  const isTop = corner.startsWith('top');
+  const isLeft = corner.endsWith('Left');
+  
+  const positionClass = isTop 
+    ? (isLeft ? 'badge-top-left' : 'badge-top-right')
+    : (isLeft ? 'badge-bottom-left' : 'badge-bottom-right');
+
+  useEffect(() => {
+    if (badgeRef.current) {
+      const bgColor = config.type === 'team' ? '#3b82f6' : config.bgColor;
+      const textColor = config.type === 'team' ? '#fff' : config.textColor;
+      badgeRef.current.style.backgroundColor = bgColor || 'transparent';
+      badgeRef.current.style.color = textColor || 'inherit';
+    }
+  }, [config.type, config.bgColor, config.textColor]);
+
+  return (
+    <div 
+      ref={badgeRef}
+      className={`badge-preview ${positionClass}`}
+    >
+      {children}
+    </div>
+  );
+};
+
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils' | 'remote'>('salle');
   const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ distribution: true, chrono: true, wiki: true, soundboard: true, scoreboard: true, logs: true, magneticPoints: true });
@@ -39,11 +68,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     cycleMode, setCycleMode,
     displaySettings, updateDisplaySettings,
     soundboard, setSoundboard,
-    scoreboard, setScoreboard
+    scoreboard, setScoreboard,
+    actions
   } = useVttStore();
 
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const bgImageRef = useRef<HTMLDivElement>(null);
   const timerSoundInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (bgImageRef.current) {
+      bgImageRef.current.style.backgroundImage = room.backgroundImage ? `url(${room.backgroundImage})` : 'none';
+    }
+  }, [room.backgroundImage]);
 
   const [draggedTool, setDraggedTool] = useState<string | null>(null);
 
@@ -173,8 +210,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Options Globales</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                    <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Type de cycle</label>
+                    <label htmlFor="settings-cycle-mode" className="text-xs font-bold text-muted-foreground uppercase">Type de cycle</label>
                     <select
+                      id="settings-cycle-mode"
                       value={cycleMode}
                       onChange={(e) => setCycleMode(e.target.value as any)}
                       className="bg-input border border-border rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-full max-w-[200px]"
@@ -186,8 +224,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
                    </div>
                    <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Priorité au premier plan</label>
+                    <label htmlFor="settings-foreground-element" className="text-xs font-bold text-muted-foreground uppercase">Priorité au premier plan</label>
                     <select
+                      id="settings-foreground-element"
                       value={displaySettings.foregroundElement}
                       onChange={(e) => updateDisplaySettings({ foregroundElement: e.target.value as any })}
                       className="bg-input border border-border rounded p-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-full max-w-[200px]"
@@ -243,8 +282,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       </label>
                       {grid.enabled && (
                         <div className="flex items-center gap-2 ml-6">
-                          <span className="text-xs text-muted-foreground whitespace-nowrap">Taille:</span>
+                          <label htmlFor="settings-grid-size" className="text-xs text-muted-foreground whitespace-nowrap">Taille:</label>
                           <input
+                            id="settings-grid-size"
                             type="number"
                             value={grid.sizeX}
                             onChange={(e) => setGrid({ ...grid, sizeX: Math.max(10, parseInt(e.target.value) || 50), sizeY: Math.max(10, parseInt(e.target.value) || 50) })}
@@ -274,8 +314,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                  <div className="flex flex-col gap-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Largeur (px)</label>
+                        <label htmlFor="settings-room-width" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Largeur (px)</label>
                         <input
+                          id="settings-room-width"
                           type="number"
                           value={room.width}
                           onChange={(e) => setRoom({ width: Math.max(100, parseInt(e.target.value) || 2000) })}
@@ -283,8 +324,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Hauteur (px)</label>
+                        <label htmlFor="settings-room-height" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Hauteur (px)</label>
                         <input
+                          id="settings-room-height"
                           type="number"
                           value={room.height}
                           onChange={(e) => setRoom({ height: Math.max(100, parseInt(e.target.value) || 1500) })}
@@ -338,14 +380,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       <div className="flex flex-col md:flex-row gap-4 items-start mt-1">
                         <div className="relative w-full md:w-48 h-32 rounded-md overflow-hidden border border-border group shrink-0">
                           <div
+                            ref={bgImageRef}
                             className="absolute inset-0 bg-contain bg-center bg-no-repeat"
-                            style={{ backgroundImage: `url(${room.backgroundImage})` }}
                           />
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                             <button
                               onClick={() => setRoom({ backgroundImage: null })}
                               className="p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
                               title="Supprimer l'image"
+                              type="button"
+                              aria-label="Supprimer l'image"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -353,8 +397,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </div>
 
                         <div className="flex flex-col gap-1 w-full flex-1">
-                          <label className="text-xs text-muted-foreground">Style d'affichage de l'image</label>
+                          <label htmlFor="settings-bg-style" className="text-xs text-muted-foreground">Style d'affichage de l'image</label>
                           <select
+                            id="settings-bg-style"
                             value={room.backgroundStyle}
                             onChange={(e) => setRoom({ backgroundStyle: e.target.value as any })}
                             className="bg-input border border-border rounded-md px-3 py-2 text-sm w-full outline-none focus:ring-1 focus:ring-primary"
@@ -369,9 +414,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </div>
                       </div>
                     )}
-                    <input type="file" ref={imageInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
+                    <input 
+                      id="settings-bg-upload"
+                      type="file" 
+                      ref={imageInputRef} 
+                      onChange={handleImageUpload} 
+                      accept="image/*" 
+                      className="hidden" 
+                      aria-label="Charger une image de fond"
+                    />
                   </div>
-                </div>
               </section>
 
                 {/* Apparence */}
@@ -394,7 +446,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             <div className="flex flex-col gap-6">
 
 
-               <section>
+                <section>
                  <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Affichage des Joueurs</h3>
                  <div className="flex flex-col gap-3">
                    <label className="flex items-center gap-2 text-base font-semibold cursor-pointer">
@@ -452,8 +504,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                       {/* Selects */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                          <div className="flex flex-col gap-1.5">
-                           <label className="text-xs text-muted-foreground">Priorité si joueur et rôle ont une image :</label>
+                           <label htmlFor="settings-image-priority" className="text-xs text-muted-foreground">Priorité si joueur et rôle ont une image :</label>
                            <select
+                            id="settings-image-priority"
                             value={displaySettings.imagePriority}
                             onChange={(e) => updateDisplaySettings({ imagePriority: e.target.value as 'player' | 'role' })}
                             className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-fit"
@@ -463,8 +516,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           </select>
                          </div>
                          <div className="flex flex-col gap-1.5">
-                           <label className="text-xs text-muted-foreground">Position du nom :</label>
+                           <label htmlFor="settings-name-position" className="text-xs text-muted-foreground">Position du nom :</label>
                            <select
+                            id="settings-name-position"
                             value={displaySettings.playerNamePosition}
                             onChange={(e) => updateDisplaySettings({ playerNamePosition: e.target.value as any })}
                             className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-fit"
@@ -477,8 +531,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                          </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mt-2">
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Taille par défaut (Rayon px)</label>
+                          <label htmlFor="settings-player-size" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Taille par défaut (Rayon px)</label>
                           <input
+                            id="settings-player-size"
                             type="number"
                             min="5"
                             max="500"
@@ -489,8 +544,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </div>
 
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Forme par défaut</label>
+                          <label htmlFor="settings-player-shape" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Forme par défaut</label>
                           <select
+                            id="settings-player-shape"
                             value={displaySettings.defaultPlayerShape || 'circle'}
                             onChange={(e) => updateDisplaySettings({ defaultPlayerShape: e.target.value as any })}
                             className="bg-input border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary w-full"
@@ -503,6 +559,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             <option value="octagon">Octogone</option>
                             <option value="star">Étoile</option>
                             <option value="pentagon">Pentagone</option>
+                            <option value="hexagon">Hexagone</option>
                           </select>
                         </div>
                       </div>
@@ -570,21 +627,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                               {/* Live Badges Preview */}
                               {Object.entries(displaySettings.playerBadges || {}).map(([corner, config]: [string, any]) => {
                                 if (config.type === 'none') return null;
-                                const isTop = corner.startsWith('top');
-                                const isLeft = corner.endsWith('Left');
                                 return (
-                                  <div 
-                                    key={corner}
-                                    className="absolute w-7 h-7 rounded-full border-2 border-zinc-900 shadow-lg flex items-center justify-center text-[9px] font-bold overflow-hidden"
-                                    style={{ 
-                                      top: isTop ? '-4px' : 'auto', 
-                                      bottom: !isTop ? '-4px' : 'auto',
-                                      left: isLeft ? '-4px' : 'auto',
-                                      right: !isLeft ? '-4px' : 'auto',
-                                      backgroundColor: config.type === 'team' ? '#3b82f6' : config.bgColor,
-                                      color: config.type === 'team' ? '#fff' : config.textColor
-                                    }}
-                                  >
+                                  <BadgePreview key={corner} corner={corner} config={config}>
                                     {config.type === 'team' && <div className="w-full h-full bg-blue-500" />}
                                     {config.type === 'lives' && '3'}
                                     {config.type === 'votes' && '1'}
@@ -595,7 +639,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                     {config.type === 'creationOrder' && '1'}
                                     {config.type === 'sleeping' && <Moon size={12} />}
                                     {config.type === 'connection' && <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
-                                  </div>
+                                  </BadgePreview>
                                 );
                               })}
                             </div>
@@ -625,9 +669,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
                               return (
                                 <div key={corner.key} className={`flex flex-col gap-2 p-3 bg-muted/40 backdrop-blur-sm rounded-xl border border-border/60 hover:border-primary/40 transition-all shadow-sm ${isLeft ? 'items-start' : 'items-end'}`}>
-                                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{corner.label}</span>
+                                  <label htmlFor={`settings-badge-${corner.key}`} className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground cursor-pointer">{corner.label}</label>
                                   <div className="flex items-center gap-2 w-full">
                                     <select
+                                      id={`settings-badge-${corner.key}`}
                                       value={badge.type}
                                       onChange={(e) => updateBadge({ type: e.target.value as BadgeType })}
                                       className="flex-1 min-w-0 bg-background border border-border rounded px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary"
@@ -742,10 +787,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
                     </div>
                   )}
-                 </div>
-               </section>
-            </div>
-          )}
+                  </div>
+                </section>
+             </div>
+           )}
 
           {/* TAB: TAGS */}
           {activeTab === 'tags' && (
@@ -754,8 +799,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Gestion Globale des Tags</h3>
                 <div className="flex flex-col gap-4">
                   <div className="bg-muted/10 border border-border/40 p-4 rounded-lg flex flex-col gap-4">
-                    <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
+                    <label htmlFor="settings-auto-merge" className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
                       <input
+                        id="settings-auto-merge"
                         type="checkbox"
                         checked={displaySettings.autoMergeTags ?? false}
                         onChange={(e) => updateDisplaySettings({ autoMergeTags: e.target.checked })}
@@ -770,8 +816,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
 
                     <div className="border-t border-border/20 pt-4 mt-2">
-                        <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
+                        <label htmlFor="settings-show-tag-name" className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors font-medium">
                           <input
+                            id="settings-show-tag-name"
                             type="checkbox"
                             checked={displaySettings.showTagName}
                             onChange={(e) => updateDisplaySettings({ showTagName: e.target.checked })}
@@ -979,8 +1026,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             {expandedSmartphone.game ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                           </button>
                         </div>
-                        <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors ml-7 -mt-1 mb-2">
+                        <label htmlFor="smartphone-show-timer" className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors ml-7 -mt-1 mb-2">
                           <input
+                            id="smartphone-show-timer"
                             type="checkbox"
                             checked={displaySettings.showTimerOnSmartphone ?? true}
                             onChange={(e) => updateDisplaySettings({ showTimerOnSmartphone: e.target.checked })}
@@ -990,9 +1038,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </label>
                         {(displaySettings.smartphoneTabs?.game ?? true) && expandedSmartphone.game && (
                    <div className="flex flex-col gap-1.5 w-fit ml-7 mt-1">
-                    <label className="text-xs font-bold text-foreground">Style de l'image (Avatar / Rôle)</label>
+                    <label htmlFor="smartphone-image-style" className="text-xs font-bold text-foreground">Style de l'image (Avatar / Rôle)</label>
                     <p className="text-xs text-muted-foreground mb-1">Définit la forme de l'image affichée sur l'écran du smartphone des joueurs.</p>
                     <select
+                      id="smartphone-image-style"
                       value={displaySettings.smartphoneImageStyle || 'circle'}
                       onChange={(e) => updateDisplaySettings({ smartphoneImageStyle: e.target.value as any })}
                       className="bg-input border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary min-w-[200px]"
@@ -1007,9 +1056,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                        <div className="flex flex-col gap-3 p-3 bg-muted/10 border-l-2 border-primary/30 mt-2 rounded-r-md">
                          <div className="flex flex-col gap-1">
                            <div className="flex justify-between items-center">
-                             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Niveau de flou ({displaySettings.smartphoneImageBlur ?? 20}%)</label>
+                             <label htmlFor="smartphone-blur-range" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Niveau de flou ({displaySettings.smartphoneImageBlur ?? 20}%)</label>
                            </div>
                            <input
+                             id="smartphone-blur-range"
                              type="range"
                              min="0"
                              max="100"
@@ -1020,8 +1070,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                            />
                          </div>
                          <div className="flex flex-col gap-1">
-                           <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Hauteur minimum (en px)</label>
+                           <label htmlFor="smartphone-min-height" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Hauteur minimum (en px)</label>
                            <input
+                             id="smartphone-min-height"
                              type="number"
                              min="0"
                              max="1000"
@@ -1054,8 +1105,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
                        {(displaySettings.smartphoneTabs?.players ?? true) && expandedSmartphone.players && (
                          <div className="pl-7 flex flex-col gap-2 border-l border-border/30 ml-2 mt-1">
-                           <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
+                           <label htmlFor="smartphone-allow-private-notes" className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
                              <input
+                               id="smartphone-allow-private-notes"
                                type="checkbox"
                                checked={displaySettings.smartphonePlayersOptions?.allowPrivateNotes ?? true}
                                onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true, showNotePreview: true }), allowPrivateNotes: e.target.checked } })}
@@ -1085,8 +1137,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                Visible sous le nom du joueur
                              </label>
                            )}
-                           <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
+                           <label htmlFor="smartphone-show-dead-players" className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
                              <input
+                               id="smartphone-show-dead-players"
                                type="checkbox"
                                checked={displaySettings.smartphonePlayersOptions?.showDeadPlayers ?? true}
                                onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true, showNotePreview: true }), showDeadPlayers: e.target.checked } })}
@@ -1094,8 +1147,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                              />
                              Afficher les morts
                            </label>
-                           <label className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
+                           <label htmlFor="smartphone-include-self" className="flex items-center gap-3 text-xs cursor-pointer hover:text-primary transition-colors">
                              <input
+                               id="smartphone-include-self"
                                type="checkbox"
                                checked={displaySettings.smartphonePlayersOptions?.includeSelf ?? true}
                                onChange={(e) => updateDisplaySettings({ smartphonePlayersOptions: { ...(displaySettings.smartphonePlayersOptions || { allowPrivateNotes: true, showDeadPlayers: true, includeSelf: true, allowNotesForDeadPlayers: true, showNotePreview: true }), includeSelf: e.target.checked } })}
@@ -1126,9 +1180,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         {(displaySettings.smartphoneTabs?.room ?? true) && expandedSmartphone.room && (
                    <div className="flex flex-col gap-2 ml-7 mt-1">
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Icône du joueur</label>
+                        <label htmlFor="room-miniature-player-icon" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Icône du joueur</label>
                         <div className="flex gap-2 items-center">
                           <input
+                            id="room-miniature-player-icon"
                             type="url"
                             value={displaySettings.roomMiniaturePlayerIconUrl || ''}
                             onChange={(e) => updateDisplaySettings({ roomMiniaturePlayerIconUrl: e.target.value || null })}
@@ -1164,9 +1219,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         Animation des joueurs (Autres)
                       </label>
                      <div className="flex flex-col gap-1">
-                       <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Icône joueur mort (Overly)</label>
+                       <label htmlFor="room-miniature-dead-icon" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Icône joueur mort (Overly)</label>
                        <div className="flex gap-2 items-center">
                          <input
+                           id="room-miniature-dead-icon"
                            type="url"
                            value={displaySettings.roomMiniatureDeadIconUrl || ''}
                            onChange={(e) => updateDisplaySettings({ roomMiniatureDeadIconUrl: e.target.value || null })}
@@ -1184,10 +1240,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                        </div>
                      </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <label htmlFor="minimap-image-url" className="text-xs font-bold text-foreground flex items-center gap-1.5 cursor-pointer">
                         <ArrowUpRight size={14} className="text-blue-500" />
                         URL de Miniature de la Salle
-                      </span>
+                      </label>
                       <p className="text-[11px] text-muted-foreground">
                         Cette image s'affiche dans l'onglet "Salle" du smartphone des joueurs pour leur donner une idée de la carte. 
                         Elle doit être une URL publique (ex: Imgur, Discord CDN...). Si vide, l'image de fond de la salle est utilisée si c'est une URL.
@@ -1195,6 +1251,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     </div>
                     <div className="flex gap-2 items-center max-w-lg">
                       <input
+                        id="minimap-image-url"
                         type="url"
                         value={room.minimapImageUrl || ''}
                         onChange={(e) => setRoom({ minimapImageUrl: e.target.value || null })}
@@ -1247,8 +1304,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             Afficher les Notes
                           </label>
                           <div className="flex flex-col gap-1 ml-5">
-                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Titre du Wiki</label>
+                            <label htmlFor="smartphone-wiki-title" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Titre du Wiki</label>
                             <input
+                              id="smartphone-wiki-title"
                               type="text"
                               value={displaySettings.wikiTitle || 'Régles du jeu'}
                               onChange={(e) => updateDisplaySettings({ wikiTitle: e.target.value })}
@@ -1330,8 +1388,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
               <section>
                 <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3">Configuration de la Télécommande</h3>
                 <div className="flex flex-col gap-4 p-4 bg-muted/20 rounded-lg border border-border">
-                  <label className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">
+                  <label htmlFor="remote-enabled" className="flex items-center gap-3 text-sm font-bold cursor-pointer hover:text-primary transition-colors">
                     <input
+                      id="remote-enabled"
                       type="checkbox"
                       checked={soundboard.remoteEnabled || false}
                       onChange={(e) => setSoundboard({ remoteEnabled: e.target.checked })}
@@ -1346,8 +1405,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                   {soundboard.remoteEnabled && (
                     <div className="pl-8 pt-3 border-t border-border/50 flex flex-col gap-4 mt-2">
                       <div className="flex flex-col gap-2">
-                        <label className="text-[10px] uppercase font-bold text-foreground tracking-widest">Code d'accès obligatoire</label>
+                        <label htmlFor="remote-passcode" className="text-[10px] uppercase font-bold text-foreground tracking-widest">Code d'accès obligatoire</label>
                         <input
+                          id="remote-passcode"
                           type="text"
                           value={soundboard.remotePasscode || ''}
                           onChange={(e) => setSoundboard({ remotePasscode: e.target.value })}
@@ -1355,6 +1415,72 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           placeholder="EX: 1234"
                         />
                       </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2 mb-3 mt-4">Affichage sur la Télécommande</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={soundboard.remoteShowSounds ?? true}
+                      onChange={(e) => setSoundboard({ remoteShowSounds: e.target.checked })}
+                      className="rounded border-border w-4 h-4 text-primary"
+                    />
+                    <span className="text-xs font-bold uppercase">Sons</span>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={soundboard.remoteShowTasks ?? true}
+                      onChange={(e) => setSoundboard({ remoteShowTasks: e.target.checked })}
+                      className="rounded border-border w-4 h-4 text-primary"
+                    />
+                    <span className="text-xs font-bold uppercase">Tâches</span>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={soundboard.remoteShowHandouts ?? true}
+                      onChange={(e) => setSoundboard({ remoteShowHandouts: e.target.checked })}
+                      className="rounded border-border w-4 h-4 text-primary"
+                    />
+                    <span className="text-xs font-bold uppercase">Aides</span>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={soundboard.remoteShowActions ?? true}
+                      onChange={(e) => setSoundboard({ remoteShowActions: e.target.checked })}
+                      className="rounded border-border w-4 h-4 text-primary"
+                    />
+                    <span className="text-xs font-bold uppercase">Actions</span>
+                  </label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                  <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={soundboard.remoteShowPlayers ?? false}
+                      onChange={(e) => setSoundboard({ remoteShowPlayers: e.target.checked })}
+                      className="rounded border-border w-4 h-4 text-primary"
+                    />
+                    <span className="text-xs font-bold uppercase">Joueurs</span>
+                  </label>
+                  {soundboard.remoteShowPlayers && (
+                    <div className="md:col-span-2 flex items-center">
+                      <label className="flex items-center gap-3 p-3 bg-muted/20 border border-border rounded-lg cursor-pointer hover:bg-muted/40 transition-colors flex-1 ml-4">
+                        <input
+                          type="checkbox"
+                          checked={soundboard.remoteShowDeadPlayers ?? false}
+                          onChange={(e) => setSoundboard({ remoteShowDeadPlayers: e.target.checked })}
+                          className="rounded border-border w-4 h-4 text-primary"
+                        />
+                        <span className="text-xs font-bold uppercase text-muted-foreground">Afficher les morts</span>
+                      </label>
                     </div>
                   )}
                 </div>
@@ -1413,38 +1539,58 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         )}
                       </label>
                       {key === 'distribution' && (displaySettings.panels?.distribution ?? true) && expandedOutils.distribution && (
-                      <div className="ml-8 grid grid-cols-2 gap-2 p-2 bg-muted/10 border-l-2 border-purple-500/30 rounded-r-lg mt-1 mb-2">
-                        {[
-                          { key: 'distributionResurrectAll', label: 'Ressusciter tous les joueurs' },
-                          { key: 'distributionDeleteTags', label: 'Supprimer les tags des joueurs' },
-                          { key: 'distributionRemovePastilles', label: 'Enlever les pastilles tags' },
-                          { key: 'distributionResetPhase', label: 'Réinitialiser la phase (Jour 1)' },
-                          { key: 'distributionResetLives', label: 'Reset Vie' },
-                          { key: 'distributionResetPoints', label: 'Reset Points' },
-                          { key: 'distributionResetVotes', label: 'Reset Votes' },
-                          { key: 'distributionDeletePrivateNotes', label: 'Supprimer les notes privés' },
-                          { key: 'distributionDeletePublicNotes', label: 'Supprimer les notes publiques' }
-                        ].map(sub => (
-                          <label key={sub.key} className="flex items-center gap-2 cursor-pointer group">
-                             <input
-                               type="checkbox"
-                               checked={(displaySettings as any)[sub.key] ?? true}
-                               onChange={(e) => updateDisplaySettings({ [sub.key]: e.target.checked })}
-                               className="rounded border-border w-4 h-4 text-purple-500 focus:ring-purple-500"
-                             />
-                             <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
-                               {sub.label}
-                             </span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
+                        <>
+                          <div className="ml-8 grid grid-cols-2 gap-2 p-2 bg-muted/10 border-l-2 border-purple-500/30 rounded-r-lg mt-1 mb-2">
+                            {[
+                              { key: 'distributionResurrectAll', label: 'Ressusciter tous les joueurs' },
+                              { key: 'distributionDeleteTags', label: 'Supprimer les tags des joueurs' },
+                              { key: 'distributionRemovePastilles', label: 'Enlever les pastilles tags' },
+                              { key: 'distributionResetPhase', label: 'Réinitialiser la phase (Jour 1)' },
+                              { key: 'distributionResetLives', label: 'Reset Vie' },
+                              { key: 'distributionResetPoints', label: 'Reset Points' },
+                              { key: 'distributionResetVotes', label: 'Reset Votes' },
+                              { key: 'distributionDeletePrivateNotes', label: 'Supprimer les notes privés' },
+                              { key: 'distributionDeletePublicNotes', label: 'Supprimer les notes publiques' }
+                            ].map(sub => (
+                              <label key={sub.key} className="flex items-center gap-2 cursor-pointer group">
+                                 <input
+                                   type="checkbox"
+                                   checked={(displaySettings as any)[sub.key] ?? true}
+                                   onChange={(e) => updateDisplaySettings({ [sub.key]: e.target.checked })}
+                                   className="rounded border-border w-4 h-4 text-purple-500 focus:ring-purple-500"
+                                 />
+                                 <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                                   {sub.label}
+                                 </span>
+                              </label>
+                            ))}
+                          </div>
+                          <div className="ml-8 mt-2 p-3 bg-muted/10 border-l-2 border-purple-500/30 rounded-r-lg flex flex-col gap-2">
+                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                              <icons.Play size={10} /> Exécuter une action
+                            </label>
+                            <div className="flex gap-2">
+                              <select
+                                value={displaySettings.distributionActionId || ''}
+                                onChange={(e) => updateDisplaySettings({ distributionActionId: e.target.value || null })}
+                                className="flex-1 bg-background border border-border rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                              >
+                                <option value="">Sélectionner une action...</option>
+                                {actions.map(action => (
+                                  <option key={action.id} value={action.id}>{action.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     {key === 'chrono' && (displaySettings.panels?.chrono ?? true) && expandedOutils.chrono && (
                       <div className="ml-8 flex flex-col gap-3 p-3 bg-muted/10 border-l-2 border-amber-500/30 rounded-r-lg mt-1 mb-2">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Minutes par défaut</label>
+                            <label htmlFor="timer-default-min" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Minutes par défaut</label>
                             <input
+                              id="timer-default-min"
                               type="number"
                               min="0"
                               max="99"
@@ -1454,8 +1600,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             />
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Secondes par défaut</label>
+                            <label htmlFor="timer-default-sec" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Secondes par défaut</label>
                             <input
+                              id="timer-default-sec"
                               type="number"
                               min="0"
                               max="59"
@@ -1476,11 +1623,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                               className="flex-1 bg-background border border-border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
                             />
                             <input
+                              id="timer-sound-upload"
                               type="file"
                               ref={timerSoundInputRef}
                               onChange={handleTimerSoundUpload}
                               className="hidden"
                               accept="audio/*"
+                              aria-label="Charger un son de fin"
                             />
                             <button
                               onClick={() => timerSoundInputRef.current?.click()}
@@ -1598,8 +1747,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                           { key: 'showVotes', label: 'Afficher les votes' },
                           { key: 'showStatus', label: 'Afficher le statut' }
                         ].map(col => (
-                          <label key={col.key} className="flex items-center gap-2 cursor-pointer group">
+                          <label key={col.key} htmlFor={`scoreboard-${col.key}`} className="flex items-center gap-2 cursor-pointer group">
                             <input
+                              id={`scoreboard-${col.key}`}
                               type="checkbox"
                               checked={(scoreboard as any)[col.key] ?? true}
                               onChange={(e) => {
@@ -1619,8 +1769,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     )}
                     {key === 'logs' && (displaySettings.panels?.logs ?? true) && expandedOutils.logs && (
                       <div className="ml-8 flex items-center gap-3 p-2 bg-muted/10 border-l-2 border-primary/30">
-                        <label className="flex items-center gap-2 cursor-pointer group">
+                        <label htmlFor="settings-record-logs" className="flex items-center gap-2 cursor-pointer group">
                           <input
+                            id="settings-record-logs"
                             type="checkbox"
                             checked={displaySettings.recordLogs ?? true}
                             onChange={(e) => updateDisplaySettings({ recordLogs: e.target.checked })}

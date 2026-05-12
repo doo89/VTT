@@ -9,6 +9,7 @@ import { supabase, getEnvUrl, getEnvKey } from '../../lib/supabase';
 import { calculateTagEffect, getEffectiveStats } from '../../lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
 import type { PlayerShape } from '../../types';
+import './Canvas.css';
 
 const getShapeClipPath = (shape?: PlayerShape) => {
   switch (shape) {
@@ -19,6 +20,7 @@ const getShapeClipPath = (shape?: PlayerShape) => {
     case 'octagon': return 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)';
     case 'star': return 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
     case 'pentagon': return 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)';
+    case 'hexagon': return 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
     case 'circle':
     default: return 'circle(50% at 50% 50%)';
   }
@@ -26,6 +28,10 @@ const getShapeClipPath = (shape?: PlayerShape) => {
 
 export const Canvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const roomRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const selectionRef = useRef<HTMLDivElement>(null);
   const [showConnectionPopup, setShowConnectionPopup] = useState(false);
   const {
     roomName, setRoomName, roomCode, generateRoomCode, clearRoomCode, isRoomPublic, toggleRoomPublic,
@@ -33,7 +39,7 @@ export const Canvas: React.FC = () => {
     canvas, setPan, setZoom, isNight, nextCycle, cycleMode,
     players, updatePlayer, updatePlayers, addPlayer, deletePlayer, clearPlayers,
     markers, updateMarker, addMarker, deleteMarker, clearMarkers,
-    roles, teams, grid, setGrid, room, displaySettings,
+    roles, teams, tags, tagCategories, grid, setGrid, room, displaySettings,
     selectedEntityIds, setSelectedEntityIds, clearSelection,
     interactionMode, setInteractionMode,
     magneticPoints, showMagneticPoints, updateMagneticPoint, deleteMagneticPoint
@@ -371,6 +377,64 @@ export const Canvas: React.FC = () => {
   };
 
 
+  // Update grid styles via ref to avoid inline style linting errors
+  useEffect(() => {
+    if (gridRef.current && grid.show) {
+      const zoom = canvas.zoom;
+      const sizeX = grid.sizeX * zoom;
+      const sizeY = grid.sizeY * zoom;
+      const posX = (canvas.panX + containerSize.width / 2) % sizeX;
+      const posY = (canvas.panY + containerSize.height / 2) % sizeY;
+      
+      gridRef.current.style.setProperty('--grid-size-x', `${sizeX}px`);
+      gridRef.current.style.setProperty('--grid-size-y', `${sizeY}px`);
+      gridRef.current.style.setProperty('--grid-pos-x', `${posX}px`);
+      gridRef.current.style.setProperty('--grid-pos-y', `${posY}px`);
+    }
+  }, [canvas.zoom, canvas.panX, canvas.panY, containerSize, grid.show, grid.sizeX, grid.sizeY]);
+
+  // Update room styles via ref to avoid inline style linting errors
+  useEffect(() => {
+    if (roomRef.current) {
+      const r = roomRef.current;
+      r.style.setProperty('--room-width', `${room.width}px`);
+      r.style.setProperty('--room-height', `${room.height}px`);
+      r.style.setProperty('--room-left', `${-room.width / 2}px`);
+      r.style.setProperty('--room-top', `${-room.height / 2}px`);
+      r.style.setProperty('--room-bg-color', room.backgroundColor);
+      r.style.setProperty('--room-bg-image', room.backgroundImage ? `url(${room.backgroundImage})` : 'none');
+      r.style.setProperty('--room-bg-repeat', room.backgroundStyle === 'mosaic' ? 'repeat' : 'no-repeat');
+      r.style.setProperty('--room-bg-pos', room.backgroundStyle === 'center' ? 'center' : '0 0');
+      r.style.setProperty('--room-bg-size', room.backgroundStyle === 'stretch' ? '100% 100%' : 'auto');
+    }
+  }, [room]);
+
+  // Update infinite canvas styles via ref to avoid inline style linting errors
+  useEffect(() => {
+    if (canvasRef.current) {
+      const c = canvasRef.current;
+      c.style.setProperty('--canvas-pan-x', `${canvas.panX}px`);
+      c.style.setProperty('--canvas-pan-y', `${canvas.panY}px`);
+      c.style.setProperty('--canvas-zoom', `${canvas.zoom}`);
+    }
+  }, [canvas.panX, canvas.panY, canvas.zoom]);
+
+  // Update selection box styles via ref
+  useEffect(() => {
+    if (selectionRef.current && selectionBoxStart && selectionBoxCurrent) {
+      const s = selectionRef.current;
+      const left = Math.min(selectionBoxStart.x, selectionBoxCurrent.x);
+      const top = Math.min(selectionBoxStart.y, selectionBoxCurrent.y);
+      const width = Math.abs(selectionBoxCurrent.x - selectionBoxStart.x);
+      const height = Math.abs(selectionBoxCurrent.y - selectionBoxStart.y);
+      
+      s.style.left = `${left}px`;
+      s.style.top = `${top}px`;
+      s.style.width = `${width}px`;
+      s.style.height = `${height}px`;
+    }
+  }, [selectionBoxStart, selectionBoxCurrent]);
+
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     if (e.ctrlKey) {
@@ -689,7 +753,7 @@ export const Canvas: React.FC = () => {
 
       <div
         ref={containerRef}
-        className="flex-1 relative overflow-hidden bg-background outline-none"
+        className={`flex-1 relative overflow-hidden bg-background outline-none ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -704,7 +768,6 @@ export const Canvas: React.FC = () => {
           }
         }}
         tabIndex={0}
-        style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
       >
         {/* Connection QR Code Popup */}
         {showConnectionPopup && (
@@ -726,6 +789,7 @@ export const Canvas: React.FC = () => {
                 <button 
                   onClick={() => setShowConnectionPopup(false)}
                   className="p-2 hover:bg-accent rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                  title="Fermer"
                 >
                   <X size={20} />
                 </button>
@@ -840,19 +904,15 @@ export const Canvas: React.FC = () => {
         {/* Grid Overlay */}
         {grid.show && (
           <div
-            className="absolute inset-0 pointer-events-none opacity-20"
-            style={{
-              backgroundImage: `linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)`,
-              backgroundSize: `${grid.sizeX * canvas.zoom}px ${grid.sizeY * canvas.zoom}px`,
-              backgroundPosition: `${(canvas.panX + containerSize.width / 2) % (grid.sizeX * canvas.zoom)}px ${(canvas.panY + containerSize.height / 2) % (grid.sizeY * canvas.zoom)}px`
-            }}
+            ref={gridRef}
+            className="absolute inset-0 pointer-events-none opacity-20 canvas-grid"
           />
         )}
 
         <div className="absolute bottom-4 left-4 z-40 flex gap-2 bg-card p-2 rounded-lg border border-border shadow-md">
-          <button onClick={() => setZoom(Math.max(0.1, canvas.zoom - 0.1))} className="p-1 hover:bg-accent rounded-md"><ZoomOut size={20} /></button>
+          <button onClick={() => setZoom(Math.max(0.1, canvas.zoom - 0.1))} className="p-1 hover:bg-accent rounded-md" title="Zoom Arrière"><ZoomOut size={20} /></button>
           <span className="w-12 text-center text-sm flex items-center justify-center font-mono">{(canvas.zoom * 100).toFixed(0)}%</span>
-          <button onClick={() => setZoom(Math.min(5, canvas.zoom + 0.1))} className="p-1 hover:bg-accent rounded-md"><ZoomIn size={20} /></button>
+          <button onClick={() => setZoom(Math.min(5, canvas.zoom + 0.1))} className="p-1 hover:bg-accent rounded-md" title="Zoom Avant"><ZoomIn size={20} /></button>
           <div className="w-px h-6 bg-border mx-1" />
           <button onClick={() => { setZoom(1); setPan(0, 0); }} className="p-1 hover:bg-accent rounded-md" title="Reset View"><Maximize size={20} /></button>
           <div className="w-px h-6 bg-border mx-1" />
@@ -906,32 +966,13 @@ export const Canvas: React.FC = () => {
 
         {/* The actual infinite canvas */}
         <div
-          className="absolute origin-center"
-          style={{
-            transform: `translate(${canvas.panX}px, ${canvas.panY}px) scale(${canvas.zoom})`,
-            left: '50%',
-            top: '50%',
-            width: 0,
-            height: 0,
-          }}
+          ref={canvasRef}
+          className="origin-center infinite-canvas"
         >
           {/* Room Area */}
           <div
-            className="absolute origin-center transition-colors duration-500 shadow-2xl"
-            style={{
-              width: room.width,
-              height: room.height,
-              left: -room.width / 2,
-              top: -room.height / 2,
-              backgroundColor: room.backgroundColor,
-              backgroundImage: room.backgroundImage ? `url(${room.backgroundImage})` : 'none',
-              backgroundRepeat: room.backgroundStyle === 'mosaic' ? 'repeat' : 'no-repeat',
-              backgroundPosition: room.backgroundStyle === 'center' ? 'center' : '0 0',
-              backgroundSize: room.backgroundStyle === 'stretch' ? '100% 100%' : 'auto',
-              border: '2px solid rgba(0,0,0,0.1)',
-              borderRadius: '8px',
-              pointerEvents: 'none', // Allow clicking through to canvas for panning
-            }}
+            ref={roomRef}
+            className="absolute origin-center transition-colors duration-500 shadow-2xl room-area"
           />
 
           {/* Origin indicator (0,0) */}
@@ -942,15 +983,8 @@ export const Canvas: React.FC = () => {
           {/* Selection Box (Marquee) */}
           {isSelecting && selectionBoxStart && selectionBoxCurrent && (
             <div
-              className="absolute pointer-events-none border-2 border-blue-500 bg-blue-500/20 z-[200] animate-in fade-in zoom-in-95 duration-75"
-              style={{
-                left: Math.min(selectionBoxStart.x, selectionBoxCurrent.x),
-                top: Math.min(selectionBoxStart.y, selectionBoxCurrent.y),
-                width: Math.abs(selectionBoxCurrent.x - selectionBoxStart.x),
-                height: Math.abs(selectionBoxCurrent.y - selectionBoxStart.y),
-                borderRadius: '2px',
-                boxShadow: '0 0 10px rgba(59, 130, 246, 0.3)'
-              }}
+              ref={selectionRef}
+              className="absolute pointer-events-none border-2 border-blue-500 bg-blue-500/20 z-[200] animate-in fade-in zoom-in-95 duration-75 rounded-[2px] shadow-[0_0_10px_rgba(59,130,246,0.3)]"
             />
           )}
 
@@ -1833,6 +1867,92 @@ export const Canvas: React.FC = () => {
                   </div>
                 </div>
 
+                <div className="relative group">
+                  <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2"><Tag size={14} /> Ajouter Tag</span>
+                    <ChevronRight size={14} />
+                  </button>
+                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[180px] hidden group-hover:block z-[101] overflow-visible">
+                    {tags.length === 0 ? (
+                      <div className="px-4 py-2 text-xs text-muted-foreground italic">Aucun modèle de tag</div>
+                    ) : (
+                      <>
+                        {tagCategories.map(cat => {
+                          const catTags = tags.filter(t => t.categoryId === cat.id);
+                          if (catTags.length === 0) return null;
+                          return (
+                            <div key={cat.id} className="relative group/cat">
+                              <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
+                                <span className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                                  <span className="font-semibold">{cat.name}</span>
+                                </span>
+                                <ChevronRight size={14} />
+                              </button>
+                              <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[180px] hidden group-hover/cat:block z-[102] max-h-64 overflow-y-auto custom-scrollbar">
+                                {catTags.map(tagModel => {
+                                  const IconComponent = icons[tagModel.icon as keyof typeof icons] || Tag;
+                                  return (
+                                    <button
+                                      key={tagModel.id}
+                                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                                      onMouseDown={(e) => {
+                                        e.stopPropagation();
+                                        const player = players.find(p => p.id === contextMenu.entityId);
+                                        if (player) {
+                                          applyTagToPlayer(player, tagModel);
+                                        }
+                                        closeContextMenu();
+                                      }}
+                                    >
+                                      <div className="flex items-center justify-center w-4 h-4 rounded-sm border border-border overflow-hidden" style={{ backgroundColor: `${tagModel.color}20`, borderColor: tagModel.color }}>
+                                        {tagModel.imageUrl ? (
+                                          <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                          React.createElement(IconComponent as any, { size: 10, style: { color: tagModel.color } })
+                                        )}
+                                      </div>
+                                      {tagModel.name}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {tags.filter(t => !t.categoryId).map(tagModel => {
+                          const IconComponent = icons[tagModel.icon as keyof typeof icons] || Tag;
+                          return (
+                            <button
+                              key={tagModel.id}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                const player = players.find(p => p.id === contextMenu.entityId);
+                                if (player) {
+                                  applyTagToPlayer(player, tagModel);
+                                }
+                                closeContextMenu();
+                              }}
+                            >
+                              <div className="flex items-center justify-center w-4 h-4 rounded-sm border border-border overflow-hidden" style={{ backgroundColor: `${tagModel.color}20`, borderColor: tagModel.color }}>
+                                {tagModel.imageUrl ? (
+                                  <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  React.createElement(IconComponent as any, { size: 10, style: { color: tagModel.color } })
+                                )}
+                              </div>
+                              {tagModel.name}
+                            </button>
+                          );
+                        })}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="h-px bg-border my-1" />
+
                 {/* Tags Submenu */}
                 {players.find(p => p.id === contextMenu.entityId)!.tags.length > 0 && (
                   <div className="relative group">
@@ -1850,6 +1970,7 @@ export const Canvas: React.FC = () => {
                           <div className="flex items-center gap-1 opacity-60 hover:opacity-100">
                             <button
                               className="p-1 hover:text-primary"
+                              title="Modifier le tag"
                               onMouseDown={(e) => {
                                 e.stopPropagation();
                                 useVttStore.getState().setEditingEntity({ type: 'tagInstance', id: tag.instanceId, parentId: contextMenu.entityId || undefined });
@@ -1860,6 +1981,7 @@ export const Canvas: React.FC = () => {
                             </button>
                             <button
                               className="p-1 hover:text-destructive"
+                              title="Supprimer le tag"
                               onMouseDown={(e) => {
                                 e.stopPropagation();
                                 const player = players.find(p => p.id === contextMenu.entityId);
@@ -2329,44 +2451,169 @@ export const Canvas: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Align Submenu */}
+                <div className="relative group">
+                  <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2"><icons.AlignLeft size={14} /> Aligner</span>
+                    <ChevronRight size={14} />
+                  </button>
+                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101]">
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        const selectedEntities = [...players, ...markers].filter(e => selectedEntityIds.includes(e.id));
+                        if (selectedEntities.length < 2) return;
+                        const minX = Math.min(...selectedEntities.map(e => e.x));
+                        selectedEntities.forEach(ent => {
+                          if ('name' in ent) updatePlayer(ent.id, { x: minX });
+                          else updateMarker(ent.id, { x: minX });
+                        });
+                        closeContextMenu();
+                      }}
+                    >
+                      <icons.AlignLeft size={14} /> À gauche
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        const selectedEntities = [...players, ...markers].filter(e => selectedEntityIds.includes(e.id));
+                        if (selectedEntities.length < 2) return;
+                        const maxX = Math.max(...selectedEntities.map(e => e.x));
+                        selectedEntities.forEach(ent => {
+                          if ('name' in ent) updatePlayer(ent.id, { x: maxX });
+                          else updateMarker(ent.id, { x: maxX });
+                        });
+                        closeContextMenu();
+                      }}
+                    >
+                      <icons.AlignRight size={14} /> À droite
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        const selectedEntities = [...players, ...markers].filter(e => selectedEntityIds.includes(e.id));
+                        if (selectedEntities.length < 2) return;
+                        const minY = Math.min(...selectedEntities.map(e => e.y));
+                        selectedEntities.forEach(ent => {
+                          if ('name' in ent) updatePlayer(ent.id, { y: minY });
+                          else updateMarker(ent.id, { y: minY });
+                        });
+                        closeContextMenu();
+                      }}
+                    >
+                      <icons.AlignStartVertical size={14} /> En haut
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        const selectedEntities = [...players, ...markers].filter(e => selectedEntityIds.includes(e.id));
+                        if (selectedEntities.length < 2) return;
+                        const maxY = Math.max(...selectedEntities.map(e => e.y));
+                        selectedEntities.forEach(ent => {
+                          if ('name' in ent) updatePlayer(ent.id, { y: maxY });
+                          else updateMarker(ent.id, { y: maxY });
+                        });
+                        closeContextMenu();
+                      }}
+                    >
+                      <icons.AlignEndVertical size={14} /> En bas
+                    </button>
+                  </div>
+                </div>
+
+                <div className="h-px bg-border my-1" />
+
                 {/* Tags Submenu for group */}
                 <div className="relative group">
                   <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2"><Tag size={14} /> Ajouter Tag</span>
                     <ChevronRight size={14} />
                   </button>
-                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[150px] hidden group-hover:block z-[101] max-h-64 overflow-y-auto custom-scrollbar">
-                    {useVttStore.getState().tags.length === 0 ? (
+                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[180px] hidden group-hover:block z-[101] overflow-visible">
+                    {tags.length === 0 ? (
                       <div className="px-4 py-2 text-xs text-muted-foreground italic">Aucun modèle de tag</div>
                     ) : (
-                      useVttStore.getState().tags.map(tagModel => {
-                        const IconComponent = icons[tagModel.icon as keyof typeof icons] || Tag;
-                        return (
-                          <button
-                            key={tagModel.id}
-                            className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
-                            onMouseDown={(e) => {
-                              e.stopPropagation();
-                              selectedEntityIds.forEach(id => {
-                                const player = players.find(p => p.id === id);
-                                if (player) {
-                                  applyTagToPlayer(player, tagModel);
-                                }
-                              });
-                              closeContextMenu();
-                            }}
-                          >
-                            <div className="flex items-center justify-center w-4 h-4 rounded-sm border border-border overflow-hidden" style={{ backgroundColor: `${tagModel.color}20`, borderColor: tagModel.color }}>
-                              {tagModel.imageUrl ? (
-                                <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
-                              ) : (
-                                React.createElement(IconComponent as any, { size: 10, style: { color: tagModel.color } })
-                              )}
+                      <>
+                        {tagCategories.map(cat => {
+                          const catTags = tags.filter(t => t.categoryId === cat.id);
+                          if (catTags.length === 0) return null;
+                          return (
+                            <div key={cat.id} className="relative group/cat">
+                              <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
+                                <span className="flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                                  <span className="font-semibold">{cat.name}</span>
+                                </span>
+                                <ChevronRight size={14} />
+                              </button>
+                              <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[180px] hidden group-hover/cat:block z-[102] max-h-64 overflow-y-auto custom-scrollbar">
+                                {catTags.map(tagModel => {
+                                  const IconComponent = icons[tagModel.icon as keyof typeof icons] || Tag;
+                                  return (
+                                    <button
+                                      key={tagModel.id}
+                                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                                      onMouseDown={(e) => {
+                                        e.stopPropagation();
+                                        selectedEntityIds.forEach(id => {
+                                          const player = players.find(p => p.id === id);
+                                          if (player) {
+                                            applyTagToPlayer(player, tagModel);
+                                          }
+                                        });
+                                        closeContextMenu();
+                                      }}
+                                    >
+                                      <div className="flex items-center justify-center w-4 h-4 rounded-sm border border-border overflow-hidden" style={{ backgroundColor: `${tagModel.color}20`, borderColor: tagModel.color }}>
+                                        {tagModel.imageUrl ? (
+                                          <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                          React.createElement(IconComponent as any, { size: 10, style: { color: tagModel.color } })
+                                        )}
+                                      </div>
+                                      {tagModel.name}
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
-                            {tagModel.name}
-                          </button>
-                        );
-                      })
+                          );
+                        })}
+                        
+                        {/* Tags without category */}
+                        {tags.filter(t => !t.categoryId).map(tagModel => {
+                          const IconComponent = icons[tagModel.icon as keyof typeof icons] || Tag;
+                          return (
+                            <button
+                              key={tagModel.id}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center gap-2"
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                selectedEntityIds.forEach(id => {
+                                  const player = players.find(p => p.id === id);
+                                  if (player) {
+                                    applyTagToPlayer(player, tagModel);
+                                  }
+                                });
+                                closeContextMenu();
+                              }}
+                            >
+                              <div className="flex items-center justify-center w-4 h-4 rounded-sm border border-border overflow-hidden" style={{ backgroundColor: `${tagModel.color}20`, borderColor: tagModel.color }}>
+                                {tagModel.imageUrl ? (
+                                  <img src={tagModel.imageUrl} alt={tagModel.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  React.createElement(IconComponent as any, { size: 10, style: { color: tagModel.color } })
+                                )}
+                              </div>
+                              {tagModel.name}
+                            </button>
+                          );
+                        })}
+                      </>
                     )}
                   </div>
                 </div>
@@ -2483,7 +2730,7 @@ export const Canvas: React.FC = () => {
             <div className="bg-background rounded-xl shadow-xl outline-1 border border-border w-[450px] max-w-full overflow-hidden text-foreground">
               <div className="p-4 bg-muted/30 border-b border-border flex justify-between items-center">
                 <h3 className="font-bold text-lg">Exporter l'état</h3>
-                <button onClick={() => setShowExportModal(false)} className="text-muted-foreground hover:text-foreground">
+                <button onClick={() => setShowExportModal(false)} className="text-muted-foreground hover:text-foreground" title="Fermer">
                   <X size={20} />
                 </button>
               </div>

@@ -2,8 +2,7 @@ import { Plus, Trash2, Edit2, Tag, icons, ChevronDown, ChevronRight, Copy } from
 import React, { useState, useMemo } from 'react';
 import { useVttStore } from '../../../store';
 import { ColorPicker } from '../../ColorPicker';
-
-
+import './TagsTab.css';
 export const TagsTab: React.FC = () => {
   const { tags, tagCategories, addTagModel, updateTagModel, deleteTagModel, setEditingEntity, addTagCategory, deleteTagCategory } = useVttStore();
   const [newTagName, setNewTagName] = useState('');
@@ -108,8 +107,10 @@ export const TagsTab: React.FC = () => {
         {openSections.createCategory && (
           <div className="flex flex-col gap-3 px-1">
             <input
+              id="new-category-name"
               type="text"
               placeholder="Nom de la catégorie"
+              aria-label="Nom de la catégorie"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -146,8 +147,10 @@ export const TagsTab: React.FC = () => {
         {openSections.createTag && (
           <div className="flex flex-col gap-3 px-1">
             <input
+              id="new-tag-name"
               type="text"
               placeholder="Nom du tag"
+              aria-label="Nom du tag"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
               className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -164,15 +167,23 @@ export const TagsTab: React.FC = () => {
                 />
               </div>
               <div className="flex flex-col gap-1 flex-1">
-                <label className="text-xs font-medium text-muted-foreground">Catégorie</label>
+                <label htmlFor="new-tag-category" className="text-xs font-medium text-muted-foreground">Catégorie</label>
                 <select
+                  id="new-tag-category"
                   value={newTagCategoryId || ''}
                   onChange={(e) => setNewTagCategoryId(e.target.value || null)}
                   className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring h-10"
                 >
                   <option value="">Sans catégorie</option>
                   {tagCategories.map(cat => (
-                    <option key={cat.id} value={cat.id} style={{ color: cat.color }}>{cat.name}</option>
+                    <option 
+                      key={cat.id} 
+                      value={cat.id} 
+                      className="tag-category-option"
+                      style={{ '--cat-color': cat.color } as React.CSSProperties}
+                    >
+                      {cat.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -209,16 +220,22 @@ export const TagsTab: React.FC = () => {
               const CatIcon = icons[cat.icon as keyof typeof icons] || icons.Folder;
               
               return (
-                <div key={cat.id} className="flex flex-col mb-2 bg-card border border-border rounded-md overflow-hidden">
+                <div 
+                  key={cat.id} 
+                  className="flex flex-col mb-2 bg-card border border-border rounded-md overflow-hidden"
+                  style={{ '--cat-color': cat.color } as React.CSSProperties}
+                >
                   <div className="flex items-center justify-between bg-muted/50 hover:bg-muted p-2 transition-colors group">
                     <button 
                       onClick={() => toggleCategory(cat.id)}
                       className="flex items-center gap-2 flex-1 text-left"
                     >
-                      <div className="p-1 rounded bg-background shadow-sm" style={{ color: cat.color }}>
+                      <div className="p-1 rounded bg-background shadow-sm tag-category-icon-wrapper">
                         <CatIcon size={14} />
                       </div>
-                      <span className="font-semibold text-sm flex-1" style={{ color: cat.color }}>{cat.name}</span>
+                      <span className="font-semibold text-sm flex-1 tag-category-name">
+                        {cat.name}
+                      </span>
                       <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">
                         {catTags.length}
                       </span>
@@ -250,7 +267,11 @@ export const TagsTab: React.FC = () => {
                         catTags.map(tag => {
                           const IconComponent = icons[tag.icon as keyof typeof icons] || Tag;
                           return (
-                            <div key={tag.id} className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group">
+                            <div 
+                              key={tag.id} 
+                              className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group"
+                              style={{ '--tag-color': tag.color } as React.CSSProperties}
+                            >
                               <div className="flex items-center gap-2 overflow-hidden flex-1">
                                 <input
                                   type="checkbox"
@@ -259,7 +280,7 @@ export const TagsTab: React.FC = () => {
                                   className="rounded border-border text-primary focus:ring-primary h-4 w-4 shrink-0 cursor-pointer"
                                   title="Ajouter au Distributeur"
                                 />
-                                <div className="w-6 h-6 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: tag.color, color: '#fff' }}>
+                                <div className="w-6 h-6 rounded flex items-center justify-center shrink-0 tag-model-icon-wrapper">
                                   <IconComponent size={12} />
                                 </div>
                                 <span className="text-sm font-medium truncate">{tag.name}</span>
@@ -318,18 +339,22 @@ export const TagsTab: React.FC = () => {
                       {tagsByCategory['no-category'].map(tag => {
                         const IconComponent = icons[tag.icon as keyof typeof icons] || Tag;
                         return (
-                          <div key={tag.id} className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group">
-                            <div className="flex items-center gap-2 overflow-hidden flex-1">
-                              <input
-                                type="checkbox"
-                                checked={tag.isInDistributor || false}
-                                onChange={(e) => updateTagModel(tag.id, { isInDistributor: e.target.checked })}
-                                className="rounded border-border text-primary focus:ring-primary h-4 w-4 shrink-0 cursor-pointer"
-                                title="Ajouter au Distributeur"
-                              />
-                              <div className="w-6 h-6 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: tag.color, color: '#fff' }}>
-                                <IconComponent size={12} />
-                              </div>
+                              <div 
+                                key={tag.id} 
+                                className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group"
+                                style={{ '--tag-color': tag.color } as React.CSSProperties}
+                              >
+                                <div className="flex items-center gap-2 overflow-hidden flex-1">
+                                  <input
+                                    type="checkbox"
+                                    checked={tag.isInDistributor || false}
+                                    onChange={(e) => updateTagModel(tag.id, { isInDistributor: e.target.checked })}
+                                    className="rounded border-border text-primary focus:ring-primary h-4 w-4 shrink-0 cursor-pointer"
+                                    title="Ajouter au Distributeur"
+                                  />
+                                  <div className="w-6 h-6 rounded flex items-center justify-center shrink-0 tag-model-icon-wrapper">
+                                    <IconComponent size={12} />
+                                  </div>
                               <span className="text-sm font-medium truncate">{tag.name}</span>
                             </div>
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
