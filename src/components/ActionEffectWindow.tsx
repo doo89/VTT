@@ -77,7 +77,7 @@ const ACTION_OPTIONS: ActionOption[] = [
   { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
   { value: 'sendPrivateMessage', label: 'Envoyer un Message Privé ($Joueur)', category: 'alerts' },
   { value: 'addSystemLog', label: "Ajouter un Log Système (Journal)", category: 'system' }
-].sort((a, b) => a.label.localeCompare(b.label));
+] as ActionOption[]).sort((a, b) => a.label.localeCompare(b.label));
 
 export const ActionEffectWindow: React.FC = () => {
   const { 

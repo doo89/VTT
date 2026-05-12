@@ -290,7 +290,6 @@ export const initialState = {
   activeLeftTab: 'players' as const,
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
-  callOrderIndex: 0,
   editingEntity: null,
   smartphoneActionMessage: null,
   canvas: {
@@ -1584,7 +1583,7 @@ export const useVttStore = create<VttStore>()(
                   state.addLog(message, 'system');
                 }
                 if (effect.type === 'playSound' && effect.soundName) {
-                  const sound = state.soundboard.buttons.find(b => b.name === effect.soundName);
+                  const sound = state.soundboard.buttons.find((b: any) => b.name === effect.soundName);
                   if (sound && sound.audioUrl) {
                     const audio = new Audio(sound.audioUrl);
                     audio.volume = sound.volume !== undefined ? sound.volume : 0.5;

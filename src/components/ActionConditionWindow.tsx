@@ -40,7 +40,7 @@ export const ActionConditionWindow: React.FC = () => {
   const [selectionRoleId, setSelectionRoleId] = useState<string | null>(null);
   const [distanceFromPlayerId, setDistanceFromPlayerId] = useState<string | null>('$Joueur');
   const [distanceTargetRoleId, setDistanceTargetRoleId] = useState<string | null>(null);
-  const [cycleCheckType, setCycleCheckType] = useState<'$Jour' | '$Nuit' | '$Cycle' | '$Ordre' | '$Parité' | '$Phase' | '$Timer' | '$NbEnLigne' | '$NbTotal' | '$NbVivants' | '$NbMorts' | null>('$Jour');
+  const [cycleCheckType, setCycleCheckType] = useState<string | null>('$Jour');
   const [distanceTargetTeamId, setDistanceTargetTeamId] = useState<string | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [distanceTargetStatus, setDistanceTargetStatus] = useState<'alive' | 'dead' | null>('alive');
