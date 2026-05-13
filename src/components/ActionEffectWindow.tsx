@@ -706,6 +706,9 @@ export const ActionEffectWindow: React.FC = () => {
                   type="text"
                   value={roomColor}
                   onChange={(e) => setRoomColor(e.target.value)}
+                  placeholder="#FFFFFF"
+                  title="Code couleur hexadécimal"
+                  aria-label="Code couleur hexadécimal"
                   className="flex-1 bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
                 />
               </div>
