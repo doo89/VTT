@@ -429,7 +429,7 @@ export const PlayerView: React.FC = () => {
 
   const filteredTags = useMemo(() => {
     if (!allTags) return [];
-    return allTags.filter(t => t.visibleInWiki === true);
+    return allTags.filter(t => t.visibleInWiki === true && !t.isSecret);
   }, [allTags]);
 
   useEffect(() => {
@@ -790,8 +790,8 @@ export const PlayerView: React.FC = () => {
 
           {/* Tags / Status Effects */}
           {(() => {
-            const playerTags = localPlayer.tags.filter(t => t.showOnSmartphone);
-            const roleTags = (localRole?.tags || []).filter((t: any) => t.showOnSmartphone);
+            const playerTags = localPlayer.tags.filter(t => t.showOnSmartphone && !t.isSecret);
+            const roleTags = (localRole?.tags || []).filter((t: any) => t.showOnSmartphone && !t.isSecret);
             const allTags = [...playerTags, ...roleTags];
             
             if (allTags.length === 0) return null;

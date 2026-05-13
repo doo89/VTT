@@ -36,7 +36,7 @@ export const Canvas: React.FC = () => {
   const {
     roomName, setRoomName, roomCode, generateRoomCode, clearRoomCode, isRoomPublic, toggleRoomPublic,
     joinRequests, removeJoinRequest, onlinePlayerIds,
-    canvas, setPan, setZoom, isNight, nextCycle, cycleMode,
+    canvas, setPan, setZoom, isNight, nextCycle, cycleMode, isPublicMode, setPublicMode,
     players, updatePlayer, updatePlayers, addPlayer, deletePlayer, clearPlayers,
     markers, updateMarker, addMarker, deleteMarker, clearMarkers,
     roles, teams, tags, tagCategories, grid, setGrid, room, displaySettings,
@@ -891,6 +891,14 @@ export const Canvas: React.FC = () => {
           </div>
         )}
 
+        {/* Public Mode Indicator */}
+        {isPublicMode && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-500 text-white px-4 py-1.5 rounded-full shadow-lg font-bold text-sm flex items-center gap-2 border border-emerald-400/50 animate-in slide-in-from-top-4 pointer-events-none">
+            <icons.Eye size={16} />
+            Mode Grimoire (Public) Actif
+          </div>
+        )}
+
         {/* Cycle Icon */}
         {displaySettings.showCycleIcon && (
           <button
@@ -1385,7 +1393,7 @@ export const Canvas: React.FC = () => {
                   )}
 
                   {/* Revealed Role Card */}
-                  {player.isRoleRevealedOnBoard && role && (
+                  {player.isRoleRevealedOnBoard && role && !isPublicMode && (
                     <div 
                       className="absolute left-[calc(100%+10px)] top-1/2 -translate-y-1/2 w-16 h-24 bg-card rounded-md shadow-2xl border-2 overflow-hidden flex flex-col items-center justify-center animate-in zoom-in-75 duration-300 z-40 pointer-events-none"
                       style={{ borderColor: role.color || '#fff' }}
@@ -1406,8 +1414,8 @@ export const Canvas: React.FC = () => {
                 {displaySettings.showTooltip && (
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max max-w-[200px] bg-popover text-popover-foreground text-xs p-2 rounded shadow-xl border border-border opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                     {displaySettings.showPlayerName !== false && <p className="font-bold">{player.name}</p>}
-                    {displaySettings.showRole && effectiveRole && <p>Rôle: <span style={{ color: effectiveRole.color }}>{effectiveRole.name}</span></p>}
-                    {displaySettings.showTeam && team && <p>Équipe: <span style={{ color: team.color }}>{team.name}</span></p>}
+                    {displaySettings.showRole && effectiveRole && !isPublicMode && <p>Rôle: <span style={{ color: effectiveRole.color }}>{effectiveRole.name}</span></p>}
+                    {displaySettings.showTeam && team && !isPublicMode && <p>Équipe: <span style={{ color: team.color }}>{team.name}</span></p>}
                     {player.isDead && <p className="text-destructive font-bold">Mort</p>}
                     {displaySettings.showTags && displaySettings.showTagTooltip !== false && (
                       player.tags.some(t => t.showInTooltip !== false) ||
@@ -1416,7 +1424,7 @@ export const Canvas: React.FC = () => {
                         <div className="mt-1 border-t border-border pt-1">
                           <p className="font-semibold text-[10px] text-muted-foreground">Tags:</p>
                           <ul className="flex flex-col gap-1 mt-1">
-                            {role?.tags?.filter(t => t.showInTooltip !== false).map(t => {
+                            {role?.tags?.filter(t => t.showInTooltip !== false && (!isPublicMode || !t.isSecret)).map(t => {
                               const TIcon = icons[t.icon as keyof typeof icons] || Tag;
                               return (
                                 <li key={`role-tag-${t.id}`} className="flex flex-col bg-muted px-1.5 py-0.5 rounded text-[10px] border border-dashed border-border" title="Tag de Rôle">
@@ -1464,7 +1472,7 @@ export const Canvas: React.FC = () => {
                                 </li>
                               );
                             })}
-                            {player.tags.filter(t => t.showInTooltip !== false).map(t => {
+                            {player.tags.filter(t => t.showInTooltip !== false && (!isPublicMode || !t.isSecret)).map(t => {
                               const TIcon = icons[t.icon as keyof typeof icons] || Tag;
                               return (
                                 <li key={t.instanceId} className="flex flex-col bg-muted px-1.5 py-0.5 rounded text-[10px]">
@@ -1522,7 +1530,7 @@ export const Canvas: React.FC = () => {
           })}
 
           {/* Render Markers */}
-          {markers.map(marker => {
+          {markers.filter(m => !isPublicMode || !m.tag.isSecret).map(marker => {
             const TagIconComponent = icons[marker.tag.icon as keyof typeof icons] || Tag;
             return (
               <div
@@ -2333,6 +2341,33 @@ export const Canvas: React.FC = () => {
                         );
                       })()
                     )}
+                  </div>
+                </div>
+
+                <div className="h-px bg-border my-1" />
+
+                {/* Affichage Submenu */}
+                <div className="relative group">
+                  <button className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2"><icons.Monitor size={14} /> Affichage</span>
+                    <ChevronRight size={14} />
+                  </button>
+                  <div className="absolute left-full top-0 ml-0 bg-popover text-popover-foreground border border-border rounded-md shadow-xl py-1 min-w-[200px] hidden group-hover:block z-[101]">
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2"
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        setPublicMode(!isPublicMode);
+                        closeContextMenu();
+                      }}
+                      title="Masque les rôles et les tags secrets sur cet écran pour le partager publiquement"
+                    >
+                      <span className="flex items-center gap-2">
+                        {isPublicMode ? <icons.Eye size={14} className="text-emerald-500" /> : <icons.EyeOff size={14} className="text-muted-foreground" />}
+                        Mode Grimoire (Public)
+                      </span>
+                      {isPublicMode && <Check size={14} className="text-emerald-500" />}
+                    </button>
                   </div>
                 </div>
 

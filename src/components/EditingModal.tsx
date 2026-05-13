@@ -1124,6 +1124,20 @@ export const EditingModal: React.FC = () => {
                   />
                   Visible dans le WIKI
                 </label>
+                <div className="border-t border-border/20 pt-2 mt-1">
+                  <label className="flex items-center gap-2 text-sm text-destructive font-semibold cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={tag.isSecret || false}
+                      onChange={(e) => updateTagModel(tag.id, { isSecret: e.target.checked })}
+                      className="rounded border-destructive w-4 h-4 text-destructive focus:ring-destructive"
+                    />
+                    Tag Secret (Invisible pour les joueurs)
+                  </label>
+                  <p className="text-[10px] text-muted-foreground ml-6">
+                    Même si les autres options de visibilité sont cochées, ce tag restera caché sur l'interface des joueurs et sur l'écran public.
+                  </p>
+                </div>
               </div>
             </div>
           )}

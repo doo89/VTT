@@ -489,6 +489,7 @@ export const forceBroadcastState = () => {
     },
     isNight: state.isNight,
     cycleMode: state.cycleMode,
+    isPublicMode: state.isPublicMode,
     displaySettings: state.displaySettings,
     wiki: state.wiki,
     checklist: state.checklist,
@@ -538,6 +539,7 @@ export const setupHostRealtimeSubscription = () => {
       state.tags !== prevState.tags ||
       state.handouts !== prevState.handouts ||
       state.isNight !== prevState.isNight ||
+      state.isPublicMode !== prevState.isPublicMode ||
       state.isRoomPublic !== prevState.isRoomPublic ||
       state.displaySettings !== prevState.displaySettings ||
       state.soundboard !== prevState.soundboard ||

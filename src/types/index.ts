@@ -110,6 +110,7 @@ export interface MarkerParameter {
   seenAsRoleId?: EntityId | null;
   seenInTeamId?: EntityId | null;
   visibleInWiki?: boolean;
+  isSecret?: boolean;
   smartphoneShowPastille?: boolean;
   smartphoneMergeTagId?: EntityId | null;
   smartphoneSelfMergeTagId?: EntityId | null;
@@ -539,6 +540,7 @@ export interface GameState {
   callOrderIndex: number;
   customVariables: Record<string, number>;
   cycleMode: 'dayNight' | 'turns' | 'none';
+  isPublicMode: boolean;
   timer: {
     minutes: number;
     seconds: number;

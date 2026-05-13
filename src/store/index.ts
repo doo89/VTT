@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface VttStore extends GameState {
   setCycleMode: (mode: GameState['cycleMode']) => void;
+  setPublicMode: (publicMode: boolean) => void;
   setTimer: (timerUpdate: Partial<GameState['timer']>) => void;
   setSoundboard: (soundboardUpdate: Partial<GameState['soundboard']>) => void;
   updateSoundButton: (index: number, updates: Partial<GameState['soundboard']['buttons'][0]>) => void;
@@ -195,6 +196,7 @@ export const initialState = {
   callOrderIndex: 0,
   customVariables: {},
   cycleMode: 'dayNight' as const,
+  isPublicMode: false,
   timer: {
     minutes: 5,
     seconds: 0,
@@ -462,6 +464,7 @@ export const useVttStore = create<VttStore>()(
   setPan: (x, y) => set((state) => ({ canvas: { ...state.canvas, panX: x, panY: y } })),
   setZoom: (zoom) => set((state) => ({ canvas: { ...state.canvas, zoom } })),
   setCycleMode: (mode) => set({ cycleMode: mode }),
+  setPublicMode: (mode) => set({ isPublicMode: mode }),
   setActiveLeftTab: (tab) => set({ activeLeftTab: tab }),
   setEditingEntity: (entity) => set({ editingEntity: entity }),
   toggleLeftPanel: () => set((state) => ({ isLeftPanelOpen: !state.isLeftPanelOpen })),
