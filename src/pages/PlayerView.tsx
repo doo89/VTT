@@ -11,7 +11,7 @@ export const PlayerView: React.FC = () => {
   const { roomId, playerName } = useParams<{ roomId: string, playerName: string }>();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room' | 'wiki' | 'logs'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room' | 'wiki' | 'logs' | 'handouts'>('game');
   const [allRoles, setAllRoles] = useState<Role[]>([]);
   const [allTeams, setAllTeams] = useState<Team[]>([]);
   const [roomData, setRoomData] = useState<any>(null);
@@ -105,7 +105,7 @@ export const PlayerView: React.FC = () => {
   useEffect(() => {
     if (localPlayer?.forcedTab && localPlayer.forcedTab !== lastForcedTabRef.current) {
       const tab = localPlayer.forcedTab as any;
-      if (['game', 'players', 'room', 'wiki', 'logs'].includes(tab)) {
+      if (['game', 'players', 'room', 'wiki', 'logs', 'handouts'].includes(tab)) {
         setActiveTab(tab);
         lastForcedTabRef.current = tab;
       }
@@ -398,14 +398,16 @@ export const PlayerView: React.FC = () => {
     };
   }, [roomId, playerName]);
 
-  const smartphoneTabs = displaySettings?.smartphoneTabs || { game: true, players: true, room: true, wiki: true };
-  const hasSelectedTabs = smartphoneTabs.game || smartphoneTabs.players || smartphoneTabs.room || smartphoneTabs.wiki;
+  const smartphoneTabs = displaySettings?.smartphoneTabs || { game: true, players: true, room: true, wiki: true, handouts: true, logs: true };
+  const hasSelectedTabs = smartphoneTabs.game || smartphoneTabs.players || smartphoneTabs.room || smartphoneTabs.wiki || smartphoneTabs.handouts || smartphoneTabs.logs;
   
   // If no tabs are selected, we fallback to showing the game content ONLY (no tab bar will be rendered)
   const showGame = hasSelectedTabs ? (smartphoneTabs.game ?? true) : true;
   const showPlayers = hasSelectedTabs ? (smartphoneTabs.players ?? true) : false;
   const showRoom = hasSelectedTabs ? (smartphoneTabs.room ?? true) : false;
   const showWiki = hasSelectedTabs ? (smartphoneTabs.wiki ?? true) : false;
+  const showHandouts = hasSelectedTabs ? (smartphoneTabs.handouts ?? true) : false;
+  const showLogs = hasSelectedTabs ? (smartphoneTabs.logs ?? true) : false;
 
   const filteredRoles = useMemo(() => {
     if (!allRoles) return [];
@@ -434,8 +436,10 @@ export const PlayerView: React.FC = () => {
     if (activeTab === 'players' && !showPlayers) setActiveTab(showGame ? 'game' : (showRoom ? 'room' : 'wiki'));
     if (activeTab === 'room' && !showRoom) setActiveTab(showGame ? 'game' : (showPlayers ? 'players' : 'wiki'));
     if (activeTab === 'game' && !showGame) setActiveTab(showPlayers ? 'players' : (showRoom ? 'room' : 'wiki'));
-    if (activeTab === 'wiki' && !showWiki) setActiveTab(showGame ? 'game' : (showPlayers ? 'players' : 'room'));
-  }, [showGame, showPlayers, showRoom, showWiki, activeTab]);
+    if (activeTab === 'wiki' && !showWiki) setActiveTab(showGame ? 'game' : (showPlayers ? 'players' : (showRoom ? 'room' : (showHandouts ? 'handouts' : 'logs'))));
+    if (activeTab === 'handouts' && !showHandouts) setActiveTab(showGame ? 'game' : (showPlayers ? 'players' : (showRoom ? 'room' : (showWiki ? 'wiki' : 'logs'))));
+    if (activeTab === 'logs' && !showLogs) setActiveTab(showGame ? 'game' : (showPlayers ? 'players' : (showRoom ? 'room' : (showWiki ? 'wiki' : 'handouts'))));
+  }, [showGame, showPlayers, showRoom, showWiki, showHandouts, showLogs, activeTab]);
 
   const smartphoneOptions = displaySettings?.smartphonePlayersOptions || { 
     allowPrivateNotes: true, 
@@ -1509,7 +1513,7 @@ export const PlayerView: React.FC = () => {
       )}
 
       {/* Navigation Menu */}
-      {isConnected && localPlayer && (showGame || showPlayers || showRoom) && (
+      {isConnected && localPlayer && (showGame || showPlayers || showRoom || showWiki || showHandouts || showLogs) && (
         <div className="fixed bottom-0 left-0 right-0 h-20 bg-zinc-950/80 backdrop-blur-xl border-t border-zinc-800 shadow-[0_-10px_20px_rgba(0,0,0,0.5)] flex items-center justify-around px-4 z-[60] pb-safe">
           {showGame && (
           <button 
@@ -1559,6 +1563,19 @@ export const PlayerView: React.FC = () => {
           </button>
           )}
 
+          {showHandouts && (
+          <button 
+            onClick={() => setActiveTab('handouts')}
+            className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'handouts' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'handouts' ? 'bg-blue-500/10' : 'bg-transparent'}`}>
+              <icons.Image size={22} strokeWidth={activeTab === 'handouts' ? 2.5 : 2} />
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'handouts' ? 'opacity-100' : 'opacity-40'}`}>Docs</span>
+          </button>
+          )}
+
+          {showLogs && (
           <button 
             onClick={() => setActiveTab('logs')}
             className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'logs' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
@@ -1568,6 +1585,7 @@ export const PlayerView: React.FC = () => {
             </div>
             <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'logs' ? 'opacity-100' : 'opacity-40'}`}>Journal</span>
           </button>
+          )}
         </div>
       )}
 

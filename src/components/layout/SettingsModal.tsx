@@ -60,7 +60,7 @@ const BadgePreview: React.FC<{ corner: string; config: any; children: React.Reac
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils' | 'remote'>('salle');
   const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ distribution: true, chrono: true, wiki: true, soundboard: true, scoreboard: true, logs: true, magneticPoints: true });
-  const [expandedSmartphone, setExpandedSmartphone] = useState<Record<string, boolean>>({ game: true, players: true, room: true, wiki: true });
+  const [expandedSmartphone, setExpandedSmartphone] = useState<Record<string, boolean>>({ game: true, players: true, room: true, wiki: true, handouts: true, logs: true });
 
   const {
     room, setRoom,
@@ -1373,6 +1373,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         </div>
                         )}
                      </div>
+
+                    <div className="flex items-center justify-between border-t border-border/10 pt-2 pb-0.5">
+                      <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors flex-1">
+                        <input
+                          type="checkbox"
+                          checked={displaySettings.smartphoneTabs?.handouts ?? true}
+                          onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true, wiki: true, handouts: true, logs: true }), handouts: e.target.checked } })}
+                          className="rounded border-border w-4 h-4 text-primary"
+                        />
+                        Afficher l'onglet "Documents" (Images partagées)
+                      </label>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-border/10 pt-2 pb-0.5">
+                      <label className="flex items-center gap-3 text-sm cursor-pointer hover:text-primary transition-colors flex-1">
+                        <input
+                          type="checkbox"
+                          checked={displaySettings.smartphoneTabs?.logs ?? true}
+                          onChange={(e) => updateDisplaySettings({ smartphoneTabs: { ...(displaySettings.smartphoneTabs || { game: true, players: true, room: true, wiki: true, handouts: true, logs: true }), logs: e.target.checked } })}
+                          className="rounded border-border w-4 h-4 text-primary"
+                        />
+                        Afficher l'onglet "Journal" (Historique des événements)
+                      </label>
+                    </div>
                    </div>
 
 

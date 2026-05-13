@@ -358,6 +358,7 @@ export const initialState = {
       room: false,
       wiki: false,
       handouts: false,
+      logs: true,
     },
     smartphonePlayersOptions: {
       allowPrivateNotes: true,

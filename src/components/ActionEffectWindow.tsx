@@ -585,6 +585,7 @@ export const ActionEffectWindow: React.FC = () => {
                 <option value="room">Onglet : Salle</option>
                 <option value="players">Onglet : Joueurs</option>
                 <option value="wiki">Onglet : Wiki</option>
+                <option value="handouts">Onglet : Documents</option>
                 <option value="logs">Onglet : Journal</option>
               </select>
               <p className="text-[10px] text-zinc-500 italic px-1 mt-1">L'interface du joueur basculera automatiquement sur cet onglet.</p>

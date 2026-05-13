@@ -650,6 +650,7 @@ export interface GameState {
       room: boolean;
       wiki: boolean;
       handouts: boolean;
+      logs: boolean;
     };
     smartphonePlayersOptions?: {
       allowPrivateNotes: boolean;
