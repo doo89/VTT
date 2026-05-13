@@ -1350,14 +1350,14 @@ export const Canvas: React.FC = () => {
                   {renderBadge('bottomLeft')}
                   {renderBadge('bottomRight')}
 
-                  {/* Selection Pastilles (from smartphone actions) */}
-                  {player.selectionPastilles && player.selectionPastilles.length > 0 && (
+                  {/* Pastilles (Selection + Action) */}
+                  {((player.selectionPastilles && player.selectionPastilles.length > 0) || (player.actionPastilles && player.actionPastilles.length > 0)) && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1 z-30">
-                      {player.selectionPastilles.map((p, idx) => {
-                        const PIcon = icons[p.icon as keyof typeof icons] || Tag;
+                      {(player.selectionPastilles || []).map((p, idx) => {
+                        const PIcon = (icons as any)[p.icon] || Tag;
                         return (
                           <div
-                            key={`${p.id}-${idx}`}
+                            key={`sel-${p.id}-${idx}`}
                             className="w-5 h-5 rounded-full border-2 border-background shadow-sm flex items-center justify-center bg-card animate-in zoom-in-50 duration-300"
                             style={{ borderColor: p.color }}
                             title="Sélectionné par smartphone"
@@ -1366,6 +1366,38 @@ export const Canvas: React.FC = () => {
                           </div>
                         );
                       })}
+                      {(player.actionPastilles || []).map((p, idx) => {
+                        const PIcon = (icons as any)[p.icon] || Tag;
+                        return (
+                          <div
+                            key={`act-${p.id}-${idx}`}
+                            className="w-5 h-5 rounded-full border-2 border-background shadow-md flex items-center justify-center bg-zinc-900 animate-in zoom-in-50 duration-300 relative group"
+                            style={{ borderColor: p.color }}
+                          >
+                            {React.createElement(PIcon as any, { size: 10, style: { color: p.color } })}
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[10px] font-bold px-2 py-1 rounded border border-zinc-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                              {p.id}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Revealed Role Card */}
+                  {player.isRoleRevealedOnBoard && role && (
+                    <div 
+                      className="absolute left-[calc(100%+10px)] top-1/2 -translate-y-1/2 w-16 h-24 bg-card rounded-md shadow-2xl border-2 overflow-hidden flex flex-col items-center justify-center animate-in zoom-in-75 duration-300 z-40 pointer-events-none"
+                      style={{ borderColor: role.color || '#fff' }}
+                      title={`Rôle révélé : ${role.name}`}
+                    >
+                      {role.imageUrl ? (
+                        <img src={role.imageUrl} alt={role.name} className="w-full h-full object-cover" draggable={false} />
+                      ) : (
+                        <div className="p-1 text-center bg-zinc-900/50 w-full h-full flex items-center justify-center">
+                          <span className="text-[10px] font-bold leading-tight break-words drop-shadow-md" style={{ color: role.color || '#fff' }}>{role.name}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

@@ -50,6 +50,35 @@ export const PlayerView: React.FC = () => {
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [smartphoneCountdown, setSmartphoneCountdown] = useState<any>(null);
   const [timer, setTimer] = useState<any>({ minutes: 5, seconds: 0, isRunning: false });
+  const [roleRevealPopups, setRoleRevealPopups] = useState<{ id: string, playerName: string, playerColor: string, roleName: string, roleImageUrl?: string, roleColor?: string }[]>([]);
+  const processedRoleRevealsRef = useRef<Record<string, number>>({});
+
+  // Detect newly triggered role reveal popups
+  useEffect(() => {
+    if (!roomPlayers.length || !allRoles.length) return;
+    
+    roomPlayers.forEach(p => {
+      if (p.roleRevealPopupTriggeredAt && p.roleRevealPopupTriggeredAt !== processedRoleRevealsRef.current[p.id]) {
+        // New popup triggered!
+        processedRoleRevealsRef.current[p.id] = p.roleRevealPopupTriggeredAt;
+        
+        const role = allRoles.find(r => r.id === p.roleId);
+        if (role) {
+          setRoleRevealPopups(prev => [
+            ...prev,
+            {
+              id: `${p.id}-${p.roleRevealPopupTriggeredAt}`,
+              playerName: p.name,
+              playerColor: p.color,
+              roleName: role.name,
+              roleImageUrl: role.imageUrl,
+              roleColor: role.color
+            }
+          ]);
+        }
+      }
+    });
+  }, [roomPlayers, allRoles]);
 
   // Local timer for smartphone countdown
   useEffect(() => {
@@ -584,19 +613,34 @@ export const PlayerView: React.FC = () => {
                       </div>
                     )}
                     
-                    {/* Selection Pastilles Overlay */}
-                    {localPlayer.selectionPastilles && localPlayer.selectionPastilles.length > 0 && (
+                    {/* Pastilles Overlay */}
+                    {((localPlayer.selectionPastilles && localPlayer.selectionPastilles.length > 0) || (localPlayer.actionPastilles && localPlayer.actionPastilles.length > 0)) && (
                       <div className="absolute top-1 right-1 flex flex-col gap-1 z-20">
-                        {localPlayer.selectionPastilles.map((p, idx) => {
+                        {(localPlayer.selectionPastilles || []).map((p, idx) => {
                           const PIcon = (icons as any)[p.icon] || TagIcon;
                           return (
                             <div
-                              key={`${p.id}-${idx}`}
+                              key={`sel-${p.id}-${idx}`}
                               className="w-6 h-6 rounded-full border-2 border-zinc-900 shadow-lg flex items-center justify-center bg-zinc-950 animate-in zoom-in-50 duration-300"
                               style={{ borderColor: p.color }}
                               title={p.name}
                             >
                               <PIcon size={12} style={{ color: p.color }} />
+                            </div>
+                          );
+                        })}
+                        {(localPlayer.actionPastilles || []).map((p, idx) => {
+                          const PIcon = (icons as any)[p.icon] || TagIcon;
+                          return (
+                            <div
+                              key={`act-${p.id}-${idx}`}
+                              className="w-6 h-6 rounded-full border-2 border-zinc-900 shadow-lg flex items-center justify-center bg-zinc-950 animate-in zoom-in-50 duration-300 relative group"
+                              style={{ borderColor: p.color }}
+                            >
+                              <PIcon size={12} style={{ color: p.color }} />
+                              <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-zinc-900 text-white text-[10px] font-bold px-2 py-1 rounded border border-zinc-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">
+                                {p.id}
+                              </div>
                             </div>
                           );
                         })}
@@ -903,7 +947,12 @@ export const PlayerView: React.FC = () => {
                           <span className={`text-lg font-bold truncate ${p.isDead ? 'line-through text-zinc-600 opacity-50' : (isLocal ? 'text-orange-200' : 'text-zinc-100')}`}>
                             {p.name} {isLocal && <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded ml-1 font-black">MOI</span>}
                           </span>
-                          {p.isDead && <span className="text-[10px] font-bold text-red-900/70 uppercase tracking-widest leading-none">Mort</span>}
+                          {p.isRoleRevealedInSmartphonePlayers && p.roleId && (
+                            <span className="text-xs font-bold mt-0.5 drop-shadow-sm" style={{ color: allRoles.find(r => r.id === p.roleId)?.color || '#fff' }}>
+                              Rôle révélé : {allRoles.find(r => r.id === p.roleId)?.name}
+                            </span>
+                          )}
+                          {p.isDead && <span className="text-[10px] font-bold text-red-900/70 uppercase tracking-widest leading-none mt-1">Mort</span>}
                           {smartphoneOptions.showNotePreview !== false && !p.isDead && playerNotes[p.id] && (
                             <span className="text-[10px] text-zinc-500 truncate italic mt-1">Note: {playerNotes[p.id]}</span>
                           )}
@@ -982,8 +1031,14 @@ export const PlayerView: React.FC = () => {
                           key={p.id}
                           title={p.name}
                           className={`absolute ${(p.id === localPlayer?.id ? displaySettings?.roomMiniatureSelfAnimation : displaySettings?.roomMiniatureAnimation) !== false ? 'transition-all duration-700' : ''}`}
-                          style={{ left: `${leftPct}%`, top: `${topPct}%`, transform: 'translate(-50%, -50%)', zIndex: 10 }}
+                          style={{ left: `${leftPct}%`, top: `${topPct}%`, transform: 'translate(-50%, -50%)', zIndex: p.isRoleRevealedInSmartphoneRoom ? 20 : 10 }}
                         >
+                          {p.isRoleRevealedInSmartphoneRoom && (
+                             <div className="absolute inset-[-10px] rounded-full border-2 border-dashed animate-spin-slow opacity-80" style={{ borderColor: p.color, animationDuration: '4s' }} />
+                          )}
+                          {p.isRoleRevealedInSmartphoneRoom && (
+                             <div className="absolute inset-[-4px] bg-white/30 blur-[4px] rounded-full animate-pulse" />
+                          )}
                           {p.isDead ? (
                             displaySettings?.roomMiniatureDeadIconUrl ? (
                               <img 
@@ -1027,6 +1082,30 @@ export const PlayerView: React.FC = () => {
                 <div className="flex-1 flex flex-col items-center justify-center text-zinc-700 italic gap-2 bg-zinc-900/40 rounded-2xl border border-zinc-800/50">
                    <Clock className="animate-spin opacity-20" size={32} />
                    <span className="text-xs uppercase tracking-widest font-bold opacity-30">Chargement de la salle...</span>
+                </div>
+              )}
+
+              {/* Revealed Cards Below Miniature */}
+              {roomPlayers.some(p => p.isRoleRevealedInSmartphoneRoom) && (
+                <div className="shrink-0 mt-2 p-3 bg-zinc-900/50 rounded-xl border border-zinc-800">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-3 text-center">Rôles Révélés</h4>
+                  <div className="flex gap-4 overflow-x-auto pb-2 snap-x custom-scrollbar">
+                    {roomPlayers.filter(p => p.isRoleRevealedInSmartphoneRoom).map(p => {
+                      const role = allRoles.find(r => r.id === p.roleId);
+                      return (
+                        <div key={`reveal-${p.id}`} className="snap-center shrink-0 flex flex-col items-center gap-1.5 w-20">
+                           <div className="text-[10px] font-bold truncate w-full text-center" style={{ color: p.color }}>{p.name}</div>
+                           <div className="w-20 h-28 bg-zinc-950 rounded-lg shadow-[0_0_15px_rgba(0,0,0,0.5)] border-2 overflow-hidden flex flex-col items-center justify-center relative animate-in slide-in-from-bottom-4" style={{ borderColor: role?.color || '#fff' }}>
+                              {role?.imageUrl ? (
+                                <img src={role.imageUrl} alt={role?.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-[9px] font-bold text-center px-1 leading-tight break-words" style={{ color: role?.color || '#fff' }}>{role?.name}</span>
+                              )}
+                           </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -1378,6 +1457,45 @@ export const PlayerView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Role Reveal Popups */}
+      {roleRevealPopups.map((popup, index) => (
+        <div key={popup.id} className="absolute inset-0 z-[150] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300" style={{ zIndex: 150 + index }}>
+          <div className="relative w-full max-w-sm bg-zinc-900 border-2 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-75 slide-in-from-bottom-8 duration-500" style={{ borderColor: popup.roleColor || '#fff' }}>
+            <div className="p-4 bg-zinc-950/50 border-b border-zinc-800 flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Rôle Révélé :</span>
+                <span className="text-sm font-bold truncate" style={{ color: popup.playerColor }}>{popup.playerName}</span>
+              </div>
+              <button
+                onClick={() => setRoleRevealPopups(prev => prev.filter(p => p.id !== popup.id))}
+                className="p-2 bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors"
+              >
+                <X size={20} className="text-zinc-400" />
+              </button>
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center p-6 bg-zinc-900">
+              <div className="w-40 h-56 rounded-xl shadow-2xl border-4 overflow-hidden mb-6 flex items-center justify-center relative bg-zinc-950" style={{ borderColor: popup.roleColor || '#fff' }}>
+                {popup.roleImageUrl ? (
+                   <img src={popup.roleImageUrl} alt={popup.roleName} className="w-full h-full object-cover" />
+                ) : (
+                   <span className="text-lg font-black uppercase text-center px-4 leading-tight" style={{ color: popup.roleColor || '#fff' }}>{popup.roleName}</span>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
+              </div>
+              <h3 className="text-2xl font-black text-center" style={{ color: popup.roleColor || '#fff' }}>{popup.roleName}</h3>
+            </div>
+            <div className="p-4 bg-zinc-950/50 border-t border-zinc-800">
+              <button
+                onClick={() => setRoleRevealPopups(prev => prev.filter(p => p.id !== popup.id))}
+                className="w-full py-3 rounded-xl font-bold uppercase tracking-widest text-xs text-white bg-blue-600 hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/20 active:scale-95"
+              >
+                C'est noté !
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

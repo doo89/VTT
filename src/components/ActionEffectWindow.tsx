@@ -79,7 +79,9 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'addSystemLog', label: "Ajouter un Log Système (Journal)", category: 'system' },
   { value: 'setRoomBackground', label: "Changer le Fond d'écran de la salle", category: 'visibility' },
   { value: 'setRoomColor', label: "Changer l'Ambiance (Couleur) de la salle", category: 'visibility' },
-  { value: 'pingPlayer', label: "Mettre en évidence (Ping / Halo) sur $Joueur", category: 'visibility' }
+  { value: 'revealPlayerRole', label: "Révéler publiquement le Rôle de $Joueur", category: 'visibility' },
+  { value: 'hidePlayerRole', label: "Cacher publiquement le Rôle de $Joueur", category: 'visibility' },
+  { value: 'togglePlayerPastille', label: "Afficher / Masquer une Pastille sur $Joueur", category: 'visibility' }
 ] as ActionOption[]).sort((a, b) => a.label.localeCompare(b.label));
 
 export const ActionEffectWindow: React.FC = () => {
@@ -117,6 +119,14 @@ export const ActionEffectWindow: React.FC = () => {
   const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>('');
   const [roomColor, setRoomColor] = useState<string>('#6B7280');
   const [pingColor, setPingColor] = useState<string>('#3b82f6');
+  const [revealOnBoard, setRevealOnBoard] = useState(true);
+  const [revealInSmartphoneRoom, setRevealInSmartphoneRoom] = useState(false);
+  const [revealInSmartphonePlayers, setRevealInSmartphonePlayers] = useState(false);
+  const [revealInSmartphoneGamePopup, setRevealInSmartphoneGamePopup] = useState(false);
+  const [pastilleId, setPastilleId] = useState<string>('');
+  const [pastilleIcon, setPastilleIcon] = useState<string>('Shield');
+  const [pastilleColor, setPastilleColor] = useState<string>('#eab308');
+  const [pastilleMode, setPastilleMode] = useState<'add' | 'remove' | 'toggle'>('toggle');
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -147,6 +157,14 @@ export const ActionEffectWindow: React.FC = () => {
         setBackgroundImageUrl(effect.backgroundImageUrl || '');
         setRoomColor(effect.roomColor || '#6B7280');
         setPingColor(effect.pingColor || '#3b82f6');
+        setRevealOnBoard(effect.revealOnBoard ?? true);
+        setRevealInSmartphoneRoom(effect.revealInSmartphoneRoom ?? false);
+        setRevealInSmartphonePlayers(effect.revealInSmartphonePlayers ?? false);
+        setRevealInSmartphoneGamePopup(effect.revealInSmartphoneGamePopup ?? false);
+        setPastilleId(effect.pastilleId || '');
+        setPastilleIcon(effect.pastilleIcon || 'Shield');
+        setPastilleColor(effect.pastilleColor || '#eab308');
+        setPastilleMode(effect.pastilleMode || 'toggle');
       }
     } else {
       setType('deleteAllTags');
@@ -169,6 +187,14 @@ export const ActionEffectWindow: React.FC = () => {
       setBackgroundImageUrl('');
       setRoomColor('#6B7280');
       setPingColor('#3b82f6');
+      setRevealOnBoard(true);
+      setRevealInSmartphoneRoom(false);
+      setRevealInSmartphonePlayers(false);
+      setRevealInSmartphoneGamePopup(false);
+      setPastilleId('');
+      setPastilleIcon('Shield');
+      setPastilleColor('#eab308');
+      setPastilleMode('toggle');
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -227,7 +253,15 @@ export const ActionEffectWindow: React.FC = () => {
       logMessage: type === 'addSystemLog' ? logMessage : undefined,
       backgroundImageUrl: type === 'setRoomBackground' ? backgroundImageUrl : undefined,
       roomColor: type === 'setRoomColor' ? roomColor : undefined,
-      pingColor: type === 'pingPlayer' ? pingColor : undefined
+      pingColor: type === 'pingPlayer' ? pingColor : undefined,
+      revealOnBoard: type === 'revealPlayerRole' ? revealOnBoard : undefined,
+      revealInSmartphoneRoom: type === 'revealPlayerRole' ? revealInSmartphoneRoom : undefined,
+      revealInSmartphonePlayers: type === 'revealPlayerRole' ? revealInSmartphonePlayers : undefined,
+      revealInSmartphoneGamePopup: type === 'revealPlayerRole' ? revealInSmartphoneGamePopup : undefined,
+      pastilleId: type === 'togglePlayerPastille' ? pastilleId : undefined,
+      pastilleIcon: type === 'togglePlayerPastille' ? pastilleIcon : undefined,
+      pastilleColor: type === 'togglePlayerPastille' ? pastilleColor : undefined,
+      pastilleMode: type === 'togglePlayerPastille' ? pastilleMode : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -743,6 +777,141 @@ export const ActionEffectWindow: React.FC = () => {
                 />
               </div>
               <p className="text-[10px] text-muted-foreground px-1 mt-1">Crée un effet pulsant autour du pion pendant 5 secondes.</p>
+            </div>
+          )}
+
+          {type === 'revealPlayerRole' && (
+            <div className="flex flex-col gap-2 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Où révéler le rôle ?</label>
+              
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <div className="relative flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={revealOnBoard}
+                    onChange={(e) => setRevealOnBoard(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <div className="w-4 h-4 rounded bg-zinc-800 border border-zinc-700 peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors" />
+                  <icons.Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                </div>
+                <span className="text-xs text-zinc-300 group-hover:text-white transition-colors">Sur le Plateau (MJ) - Carte à côté du pion</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <div className="relative flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={revealInSmartphoneRoom}
+                    onChange={(e) => setRevealInSmartphoneRoom(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <div className="w-4 h-4 rounded bg-zinc-800 border border-zinc-700 peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors" />
+                  <icons.Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                </div>
+                <span className="text-xs text-zinc-300 group-hover:text-white transition-colors">Smartphone (Onglet SALLE) - Sous la miniature + Highlight</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <div className="relative flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={revealInSmartphonePlayers}
+                    onChange={(e) => setRevealInSmartphonePlayers(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <div className="w-4 h-4 rounded bg-zinc-800 border border-zinc-700 peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors" />
+                  <icons.Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                </div>
+                <span className="text-xs text-zinc-300 group-hover:text-white transition-colors">Smartphone (Onglet JOUEURS) - À côté du nom</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <div className="relative flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={revealInSmartphoneGamePopup}
+                    onChange={(e) => setRevealInSmartphoneGamePopup(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <div className="w-4 h-4 rounded bg-zinc-800 border border-zinc-700 peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors" />
+                  <icons.Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                </div>
+                <span className="text-xs text-zinc-300 group-hover:text-white transition-colors">Smartphone (Onglet JEU) - Popup d'alerte visuelle</span>
+              </label>
+            </div>
+          )}
+
+          {type === 'togglePlayerPastille' && (
+            <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Identifiant de la pastille (ID)</label>
+                <input
+                  type="text"
+                  value={pastilleId}
+                  onChange={(e) => setPastilleId(e.target.value)}
+                  placeholder="Ex: poison, silence, shield..."
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Action</label>
+                <select
+                  value={pastilleMode}
+                  onChange={(e) => setPastilleMode(e.target.value as any)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                >
+                  <option value="add">Forcer l'Ajout (Afficher)</option>
+                  <option value="remove">Forcer la Suppression (Masquer)</option>
+                  <option value="toggle">Basculer (Afficher si absent, Masquer si présent)</option>
+                </select>
+              </div>
+
+              {pastilleMode !== 'remove' && (
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col gap-1.5 flex-1">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Icône</label>
+                    <select
+                      value={pastilleIcon}
+                      onChange={(e) => setPastilleIcon(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                    >
+                      <option value="Shield">Bouclier (Shield)</option>
+                      <option value="Skull">Crâne (Skull)</option>
+                      <option value="Star">Étoile (Star)</option>
+                      <option value="Heart">Cœur (Heart)</option>
+                      <option value="Zap">Éclair (Zap)</option>
+                      <option value="Flame">Flamme (Flame)</option>
+                      <option value="Droplets">Gouttes (Droplets)</option>
+                      <option value="Eye">Œil (Eye)</option>
+                      <option value="Crown">Couronne (Crown)</option>
+                      <option value="Ghost">Fantôme (Ghost)</option>
+                      <option value="Sword">Épée (Sword)</option>
+                      <option value="Target">Cible (Target)</option>
+                      <option value="Lock">Cadenas (Lock)</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Couleur</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={pastilleColor}
+                        onChange={(e) => setPastilleColor(e.target.value)}
+                        className="w-8 h-8 bg-transparent border-none rounded cursor-pointer"
+                      />
+                      <div 
+                        className="w-8 h-8 rounded-full border-2 bg-zinc-900 shadow-md flex items-center justify-center"
+                        style={{ borderColor: pastilleColor }}
+                      >
+                        {pastilleIcon && (icons as any)[pastilleIcon] && React.createElement((icons as any)[pastilleIcon], { size: 14, style: { color: pastilleColor } })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

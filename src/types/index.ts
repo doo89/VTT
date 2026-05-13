@@ -27,6 +27,11 @@ export interface Player {
   shape?: PlayerShape;
   pingTimestamp?: number;
   pingColor?: string;
+  isRoleRevealedOnBoard?: boolean;
+  isRoleRevealedInSmartphoneRoom?: boolean;
+  isRoleRevealedInSmartphonePlayers?: boolean;
+  roleRevealPopupTriggeredAt?: number;
+  actionPastilles?: { id: string, icon: string, color: string }[];
 }
 
 export interface PlayerTemplate {
@@ -351,7 +356,10 @@ export type ActionEffectType =
   | 'addSystemLog'
   | 'setRoomBackground'
   | 'setRoomColor'
-  | 'pingPlayer';
+  | 'pingPlayer'
+  | 'revealPlayerRole'
+  | 'hidePlayerRole'
+  | 'togglePlayerPastille';
 
 export interface ActionEffect {
   id: string;
@@ -375,6 +383,14 @@ export interface ActionEffect {
   roomColor?: string;
   pingColor?: string;
   pingDuration?: number;
+  revealOnBoard?: boolean;
+  revealInSmartphoneRoom?: boolean;
+  revealInSmartphonePlayers?: boolean;
+  revealInSmartphoneGamePopup?: boolean;
+  pastilleId?: string;
+  pastilleIcon?: string;
+  pastilleColor?: string;
+  pastilleMode?: 'add' | 'remove' | 'toggle';
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';

@@ -1259,6 +1259,59 @@ export const useVttStore = create<VttStore>()(
                     } : p);
                   }
                 }
+                if (effect.type === 'togglePlayerPastille') {
+                  const player = actionContext['$Joueur'];
+                  if (player && effect.pastilleId) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => {
+                      if (ids.includes(p.id)) {
+                        const existing = p.actionPastilles || [];
+                        const hasPastille = existing.some(x => x.id === effect.pastilleId);
+                        let newPastilles = [...existing];
+                        
+                        if (effect.pastilleMode === 'remove' || (effect.pastilleMode === 'toggle' && hasPastille)) {
+                          newPastilles = newPastilles.filter(x => x.id !== effect.pastilleId);
+                        } else if (effect.pastilleMode === 'add' || (effect.pastilleMode === 'toggle' && !hasPastille)) {
+                          if (!hasPastille) {
+                            newPastilles.push({
+                              id: effect.pastilleId as string,
+                              icon: effect.pastilleIcon || 'Shield',
+                              color: effect.pastilleColor || '#ffffff'
+                            });
+                          } else {
+                            // Update existing pastille if it was explicitly added again
+                            newPastilles = newPastilles.map(x => x.id === effect.pastilleId ? {
+                              ...x,
+                              icon: effect.pastilleIcon || 'Shield',
+                              color: effect.pastilleColor || '#ffffff'
+                            } : x);
+                          }
+                        }
+                        return { ...p, actionPastilles: newPastilles };
+                      }
+                      return p;
+                    });
+                  }
+                }
+                if (effect.type === 'revealPlayerRole' || effect.type === 'hidePlayerRole') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    const isRevealed = effect.type === 'revealPlayerRole';
+                    nextPlayers = nextPlayers.map(p => {
+                      if (ids.includes(p.id)) {
+                        return { 
+                          ...p, 
+                          isRoleRevealedOnBoard: isRevealed ? (effect.revealOnBoard ?? true) : false,
+                          isRoleRevealedInSmartphoneRoom: isRevealed ? (effect.revealInSmartphoneRoom ?? false) : false,
+                          isRoleRevealedInSmartphonePlayers: isRevealed ? (effect.revealInSmartphonePlayers ?? false) : false,
+                          roleRevealPopupTriggeredAt: (isRevealed && effect.revealInSmartphoneGamePopup) ? Date.now() : p.roleRevealPopupTriggeredAt
+                        };
+                      }
+                      return p;
+                    });
+                  }
+                }
                 if (effect.type === 'triggerAction' && effect.targetActionId) {
                   if (depth < 5) {
                     setTimeout(() => {
