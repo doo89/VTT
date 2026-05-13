@@ -400,7 +400,8 @@ export type ActionEffectType =
   | 'lockSmartphone'
   | 'sendPollToSmartphone'
   | 'blindPlayer'
-  | 'rollDice';
+  | 'rollDice'
+  | 'stopExecution';
 
 export interface ActionEffect {
   id: string;

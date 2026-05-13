@@ -100,6 +100,7 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'blindPlayer', label: "Masquer la Salle / Aveugler ($Joueur)", category: 'remote' },
   { value: 'rollDice', label: "Lancer un Dé ($Joueur)", category: 'remote' },
   { value: 'wait', label: 'Attendre x secondes', category: 'system' },
+  { value: 'stopExecution', label: "Arrêter l'exécution de la séquence", category: 'system' },
   { value: 'playSound', label: 'Jouer un effet sonore', category: 'alerts' },
   { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
   { value: 'sendPrivateMessage', label: 'Envoyer un Message Privé ($Joueur)', category: 'alerts' },

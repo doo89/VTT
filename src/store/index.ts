@@ -1219,6 +1219,10 @@ export const useVttStore = create<VttStore>()(
                   }
                   break;
                 }
+                if (effect.type === 'stopExecution') {
+                  remaining = 0; // Prevent further recurring executions
+                  break;
+                }
                 if (effect.type === 'deleteAllTags') nextMarkers = [];
                 if (effect.type === 'nextPhase') phaseShift++;
                 if (effect.type === 'previousPhase') phaseShift--;
