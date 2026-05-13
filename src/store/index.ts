@@ -1746,6 +1746,21 @@ export const useVttStore = create<VttStore>()(
                     });
                   }
                 }
+                if (effect.type === 'sendPollToSmartphone') {
+                  const player = actionContext['$Joueur'];
+                  if (player && effect.pollQuestion) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    const pollId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { 
+                      ...p, 
+                      activePoll: { 
+                        id: pollId, 
+                        question: effect.pollQuestion!, 
+                        options: (effect.pollOptions || ['Oui', 'Non']).filter(o => o.trim() !== '')
+                      } 
+                    } : p);
+                  }
+                }
                 if (effect.type === 'triggerAction' && effect.targetActionId) {
                   if (depth < 5) {
                     setTimeout(() => {

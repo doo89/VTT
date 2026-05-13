@@ -1543,6 +1543,54 @@ export const PlayerView: React.FC = () => {
         </div>
       )}
 
+      {/* Poll / Choice Modal */}
+      {localPlayer?.activePoll && (
+        <div className="absolute inset-0 z-[200] flex items-center justify-center p-6 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-500">
+           <div className="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
+              <div className="p-5 bg-gradient-to-b from-zinc-800 to-zinc-900 border-b border-zinc-800 flex flex-col gap-1">
+                 <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                       <icons.HelpCircle size={14} className="text-blue-400" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Question du MJ</span>
+                 </div>
+                 <h3 className="text-xl font-black text-white leading-tight italic">{localPlayer.activePoll.question}</h3>
+              </div>
+              <div className="p-5 flex flex-col gap-3">
+                 {localPlayer.activePoll.options.map((option, idx) => (
+                    <button
+                       key={`${localPlayer.activePoll?.id}-${idx}`}
+                       onClick={() => {
+                          if (channelRef.current && localPlayer) {
+                             channelRef.current.send({
+                                type: 'broadcast',
+                                event: 'poll_response',
+                                payload: {
+                                   playerId: localPlayer.id,
+                                   playerName: localPlayer.name,
+                                   pollId: localPlayer.activePoll?.id,
+                                   question: localPlayer.activePoll?.question,
+                                   response: option
+                                }
+                             });
+                             // Clear locally
+                             setLocalPlayer({ ...localPlayer, activePoll: null });
+                          }
+                       }}
+                       className="w-full bg-zinc-800 hover:bg-blue-600/20 hover:border-blue-500/50 border border-zinc-700 rounded-2xl py-4 px-5 text-left transition-all group flex items-center justify-between"
+                    >
+                       <span className="font-bold text-zinc-100 group-hover:text-blue-100 transition-colors">{option}</span>
+                       <icons.ChevronRight size={18} className="text-zinc-600 group-hover:text-blue-400 transition-colors" />
+                    </button>
+                 ))}
+              </div>
+              <div className="px-5 py-3 bg-zinc-950/50 border-t border-zinc-800 flex items-center justify-center">
+                 <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest opacity-40 italic">Une seule réponse possible</p>
+              </div>
+           </div>
+        </div>
+      )}
+
       {/* Role Reveal Popups */}
       {roleRevealPopups.map((popup, index) => (
         <div key={popup.id} className="absolute inset-0 z-[150] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300" style={{ zIndex: 150 + index }}>

@@ -96,6 +96,7 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'forceSmartphoneTab', label: "Forcer la navigation vers l'onglet X (Smartphone)", category: 'remote' },
   { value: 'vibrateSmartphone', label: "Faire vibrer le Smartphone ($Joueur)", category: 'remote' },
   { value: 'lockSmartphone', label: "Verrouiller le Smartphone ($Joueur)", category: 'remote' },
+  { value: 'sendPollToSmartphone', label: "Envoyer un Choix / Sondage ($Joueur)", category: 'remote' },
   { value: 'wait', label: 'Attendre x secondes', category: 'system' },
   { value: 'playSound', label: 'Jouer un effet sonore', category: 'alerts' },
   { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
@@ -162,6 +163,8 @@ export const ActionEffectWindow: React.FC = () => {
   const [targetTab, setTargetTab] = useState<string>('game');
   const [vibrationDuration, setVibrationDuration] = useState<number>(200);
   const [lockMode, setLockMode] = useState<'lock' | 'unlock' | 'toggle'>('lock');
+  const [pollQuestion, setPollQuestion] = useState<string>('');
+  const [pollOptions, setPollOptions] = useState<string[]>(['Oui', 'Non']);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -211,6 +214,8 @@ export const ActionEffectWindow: React.FC = () => {
         setTargetTab(effect.targetTab || 'game');
         setVibrationDuration(effect.vibrationDuration || 200);
         setLockMode(effect.lockMode || 'lock');
+        setPollQuestion(effect.pollQuestion || '');
+        setPollOptions(effect.pollOptions || ['Oui', 'Non']);
       }
     } else {
       setType('deleteAllTags');
@@ -252,6 +257,8 @@ export const ActionEffectWindow: React.FC = () => {
       setTargetTab('game');
       setVibrationDuration(200);
       setLockMode('lock');
+      setPollQuestion('');
+      setPollOptions(['Oui', 'Non']);
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -329,7 +336,9 @@ export const ActionEffectWindow: React.FC = () => {
       seenAsRoleId: type === 'setFakeRole' ? seenAsRoleId : undefined,
       targetTab: type === 'forceSmartphoneTab' ? targetTab : undefined,
       vibrationDuration: type === 'vibrateSmartphone' ? vibrationDuration : undefined,
-      lockMode: type === 'lockSmartphone' ? lockMode : undefined
+      lockMode: type === 'lockSmartphone' ? lockMode : undefined,
+      pollQuestion: type === 'sendPollToSmartphone' ? pollQuestion : undefined,
+      pollOptions: type === 'sendPollToSmartphone' ? pollOptions : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -586,6 +595,60 @@ export const ActionEffectWindow: React.FC = () => {
                 <option value="toggle">Basculer (Verrouiller / Déverrouiller)</option>
               </select>
               <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Empêche toute interaction sur le smartphone de $Joueur.</p>
+            </div>
+          )}
+
+          {type === 'sendPollToSmartphone' && (
+            <div className="flex flex-col gap-3 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="poll-question" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Question du sondage</label>
+                <input
+                  id="poll-question"
+                  type="text"
+                  placeholder="Posez votre question ici..."
+                  value={pollQuestion}
+                  onChange={(e) => setPollQuestion(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between pl-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Options de réponse</label>
+                  <button 
+                    onClick={() => setPollOptions([...pollOptions, ''])}
+                    className="text-[9px] font-bold text-fuchsia-400 hover:text-fuchsia-300 uppercase tracking-widest"
+                  >
+                    + Ajouter
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {pollOptions.map((option, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder={`Option ${idx + 1}`}
+                        value={option}
+                        onChange={(e) => {
+                          const newOptions = [...pollOptions];
+                          newOptions[idx] = e.target.value;
+                          setPollOptions(newOptions);
+                        }}
+                        className="flex-1 bg-zinc-950/40 border border-zinc-800 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/30"
+                      />
+                      {pollOptions.length > 2 && (
+                        <button 
+                          onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
+                          className="p-1.5 bg-zinc-800 hover:bg-red-950/50 hover:text-red-400 rounded-lg transition-colors"
+                        >
+                          <icons.X size={12} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Le joueur recevra ce choix sur son smartphone et pourra y répondre une seule fois.</p>
             </div>
           )}
 

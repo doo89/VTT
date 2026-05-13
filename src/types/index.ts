@@ -37,6 +37,7 @@ export interface Player {
   vibrationTriggeredAt?: number;
   vibrationDuration?: number;
   isSmartphoneLocked?: boolean;
+  activePoll?: { id: string, question: string, options: string[] } | null;
 }
 
 export interface PlayerTemplate {
@@ -394,7 +395,8 @@ export type ActionEffectType =
   | 'stealRoleAndKill'
   | 'forceSmartphoneTab'
   | 'vibrateSmartphone'
-  | 'lockSmartphone';
+  | 'lockSmartphone'
+  | 'sendPollToSmartphone';
 
 export interface ActionEffect {
   id: string;
@@ -437,6 +439,8 @@ export interface ActionEffect {
   spreadRadius?: number;
   seenAsRoleId?: string | null;
   lockMode?: 'lock' | 'unlock' | 'toggle';
+  pollQuestion?: string;
+  pollOptions?: string[];
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';

@@ -317,6 +317,14 @@ export const initHostRealtime = (roomCode: string) => {
 
       }
     })
+    .on('broadcast', { event: 'poll_response' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      const player = state.players.find(p => p.id === payload.playerId);
+      if (player) {
+        state.addLog(`[Sondage] ${player.name} a répondu "${payload.response}" à la question : "${payload.question}"`, 'action');
+        state.updatePlayer(player.id, { activePoll: null });
+      }
+    })
     .on('broadcast', { event: 'soundboard_action' }, ({ payload }) => {
       const state = useVttStore.getState();
       if (!state.soundboard.remoteEnabled) {
