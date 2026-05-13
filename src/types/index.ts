@@ -36,6 +36,7 @@ export interface Player {
   forcedTab?: string | null;
   vibrationTriggeredAt?: number;
   vibrationDuration?: number;
+  isSmartphoneLocked?: boolean;
 }
 
 export interface PlayerTemplate {
@@ -392,7 +393,8 @@ export type ActionEffectType =
   | 'setFakeRole'
   | 'stealRoleAndKill'
   | 'forceSmartphoneTab'
-  | 'vibrateSmartphone';
+  | 'vibrateSmartphone'
+  | 'lockSmartphone';
 
 export interface ActionEffect {
   id: string;
@@ -434,6 +436,7 @@ export interface ActionEffect {
   tagIncrement?: number;
   spreadRadius?: number;
   seenAsRoleId?: string | null;
+  lockMode?: 'lock' | 'unlock' | 'toggle';
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';

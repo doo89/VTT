@@ -95,6 +95,7 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'hideTimerOnSmartphone', label: 'Masquer le chronomètre (Smartphone)', category: 'remote' },
   { value: 'forceSmartphoneTab', label: "Forcer la navigation vers l'onglet X (Smartphone)", category: 'remote' },
   { value: 'vibrateSmartphone', label: "Faire vibrer le Smartphone ($Joueur)", category: 'remote' },
+  { value: 'lockSmartphone', label: "Verrouiller le Smartphone ($Joueur)", category: 'remote' },
   { value: 'wait', label: 'Attendre x secondes', category: 'system' },
   { value: 'playSound', label: 'Jouer un effet sonore', category: 'alerts' },
   { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
@@ -160,6 +161,7 @@ export const ActionEffectWindow: React.FC = () => {
   const [seenAsRoleId, setSeenAsRoleId] = useState<string | null>(null);
   const [targetTab, setTargetTab] = useState<string>('game');
   const [vibrationDuration, setVibrationDuration] = useState<number>(200);
+  const [lockMode, setLockMode] = useState<'lock' | 'unlock' | 'toggle'>('lock');
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -208,6 +210,7 @@ export const ActionEffectWindow: React.FC = () => {
         setSeenAsRoleId(effect.seenAsRoleId || null);
         setTargetTab(effect.targetTab || 'game');
         setVibrationDuration(effect.vibrationDuration || 200);
+        setLockMode(effect.lockMode || 'lock');
       }
     } else {
       setType('deleteAllTags');
@@ -248,6 +251,7 @@ export const ActionEffectWindow: React.FC = () => {
       setSeenAsRoleId(null);
       setTargetTab('game');
       setVibrationDuration(200);
+      setLockMode('lock');
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -324,7 +328,8 @@ export const ActionEffectWindow: React.FC = () => {
       spreadRadius: type === 'spreadTag' ? spreadRadius : undefined,
       seenAsRoleId: type === 'setFakeRole' ? seenAsRoleId : undefined,
       targetTab: type === 'forceSmartphoneTab' ? targetTab : undefined,
-      vibrationDuration: type === 'vibrateSmartphone' ? vibrationDuration : undefined
+      vibrationDuration: type === 'vibrateSmartphone' ? vibrationDuration : undefined,
+      lockMode: type === 'lockSmartphone' ? lockMode : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -564,6 +569,23 @@ export const ActionEffectWindow: React.FC = () => {
                 <span className="text-[10px] text-zinc-500 font-medium">ms</span>
               </div>
               <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Le smartphone de $Joueur vibrera pendant cette durée.</p>
+            </div>
+          )}
+
+          {type === 'lockSmartphone' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-lock-mode" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Action de verrouillage</label>
+              <select
+                id="effect-lock-mode"
+                value={lockMode}
+                onChange={(e) => setLockMode(e.target.value as any)}
+                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+              >
+                <option value="lock">Verrouiller</option>
+                <option value="unlock">Déverrouiller</option>
+                <option value="toggle">Basculer (Verrouiller / Déverrouiller)</option>
+              </select>
+              <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Empêche toute interaction sur le smartphone de $Joueur.</p>
             </div>
           )}
 

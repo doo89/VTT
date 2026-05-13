@@ -1730,6 +1730,22 @@ export const useVttStore = create<VttStore>()(
                     nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, vibrationTriggeredAt: Date.now(), vibrationDuration: effect.vibrationDuration || 200 } : p);
                   }
                 }
+                if (effect.type === 'lockSmartphone') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => {
+                      if (ids.includes(p.id)) {
+                        let isLocked = p.isSmartphoneLocked || false;
+                        if (effect.lockMode === 'lock') isLocked = true;
+                        else if (effect.lockMode === 'unlock') isLocked = false;
+                        else if (effect.lockMode === 'toggle') isLocked = !isLocked;
+                        return { ...p, isSmartphoneLocked: isLocked };
+                      }
+                      return p;
+                    });
+                  }
+                }
                 if (effect.type === 'triggerAction' && effect.targetActionId) {
                   if (depth < 5) {
                     setTimeout(() => {

@@ -577,6 +577,23 @@ export const PlayerView: React.FC = () => {
             </div>
           )}
 
+          {localPlayer.isSmartphoneLocked && (
+            <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md z-[200] flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-500">
+               <div className="w-24 h-24 rounded-full bg-fuchsia-500/10 border border-fuchsia-500/30 flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(217,70,239,0.2)] animate-in zoom-in duration-700">
+                 <icons.Lock size={40} className="text-fuchsia-500" />
+               </div>
+               <h3 className="text-2xl font-black uppercase tracking-tighter text-white mb-2 italic tracking-[0.1em]">Interface Verrouillée</h3>
+               <p className="text-xs text-zinc-500 max-w-[220px] leading-relaxed uppercase font-bold tracking-widest opacity-60">
+                 Le Maître du Jeu a temporairement suspendu l'accès à votre interface.
+               </p>
+               <div className="mt-12 flex gap-1 items-center">
+                  <div className="w-1 h-1 rounded-full bg-fuchsia-500 animate-pulse" />
+                  <div className="w-1 h-1 rounded-full bg-fuchsia-500 animate-pulse delay-75" />
+                  <div className="w-1 h-1 rounded-full bg-fuchsia-500 animate-pulse delay-150" />
+               </div>
+            </div>
+          )}
+
           {activeTab === 'game' && (
             <>
               {/* Status Banner */}
