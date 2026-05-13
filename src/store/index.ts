@@ -1194,6 +1194,7 @@ export const useVttStore = create<VttStore>()(
               let nextCycleMode = state.cycleMode;
               let nextHandouts = [...state.handouts];
               let nextRoom = { ...state.room };
+              let nextActions = [...state.actions];
               let effectUpdates: any = {};
               
               const effectsToRun = action.effects || [];
@@ -1828,7 +1829,7 @@ export const useVttStore = create<VttStore>()(
                   }
                 }
                 if (effect.type === 'toggleActionEnabled' && effect.targetActionId) {
-                  newState.actions = newState.actions.map((a: any) => {
+                  nextActions = nextActions.map((a: any) => {
                     if (a.id === effect.targetActionId) {
                       let enabled = a.enabled;
                       if (effect.actionEnabledMode === 'enable') enabled = true;
@@ -2250,7 +2251,7 @@ export const useVttStore = create<VttStore>()(
                 newState.cycleNumber = currentCycle;
               }
               
-              newState.actions = state.actions.map((a: any) => {
+              newState.actions = nextActions.map((a: any) => {
                 if (a.id === id) {
                   return { 
                     ...a, 
