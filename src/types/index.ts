@@ -39,6 +39,7 @@ export interface Player {
   isSmartphoneLocked?: boolean;
   activePoll?: { id: string, question: string, options: string[] } | null;
   isBlinded?: boolean;
+  isAsleep?: boolean;
   lastDiceResult?: { id: string, result: number, formula: string, timestamp: number } | null;
   activeParticle?: { id: string, type: 'confetti' | 'blood' | 'magic' | 'fire' | 'poison', duration: number } | null;
 }
