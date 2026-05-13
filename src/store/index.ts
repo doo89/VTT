@@ -1390,11 +1390,11 @@ export const useVttStore = create<VttStore>()(
                     nextPlayers = nextPlayers.map(p => {
                       if (ids.includes(p.id)) {
                         const existing = p.actionPastilles || [];
-                        const hasPastille = existing.some(x => x.id === effect.pastilleId);
+                        const hasPastille = existing.some((x: any) => x.id === effect.pastilleId);
                         let newPastilles = [...existing];
                         
                         if (effect.pastilleMode === 'remove' || (effect.pastilleMode === 'toggle' && hasPastille)) {
-                          newPastilles = newPastilles.filter(x => x.id !== effect.pastilleId);
+                          newPastilles = newPastilles.filter((x: any) => x.id !== effect.pastilleId);
                         } else if (effect.pastilleMode === 'add' || (effect.pastilleMode === 'toggle' && !hasPastille)) {
                           if (!hasPastille) {
                             newPastilles.push({
@@ -1404,7 +1404,7 @@ export const useVttStore = create<VttStore>()(
                             });
                           } else {
                             // Update existing pastille if it was explicitly added again
-                            newPastilles = newPastilles.map(x => x.id === effect.pastilleId ? {
+                            newPastilles = newPastilles.map((x: any) => x.id === effect.pastilleId ? {
                               ...x,
                               icon: effect.pastilleIcon || 'Shield',
                               color: effect.pastilleColor || '#ffffff'
@@ -1584,7 +1584,7 @@ export const useVttStore = create<VttStore>()(
                     const ids = player._isMultiple ? player._ids : [player.id];
                     nextPlayers = nextPlayers.map(p => {
                       if (ids.includes(p.id)) {
-                        const newTags = (p.tags || []).map(t => {
+                        const newTags = (p.tags || []).map((t: any) => {
                           if (t.id === effect.tagId) {
                             const currentUses = typeof t.uses === 'number' ? t.uses : (parseInt(String(t.uses)) || 0);
                             return { ...t, uses: currentUses + effect.tagIncrement! };
@@ -1603,10 +1603,10 @@ export const useVttStore = create<VttStore>()(
                   const player = actionContext['$Joueur'];
                   if (tagModel && player && effect.spreadRadius !== undefined) {
                     const initiatorIds = player._isMultiple ? player._ids : [player.id];
-                    const initiators = state.players.filter(p => initiatorIds.includes(p.id));
+                    const initiators = state.players.filter((p: any) => initiatorIds.includes(p.id));
                     
                     const targetIds = new Set<string>();
-                    state.players.forEach(p => {
+                    state.players.forEach((p: any) => {
                       if (p.isDead) return;
                       for (const init of initiators) {
                         const dx = p.x - init.x;

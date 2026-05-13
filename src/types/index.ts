@@ -433,6 +433,7 @@ export interface ActionEffect {
   targetShape?: PlayerShape;
   tagIncrement?: number;
   spreadRadius?: number;
+  seenAsRoleId?: string | null;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';
@@ -457,7 +458,6 @@ export interface ActionCondition {
   cycleCheckType?: string | null;
   selectionTeamId?: string | null;
   distanceTargetTeamId?: string | null;
-  teamId?: string | null;
   distanceTargetStatus?: 'alive' | 'dead' | null;
   distanceUnit?: 'logical' | 'physical' | null;
   enabled: boolean;
