@@ -1184,7 +1184,7 @@ export const useVttStore = create<VttStore>()(
               }
               
               let nextMarkers = [...state.markers];
-              let nextPlayers = [...state.players];
+              let nextPlayers: Player[] = [...state.players];
               let nextRoles = [...state.roles];
               let nextTags = [...state.tags];
               let nextCustomVars = { ...state.customVariables };
@@ -1390,7 +1390,7 @@ export const useVttStore = create<VttStore>()(
                   const player = actionContext['$Joueur'];
                   if (player) {
                     const ids = player._isMultiple ? player._ids : [player.id];
-                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { 
+                    nextPlayers = nextPlayers.map((p: Player) => ids.includes(p.id) ? { 
                       ...p, 
                       pingTimestamp: Date.now(), 
                       pingColor: effect.pingColor || p.color 
@@ -1404,11 +1404,11 @@ export const useVttStore = create<VttStore>()(
                     nextPlayers = nextPlayers.map(p => {
                       if (ids.includes(p.id)) {
                         const existing = p.actionPastilles || [];
-                        const hasPastille = existing.some((x: any) => x.id === effect.pastilleId);
+                        const hasPastille = existing.some((x: { id: string }) => x.id === effect.pastilleId);
                         let newPastilles = [...existing];
                         
                         if (effect.pastilleMode === 'remove' || (effect.pastilleMode === 'toggle' && hasPastille)) {
-                          newPastilles = newPastilles.filter((x: any) => x.id !== effect.pastilleId);
+                          newPastilles = newPastilles.filter((x: { id: string }) => x.id !== effect.pastilleId);
                         } else if (effect.pastilleMode === 'add' || (effect.pastilleMode === 'toggle' && !hasPastille)) {
                           if (!hasPastille) {
                             newPastilles.push({
@@ -1418,7 +1418,7 @@ export const useVttStore = create<VttStore>()(
                             });
                           } else {
                             // Update existing pastille if it was explicitly added again
-                            newPastilles = newPastilles.map((x: any) => x.id === effect.pastilleId ? {
+                            newPastilles = newPastilles.map((x: { id: string, icon: string, color: string }) => x.id === effect.pastilleId ? {
                               ...x,
                               icon: effect.pastilleIcon || 'Shield',
                               color: effect.pastilleColor || '#ffffff'
@@ -1582,7 +1582,7 @@ export const useVttStore = create<VttStore>()(
                         if (playerA && playerB) {
                           const tagsA = playerA.tags || [];
                           const tagsB = playerB.tags || [];
-                          nextPlayers = nextPlayers.map(p => {
+                          nextPlayers = nextPlayers.map((p: Player) => {
                             if (p.id === idA) return { ...p, tags: tagsB };
                             if (p.id === idB) return { ...p, tags: tagsA };
                             return p;
@@ -1770,7 +1770,7 @@ export const useVttStore = create<VttStore>()(
                       activePoll: { 
                         id: pollId, 
                         question: effect.pollQuestion!, 
-                        options: (effect.pollOptions || ['Oui', 'Non']).filter(o => o.trim() !== '')
+                        options: (effect.pollOptions || ['Oui', 'Non']).filter((o: string) => o.trim() !== '')
                       } 
                     } : p);
                   }

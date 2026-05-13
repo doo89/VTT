@@ -647,6 +647,8 @@ export const ActionEffectWindow: React.FC = () => {
                   <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Options de réponse</label>
                   <button 
                     onClick={() => setPollOptions([...pollOptions, ''])}
+                    title="Ajouter une option de réponse"
+                    aria-label="Ajouter une option de réponse"
                     className="text-[9px] font-bold text-fuchsia-400 hover:text-fuchsia-300 uppercase tracking-widest"
                   >
                     + Ajouter
@@ -669,6 +671,8 @@ export const ActionEffectWindow: React.FC = () => {
                       {pollOptions.length > 2 && (
                         <button 
                           onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
+                          title="Supprimer cette option"
+                          aria-label="Supprimer cette option"
                           className="p-1.5 bg-zinc-800 hover:bg-red-950/50 hover:text-red-400 rounded-lg transition-colors"
                         >
                           <icons.X size={12} />
