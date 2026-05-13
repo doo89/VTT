@@ -1469,6 +1469,8 @@ export const PlayerView: React.FC = () => {
               </div>
               <button
                 onClick={() => setRoleRevealPopups(prev => prev.filter(p => p.id !== popup.id))}
+                title="Fermer"
+                aria-label="Fermer"
                 className="p-2 bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors"
               >
                 <X size={20} className="text-zinc-400" />

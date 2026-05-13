@@ -340,6 +340,17 @@ export type ActionEffectType =
   | 'resetCallOrder'
   | 'modifyVariable'
   | 'selectCallOrderPlayer'
+  | 'assignTag'
+  | 'removeTag'
+  | 'checkTag'
+  | 'assignRole'
+  | 'resurrectAllPlayers'
+  | 'wakeAllPlayers'
+  | 'sleepAllPlayers'
+  | 'sleepPlayer'
+  | 'wakePlayer'
+  | 'switchSleepPlayer'
+  | 'selectPlayer'
   | 'triggerAction'
   | 'assignTagToRole'
   | 'removeTagFromRole'
@@ -362,7 +373,15 @@ export type ActionEffectType =
   | 'togglePlayerPastille'
   | 'killPlayer'
   | 'resurrectPlayer'
-  | 'clearPlayer';
+  | 'clearPlayer'
+  | 'removePlayerRole'
+  | 'swapPlayerRole'
+  | 'movePlayerToGraveyard'
+  | 'gatherPlayers'
+  | 'changePlayerShape'
+  | 'swapPlayerTags'
+  | 'incrementTagValue'
+  | 'spreadTag';
 
 export interface ActionEffect {
   id: string;
@@ -394,6 +413,13 @@ export interface ActionEffect {
   pastilleIcon?: string;
   pastilleColor?: string;
   pastilleMode?: 'add' | 'remove' | 'toggle';
+  swapTargetMode?: 'role' | 'tag' | 'random';
+  targetX?: number;
+  targetY?: number;
+  gatherRadius?: number;
+  targetShape?: PlayerShape;
+  tagIncrement?: number;
+  spreadRadius?: number;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';

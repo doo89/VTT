@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
 import { X, Check } from 'lucide-react';
+import * as icons from 'lucide-react';
 import type { ActionEffectType } from '../types';
 
 const ACTION_CATEGORIES = [
@@ -45,6 +46,10 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'setPhaseDuration', label: 'Définir la durée de la phase', category: 'cycle' },
   { value: 'distributeRoles', label: 'Distribuer (Rôles)', category: 'attributes' },
   { value: 'triggerAction', label: 'Exécuter une Action', category: 'system' },
+  { value: 'assignTag', label: 'Assigner un Tag ($Joueur)', category: 'attributes' },
+  { value: 'removeTag', label: 'Retirer un Tag ($Joueur)', category: 'attributes' },
+  { value: 'checkTag', label: 'Vérifier un Tag ($Joueur)', category: 'attributes' },
+  { value: 'assignRole', label: 'Assigner un Rôle ($Joueur)', category: 'attributes' },
   { value: 'assignTagToRole', label: 'Assigner un tag à un rôle', category: 'attributes' },
   { value: 'removeTagFromRole', label: 'Enlever un tag à un rôle', category: 'attributes' },
   { value: 'assignTeam', label: 'Assigner une équipe ($Joueur)', category: 'attributes' },
@@ -70,7 +75,15 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'killPlayer', label: 'Tuer $Joueur', category: 'players' },
   { value: 'resurrectPlayer', label: 'Ressusciter $Joueur', category: 'players' },
   { value: 'clearPlayer', label: 'Purger $Joueur (Retirer tags, pastilles...)', category: 'players' },
+  { value: 'removePlayerRole', label: 'Retirer le rôle de $Joueur', category: 'players' },
+  { value: 'swapPlayerRole', label: 'Échanger le rôle de $Joueur avec $Cible', category: 'players' },
+  { value: 'movePlayerToGraveyard', label: 'Isoler $Joueur / Envoyer au cimetière', category: 'players' },
+  { value: 'gatherPlayers', label: 'Rassembler les joueurs (Cercle)', category: 'players' },
+  { value: 'changePlayerShape', label: 'Changer la forme du pion de $Joueur', category: 'players' },
   { value: 'deleteSelectionPastilles', label: 'Supprimer les pastilles tags', category: 'attributes' },
+  { value: 'swapPlayerTags', label: 'Échanger tous les Tags entre $Joueur et $Cible', category: 'attributes' },
+  { value: 'incrementTagValue', label: 'Ajouter/Soustraire des charges au Tag de $Joueur', category: 'attributes' },
+  { value: 'spreadTag', label: 'Propager un Tag en zone autour de $Joueur', category: 'attributes' },
   { value: 'deleteAllTags', label: 'Supprimer tous les tags dans la salle', category: 'attributes' },
   { value: 'deleteAllPlayerTags', label: 'Supprimer tous les tags des joueurs', category: 'attributes' },
   { value: 'showTimerOnSmartphone', label: 'Afficher le chronomètre (Smartphone)', category: 'remote' },
@@ -130,6 +143,13 @@ export const ActionEffectWindow: React.FC = () => {
   const [pastilleIcon, setPastilleIcon] = useState<string>('Shield');
   const [pastilleColor, setPastilleColor] = useState<string>('#eab308');
   const [pastilleMode, setPastilleMode] = useState<'add' | 'remove' | 'toggle'>('toggle');
+  const [swapTargetMode, setSwapTargetMode] = useState<'role' | 'tag' | 'random'>('tag');
+  const [targetX, setTargetX] = useState<number>(0);
+  const [targetY, setTargetY] = useState<number>(0);
+  const [gatherRadius, setGatherRadius] = useState<number>(150);
+  const [targetShape, setTargetShape] = useState<string>('circle');
+  const [tagIncrement, setTagIncrement] = useState<number>(1);
+  const [spreadRadius, setSpreadRadius] = useState<number>(200);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -168,6 +188,13 @@ export const ActionEffectWindow: React.FC = () => {
         setPastilleIcon(effect.pastilleIcon || 'Shield');
         setPastilleColor(effect.pastilleColor || '#eab308');
         setPastilleMode(effect.pastilleMode || 'toggle');
+        setSwapTargetMode(effect.swapTargetMode || 'tag');
+        setTargetX(effect.targetX || 0);
+        setTargetY(effect.targetY || 0);
+        setGatherRadius(effect.gatherRadius || 150);
+        setTargetShape(effect.targetShape || 'circle');
+        setTagIncrement(effect.tagIncrement || 1);
+        setSpreadRadius(effect.spreadRadius || 200);
       }
     } else {
       setType('deleteAllTags');
@@ -198,6 +225,13 @@ export const ActionEffectWindow: React.FC = () => {
       setPastilleIcon('Shield');
       setPastilleColor('#eab308');
       setPastilleMode('toggle');
+      setSwapTargetMode('tag');
+      setTargetX(0);
+      setTargetY(0);
+      setGatherRadius(150);
+      setTargetShape('circle');
+      setTagIncrement(1);
+      setSpreadRadius(200);
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -264,7 +298,14 @@ export const ActionEffectWindow: React.FC = () => {
       pastilleId: type === 'togglePlayerPastille' ? pastilleId : undefined,
       pastilleIcon: type === 'togglePlayerPastille' ? pastilleIcon : undefined,
       pastilleColor: type === 'togglePlayerPastille' ? pastilleColor : undefined,
-      pastilleMode: type === 'togglePlayerPastille' ? pastilleMode : undefined
+      pastilleMode: type === 'togglePlayerPastille' ? pastilleMode : undefined,
+      swapTargetMode: (type === 'swapPlayerRole' || type === 'swapPlayerTags') ? swapTargetMode : undefined,
+      targetX: (type === 'movePlayerToGraveyard' || type === 'gatherPlayers') ? targetX : undefined,
+      targetY: (type === 'movePlayerToGraveyard' || type === 'gatherPlayers') ? targetY : undefined,
+      gatherRadius: type === 'gatherPlayers' ? gatherRadius : undefined,
+      targetShape: type === 'changePlayerShape' ? (targetShape as any) : undefined,
+      tagIncrement: type === 'incrementTagValue' ? tagIncrement : undefined,
+      spreadRadius: type === 'spreadTag' ? spreadRadius : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -485,11 +526,11 @@ export const ActionEffectWindow: React.FC = () => {
             </div>
           )}
 
-          {(type === 'assignTagToRole' || type === 'removeTagFromRole') && (
+          {(type === 'assignTag' || type === 'removeTag' || type === 'checkTag' || type === 'incrementTagValue' || type === 'spreadTag') && (
             <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="effect-tag-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
-                  {type === 'assignTagToRole' ? 'Tag à assigner' : 'Tag à enlever'}
+                  {type === 'spreadTag' ? 'Tag à propager' : (type === 'assignTag' ? 'Tag à assigner' : (type === 'removeTag' ? 'Tag à enlever' : 'Tag cible'))}
                 </label>
                 <select
                   id="effect-tag-select"
@@ -503,10 +544,81 @@ export const ActionEffectWindow: React.FC = () => {
                   ))}
                 </select>
               </div>
+              
+              {type === 'incrementTagValue' && (
+                <div className="flex flex-col gap-1.5 animate-in fade-in pt-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-fuchsia-400">Combien de charges à ajouter ?</label>
+                  <input
+                    title="Valeur à ajouter ou soustraire"
+                    type="number"
+                    value={tagIncrement}
+                    onChange={(e) => setTagIncrement(Number(e.target.value))}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                  />
+                  <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Utilisez un nombre négatif pour soustraire (ex: -1).</p>
+                </div>
+              )}
+              {type === 'spreadTag' && (
+                <div className="flex flex-col gap-1.5 animate-in fade-in pt-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-fuchsia-400">Rayon de propagation</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      title="Rayon de propagation"
+                      type="range"
+                      min="50"
+                      max="1000"
+                      step="10"
+                      value={spreadRadius}
+                      onChange={(e) => setSpreadRadius(Number(e.target.value))}
+                      className="flex-1 accent-fuchsia-500"
+                    />
+                    <span className="text-xs font-bold w-12 text-right">{spreadRadius}px</span>
+                  </div>
+                  <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Tous les joueurs présents dans ce rayon autour de la cible recevront le Tag.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {type === 'assignRole' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-assign-role-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle à assigner à $Joueur</label>
+              <select
+                id="effect-assign-role-select"
+                value={roleId}
+                onChange={(e) => setRoleId(e.target.value)}
+                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+              >
+                {roles.length === 0 && <option value="">Aucun rôle disponible</option>}
+                {roles.map(r => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {(type === 'assignTagToRole' || type === 'removeTagFromRole') && (
+            <div className="flex flex-col gap-3 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="effect-role-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle cible</label>
+                <label htmlFor="effect-tag-role-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                  {type === 'assignTagToRole' ? 'Tag à assigner' : 'Tag à enlever'}
+                </label>
                 <select
-                  id="effect-role-select"
+                  id="effect-tag-role-select"
+                  value={tagId}
+                  onChange={(e) => setTagId(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                >
+                  {tags.length === 0 && <option value="">Aucun tag disponible</option>}
+                  {tags.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="effect-role-target-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle cible (Tous les joueurs de ce rôle)</label>
+                <select
+                  id="effect-role-target-select"
                   value={roleId}
                   onChange={(e) => setRoleId(e.target.value)}
                   className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
@@ -584,6 +696,154 @@ export const ActionEffectWindow: React.FC = () => {
                   {teams.map(t => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {(type === 'swapPlayerRole' || type === 'swapPlayerTags') && (
+            <div className="flex flex-col gap-4 animate-in slide-in-from-top-2 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-fuchsia-400">Comment définir la cible ($Cible) ?</label>
+                <select
+                  title="Mode de ciblage"
+                  value={swapTargetMode}
+                  onChange={(e) => setSwapTargetMode(e.target.value as any)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-fuchsia-500/50"
+                >
+                  <option value="tag">Le joueur qui possède un Tag spécifique</option>
+                  <option value="role">Le joueur qui possède un Rôle spécifique</option>
+                  <option value="random">Un joueur au hasard (parmi les vivants)</option>
+                </select>
+              </div>
+
+              {swapTargetMode === 'tag' && (
+                <div className="flex flex-col gap-1.5 animate-in fade-in">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Quel Tag la cible doit-elle avoir ?</label>
+                  <select
+                    title="Tag cible"
+                    value={tagId}
+                    onChange={(e) => setTagId(e.target.value)}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary/50"
+                  >
+                    <option value="">Sélectionnez un tag...</option>
+                    {tags.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {swapTargetMode === 'role' && (
+                <div className="flex flex-col gap-1.5 animate-in fade-in">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Quel Rôle la cible doit-elle avoir ?</label>
+                  <select
+                    title="Rôle cible"
+                    value={roleId}
+                    onChange={(e) => setRoleId(e.target.value)}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-primary/50"
+                  >
+                    <option value="">Sélectionnez un rôle...</option>
+                    {roles.map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
+          {type === 'movePlayerToGraveyard' && (
+            <div className="flex flex-col gap-3 animate-in slide-in-from-top-2 p-3 bg-red-500/5 border border-red-500/20 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-red-400">Position X</label>
+                  <input
+                    title="Position X cible"
+                    type="number"
+                    value={targetX}
+                    onChange={(e) => setTargetX(Number(e.target.value))}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-red-500/50"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-red-400">Position Y</label>
+                  <input
+                    title="Position Y cible"
+                    type="number"
+                    value={targetY}
+                    onChange={(e) => setTargetY(Number(e.target.value))}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-red-500/50"
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-zinc-500 italic px-1">Le centre du plateau est en X: 0, Y: 0.</p>
+            </div>
+          )}
+
+          {type === 'gatherPlayers' && (
+            <div className="flex flex-col gap-3 animate-in slide-in-from-top-2 p-3 bg-red-500/5 border border-red-500/20 rounded-lg">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-red-400">Rayon du cercle (Espacement)</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    title="Rayon de rassemblement"
+                    type="range"
+                    min="50"
+                    max="500"
+                    step="10"
+                    value={gatherRadius}
+                    onChange={(e) => setGatherRadius(Number(e.target.value))}
+                    className="flex-1 accent-red-500"
+                  />
+                  <span className="text-xs font-bold w-12 text-right">{gatherRadius}px</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-red-400">Centre X</label>
+                  <input
+                    title="Centre X"
+                    type="number"
+                    value={targetX}
+                    onChange={(e) => setTargetX(Number(e.target.value))}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-red-500/50"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-red-400">Centre Y</label>
+                  <input
+                    title="Centre Y"
+                    type="number"
+                    value={targetY}
+                    onChange={(e) => setTargetY(Number(e.target.value))}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-red-500/50"
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-zinc-500 italic px-1">Les joueurs vivants formeront un cercle autour de ce point (0, 0 = centre).</p>
+            </div>
+          )}
+
+          {type === 'changePlayerShape' && (
+            <div className="flex flex-col gap-3 animate-in slide-in-from-top-2 p-3 bg-red-500/5 border border-red-500/20 rounded-lg">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-red-400">Nouvelle Forme du Pion</label>
+                <select
+                  title="Nouvelle forme"
+                  value={targetShape}
+                  onChange={(e) => setTargetShape(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-red-500/50"
+                >
+                  <option value="circle">Cercle</option>
+                  <option value="square">Carré</option>
+                  <option value="triangle">Triangle</option>
+                  <option value="hexagon">Hexagone</option>
+                  <option value="octagon">Octogone</option>
+                  <option value="pentagon">Pentagone</option>
+                  <option value="star">Étoile</option>
+                  <option value="oval">Ovale</option>
+                  <option value="trapezoid">Trapèze</option>
                 </select>
               </div>
             </div>
@@ -796,7 +1056,7 @@ export const ActionEffectWindow: React.FC = () => {
                     className="peer sr-only"
                   />
                   <div className="w-4 h-4 rounded bg-zinc-800 border border-zinc-700 peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors" />
-                  <icons.Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                  <Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                 </div>
                 <span className="text-xs text-zinc-300 group-hover:text-white transition-colors">Sur le Plateau (MJ) - Carte à côté du pion</span>
               </label>
@@ -810,7 +1070,7 @@ export const ActionEffectWindow: React.FC = () => {
                     className="peer sr-only"
                   />
                   <div className="w-4 h-4 rounded bg-zinc-800 border border-zinc-700 peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors" />
-                  <icons.Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                  <Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                 </div>
                 <span className="text-xs text-zinc-300 group-hover:text-white transition-colors">Smartphone (Onglet SALLE) - Sous la miniature + Highlight</span>
               </label>
@@ -824,7 +1084,7 @@ export const ActionEffectWindow: React.FC = () => {
                     className="peer sr-only"
                   />
                   <div className="w-4 h-4 rounded bg-zinc-800 border border-zinc-700 peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors" />
-                  <icons.Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                  <Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                 </div>
                 <span className="text-xs text-zinc-300 group-hover:text-white transition-colors">Smartphone (Onglet JOUEURS) - À côté du nom</span>
               </label>
@@ -838,7 +1098,7 @@ export const ActionEffectWindow: React.FC = () => {
                     className="peer sr-only"
                   />
                   <div className="w-4 h-4 rounded bg-zinc-800 border border-zinc-700 peer-checked:bg-blue-500 peer-checked:border-blue-500 transition-colors" />
-                  <icons.Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                  <Check size={12} className="absolute text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
                 </div>
                 <span className="text-xs text-zinc-300 group-hover:text-white transition-colors">Smartphone (Onglet JEU) - Popup d'alerte visuelle</span>
               </label>
@@ -850,6 +1110,7 @@ export const ActionEffectWindow: React.FC = () => {
               <div className="flex flex-col gap-1.5">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Identifiant de la pastille (ID)</label>
                 <input
+                  title="Identifiant de la pastille"
                   type="text"
                   value={pastilleId}
                   onChange={(e) => setPastilleId(e.target.value)}
@@ -861,6 +1122,7 @@ export const ActionEffectWindow: React.FC = () => {
               <div className="flex flex-col gap-1.5">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Action</label>
                 <select
+                  title="Mode d'action de la pastille"
                   value={pastilleMode}
                   onChange={(e) => setPastilleMode(e.target.value as any)}
                   className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
@@ -876,6 +1138,7 @@ export const ActionEffectWindow: React.FC = () => {
                   <div className="flex flex-col gap-1.5 flex-1">
                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Icône</label>
                     <select
+                      title="Icône de la pastille"
                       value={pastilleIcon}
                       onChange={(e) => setPastilleIcon(e.target.value)}
                       className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
@@ -900,6 +1163,7 @@ export const ActionEffectWindow: React.FC = () => {
                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Couleur</label>
                     <div className="flex items-center gap-2">
                       <input
+                        title="Couleur de la pastille"
                         type="color"
                         value={pastilleColor}
                         onChange={(e) => setPastilleColor(e.target.value)}
