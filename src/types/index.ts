@@ -401,7 +401,8 @@ export type ActionEffectType =
   | 'sendPollToSmartphone'
   | 'blindPlayer'
   | 'rollDice'
-  | 'stopExecution';
+  | 'stopExecution'
+  | 'toggleActionEnabled';
 
 export interface ActionEffect {
   id: string;
@@ -449,6 +450,7 @@ export interface ActionEffect {
   blindMode?: 'blind' | 'unblind' | 'toggle';
   diceSides?: number;
   diceCount?: number;
+  actionEnabledMode?: 'enable' | 'disable' | 'toggle';
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';

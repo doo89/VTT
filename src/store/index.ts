@@ -1802,6 +1802,18 @@ export const useVttStore = create<VttStore>()(
                     } : p);
                   }
                 }
+                if (effect.type === 'toggleActionEnabled' && effect.targetActionId) {
+                  newState.actions = newState.actions.map((a: any) => {
+                    if (a.id === effect.targetActionId) {
+                      let enabled = a.enabled;
+                      if (effect.actionEnabledMode === 'enable') enabled = true;
+                      else if (effect.actionEnabledMode === 'disable') enabled = false;
+                      else if (effect.actionEnabledMode === 'toggle') enabled = !enabled;
+                      return { ...a, enabled };
+                    }
+                    return a;
+                  });
+                }
                 if (effect.type === 'triggerAction' && effect.targetActionId) {
                   if (depth < 5) {
                     setTimeout(() => {

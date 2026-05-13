@@ -101,6 +101,7 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'rollDice', label: "Lancer un Dé ($Joueur)", category: 'remote' },
   { value: 'wait', label: 'Attendre x secondes', category: 'system' },
   { value: 'stopExecution', label: "Arrêter l'exécution de la séquence", category: 'system' },
+  { value: 'toggleActionEnabled', label: "Activer / Désactiver une autre Action", category: 'system' },
   { value: 'playSound', label: 'Jouer un effet sonore', category: 'alerts' },
   { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
   { value: 'sendPrivateMessage', label: 'Envoyer un Message Privé ($Joueur)', category: 'alerts' },
@@ -171,6 +172,7 @@ export const ActionEffectWindow: React.FC = () => {
   const [blindMode, setBlindMode] = useState<'blind' | 'unblind' | 'toggle'>('blind');
   const [diceSides, setDiceSides] = useState<number>(20);
   const [diceCount, setDiceCount] = useState<number>(1);
+  const [actionEnabledMode, setActionEnabledMode] = useState<'enable' | 'disable' | 'toggle'>('enable');
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -225,6 +227,7 @@ export const ActionEffectWindow: React.FC = () => {
         setBlindMode(effect.blindMode || 'blind');
         setDiceSides(effect.diceSides || 20);
         setDiceCount(effect.diceCount || 1);
+        setActionEnabledMode(effect.actionEnabledMode || 'enable');
       }
     } else {
       setType('deleteAllTags');
@@ -271,6 +274,7 @@ export const ActionEffectWindow: React.FC = () => {
       setBlindMode('blind');
       setDiceSides(20);
       setDiceCount(1);
+      setActionEnabledMode('enable');
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -353,7 +357,8 @@ export const ActionEffectWindow: React.FC = () => {
       pollOptions: type === 'sendPollToSmartphone' ? pollOptions : undefined,
       blindMode: type === 'blindPlayer' ? blindMode : undefined,
       diceSides: type === 'rollDice' ? diceSides : undefined,
-      diceCount: type === 'rollDice' ? diceCount : undefined
+      diceCount: type === 'rollDice' ? diceCount : undefined,
+      actionEnabledMode: type === 'toggleActionEnabled' ? actionEnabledMode : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -713,6 +718,39 @@ export const ActionEffectWindow: React.FC = () => {
                 </div>
               </div>
               <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Génère un lancer de {diceCount}d{diceSides} pour $Joueur.</p>
+            </div>
+          )}
+
+          {type === 'toggleActionEnabled' && (
+            <div className="flex flex-col gap-3 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="effect-toggle-action-target" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Action cible</label>
+                <select
+                  id="effect-toggle-action-target"
+                  value={targetActionId}
+                  onChange={(e) => setTargetActionId(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                >
+                  <option value="">Sélectionner une action...</option>
+                  {actions.map(a => (
+                    <option key={a.id} value={a.id}>{a.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="effect-action-enabled-mode" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Nouvel état</label>
+                <select
+                  id="effect-action-enabled-mode"
+                  value={actionEnabledMode}
+                  onChange={(e) => setActionEnabledMode(e.target.value as any)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                >
+                  <option value="enable">Activer l'action</option>
+                  <option value="disable">Désactiver l'action</option>
+                  <option value="toggle">Basculer l'état (On/Off)</option>
+                </select>
+              </div>
+              <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Modifie la disponibilité de l'action cible pour les futures exécutions.</p>
             </div>
           )}
 
