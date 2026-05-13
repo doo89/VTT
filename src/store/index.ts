@@ -1812,6 +1812,21 @@ export const useVttStore = create<VttStore>()(
                     } : p);
                   }
                 }
+                if (effect.type === 'playParticleEffect') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    const particleId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { 
+                      ...p, 
+                      activeParticle: { 
+                        id: particleId, 
+                        type: effect.particleType || 'confetti', 
+                        duration: effect.particleDuration || 3000 
+                      } 
+                    } : p);
+                  }
+                }
                 if (effect.type === 'toggleActionEnabled' && effect.targetActionId) {
                   newState.actions = newState.actions.map((a: any) => {
                     if (a.id === effect.targetActionId) {

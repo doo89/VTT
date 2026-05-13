@@ -99,6 +99,7 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'sendPollToSmartphone', label: "Envoyer un Choix / Sondage ($Joueur)", category: 'remote' },
   { value: 'blindPlayer', label: "Masquer la Salle / Aveugler ($Joueur)", category: 'remote' },
   { value: 'rollDice', label: "Lancer un Dé ($Joueur)", category: 'remote' },
+  { value: 'playParticleEffect', label: "Jouer un Effet de Particules ($Joueur)", category: 'remote' },
   { value: 'wait', label: 'Attendre x secondes', category: 'system' },
   { value: 'stopExecution', label: "Arrêter l'exécution de la séquence", category: 'system' },
   { value: 'toggleActionEnabled', label: "Activer / Désactiver une autre Action", category: 'system' },
@@ -174,6 +175,8 @@ export const ActionEffectWindow: React.FC = () => {
   const [diceSides, setDiceSides] = useState<number>(20);
   const [diceCount, setDiceCount] = useState<number>(1);
   const [actionEnabledMode, setActionEnabledMode] = useState<'enable' | 'disable' | 'toggle'>('enable');
+  const [particleType, setParticleType] = useState<'confetti' | 'blood' | 'magic' | 'fire' | 'poison'>('confetti');
+  const [particleDuration, setParticleDuration] = useState<number>(3000);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -229,6 +232,8 @@ export const ActionEffectWindow: React.FC = () => {
         setDiceSides(effect.diceSides || 20);
         setDiceCount(effect.diceCount || 1);
         setActionEnabledMode(effect.actionEnabledMode || 'enable');
+        setParticleType(effect.particleType || 'confetti');
+        setParticleDuration(effect.particleDuration || 3000);
       }
     } else {
       setType('deleteAllTags');
@@ -276,6 +281,8 @@ export const ActionEffectWindow: React.FC = () => {
       setDiceSides(20);
       setDiceCount(1);
       setActionEnabledMode('enable');
+      setParticleType('confetti');
+      setParticleDuration(3000);
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -359,7 +366,9 @@ export const ActionEffectWindow: React.FC = () => {
       blindMode: type === 'blindPlayer' ? blindMode : undefined,
       diceSides: type === 'rollDice' ? diceSides : undefined,
       diceCount: type === 'rollDice' ? diceCount : undefined,
-      actionEnabledMode: type === 'toggleActionEnabled' ? actionEnabledMode : undefined
+      actionEnabledMode: type === 'toggleActionEnabled' ? actionEnabledMode : undefined,
+      particleType: type === 'playParticleEffect' ? particleType : undefined,
+      particleDuration: type === 'playParticleEffect' ? particleDuration : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -752,6 +761,40 @@ export const ActionEffectWindow: React.FC = () => {
                 </select>
               </div>
               <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Modifie la disponibilité de l'action cible pour les futures exécutions.</p>
+            </div>
+          )}
+
+          {type === 'playParticleEffect' && (
+            <div className="flex flex-col gap-3 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="effect-particle-type" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type de Particules</label>
+                <select
+                  id="effect-particle-type"
+                  value={particleType}
+                  onChange={(e) => setParticleType(e.target.value as any)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                >
+                  <option value="confetti">🎉 Confettis (Victoire, Réussite)</option>
+                  <option value="blood">🩸 Éclaboussure de Sang (Dégâts physiques)</option>
+                  <option value="magic">✨ Étincelles Magiques (Soins, Buff, Magie)</option>
+                  <option value="fire">🔥 Flammes / Explosion (Feu, Dégâts de zone)</option>
+                  <option value="poison">☠️ Bulles Toxiques (Poison, Malédiction)</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="effect-particle-duration" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Durée (millisecondes)</label>
+                <input
+                  id="effect-particle-duration"
+                  type="number"
+                  min="500"
+                  max="10000"
+                  step="500"
+                  value={particleDuration}
+                  onChange={(e) => setParticleDuration(parseInt(e.target.value) || 3000)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                />
+              </div>
+              <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Déclenche une animation immersive sur l'écran du joueur cible.</p>
             </div>
           )}
 

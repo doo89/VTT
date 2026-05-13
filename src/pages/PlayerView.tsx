@@ -57,6 +57,21 @@ export const PlayerView: React.FC = () => {
   const lastVibrationTriggerRef = useRef<number>(0);
   const [dicePopup, setDicePopup] = useState<{ id: string, result: number, formula: string } | null>(null);
   const lastDiceIdRef = useRef<string>('');
+  const [activeParticle, setActiveParticle] = useState<{ id: string, type: string, duration: number } | null>(null);
+  const lastParticleIdRef = useRef<string>('');
+
+  // Handle Particles
+  useEffect(() => {
+    if (localPlayer?.activeParticle && localPlayer.activeParticle.id !== lastParticleIdRef.current) {
+      lastParticleIdRef.current = localPlayer.activeParticle.id;
+      setActiveParticle(localPlayer.activeParticle);
+      
+      const timer = setTimeout(() => {
+        setActiveParticle(null);
+      }, localPlayer.activeParticle.duration);
+      return () => clearTimeout(timer);
+    }
+  }, [localPlayer?.activeParticle]);
 
   // Handle Dice Results
   useEffect(() => {
@@ -1651,6 +1666,114 @@ export const PlayerView: React.FC = () => {
                 Fermer
               </button>
            </div>
+        </div>
+      )}
+
+      {/* Particle Overlay */}
+      {activeParticle && (
+        <div className="absolute inset-0 z-[300] overflow-hidden pointer-events-none">
+          {Array.from({ length: 40 }).map((_, i) => {
+            const left = Math.random() * 100;
+            const delay = Math.random() * 0.5;
+            const duration = 1 + Math.random();
+            const size = activeParticle.type === 'blood' ? (20 + Math.random() * 80) : (5 + Math.random() * 15);
+            
+            let style: React.CSSProperties = {
+              position: 'absolute',
+              left: `${left}%`,
+              animationDelay: `${delay}s`,
+              animationDuration: `${duration}s`,
+              animationTimingFunction: 'ease-out',
+              animationFillMode: 'forwards'
+            };
+
+            let className = '';
+
+            if (activeParticle.type === 'confetti') {
+              const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7'];
+              style.backgroundColor = colors[i % colors.length];
+              style.width = `${size}px`;
+              style.height = `${size}px`;
+              style.top = '-20px';
+              style.transform = `rotate(${Math.random() * 360}deg)`;
+              className = 'animate-particle-fall';
+            } else if (activeParticle.type === 'blood') {
+              style.backgroundColor = '#991b1b'; // red-800
+              style.width = `${size}px`;
+              style.height = `${size}px`;
+              style.borderRadius = '50%';
+              style.top = '50%';
+              style.left = '50%';
+              style.transform = `translate(-50%, -50%) scale(0)`;
+              className = 'animate-particle-splatter';
+              // add random spread for splatter
+              (style as any)['--spread-x'] = `${(Math.random() - 0.5) * 400}px`;
+              (style as any)['--spread-y'] = `${(Math.random() - 0.5) * 400}px`;
+            } else if (activeParticle.type === 'magic') {
+              style.backgroundColor = '#fde047'; // yellow-300
+              style.boxShadow = '0 0 10px #fef08a';
+              style.width = `${size / 2}px`;
+              style.height = `${size / 2}px`;
+              style.borderRadius = '50%';
+              style.bottom = '-20px';
+              className = 'animate-particle-float';
+            } else if (activeParticle.type === 'fire') {
+              style.background = 'linear-gradient(to top, #ea580c, #facc15)';
+              style.width = `${size * 1.5}px`;
+              style.height = `${size * 2}px`;
+              style.borderRadius = '50% 50% 20% 20%';
+              style.bottom = '-20px';
+              style.filter = 'blur(2px)';
+              className = 'animate-particle-fire';
+            } else if (activeParticle.type === 'poison') {
+              style.backgroundColor = '#22c55e'; // green-500
+              style.boxShadow = 'inset 0 0 5px #14532d';
+              style.width = `${size}px`;
+              style.height = `${size}px`;
+              style.borderRadius = '50%';
+              style.bottom = '-20px';
+              className = 'animate-particle-bubble';
+            }
+
+            return <div key={`${activeParticle.id}-${i}`} className={className} style={style} />;
+          })}
+          
+          <style>{`
+            @keyframes particle-fall {
+              0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+              100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+            }
+            .animate-particle-fall { animation-name: particle-fall; }
+
+            @keyframes particle-splatter {
+              0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+              50% { transform: translate(calc(-50% + var(--spread-x)), calc(-50% + var(--spread-y))) scale(1); opacity: 0.8; }
+              100% { transform: translate(calc(-50% + var(--spread-x)), calc(100vh)) scale(0.5); opacity: 0; }
+            }
+            .animate-particle-splatter { animation-name: particle-splatter; }
+
+            @keyframes particle-float {
+              0% { transform: translateY(0) scale(1); opacity: 1; }
+              50% { transform: translateY(-50vh) scale(1.5); opacity: 0.8; }
+              100% { transform: translateY(-100vh) scale(0); opacity: 0; }
+            }
+            .animate-particle-float { animation-name: particle-float; }
+
+            @keyframes particle-fire {
+              0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0.8; }
+              50% { transform: translateY(-30vh) scale(1.2) rotate(10deg); opacity: 0.5; }
+              100% { transform: translateY(-60vh) scale(0) rotate(-10deg); opacity: 0; }
+            }
+            .animate-particle-fire { animation-name: particle-fire; }
+
+            @keyframes particle-bubble {
+              0% { transform: translateY(0) scale(1); opacity: 0; }
+              20% { transform: translateY(-20vh) scale(1.2); opacity: 0.6; }
+              80% { transform: translateY(-80vh) scale(1.5); opacity: 0.4; }
+              100% { transform: translateY(-100vh) scale(2); opacity: 0; }
+            }
+            .animate-particle-bubble { animation-name: particle-bubble; }
+          `}</style>
         </div>
       )}
 

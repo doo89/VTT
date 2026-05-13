@@ -40,6 +40,7 @@ export interface Player {
   activePoll?: { id: string, question: string, options: string[] } | null;
   isBlinded?: boolean;
   lastDiceResult?: { id: string, result: number, formula: string, timestamp: number } | null;
+  activeParticle?: { id: string, type: 'confetti' | 'blood' | 'magic' | 'fire' | 'poison', duration: number } | null;
 }
 
 export interface PlayerTemplate {
@@ -403,7 +404,8 @@ export type ActionEffectType =
   | 'rollDice'
   | 'stopExecution'
   | 'toggleActionEnabled'
-  | 'resetBoard';
+  | 'resetBoard'
+  | 'playParticleEffect';
 
 export interface ActionEffect {
   id: string;
@@ -452,6 +454,8 @@ export interface ActionEffect {
   diceSides?: number;
   diceCount?: number;
   actionEnabledMode?: 'enable' | 'disable' | 'toggle';
+  particleType?: 'confetti' | 'blood' | 'magic' | 'fire' | 'poison';
+  particleDuration?: number;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';
