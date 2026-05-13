@@ -803,9 +803,12 @@ export const useVttStore = create<VttStore>()(
                     const playerTags = p.tags || [];
                     const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
                     const allPlayerTags = [...playerTags, ...roleTags];
+                    
+                    // Priority: Player's seenAsRoleId > Role's seenAsRoleId > Player's real roleId
+                    const effectiveRoleId = p.seenAsRoleId || state.roles.find((r: any) => r.id === p.roleId)?.seenAsRoleId || p.roleId;
 
                     if (c.type === 'playerRole') {
-                      const isRole = p.roleId === c.roleId;
+                      const isRole = effectiveRoleId === c.roleId;
                       if (c.operator === '=') return isRole;
                       if (c.operator === '!=') return !isRole;
                     } else if (c.type === 'playerTag') {
@@ -817,7 +820,7 @@ export const useVttStore = create<VttStore>()(
                       if (c.operator === '=') return hasPastille;
                       if (c.operator === '!=') return !hasPastille;
                     } else if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
-                      const isRole = p.roleId === (c.selectionRoleId || c.roleId);
+                      const isRole = effectiveRoleId === (c.selectionRoleId || c.roleId);
                       if (c.operator === '=') return isRole;
                       if (c.operator === '!=') return !isRole;
                     } else if (c.type === 'playerSelectionTag') {
@@ -1625,6 +1628,106 @@ export const useVttStore = create<VttStore>()(
                       }
                       return p;
                     });
+                  }
+                }
+                if (effect.type === 'clearPlayerTeam') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, teamId: null } : p);
+                  }
+                }
+                if (effect.type === 'joinTargetTeam') {
+                  const initiator = actionContext['$Joueur'];
+                  if (initiator) {
+                    const initiatorIds = initiator._isMultiple ? initiator._ids : [initiator.id];
+                    
+                    let targetIds: string[] = [];
+                    if (effect.swapTargetMode === 'role' && effect.roleId) {
+                      targetIds = state.players.filter((p: any) => p.roleId === effect.roleId).map((p: any) => p.id);
+                    } else if (effect.swapTargetMode === 'tag' && effect.tagId) {
+                      targetIds = state.players.filter((p: any) => p.tags?.some((t: any) => t.id === effect.tagId)).map((p: any) => p.id);
+                    } else if (effect.swapTargetMode === 'random') {
+                      const validTargets = state.players.filter((p: any) => !p.isDead && !initiatorIds.includes(p.id));
+                      if (validTargets.length > 0) {
+                        const randomPlayer = validTargets[Math.floor(Math.random() * validTargets.length)];
+                        targetIds = [randomPlayer.id];
+                      }
+                    }
+
+                    if (targetIds.length > 0 && initiatorIds.length > 0) {
+                      const idB = targetIds[0];
+                      const playerB = state.players.find((p: any) => p.id === idB);
+                      if (playerB) {
+                        const targetTeamId = playerB.teamId;
+                        nextPlayers = nextPlayers.map(p => initiatorIds.includes(p.id) ? { ...p, teamId: targetTeamId } : p);
+                      }
+                    }
+                  }
+                }
+                if (effect.type === 'shuffleTeams') {
+                  const teamIds = state.teams.map((t: any) => t.id);
+                  if (teamIds.length > 0) {
+                    nextPlayers = nextPlayers.map(p => {
+                      if (!p.isDead) {
+                        const randomTeamId = teamIds[Math.floor(Math.random() * teamIds.length)];
+                        return { ...p, teamId: randomTeamId };
+                      }
+                      return p;
+                    });
+                  }
+                }
+                if (effect.type === 'setFakeRole') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, seenAsRoleId: effect.seenAsRoleId || null } : p);
+                  }
+                }
+                if (effect.type === 'stealRoleAndKill') {
+                  const initiator = actionContext['$Joueur'];
+                  if (initiator) {
+                    const initiatorIds = initiator._isMultiple ? initiator._ids : [initiator.id];
+                    
+                    let targetIds: string[] = [];
+                    if (effect.swapTargetMode === 'role' && effect.roleId) {
+                      targetIds = state.players.filter((p: any) => p.roleId === effect.roleId).map((p: any) => p.id);
+                    } else if (effect.swapTargetMode === 'tag' && effect.tagId) {
+                      targetIds = state.players.filter((p: any) => p.tags?.some((t: any) => t.id === effect.tagId)).map((p: any) => p.id);
+                    } else if (effect.swapTargetMode === 'random') {
+                      const validTargets = state.players.filter((p: any) => !p.isDead && !initiatorIds.includes(p.id));
+                      if (validTargets.length > 0) {
+                        const randomPlayer = validTargets[Math.floor(Math.random() * validTargets.length)];
+                        targetIds = [randomPlayer.id];
+                      }
+                    }
+
+                    if (targetIds.length > 0 && initiatorIds.length > 0) {
+                      const idB = targetIds[0];
+                      const playerB = state.players.find((p: any) => p.id === idB);
+                      if (playerB) {
+                        const targetRoleId = playerB.roleId;
+                        nextPlayers = nextPlayers.map(p => {
+                          if (initiatorIds.includes(p.id)) return { ...p, roleId: targetRoleId };
+                          if (p.id === idB) return { ...p, isDead: true };
+                          return p;
+                        });
+                      }
+                    }
+                  }
+                }
+                if (effect.type === 'forceSmartphoneTab') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, forcedTab: effect.targetTab } : p);
+                  }
+                }
+                if (effect.type === 'vibrateSmartphone') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, vibrationTriggeredAt: Date.now(), vibrationDuration: effect.vibrationDuration || 200 } : p);
                   }
                 }
                 if (effect.type === 'triggerAction' && effect.targetActionId) {

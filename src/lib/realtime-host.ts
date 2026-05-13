@@ -497,6 +497,7 @@ export const forceBroadcastState = () => {
     smartphoneCountdown: state.smartphoneCountdown,
     timer: state.timer,
     actions: state.actions.map(a => ({ id: a.id, name: a.name, enabled: a.enabled })),
+    logs: state.logs,
   };
 
   const payloadSize = JSON.stringify(payload).length;
@@ -538,6 +539,7 @@ export const setupHostRealtimeSubscription = () => {
       state.activeCustomPopupId !== prevState.activeCustomPopupId ||
       state.smartphoneCountdown !== prevState.smartphoneCountdown ||
       state.timer !== prevState.timer ||
+      state.logs !== prevState.logs ||
       state.room !== prevState.room;
 
     if (state.roomCode !== prevState.roomCode) {

@@ -84,10 +84,17 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'swapPlayerTags', label: 'Échanger tous les Tags entre $Joueur et $Cible', category: 'attributes' },
   { value: 'incrementTagValue', label: 'Ajouter/Soustraire des charges au Tag de $Joueur', category: 'attributes' },
   { value: 'spreadTag', label: 'Propager un Tag en zone autour de $Joueur', category: 'attributes' },
+  { value: 'clearPlayerTeam', label: "Dissoudre l'Équipe de $Joueur", category: 'attributes' },
+  { value: 'joinTargetTeam', label: "Rallier à l'Équipe de $Cible", category: 'attributes' },
+  { value: 'shuffleTeams', label: 'Mélanger les Équipes (Aléatoire)', category: 'attributes' },
+  { value: 'setFakeRole', label: "Falsifier le rôle vu par le système ($Joueur)", category: 'attributes' },
+  { value: 'stealRoleAndKill', label: "Voler le Rôle de $Cible (et le tuer)", category: 'attributes' },
   { value: 'deleteAllTags', label: 'Supprimer tous les tags dans la salle', category: 'attributes' },
   { value: 'deleteAllPlayerTags', label: 'Supprimer tous les tags des joueurs', category: 'attributes' },
   { value: 'showTimerOnSmartphone', label: 'Afficher le chronomètre (Smartphone)', category: 'remote' },
   { value: 'hideTimerOnSmartphone', label: 'Masquer le chronomètre (Smartphone)', category: 'remote' },
+  { value: 'forceSmartphoneTab', label: "Forcer la navigation vers l'onglet X (Smartphone)", category: 'remote' },
+  { value: 'vibrateSmartphone', label: "Faire vibrer le Smartphone ($Joueur)", category: 'remote' },
   { value: 'wait', label: 'Attendre x secondes', category: 'system' },
   { value: 'playSound', label: 'Jouer un effet sonore', category: 'alerts' },
   { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
@@ -150,6 +157,9 @@ export const ActionEffectWindow: React.FC = () => {
   const [targetShape, setTargetShape] = useState<string>('circle');
   const [tagIncrement, setTagIncrement] = useState<number>(1);
   const [spreadRadius, setSpreadRadius] = useState<number>(200);
+  const [seenAsRoleId, setSeenAsRoleId] = useState<string | null>(null);
+  const [targetTab, setTargetTab] = useState<string>('game');
+  const [vibrationDuration, setVibrationDuration] = useState<number>(200);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -195,6 +205,9 @@ export const ActionEffectWindow: React.FC = () => {
         setTargetShape(effect.targetShape || 'circle');
         setTagIncrement(effect.tagIncrement || 1);
         setSpreadRadius(effect.spreadRadius || 200);
+        setSeenAsRoleId(effect.seenAsRoleId || null);
+        setTargetTab(effect.targetTab || 'game');
+        setVibrationDuration(effect.vibrationDuration || 200);
       }
     } else {
       setType('deleteAllTags');
@@ -232,6 +245,9 @@ export const ActionEffectWindow: React.FC = () => {
       setTargetShape('circle');
       setTagIncrement(1);
       setSpreadRadius(200);
+      setSeenAsRoleId(null);
+      setTargetTab('game');
+      setVibrationDuration(200);
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -299,13 +315,16 @@ export const ActionEffectWindow: React.FC = () => {
       pastilleIcon: type === 'togglePlayerPastille' ? pastilleIcon : undefined,
       pastilleColor: type === 'togglePlayerPastille' ? pastilleColor : undefined,
       pastilleMode: type === 'togglePlayerPastille' ? pastilleMode : undefined,
-      swapTargetMode: (type === 'swapPlayerRole' || type === 'swapPlayerTags') ? swapTargetMode : undefined,
+      swapTargetMode: (type === 'swapPlayerRole' || type === 'swapPlayerTags' || type === 'joinTargetTeam' || type === 'stealRoleAndKill') ? swapTargetMode : undefined,
       targetX: (type === 'movePlayerToGraveyard' || type === 'gatherPlayers') ? targetX : undefined,
       targetY: (type === 'movePlayerToGraveyard' || type === 'gatherPlayers') ? targetY : undefined,
       gatherRadius: type === 'gatherPlayers' ? gatherRadius : undefined,
       targetShape: type === 'changePlayerShape' ? (targetShape as any) : undefined,
       tagIncrement: type === 'incrementTagValue' ? tagIncrement : undefined,
-      spreadRadius: type === 'spreadTag' ? spreadRadius : undefined
+      spreadRadius: type === 'spreadTag' ? spreadRadius : undefined,
+      seenAsRoleId: type === 'setFakeRole' ? seenAsRoleId : undefined,
+      targetTab: type === 'forceSmartphoneTab' ? targetTab : undefined,
+      vibrationDuration: type === 'vibrateSmartphone' ? vibrationDuration : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -509,6 +528,45 @@ export const ActionEffectWindow: React.FC = () => {
             </div>
           )}
 
+          {type === 'forceSmartphoneTab' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-target-tab-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Onglet cible (Smartphone)</label>
+              <select
+                id="effect-target-tab-select"
+                value={targetTab}
+                onChange={(e) => setTargetTab(e.target.value)}
+                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+              >
+                <option value="game">Onglet : Jeu</option>
+                <option value="room">Onglet : Salle</option>
+                <option value="players">Onglet : Joueurs</option>
+                <option value="wiki">Onglet : Wiki</option>
+                <option value="logs">Onglet : Journal</option>
+              </select>
+              <p className="text-[10px] text-zinc-500 italic px-1 mt-1">L'interface du joueur basculera automatiquement sur cet onglet.</p>
+            </div>
+          )}
+
+          {type === 'vibrateSmartphone' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-vibration-duration" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Durée de la vibration (ms)</label>
+              <div className="flex items-center gap-3">
+                <input
+                  id="effect-vibration-duration"
+                  type="number"
+                  min="50"
+                  max="5000"
+                  step="50"
+                  value={vibrationDuration}
+                  onChange={(e) => setVibrationDuration(parseInt(e.target.value) || 200)}
+                  className="flex-1 bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                />
+                <span className="text-[10px] text-zinc-500 font-medium">ms</span>
+              </div>
+              <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Le smartphone de $Joueur vibrera pendant cette durée.</p>
+            </div>
+          )}
+
           {type === 'triggerAction' && (
             <div className="flex flex-col gap-1.5 p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg animate-in slide-in-from-top-2">
               <label htmlFor="effect-trigger-action" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Action à exécuter</label>
@@ -577,6 +635,24 @@ export const ActionEffectWindow: React.FC = () => {
                   <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Tous les joueurs présents dans ce rayon autour de la cible recevront le Tag.</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {type === 'setFakeRole' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-fake-role-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rôle factice à assigner à $Joueur</label>
+              <select
+                id="effect-fake-role-select"
+                value={seenAsRoleId || ''}
+                onChange={(e) => setSeenAsRoleId(e.target.value || null)}
+                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+              >
+                <option value="">(Aucun / Réinitialiser)</option>
+                {roles.map(r => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+              </select>
+              <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Ce rôle sera celui détecté par les actions de vérification (ex: inspection).</p>
             </div>
           )}
 
@@ -701,7 +777,7 @@ export const ActionEffectWindow: React.FC = () => {
             </div>
           )}
 
-          {(type === 'swapPlayerRole' || type === 'swapPlayerTags') && (
+          {(type === 'swapPlayerRole' || type === 'swapPlayerTags' || type === 'joinTargetTeam' || type === 'stealRoleAndKill') && (
             <div className="flex flex-col gap-4 animate-in slide-in-from-top-2 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg">
               <div className="flex flex-col gap-1.5">
                 <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-fuchsia-400">Comment définir la cible ($Cible) ?</label>

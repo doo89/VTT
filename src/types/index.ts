@@ -8,6 +8,7 @@ export interface Player {
   size: number;
   name: string;
   roleId: EntityId | null;
+  seenAsRoleId?: EntityId | null;
   teamId: EntityId | null;
   isDead: boolean;
   tags: TagInstance[];
@@ -32,6 +33,9 @@ export interface Player {
   isRoleRevealedInSmartphonePlayers?: boolean;
   roleRevealPopupTriggeredAt?: number;
   actionPastilles?: { id: string, icon: string, color: string }[];
+  forcedTab?: string | null;
+  vibrationTriggeredAt?: number;
+  vibrationDuration?: number;
 }
 
 export interface PlayerTemplate {
@@ -381,7 +385,14 @@ export type ActionEffectType =
   | 'changePlayerShape'
   | 'swapPlayerTags'
   | 'incrementTagValue'
-  | 'spreadTag';
+  | 'spreadTag'
+  | 'clearPlayerTeam'
+  | 'joinTargetTeam'
+  | 'shuffleTeams'
+  | 'setFakeRole'
+  | 'stealRoleAndKill'
+  | 'forceSmartphoneTab'
+  | 'vibrateSmartphone';
 
 export interface ActionEffect {
   id: string;
@@ -399,6 +410,8 @@ export interface ActionEffect {
   countdownMessage?: string;
   soundName?: string;
   handoutId?: string;
+  targetTab?: string;
+  vibrationDuration?: number;
   privateMessage?: string;
   logMessage?: string;
   backgroundImageUrl?: string;
@@ -433,7 +446,9 @@ export interface ActionCondition {
   minValue?: number;
   maxValue?: number;
   roleId?: string | null;
+  seenAsRoleId?: string | null;
   tagId?: string | null;
+  teamId?: string | null;
   pastilleIcon?: string | null;
   selectionType?: 'first' | 'last' | 'all' | 'callOrder' | 'numeric' | 'random' | null;
   selectionRoleId?: string | null;

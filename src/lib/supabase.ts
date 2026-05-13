@@ -59,6 +59,7 @@ export type SyncStatePayload = {
   displaySettings: any;
   wiki: any;
   room: any;
+  logs?: any[];
 };
 
 export type JoinRequestPayload = {

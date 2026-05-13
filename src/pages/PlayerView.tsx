@@ -11,7 +11,7 @@ export const PlayerView: React.FC = () => {
   const { roomId, playerName } = useParams<{ roomId: string, playerName: string }>();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room' | 'wiki'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room' | 'wiki' | 'logs'>('game');
   const [allRoles, setAllRoles] = useState<Role[]>([]);
   const [allTeams, setAllTeams] = useState<Team[]>([]);
   const [roomData, setRoomData] = useState<any>(null);
@@ -42,6 +42,7 @@ export const PlayerView: React.FC = () => {
     const saved = localStorage.getItem(`vtt_player_notes_${roomId}`);
     return saved ? JSON.parse(saved) : {};
   });
+  const [roomLogs, setRoomLogs] = useState<any[]>([]);
 
   // Track the actual player ID once found, so if GM renames them, they stay connected
   // Use a ref so changes don't cause the useEffect to tear down the WebSocket channel
@@ -52,6 +53,29 @@ export const PlayerView: React.FC = () => {
   const [timer, setTimer] = useState<any>({ minutes: 5, seconds: 0, isRunning: false });
   const [roleRevealPopups, setRoleRevealPopups] = useState<{ id: string, playerName: string, playerColor: string, roleName: string, roleImageUrl?: string, roleColor?: string }[]>([]);
   const processedRoleRevealsRef = useRef<Record<string, number>>({});
+  const lastForcedTabRef = useRef<string | null>(null);
+  const lastVibrationTriggerRef = useRef<number>(0);
+
+  // Handle vibration
+  useEffect(() => {
+    if (localPlayer?.vibrationTriggeredAt && localPlayer.vibrationTriggeredAt !== lastVibrationTriggerRef.current) {
+      lastVibrationTriggerRef.current = localPlayer.vibrationTriggeredAt;
+      if ('vibrate' in navigator) {
+        navigator.vibrate(localPlayer.vibrationDuration || 200);
+      }
+    }
+  }, [localPlayer?.vibrationTriggeredAt, localPlayer?.vibrationDuration]);
+
+  // Handle forced tab navigation
+  useEffect(() => {
+    if (localPlayer?.forcedTab && localPlayer.forcedTab !== lastForcedTabRef.current) {
+      const tab = localPlayer.forcedTab as any;
+      if (['game', 'players', 'room', 'wiki', 'logs'].includes(tab)) {
+        setActiveTab(tab);
+        lastForcedTabRef.current = tab;
+      }
+    }
+  }, [localPlayer?.forcedTab]);
 
   // Detect newly triggered role reveal popups
   useEffect(() => {
@@ -197,6 +221,7 @@ export const PlayerView: React.FC = () => {
         }
 
         setRoomData(data.room || null);
+        setRoomLogs(data.logs || []);
         
         // Push custom popups to the global store so that CustomPopupOverlay can render them
         useVttStore.setState({
@@ -1355,6 +1380,39 @@ export const PlayerView: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'logs' && (
+            <div className="flex-1 flex flex-col gap-4 py-2 pb-10 overflow-hidden h-full">
+              <div className="flex flex-col gap-1 px-1">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Journal de la partie</h3>
+                <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">Historique des événements</p>
+              </div>
+              <div className="flex-1 bg-zinc-900/40 rounded-3xl border border-zinc-800/60 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-3">
+                {roomLogs && roomLogs.length > 0 ? (
+                  roomLogs.slice().reverse().map((log: any) => (
+                    <div key={log.id} className="flex flex-col gap-1 animate-in fade-in slide-in-from-left-2 duration-300">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${log.type === 'system' ? 'bg-zinc-800 text-zinc-500' : 'bg-blue-500/10 text-blue-400'}`}>
+                          {log.type === 'system' ? 'Système' : 'Action'}
+                        </span>
+                        <span className="text-[8px] font-medium text-zinc-700">
+                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-sm text-zinc-300 leading-relaxed pl-1 border-l-2 border-zinc-800">
+                        {log.message}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-zinc-700 italic gap-3 opacity-30">
+                    <icons.MessageSquare size={48} strokeWidth={1} />
+                    <span className="text-xs uppercase tracking-[0.2em] font-bold">Le journal est vide</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
       )}
 
@@ -1435,6 +1493,16 @@ export const PlayerView: React.FC = () => {
             <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'wiki' ? 'opacity-100' : 'opacity-40'}`}>Wiki</span>
           </button>
           )}
+
+          <button 
+            onClick={() => setActiveTab('logs')}
+            className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'logs' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'logs' ? 'bg-blue-500/10' : 'bg-transparent'}`}>
+              <icons.MessageSquare size={22} strokeWidth={activeTab === 'logs' ? 2.5 : 2} />
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'logs' ? 'opacity-100' : 'opacity-40'}`}>Journal</span>
+          </button>
         </div>
       )}
 
