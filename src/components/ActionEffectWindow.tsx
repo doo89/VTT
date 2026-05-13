@@ -76,7 +76,9 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'playSound', label: 'Jouer un effet sonore', category: 'alerts' },
   { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
   { value: 'sendPrivateMessage', label: 'Envoyer un Message Privé ($Joueur)', category: 'alerts' },
-  { value: 'addSystemLog', label: "Ajouter un Log Système (Journal)", category: 'system' }
+  { value: 'addSystemLog', label: "Ajouter un Log Système (Journal)", category: 'system' },
+  { value: 'setRoomBackground', label: "Changer le Fond d'écran de la salle", category: 'visibility' },
+  { value: 'setRoomColor', label: "Changer l'Ambiance (Couleur) de la salle", category: 'visibility' }
 ] as ActionOption[]).sort((a, b) => a.label.localeCompare(b.label));
 
 export const ActionEffectWindow: React.FC = () => {
@@ -111,6 +113,8 @@ export const ActionEffectWindow: React.FC = () => {
   const [handoutId, setHandoutId] = useState<string>('');
   const [privateMessage, setPrivateMessage] = useState<string>('');
   const [logMessage, setLogMessage] = useState<string>('');
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>('');
+  const [roomColor, setRoomColor] = useState<string>('#6B7280');
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -138,6 +142,8 @@ export const ActionEffectWindow: React.FC = () => {
         setHandoutId(effect.handoutId || (handouts.length > 0 ? handouts[0].id : ''));
         setPrivateMessage(effect.privateMessage || '');
         setLogMessage(effect.logMessage || '');
+        setBackgroundImageUrl(effect.backgroundImageUrl || '');
+        setRoomColor(effect.roomColor || '#6B7280');
       }
     } else {
       setType('deleteAllTags');
@@ -157,6 +163,8 @@ export const ActionEffectWindow: React.FC = () => {
       setHandoutId(handouts.length > 0 ? handouts[0].id : '');
       setPrivateMessage('');
       setLogMessage('');
+      setBackgroundImageUrl('');
+      setRoomColor('#6B7280');
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -212,7 +220,9 @@ export const ActionEffectWindow: React.FC = () => {
       soundName: type === 'playSound' ? soundName : undefined,
       handoutId: type === 'showHandout' ? handoutId : undefined,
       privateMessage: type === 'sendPrivateMessage' ? privateMessage : undefined,
-      logMessage: type === 'addSystemLog' ? logMessage : undefined
+      logMessage: type === 'addSystemLog' ? logMessage : undefined,
+      backgroundImageUrl: type === 'setRoomBackground' ? backgroundImageUrl : undefined,
+      roomColor: type === 'setRoomColor' ? roomColor : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -650,6 +660,53 @@ export const ActionEffectWindow: React.FC = () => {
                 className="w-full bg-input border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500/50 resize-none shadow-inner"
               />
               <p className="text-[10px] text-muted-foreground px-1">Vous pouvez utiliser <strong>$Joueur</strong> et <strong>$Rôle</strong> pour insérer le nom et le rôle de la cible.</p>
+            </div>
+          )}
+
+          {type === 'setRoomBackground' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-bg-url" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Image de Fond (URL)</label>
+              <div className="flex gap-2">
+                <input
+                  id="effect-bg-url"
+                  type="text"
+                  value={backgroundImageUrl}
+                  onChange={(e) => setBackgroundImageUrl(e.target.value)}
+                  placeholder="URL de l'image..."
+                  className="flex-1 bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                />
+                <select
+                  className="w-1/3 bg-input border border-border rounded-lg px-2 py-1.5 text-[10px] outline-none focus:border-indigo-500/50"
+                  onChange={(e) => setBackgroundImageUrl(e.target.value)}
+                  value={handouts.find(h => h.imageUrl === backgroundImageUrl)?.imageUrl || ''}
+                >
+                  <option value="">Document...</option>
+                  {handouts.filter(h => h.type === 'image').map(h => (
+                    <option key={h.id} value={h.imageUrl}>{h.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {type === 'setRoomColor' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-room-color" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Couleur d'Ambiance</label>
+              <div className="flex items-center gap-3">
+                <input
+                  id="effect-room-color"
+                  type="color"
+                  value={roomColor}
+                  onChange={(e) => setRoomColor(e.target.value)}
+                  className="w-10 h-10 bg-transparent border-none rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={roomColor}
+                  onChange={(e) => setRoomColor(e.target.value)}
+                  className="flex-1 bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                />
+              </div>
             </div>
           )}
         </div>

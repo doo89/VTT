@@ -1190,6 +1190,7 @@ export const useVttStore = create<VttStore>()(
               let nextDisplaySettings = { ...state.displaySettings };
               let nextCycleMode = state.cycleMode;
               let nextHandouts = [...state.handouts];
+              let nextRoom = { ...state.room };
               let effectUpdates: any = {};
               
               const effectsToRun = action.effects || [];
@@ -1241,6 +1242,12 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'hideRoleColor') nextDisplaySettings.showRoleColor = false;
                 if (effect.type === 'showTimerOnSmartphone') nextDisplaySettings.showTimerOnSmartphone = true;
                 if (effect.type === 'hideTimerOnSmartphone') nextDisplaySettings.showTimerOnSmartphone = false;
+                if (effect.type === 'setRoomBackground') {
+                  nextRoom = { ...nextRoom, backgroundImage: effect.backgroundImageUrl || null };
+                }
+                if (effect.type === 'setRoomColor') {
+                  nextRoom = { ...nextRoom, backgroundColor: effect.roomColor || nextRoom.backgroundColor };
+                }
                 if (effect.type === 'triggerAction' && effect.targetActionId) {
                   if (depth < 5) {
                     setTimeout(() => {
@@ -1627,7 +1634,8 @@ export const useVttStore = create<VttStore>()(
                 customVariables: nextCustomVars,
                 displaySettings: nextDisplaySettings,
                 cycleMode: nextCycleMode,
-                handouts: nextHandouts
+                handouts: nextHandouts,
+                room: nextRoom
               };
               if (resetValue !== null) {
                 newState.isNight = effectUpdates.isNight !== undefined ? effectUpdates.isNight : false;

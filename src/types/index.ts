@@ -346,7 +346,9 @@ export type ActionEffectType =
   | 'playSound'
   | 'showHandout'
   | 'sendPrivateMessage'
-  | 'addSystemLog';
+  | 'addSystemLog'
+  | 'setRoomBackground'
+  | 'setRoomColor';
 
 export interface ActionEffect {
   id: string;
@@ -366,6 +368,8 @@ export interface ActionEffect {
   handoutId?: string;
   privateMessage?: string;
   logMessage?: string;
+  backgroundImageUrl?: string;
+  roomColor?: string;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';
