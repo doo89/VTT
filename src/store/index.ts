@@ -1248,6 +1248,17 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'setRoomColor') {
                   nextRoom = { ...nextRoom, backgroundColor: effect.roomColor || nextRoom.backgroundColor };
                 }
+                if (effect.type === 'pingPlayer') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { 
+                      ...p, 
+                      pingTimestamp: Date.now(), 
+                      pingColor: effect.pingColor || p.color 
+                    } : p);
+                  }
+                }
                 if (effect.type === 'triggerAction' && effect.targetActionId) {
                   if (depth < 5) {
                     setTimeout(() => {

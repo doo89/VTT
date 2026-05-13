@@ -25,6 +25,8 @@ export interface Player {
   creationOrder?: number;
   isSleeping?: boolean;
   shape?: PlayerShape;
+  pingTimestamp?: number;
+  pingColor?: string;
 }
 
 export interface PlayerTemplate {
@@ -348,7 +350,8 @@ export type ActionEffectType =
   | 'sendPrivateMessage'
   | 'addSystemLog'
   | 'setRoomBackground'
-  | 'setRoomColor';
+  | 'setRoomColor'
+  | 'pingPlayer';
 
 export interface ActionEffect {
   id: string;
@@ -370,6 +373,8 @@ export interface ActionEffect {
   logMessage?: string;
   backgroundImageUrl?: string;
   roomColor?: string;
+  pingColor?: string;
+  pingDuration?: number;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';

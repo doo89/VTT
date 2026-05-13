@@ -78,7 +78,8 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'sendPrivateMessage', label: 'Envoyer un Message Privé ($Joueur)', category: 'alerts' },
   { value: 'addSystemLog', label: "Ajouter un Log Système (Journal)", category: 'system' },
   { value: 'setRoomBackground', label: "Changer le Fond d'écran de la salle", category: 'visibility' },
-  { value: 'setRoomColor', label: "Changer l'Ambiance (Couleur) de la salle", category: 'visibility' }
+  { value: 'setRoomColor', label: "Changer l'Ambiance (Couleur) de la salle", category: 'visibility' },
+  { value: 'pingPlayer', label: "Mettre en évidence (Ping / Halo) sur $Joueur", category: 'visibility' }
 ] as ActionOption[]).sort((a, b) => a.label.localeCompare(b.label));
 
 export const ActionEffectWindow: React.FC = () => {
@@ -115,6 +116,7 @@ export const ActionEffectWindow: React.FC = () => {
   const [logMessage, setLogMessage] = useState<string>('');
   const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>('');
   const [roomColor, setRoomColor] = useState<string>('#6B7280');
+  const [pingColor, setPingColor] = useState<string>('#3b82f6');
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -144,6 +146,7 @@ export const ActionEffectWindow: React.FC = () => {
         setLogMessage(effect.logMessage || '');
         setBackgroundImageUrl(effect.backgroundImageUrl || '');
         setRoomColor(effect.roomColor || '#6B7280');
+        setPingColor(effect.pingColor || '#3b82f6');
       }
     } else {
       setType('deleteAllTags');
@@ -165,6 +168,7 @@ export const ActionEffectWindow: React.FC = () => {
       setLogMessage('');
       setBackgroundImageUrl('');
       setRoomColor('#6B7280');
+      setPingColor('#3b82f6');
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -222,7 +226,8 @@ export const ActionEffectWindow: React.FC = () => {
       privateMessage: type === 'sendPrivateMessage' ? privateMessage : undefined,
       logMessage: type === 'addSystemLog' ? logMessage : undefined,
       backgroundImageUrl: type === 'setRoomBackground' ? backgroundImageUrl : undefined,
-      roomColor: type === 'setRoomColor' ? roomColor : undefined
+      roomColor: type === 'setRoomColor' ? roomColor : undefined,
+      pingColor: type === 'pingPlayer' ? pingColor : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -712,6 +717,32 @@ export const ActionEffectWindow: React.FC = () => {
                   className="flex-1 bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
                 />
               </div>
+            </div>
+          )}
+
+          {type === 'pingPlayer' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-indigo-500/5 border border-indigo-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-ping-color" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Couleur du Ping / Halo</label>
+              <div className="flex items-center gap-3">
+                <input
+                  id="effect-ping-color"
+                  type="color"
+                  value={pingColor}
+                  onChange={(e) => setPingColor(e.target.value)}
+                  title="Choisir la couleur du ping"
+                  className="w-10 h-10 bg-transparent border-none rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={pingColor}
+                  onChange={(e) => setPingColor(e.target.value)}
+                  placeholder="#3b82f6"
+                  title="Code couleur hexadécimal du ping"
+                  aria-label="Code couleur hexadécimal du ping"
+                  className="flex-1 bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground px-1 mt-1">Crée un effet pulsant autour du pion pendant 5 secondes.</p>
             </div>
           )}
         </div>

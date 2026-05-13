@@ -65,6 +65,16 @@ export const Canvas: React.FC = () => {
     setContainerSize({ width: containerRef.current.clientWidth, height: containerRef.current.clientHeight });
     return () => observer.disconnect();
   }, []);
+
+  // Periodic refresh for transient effects (like pings)
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const hasActivePing = players.some(p => p.pingTimestamp && (Date.now() - p.pingTimestamp < 5000));
+    if (hasActivePing) {
+      const interval = setInterval(() => setTick(t => t + 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [players]);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, canvasX: number, canvasY: number, type: 'player' | 'marker' | 'canvas' | 'group', entityId: string | null } | null>(null);
   const [circlePreview, setCirclePreview] = useState<{
     centerX: number;
@@ -1208,6 +1218,29 @@ export const Canvas: React.FC = () => {
                 onDoubleClick={() => useVttStore.getState().setEditingEntity({ type: 'player', id: player.id })}
               >
                 <div className="relative flex flex-col items-center justify-center">
+                  {/* Ping / Halo Effect */}
+                  {player.pingTimestamp && (Date.now() - player.pingTimestamp < 5000) && (
+                    <>
+                      <div 
+                        key={`ping-${player.pingTimestamp}`}
+                        className="ping-effect"
+                        style={{
+                          width: player.size * 2,
+                          height: player.size * 2,
+                          borderColor: player.pingColor || player.color,
+                        }}
+                      />
+                      <div 
+                        className="halo-effect"
+                        style={{
+                          width: player.size * 2 + 10,
+                          height: player.size * 2 + 10,
+                          borderColor: player.pingColor || player.color,
+                          borderWidth: '6px'
+                        }}
+                      />
+                    </>
+                  )}
                   {/* Selection Ring */}
                   {isSelected && (
                     <div 
