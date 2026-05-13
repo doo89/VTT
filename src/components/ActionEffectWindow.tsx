@@ -676,6 +676,8 @@ export const ActionEffectWindow: React.FC = () => {
                   className="flex-1 bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
                 />
                 <select
+                  aria-label="Choisir un document"
+                  title="Choisir un document"
                   className="w-1/3 bg-input border border-border rounded-lg px-2 py-1.5 text-[10px] outline-none focus:border-indigo-500/50"
                   onChange={(e) => setBackgroundImageUrl(e.target.value)}
                   value={handouts.find(h => h.imageUrl === backgroundImageUrl)?.imageUrl || ''}
