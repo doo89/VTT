@@ -359,7 +359,10 @@ export type ActionEffectType =
   | 'pingPlayer'
   | 'revealPlayerRole'
   | 'hidePlayerRole'
-  | 'togglePlayerPastille';
+  | 'togglePlayerPastille'
+  | 'killPlayer'
+  | 'resurrectPlayer'
+  | 'clearPlayer';
 
 export interface ActionEffect {
   id: string;

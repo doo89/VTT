@@ -1312,6 +1312,29 @@ export const useVttStore = create<VttStore>()(
                     });
                   }
                 }
+                if (effect.type === 'killPlayer' || effect.type === 'resurrectPlayer') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    const isDead = effect.type === 'killPlayer';
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, isDead } : p);
+                  }
+                }
+                if (effect.type === 'clearPlayer') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? {
+                      ...p,
+                      tags: [],
+                      selectionPastilles: [],
+                      actionPastilles: [],
+                      isRoleRevealedOnBoard: false,
+                      isRoleRevealedInSmartphoneRoom: false,
+                      isRoleRevealedInSmartphonePlayers: false
+                    } : p);
+                  }
+                }
                 if (effect.type === 'triggerAction' && effect.targetActionId) {
                   if (depth < 5) {
                     setTimeout(() => {
