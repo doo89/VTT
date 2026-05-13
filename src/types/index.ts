@@ -38,6 +38,7 @@ export interface Player {
   vibrationDuration?: number;
   isSmartphoneLocked?: boolean;
   activePoll?: { id: string, question: string, options: string[] } | null;
+  isBlinded?: boolean;
 }
 
 export interface PlayerTemplate {
@@ -396,7 +397,8 @@ export type ActionEffectType =
   | 'forceSmartphoneTab'
   | 'vibrateSmartphone'
   | 'lockSmartphone'
-  | 'sendPollToSmartphone';
+  | 'sendPollToSmartphone'
+  | 'blindPlayer';
 
 export interface ActionEffect {
   id: string;
@@ -441,6 +443,7 @@ export interface ActionEffect {
   lockMode?: 'lock' | 'unlock' | 'toggle';
   pollQuestion?: string;
   pollOptions?: string[];
+  blindMode?: 'blind' | 'unblind' | 'toggle';
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';

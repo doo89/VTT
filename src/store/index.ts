@@ -1761,6 +1761,22 @@ export const useVttStore = create<VttStore>()(
                     } : p);
                   }
                 }
+                if (effect.type === 'blindPlayer') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => {
+                      if (ids.includes(p.id)) {
+                        let isBlinded = p.isBlinded || false;
+                        if (effect.blindMode === 'blind') isBlinded = true;
+                        else if (effect.blindMode === 'unblind') isBlinded = false;
+                        else if (effect.blindMode === 'toggle') isBlinded = !isBlinded;
+                        return { ...p, isBlinded };
+                      }
+                      return p;
+                    });
+                  }
+                }
                 if (effect.type === 'triggerAction' && effect.targetActionId) {
                   if (depth < 5) {
                     setTimeout(() => {

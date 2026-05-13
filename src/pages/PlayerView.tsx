@@ -1044,11 +1044,24 @@ export const PlayerView: React.FC = () => {
           )}
 
           {(activeTab === 'room' && showRoom) && (
-            <div className="flex-1 flex flex-col gap-4 py-2 overflow-hidden h-full">
+            <div className="flex-1 flex flex-col gap-4 py-2 overflow-hidden h-full relative">
               <div className="flex flex-col gap-1">
                 <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Miniature de la salle</h3>
                 <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">Vue d'ensemble en temps réel</p>
               </div>
+
+              {localPlayer?.isBlinded && (
+                <div className="absolute inset-x-0 bottom-0 top-14 bg-zinc-950/95 backdrop-blur-md z-50 rounded-2xl border border-zinc-800 flex flex-col items-center justify-center p-8 animate-in fade-in duration-500">
+                  <div className="w-20 h-20 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 shadow-2xl">
+                    <icons.EyeOff size={32} className="text-zinc-600 animate-pulse" />
+                  </div>
+                  <h3 className="text-lg font-black uppercase tracking-tighter text-zinc-200 mb-2 italic">Cécité</h3>
+                  <p className="text-[10px] text-zinc-500 max-w-[180px] leading-relaxed uppercase font-bold tracking-widest text-center opacity-60">
+                    Vous ne distinguez plus rien. La salle est plongée dans l'obscurité.
+                  </p>
+                </div>
+              )}
+
               {roomData ? (
                 <div className="flex-1 bg-zinc-900/50 rounded-2xl border border-zinc-800 relative overflow-hidden flex items-start justify-center p-2 shadow-inner">
                   <div 

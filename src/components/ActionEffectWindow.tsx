@@ -97,6 +97,7 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'vibrateSmartphone', label: "Faire vibrer le Smartphone ($Joueur)", category: 'remote' },
   { value: 'lockSmartphone', label: "Verrouiller le Smartphone ($Joueur)", category: 'remote' },
   { value: 'sendPollToSmartphone', label: "Envoyer un Choix / Sondage ($Joueur)", category: 'remote' },
+  { value: 'blindPlayer', label: "Masquer la Salle / Aveugler ($Joueur)", category: 'remote' },
   { value: 'wait', label: 'Attendre x secondes', category: 'system' },
   { value: 'playSound', label: 'Jouer un effet sonore', category: 'alerts' },
   { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
@@ -165,6 +166,7 @@ export const ActionEffectWindow: React.FC = () => {
   const [lockMode, setLockMode] = useState<'lock' | 'unlock' | 'toggle'>('lock');
   const [pollQuestion, setPollQuestion] = useState<string>('');
   const [pollOptions, setPollOptions] = useState<string[]>(['Oui', 'Non']);
+  const [blindMode, setBlindMode] = useState<'blind' | 'unblind' | 'toggle'>('blind');
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -216,6 +218,7 @@ export const ActionEffectWindow: React.FC = () => {
         setLockMode(effect.lockMode || 'lock');
         setPollQuestion(effect.pollQuestion || '');
         setPollOptions(effect.pollOptions || ['Oui', 'Non']);
+        setBlindMode(effect.blindMode || 'blind');
       }
     } else {
       setType('deleteAllTags');
@@ -259,6 +262,7 @@ export const ActionEffectWindow: React.FC = () => {
       setLockMode('lock');
       setPollQuestion('');
       setPollOptions(['Oui', 'Non']);
+      setBlindMode('blind');
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -338,7 +342,8 @@ export const ActionEffectWindow: React.FC = () => {
       vibrationDuration: type === 'vibrateSmartphone' ? vibrationDuration : undefined,
       lockMode: type === 'lockSmartphone' ? lockMode : undefined,
       pollQuestion: type === 'sendPollToSmartphone' ? pollQuestion : undefined,
-      pollOptions: type === 'sendPollToSmartphone' ? pollOptions : undefined
+      pollOptions: type === 'sendPollToSmartphone' ? pollOptions : undefined,
+      blindMode: type === 'blindPlayer' ? blindMode : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -649,6 +654,23 @@ export const ActionEffectWindow: React.FC = () => {
                 </div>
               </div>
               <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Le joueur recevra ce choix sur son smartphone et pourra y répondre une seule fois.</p>
+            </div>
+          )}
+
+          {type === 'blindPlayer' && (
+            <div className="flex flex-col gap-1.5 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <label htmlFor="effect-blind-mode" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Action de cécité</label>
+              <select
+                id="effect-blind-mode"
+                value={blindMode}
+                onChange={(e) => setBlindMode(e.target.value as any)}
+                className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+              >
+                <option value="blind">Aveugler (Masquer la salle)</option>
+                <option value="unblind">Rendre la vue (Afficher la salle)</option>
+                <option value="toggle">Basculer l'état</option>
+              </select>
+              <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Empêche $Joueur de voir la miniature de la salle sur son smartphone.</p>
             </div>
           )}
 
