@@ -102,6 +102,7 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'wait', label: 'Attendre x secondes', category: 'system' },
   { value: 'stopExecution', label: "Arrêter l'exécution de la séquence", category: 'system' },
   { value: 'toggleActionEnabled', label: "Activer / Désactiver une autre Action", category: 'system' },
+  { value: 'resetBoard', label: "Nettoyage complet du Plateau (Reset)", category: 'system' },
   { value: 'playSound', label: 'Jouer un effet sonore', category: 'alerts' },
   { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
   { value: 'sendPrivateMessage', label: 'Envoyer un Message Privé ($Joueur)', category: 'alerts' },

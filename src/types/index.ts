@@ -402,7 +402,8 @@ export type ActionEffectType =
   | 'blindPlayer'
   | 'rollDice'
   | 'stopExecution'
-  | 'toggleActionEnabled';
+  | 'toggleActionEnabled'
+  | 'resetBoard';
 
 export interface ActionEffect {
   id: string;

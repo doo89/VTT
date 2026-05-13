@@ -1223,6 +1223,16 @@ export const useVttStore = create<VttStore>()(
                   remaining = 0; // Prevent further recurring executions
                   break;
                 }
+                if (effect.type === 'resetBoard') {
+                  nextMarkers = [];
+                  nextPlayers = nextPlayers.map(p => ({ 
+                    ...p, 
+                    isDead: false, 
+                    isAsleep: false, 
+                    tags: [], 
+                    selectionPastilles: [] 
+                  }));
+                }
                 if (effect.type === 'deleteAllTags') nextMarkers = [];
                 if (effect.type === 'nextPhase') phaseShift++;
                 if (effect.type === 'previousPhase') phaseShift--;
