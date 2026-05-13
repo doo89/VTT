@@ -39,6 +39,7 @@ export interface Player {
   isSmartphoneLocked?: boolean;
   activePoll?: { id: string, question: string, options: string[] } | null;
   isBlinded?: boolean;
+  lastDiceResult?: { id: string, result: number, formula: string, timestamp: number } | null;
 }
 
 export interface PlayerTemplate {
@@ -398,7 +399,8 @@ export type ActionEffectType =
   | 'vibrateSmartphone'
   | 'lockSmartphone'
   | 'sendPollToSmartphone'
-  | 'blindPlayer';
+  | 'blindPlayer'
+  | 'rollDice';
 
 export interface ActionEffect {
   id: string;
@@ -444,6 +446,8 @@ export interface ActionEffect {
   pollQuestion?: string;
   pollOptions?: string[];
   blindMode?: 'blind' | 'unblind' | 'toggle';
+  diceSides?: number;
+  diceCount?: number;
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck';

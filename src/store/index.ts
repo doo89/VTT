@@ -1777,6 +1777,27 @@ export const useVttStore = create<VttStore>()(
                     });
                   }
                 }
+                if (effect.type === 'rollDice') {
+                  const player = actionContext['$Joueur'];
+                  if (player) {
+                    const count = effect.diceCount || 1;
+                    const sides = effect.diceSides || 20;
+                    let total = 0;
+                    for (let i = 0; i < count; i++) {
+                      total += Math.floor(Math.random() * sides) + 1;
+                    }
+                    const formula = `${count}d${sides}`;
+                    const diceId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+                    
+                    state.addLog(`[Dés] ${player.name} a lancé ${formula} et a obtenu : ${total}`, 'action');
+                    
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { 
+                      ...p, 
+                      lastDiceResult: { id: diceId, result: total, formula, timestamp: Date.now() } 
+                    } : p);
+                  }
+                }
                 if (effect.type === 'triggerAction' && effect.targetActionId) {
                   if (depth < 5) {
                     setTimeout(() => {

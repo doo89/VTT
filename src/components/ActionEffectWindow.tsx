@@ -98,6 +98,7 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'lockSmartphone', label: "Verrouiller le Smartphone ($Joueur)", category: 'remote' },
   { value: 'sendPollToSmartphone', label: "Envoyer un Choix / Sondage ($Joueur)", category: 'remote' },
   { value: 'blindPlayer', label: "Masquer la Salle / Aveugler ($Joueur)", category: 'remote' },
+  { value: 'rollDice', label: "Lancer un Dé ($Joueur)", category: 'remote' },
   { value: 'wait', label: 'Attendre x secondes', category: 'system' },
   { value: 'playSound', label: 'Jouer un effet sonore', category: 'alerts' },
   { value: 'showHandout', label: 'Afficher un Document / Handout', category: 'alerts' },
@@ -167,6 +168,8 @@ export const ActionEffectWindow: React.FC = () => {
   const [pollQuestion, setPollQuestion] = useState<string>('');
   const [pollOptions, setPollOptions] = useState<string[]>(['Oui', 'Non']);
   const [blindMode, setBlindMode] = useState<'blind' | 'unblind' | 'toggle'>('blind');
+  const [diceSides, setDiceSides] = useState<number>(20);
+  const [diceCount, setDiceCount] = useState<number>(1);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -219,6 +222,8 @@ export const ActionEffectWindow: React.FC = () => {
         setPollQuestion(effect.pollQuestion || '');
         setPollOptions(effect.pollOptions || ['Oui', 'Non']);
         setBlindMode(effect.blindMode || 'blind');
+        setDiceSides(effect.diceSides || 20);
+        setDiceCount(effect.diceCount || 1);
       }
     } else {
       setType('deleteAllTags');
@@ -263,6 +268,8 @@ export const ActionEffectWindow: React.FC = () => {
       setPollQuestion('');
       setPollOptions(['Oui', 'Non']);
       setBlindMode('blind');
+      setDiceSides(20);
+      setDiceCount(1);
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -343,7 +350,9 @@ export const ActionEffectWindow: React.FC = () => {
       lockMode: type === 'lockSmartphone' ? lockMode : undefined,
       pollQuestion: type === 'sendPollToSmartphone' ? pollQuestion : undefined,
       pollOptions: type === 'sendPollToSmartphone' ? pollOptions : undefined,
-      blindMode: type === 'blindPlayer' ? blindMode : undefined
+      blindMode: type === 'blindPlayer' ? blindMode : undefined,
+      diceSides: type === 'rollDice' ? diceSides : undefined,
+      diceCount: type === 'rollDice' ? diceCount : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -671,6 +680,38 @@ export const ActionEffectWindow: React.FC = () => {
                 <option value="toggle">Basculer l'état</option>
               </select>
               <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Empêche $Joueur de voir la miniature de la salle sur son smartphone.</p>
+            </div>
+          )}
+
+          {type === 'rollDice' && (
+            <div className="flex flex-col gap-3 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="effect-dice-count" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Nombre de dés</label>
+                  <input
+                    id="effect-dice-count"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={diceCount}
+                    onChange={(e) => setDiceCount(parseInt(e.target.value) || 1)}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="effect-dice-sides" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Faces (ex: 6, 20)</label>
+                  <input
+                    id="effect-dice-sides"
+                    type="number"
+                    min="2"
+                    max="1000"
+                    value={diceSides}
+                    onChange={(e) => setDiceSides(parseInt(e.target.value) || 20)}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Génère un lancer de {diceCount}d{diceSides} pour $Joueur.</p>
             </div>
           )}
 

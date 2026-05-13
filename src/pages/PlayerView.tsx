@@ -55,6 +55,26 @@ export const PlayerView: React.FC = () => {
   const processedRoleRevealsRef = useRef<Record<string, number>>({});
   const lastForcedTabRef = useRef<string | null>(null);
   const lastVibrationTriggerRef = useRef<number>(0);
+  const [dicePopup, setDicePopup] = useState<{ id: string, result: number, formula: string } | null>(null);
+  const lastDiceIdRef = useRef<string>('');
+
+  // Handle Dice Results
+  useEffect(() => {
+    if (localPlayer?.lastDiceResult && localPlayer.lastDiceResult.id !== lastDiceIdRef.current) {
+      lastDiceIdRef.current = localPlayer.lastDiceResult.id;
+      setDicePopup({
+        id: localPlayer.lastDiceResult.id,
+        result: localPlayer.lastDiceResult.result,
+        formula: localPlayer.lastDiceResult.formula
+      });
+      
+      // Auto-hide after 5 seconds
+      const timer = setTimeout(() => {
+        setDicePopup(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [localPlayer?.lastDiceResult]);
 
   // Handle vibration
   useEffect(() => {
@@ -1600,6 +1620,36 @@ export const PlayerView: React.FC = () => {
               <div className="px-5 py-3 bg-zinc-950/50 border-t border-zinc-800 flex items-center justify-center">
                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest opacity-40 italic">Une seule réponse possible</p>
               </div>
+           </div>
+        </div>
+      )}
+
+      {/* Dice Result Popup */}
+      {dicePopup && (
+        <div className="absolute inset-0 z-[250] flex items-center justify-center p-6 bg-zinc-950/40 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-none">
+           <div className="relative w-full max-w-[280px] bg-zinc-900 border-2 border-amber-500/50 rounded-[40px] shadow-[0_0_50px_rgba(245,158,11,0.3)] flex flex-col items-center p-8 animate-in zoom-in-75 slide-in-from-bottom-10 duration-500 pointer-events-auto">
+              <div className="absolute -top-6 bg-amber-500 text-zinc-950 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+                 Lancer de {dicePopup.formula}
+              </div>
+              
+              <div className="relative mb-4">
+                 <div className="absolute inset-0 bg-amber-500/20 blur-2xl rounded-full animate-pulse" />
+                 <icons.Dices size={64} className="text-amber-500 relative animate-bounce" style={{ animationDuration: '2s' }} />
+              </div>
+
+              <div className="flex flex-col items-center">
+                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-1">Résultat</span>
+                 <span className="text-7xl font-black text-white tabular-nums drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                    {dicePopup.result}
+                 </span>
+              </div>
+
+              <button 
+                onClick={() => setDicePopup(null)}
+                className="mt-8 w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-colors border border-zinc-700/50"
+              >
+                Fermer
+              </button>
            </div>
         </div>
       )}
