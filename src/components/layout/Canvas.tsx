@@ -658,6 +658,7 @@ export const Canvas: React.FC = () => {
       {/* Banner */}
       <div className="h-12 bg-card border-b border-border flex items-center shrink-0 z-40 relative shadow-sm px-4 justify-between">
         <div className="flex items-center gap-2">
+          <img src="/vite.svg" alt="Vite Logo" className="w-6 h-6 mr-1" />
           <button
             onClick={() => setShowTemplateModal(true)}
             className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/20 rounded-md text-xs font-bold transition-all shadow-sm"
