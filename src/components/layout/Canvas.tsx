@@ -44,7 +44,8 @@ export const Canvas: React.FC = () => {
     roles, teams, tags, tagCategories, grid, setGrid, room, displaySettings,
     selectedEntityIds, setSelectedEntityIds, clearSelection,
     interactionMode, setInteractionMode,
-    magneticPoints, showMagneticPoints, updateMagneticPoint, deleteMagneticPoint
+    magneticPoints, showMagneticPoints, updateMagneticPoint, deleteMagneticPoint,
+    coordinatePicker, setCoordinatePicker
   } = useVttStore();
 
   const { undo, redo, pastStates, futureStates } = useStore(useVttStore.temporal);
@@ -487,6 +488,15 @@ export const Canvas: React.FC = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (coordinatePicker?.isActive) {
+      if (e.button === 0) {
+        const coords = getCanvasCoordinates(e);
+        coordinatePicker.onPick?.(coords.x, coords.y);
+      }
+      setCoordinatePicker(null);
+      return;
+    }
+
     if (circlePreview) {
       if (e.button === 0) {
         // Validate
@@ -998,6 +1008,7 @@ export const Canvas: React.FC = () => {
         <div
           ref={canvasRef}
           className="origin-center infinite-canvas"
+          style={{ cursor: coordinatePicker?.isActive ? 'crosshair' : undefined }}
         >
           {/* Room Area */}
           <div

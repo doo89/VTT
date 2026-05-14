@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
-import { X, Check } from 'lucide-react';
+import { X, Check, Pipette } from 'lucide-react';
 import * as icons from 'lucide-react';
 import type { ActionEffectType } from '../types';
 
@@ -128,7 +128,9 @@ export const ActionEffectWindow: React.FC = () => {
     tags,
     teams,
     soundboard,
-    handouts
+    handouts,
+    coordinatePicker, 
+    setCoordinatePicker
   } = useVttStore();
   
   const [type, setType] = useState<ActionEffectType>('deleteAllTags');
@@ -405,7 +407,7 @@ export const ActionEffectWindow: React.FC = () => {
 
   return (
     <div 
-      className={`fixed z-[3100] w-96 bg-card border-2 border-indigo-500/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''}`}
+      className={`fixed z-[3100] w-96 bg-card border-2 border-indigo-500/30 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${isDragging ? 'opacity-90' : ''} ${coordinatePicker?.isActive ? 'opacity-0 pointer-events-none' : ''}`}
       style={{
         left: actionEffectCreatorState.x,
         top: actionEffectCreatorState.y,
@@ -1225,6 +1227,15 @@ export const ActionEffectWindow: React.FC = () => {
                     className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-red-500/50"
                   />
                 </div>
+                <div className="flex flex-col gap-1.5 pt-4">
+                   <button
+                     title="Choisir sur la carte"
+                     onClick={() => setCoordinatePicker({ isActive: true, onPick: (x: number, y: number) => { setTargetX(Math.round(x)); setTargetY(Math.round(y)); } })}
+                     className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg border border-red-500/30 transition-all"
+                   >
+                     <Pipette size={16} />
+                   </button>
+                </div>
               </div>
               <p className="text-[10px] text-zinc-500 italic px-1">Le centre du plateau est en X: 0, Y: 0.</p>
             </div>
@@ -1268,6 +1279,15 @@ export const ActionEffectWindow: React.FC = () => {
                     onChange={(e) => setTargetY(Number(e.target.value))}
                     className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-red-500/50"
                   />
+                </div>
+                <div className="flex flex-col gap-1.5 pt-4">
+                   <button
+                     title="Choisir sur la carte"
+                     onClick={() => setCoordinatePicker({ isActive: true, onPick: (x: number, y: number) => { setTargetX(Math.round(x)); setTargetY(Math.round(y)); } })}
+                     className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg border border-red-500/30 transition-all"
+                   >
+                     <Pipette size={16} />
+                   </button>
                 </div>
               </div>
               <p className="text-[10px] text-zinc-500 italic px-1">Les joueurs vivants formeront un cercle autour de ce point (0, 0 = centre).</p>

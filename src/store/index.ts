@@ -167,9 +167,11 @@ interface VttStore extends GameState {
   setIsMagneticEnabled: (enabled: boolean) => void;
   snapPlayersToPoints: () => void;
   resetStore: () => void;
+  setCoordinatePicker: (picker: { isActive: boolean; onPick?: (x: number, y: number) => void } | null) => void;
 }
 
 export const initialState = {
+  coordinatePicker: null,
   roomName: 'Ma Salle',
   roomCode: null,
   isRoomPublic: true,
@@ -2498,6 +2500,7 @@ export const useVttStore = create<VttStore>()(
           return { players: newPlayers };
         }),
         resetStore: () => set({ ...initialState }),
+        setCoordinatePicker: (picker: { isActive: boolean; onPick?: (x: number, y: number) => void } | null) => set({ coordinatePicker: picker }),
       }),
       {
         partialize: (state) => ({

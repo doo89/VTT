@@ -533,6 +533,10 @@ export interface GroupVote {
 }
 
 export interface GameState {
+  coordinatePicker: {
+    isActive: boolean;
+    onPick?: (x: number, y: number) => void;
+  } | null;
   roomName: string;
   roomCode: string | null;
   isRoomPublic: boolean;
