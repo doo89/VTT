@@ -112,6 +112,7 @@ export interface MarkerParameter {
   visibleInWiki?: boolean;
   isSecret?: boolean;
   smartphoneShowPastille?: boolean;
+  showPastille?: boolean;
   smartphoneMergeTagId?: EntityId | null;
   smartphoneSelfMergeTagId?: EntityId | null;
   smartphoneActionId?: EntityId | null;

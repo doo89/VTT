@@ -805,8 +805,9 @@ export const ActionEffectWindow: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1.5 pt-2 border-t border-indigo-500/10 mt-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag à poser sur le vainqueur</label>
+                <label htmlFor="group-vote-tag-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag à poser sur le vainqueur</label>
                 <select
+                  id="group-vote-tag-select"
                   value={groupVoteTagId}
                   onChange={(e) => setGroupVoteTagId(e.target.value)}
                   className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"

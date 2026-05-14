@@ -321,7 +321,7 @@ export const RightPanel: React.FC = () => {
   }
 
   return (
-    <div className="w-[288px] h-full bg-card border-l border-border flex flex-col relative z-40 shrink-0">
+    <div className="w-[350px] h-full bg-card border-l border-border flex flex-col relative z-40 shrink-0">
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Settings size={20} />

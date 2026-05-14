@@ -1118,6 +1118,15 @@ export const EditingModal: React.FC = () => {
                 <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                   <input
                     type="checkbox"
+                    checked={tag.showPastille || false}
+                    onChange={(e) => updateTagModel(tag.id, { showPastille: e.target.checked })}
+                    className="rounded border-border w-4 h-4"
+                  />
+                  Afficher la pastille (au dessus du joueur)
+                </label>
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
                     checked={tag.visibleInWiki || false}
                     onChange={(e) => updateTagModel(tag.id, { visibleInWiki: e.target.checked })}
                     className="rounded border-border w-4 h-4"
@@ -1915,6 +1924,15 @@ export const EditingModal: React.FC = () => {
                     className="rounded border-border w-4 h-4"
                   />
                   Visible sur smartphone (version joueur)
+                </label>
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={tag.showPastille || false}
+                    onChange={(e) => updateTagInstance({ showPastille: e.target.checked })}
+                    className="rounded border-border w-4 h-4"
+                  />
+                  Afficher la pastille (au dessus du joueur)
                 </label>
               </div>
             </div>

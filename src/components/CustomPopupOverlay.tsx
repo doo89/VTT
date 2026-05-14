@@ -84,6 +84,7 @@ export const CustomPopupOverlay: React.FC = () => {
             <button
               onClick={handleClose}
               className="p-1.5 bg-background/50 hover:bg-destructive hover:text-white rounded-full transition-colors"
+              title="Fermer"
             >
               <X size={24} />
             </button>

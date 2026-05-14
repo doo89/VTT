@@ -9,6 +9,7 @@ import { supabase, getEnvUrl, getEnvKey } from '../../lib/supabase';
 import { calculateTagEffect, getEffectiveStats } from '../../lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
 import type { PlayerShape } from '../../types';
+import { TemplateSelectorModal } from '../TemplateSelectorModal';
 import './Canvas.css';
 
 const getShapeClipPath = (shape?: PlayerShape) => {
@@ -33,6 +34,7 @@ export const Canvas: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const selectionRef = useRef<HTMLDivElement>(null);
   const [showConnectionPopup, setShowConnectionPopup] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   const {
     roomName, setRoomName, roomCode, generateRoomCode, clearRoomCode, isRoomPublic, toggleRoomPublic,
     joinRequests, removeJoinRequest, onlinePlayerIds,
@@ -145,6 +147,22 @@ export const Canvas: React.FC = () => {
     }
 
     const stateStr = JSON.stringify(stateToSave, null, 2);
+    
+    // Save to history with IndexedDB (to avoid localStorage quota limits)
+    const historyData = { ...stateToSave, logs: [] };
+    const newHistoryItem = {
+      id: uuidv4(),
+      timestamp: Date.now(),
+      roomName: roomName || 'Sans nom',
+      data: historyData
+    };
+
+    import('../../lib/db').then(db => {
+      db.saveHistoryItem(newHistoryItem)
+        .then(() => console.log("Export saved to IndexedDB successfully"))
+        .catch(err => console.error("Failed to save to IndexedDB:", err));
+    });
+
     const blob = new Blob([stateStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -640,11 +658,19 @@ export const Canvas: React.FC = () => {
       {/* Banner */}
       <div className="h-12 bg-card border-b border-border flex items-center shrink-0 z-40 relative shadow-sm px-4 justify-between">
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowTemplateModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/20 rounded-md text-xs font-bold transition-all shadow-sm"
+          >
+            <icons.Layout size={14} />
+            Templates
+          </button>
+
           <input
             type="text"
             value={roomName}
             onChange={(e) => setRoomName(e.target.value)}
-            className="text-lg font-bold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/50 rounded px-2 w-48"
+            className="text-lg font-bold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary/50 rounded px-2 w-72"
             placeholder="Nom de la salle"
             title="Nom de la salle"
           />
@@ -740,6 +766,11 @@ export const Canvas: React.FC = () => {
           )}
         </div>
       </div>
+
+      <TemplateSelectorModal 
+        isOpen={showTemplateModal} 
+        onClose={() => setShowTemplateModal(false)} 
+      />
 
       <div
         ref={containerRef}
@@ -1338,8 +1369,11 @@ export const Canvas: React.FC = () => {
                   {renderBadge('bottomLeft')}
                   {renderBadge('bottomRight')}
 
-                  {/* Pastilles (Selection + Action) */}
-                  {((player.selectionPastilles && player.selectionPastilles.length > 0) || (player.actionPastilles && player.actionPastilles.length > 0)) && (
+                  {/* Pastilles (Selection + Action + Tags with showPastille) */}
+                  {((player.selectionPastilles && player.selectionPastilles.length > 0) || 
+                    (player.actionPastilles && player.actionPastilles.length > 0) ||
+                    player.tags.some(t => t.showPastille) || 
+                    (role?.tags || []).some(t => t.showPastille)) && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1 z-30">
                       {(player.selectionPastilles || []).map((p, idx) => {
                         const PIcon = (icons as any)[p.icon] || Tag;
@@ -1366,6 +1400,24 @@ export const Canvas: React.FC = () => {
                             <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[10px] font-bold px-2 py-1 rounded border border-zinc-700 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
                               {p.id}
                             </div>
+                          </div>
+                        );
+                      })}
+                      {/* Tags with showPastille */}
+                      {[...player.tags, ...(role?.tags || [])].filter(t => t.showPastille).map((t, idx) => {
+                        const PIcon = (icons as any)[t.icon] || Tag;
+                        return (
+                          <div
+                            key={`tag-past-${(t as any).instanceId || t.id}-${idx}`}
+                            className="w-5 h-5 rounded-full border-2 border-background shadow-sm flex items-center justify-center bg-card animate-in zoom-in-50 duration-300"
+                            style={{ borderColor: t.color }}
+                            title={t.name}
+                          >
+                            {t.imageUrl ? (
+                              <img src={t.imageUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              React.createElement(PIcon as any, { size: 10, style: { color: t.color } })
+                            )}
                           </div>
                         );
                       })}
