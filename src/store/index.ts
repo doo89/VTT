@@ -793,6 +793,21 @@ export const useVttStore = create<VttStore>()(
               // Evaluation and Context
               let actionContext: { [key: string]: any } = initialContext ? { ...initialContext } : {};
 
+              // Fallback: if no $Joueur in context, use selected players if any
+              if (!actionContext['$Joueur'] && state.selectedEntityIds.length > 0) {
+                const selectedPlayers = state.players.filter((p: any) => state.selectedEntityIds.includes(p.id));
+                if (selectedPlayers.length > 0) {
+                  const names = selectedPlayers.map((p: any) => p.name).join(', ');
+                  const ids = selectedPlayers.map((p: any) => p.id);
+                  actionContext['$Joueur'] = { 
+                    ...selectedPlayers[0], 
+                    name: names, 
+                    _isMultiple: true, 
+                    _ids: ids 
+                  };
+                }
+              }
+
               const evaluate = (conditions: ActionCondition[]): { success: boolean, failReason?: string } => {
                 const activeConditions = (conditions || []).filter(c => c.enabled);
                 if (activeConditions.length === 0) return { success: true };
@@ -1553,9 +1568,10 @@ export const useVttStore = create<VttStore>()(
                     const ids = player._isMultiple ? player._ids : [player.id];
                     nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? {
                       ...p,
-                      x: effect.targetX || 0,
-                      y: effect.targetY || 0
+                      x: (effect.targetX !== undefined) ? effect.targetX : 0,
+                      y: (effect.targetY !== undefined) ? effect.targetY : 0
                     } : p);
+                    state.addLog(`${player.name} envoyé(e) au cimetière`, 'action');
                   }
                 }
                 if (effect.type === 'gatherPlayers') {
