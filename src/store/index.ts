@@ -1006,31 +1006,58 @@ export const useVttStore = create<VttStore>()(
                       return false;
                     };
 
-                    return sources.some(sourcePlayer => {
+                    const matchingPlayers: any[] = [];
+                    sources.forEach(sourcePlayer => {
                       if (c.distanceUnit === 'physical') {
-                        return state.players.some((targetPlayer: any) => {
-                          if (targetPlayer.id === sourcePlayer.id) return false;
+                        state.players.forEach((targetPlayer: any) => {
+                          if (targetPlayer.id === sourcePlayer.id) return;
                           const dx = targetPlayer.x - sourcePlayer.x;
                           const dy = targetPlayer.y - sourcePlayer.y;
                           const dist = Math.sqrt(dx * dx + dy * dy);
-                          if (dist < minDist || dist > maxDist) return false;
-                          return checkTargetCriteria(targetPlayer);
+                          if (dist >= minDist && dist <= maxDist) {
+                            if (checkTargetCriteria(targetPlayer)) {
+                              if (!matchingPlayers.some(p => p.id === targetPlayer.id)) {
+                                matchingPlayers.push(targetPlayer);
+                              }
+                            }
+                          }
                         });
                       } else {
                         // Logical distance (index)
                         const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
-                        if (sourceIndex === -1) return false;
-
-                        const len = sortedPlayers.length;
-                        if (len === 0) return false;
-
-                        for (let dist = minDist; dist <= maxDist; dist++) {
-                          const targetIndex = ((sourceIndex + dist) % len + len) % len;
-                          if (checkTargetCriteria(sortedPlayers[targetIndex])) return true;
+                        if (sourceIndex !== -1) {
+                          const len = sortedPlayers.length;
+                          if (len > 0) {
+                            // On vérifie dans les deux sens pour la distance logique
+                            for (let d = -maxDist; d <= maxDist; d++) {
+                              const absD = Math.abs(d);
+                              if (absD < minDist || absD > maxDist || d === 0) continue;
+                              
+                              const targetIndex = ((sourceIndex + d) % len + len) % len;
+                              const targetPlayer = sortedPlayers[targetIndex];
+                              if (checkTargetCriteria(targetPlayer)) {
+                                if (!matchingPlayers.some(p => p.id === targetPlayer.id)) {
+                                  matchingPlayers.push(targetPlayer);
+                                }
+                              }
+                            }
+                          }
                         }
-                        return false;
                       }
                     });
+
+                    if (matchingPlayers.length > 0) {
+                      const names = matchingPlayers.map((p: any) => p.name).join(', ');
+                      const ids = matchingPlayers.map((p: any) => p.id);
+                      mergeIntoJoueur({ 
+                        ...matchingPlayers[0], 
+                        name: names, 
+                        _isMultiple: true, 
+                        _ids: ids 
+                      });
+                      return true;
+                    }
+                    return false;
                   }
 
                   if (c.type === 'cycleCheck') {
