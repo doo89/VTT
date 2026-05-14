@@ -167,7 +167,7 @@ export const RightPanel: React.FC = () => {
             ...(displaySettings.distributionResurrectAll !== false ? { isDead: false } : {}),
             ...(displaySettings.distributionDeleteTags !== false ? { tags: [] } : {}),
             ...(displaySettings.distributionRemovePastilles !== false ? { selectionPastilles: [] } : {}),
-            ...(displaySettings.distributionResetLives !== false ? { lives: 1 } : {}),
+            ...(displaySettings.distributionResetLives !== false ? { lives: assignedRole.lives } : {}),
             ...(displaySettings.distributionResetPoints !== false ? { points: 0 } : {}),
             ...(displaySettings.distributionResetVotes !== false ? { votes: 0 } : {}),
             ...(displaySettings.distributionDeletePrivateNotes !== false ? { privateNotes: '' } : {}),
@@ -193,6 +193,7 @@ export const RightPanel: React.FC = () => {
       });
 
       if (displaySettings.distributionActionId) {
+        console.log(`[DISTRIBUTION] Exécution de l'action post-distribution: ${displaySettings.distributionActionId}`);
         setTimeout(() => {
           executeAction(displaySettings.distributionActionId!);
         }, 100);

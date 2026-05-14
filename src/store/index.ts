@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState, ActionEffect, ActionEffectCreatorState, PlayerShape, RoleSelectorState } from '../types';
+import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, GroupVote, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState, ActionEffect, ActionEffectCreatorState, PlayerShape, RoleSelectorState } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface VttStore extends GameState {
@@ -147,6 +147,10 @@ interface VttStore extends GameState {
   triggerCustomPopup: (id: string | null) => void;
   setPreviewPopup: (popup: CustomPopup | null) => void;
 
+  // Group Vote
+  setActiveGroupVote: (vote: GroupVote | null) => void;
+  updateGroupVote: (voterId: string, targetId: string) => void;
+
   // Logs
   addLog: (message: string, type: LogEvent['type']) => void;
   clearLogs: () => void;
@@ -189,6 +193,7 @@ export const initialState = {
   recentColors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff', '#000000', '#6b7280'], // default colors
   customPopups: [],
   activeCustomPopupId: null,
+  activeGroupVote: null,
   previewPopup: null,
   checklist: [],
   isNight: false,
@@ -701,6 +706,15 @@ export const useVttStore = create<VttStore>()(
           }
         }),
 
+        // Group Vote
+        setActiveGroupVote: (vote) => set({ activeGroupVote: vote }),
+        updateGroupVote: (voterId, targetId) => set((state) => {
+          if (!state.activeGroupVote) return state;
+          const newVotes = { ...state.activeGroupVote.votes };
+          newVotes[voterId] = targetId;
+          return { activeGroupVote: { ...state.activeGroupVote, votes: newVotes } };
+        }),
+
         // Custom Popups
         addCustomPopup: (popup) => set((state) => ({
           customPopups: [...state.customPopups, { ...popup, id: uuidv4() } as CustomPopup]
@@ -747,6 +761,15 @@ export const useVttStore = create<VttStore>()(
         setPendingActionEnabled: (enabled: boolean) => set({ pendingActionEnabled: enabled }),
         setPendingElseActionId: (id: string | null) => set({ pendingElseActionId: id }),
         executeAction: (id, initialContext, depth = 0) => {
+          console.log(`[ACTION] Début exécution: ${id}`, initialContext);
+          const state = get() as any;
+          const action = state.actions.find((a: any) => a.id === id);
+          if (!action) {
+            console.warn(`[ACTION] Action non trouvée: ${id}`);
+            return;
+          }
+          console.log(`[ACTION] Nom de l'action: ${action.name}`);
+
           const run = (remaining: number, startEffectIndex: number = 0) => {
             if (depth > 5) {
               set((state: any) => {
@@ -1210,6 +1233,7 @@ export const useVttStore = create<VttStore>()(
                 const effect = effectsToRun[currentEffectIndex];
                 if (!effect.enabled) continue;
                 
+                console.log(`[ACTION] Effet: ${effect.type}`, effect);
                 if (effect.type === 'wait') {
                   hasWait = true;
                   waitTime = effect.value || 0;
@@ -1460,6 +1484,7 @@ export const useVttStore = create<VttStore>()(
                   if (player) {
                     const ids = player._isMultiple ? player._ids : [player.id];
                     const isDead = effect.type === 'killPlayer';
+                    console.log(`[ACTION] ${isDead ? 'MORT' : 'RÉSURRECTION'} pour les joueurs:`, ids);
                     nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? { ...p, isDead } : p);
                   }
                 }
@@ -1778,6 +1803,26 @@ export const useVttStore = create<VttStore>()(
                         options: (effect.pollOptions || ['Oui', 'Non']).filter((o: string) => o.trim() !== '')
                       } 
                     } : p);
+                  }
+                }
+                if (effect.type === 'sendGroupVoteToSmartphone') {
+                  const player = actionContext['$Joueur'];
+                  if (player && effect.pollQuestion) {
+                    const ids = player._isMultiple ? player._ids : [player.id];
+                    const voteId = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+                    effectUpdates.activeGroupVote = {
+                      id: voteId,
+                      question: effect.pollQuestion,
+                      allowedVoterIds: ids,
+                      votersRoleColor: effect.groupVoteVotersRoleColor || '#ef4444',
+                      hideVoters: effect.groupVoteHideVoters || false,
+                      excludeVoters: effect.groupVoteExcludeVoters || false,
+                      mandatory: effect.groupVoteMandatory || false,
+                      noTies: effect.groupVoteNoTies || false,
+                      tagIdToAssign: effect.groupVoteTagId,
+                      votes: {},
+                      isOpen: true
+                    };
                   }
                 }
                 if (effect.type === 'blindPlayer') {

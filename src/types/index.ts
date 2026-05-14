@@ -402,6 +402,7 @@ export type ActionEffectType =
   | 'vibrateSmartphone'
   | 'lockSmartphone'
   | 'sendPollToSmartphone'
+  | 'sendGroupVoteToSmartphone'
   | 'blindPlayer'
   | 'rollDice'
   | 'stopExecution'
@@ -452,6 +453,12 @@ export interface ActionEffect {
   lockMode?: 'lock' | 'unlock' | 'toggle';
   pollQuestion?: string;
   pollOptions?: string[];
+  groupVoteVotersRoleColor?: string;
+  groupVoteHideVoters?: boolean;
+  groupVoteExcludeVoters?: boolean;
+  groupVoteMandatory?: boolean;
+  groupVoteNoTies?: boolean;
+  groupVoteTagId?: string;
   blindMode?: 'blind' | 'unblind' | 'toggle';
   diceSides?: number;
   diceCount?: number;
@@ -510,6 +517,20 @@ export interface ActionEffectCreatorState {
   editingEffectId?: string | null;
 }
 
+export interface GroupVote {
+  id: string;
+  question: string;
+  allowedVoterIds: string[];
+  votersRoleColor?: string;
+  hideVoters?: boolean;
+  excludeVoters?: boolean;
+  mandatory?: boolean;
+  noTies?: boolean;
+  tagIdToAssign?: string;
+  votes: Record<string, string>;
+  isOpen: boolean;
+}
+
 export interface GameState {
   roomName: string;
   roomCode: string | null;
@@ -533,6 +554,7 @@ export interface GameState {
   recentColors: string[];
   customPopups: CustomPopup[];
   activeCustomPopupId: string | null;
+  activeGroupVote: GroupVote | null;
   previewPopup: CustomPopup | null;
   checklist: ChecklistItem[];
   isNight: boolean;

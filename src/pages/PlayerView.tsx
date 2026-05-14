@@ -44,6 +44,9 @@ export const PlayerView: React.FC = () => {
   });
   const [roomLogs, setRoomLogs] = useState<any[]>([]);
 
+  const activeGroupVote = useVttStore(state => state.activeGroupVote);
+  const isGroupVoter = !!(activeGroupVote?.isOpen && (!activeGroupVote.allowedVoterIds?.length || activeGroupVote.allowedVoterIds.includes(localPlayer?.id || '')));
+
   // Track the actual player ID once found, so if GM renames them, they stay connected
   // Use a ref so changes don't cause the useEffect to tear down the WebSocket channel
   const matchedPlayerIdRef = useRef<string | null>(null);
@@ -77,17 +80,23 @@ export const PlayerView: React.FC = () => {
   useEffect(() => {
     if (localPlayer?.lastDiceResult && localPlayer.lastDiceResult.id !== lastDiceIdRef.current) {
       lastDiceIdRef.current = localPlayer.lastDiceResult.id;
-      setDicePopup({
-        id: localPlayer.lastDiceResult.id,
-        result: localPlayer.lastDiceResult.result,
-        formula: localPlayer.lastDiceResult.formula
-      });
       
-      // Auto-hide after 5 seconds
-      const timer = setTimeout(() => {
-        setDicePopup(null);
-      }, 5000);
-      return () => clearTimeout(timer);
+      // Ne pas afficher la popup si le jet date d'il y a plus de 10 secondes (utile lors d'une reconnexion)
+      const isRecent = localPlayer.lastDiceResult.timestamp && (Date.now() - localPlayer.lastDiceResult.timestamp) < 10000;
+      
+      if (isRecent) {
+        setDicePopup({
+          id: localPlayer.lastDiceResult.id,
+          result: localPlayer.lastDiceResult.result,
+          formula: localPlayer.lastDiceResult.formula
+        });
+        
+        // Auto-hide after 5 seconds
+        const timer = setTimeout(() => {
+          setDicePopup(null);
+        }, 5000);
+        return () => clearTimeout(timer);
+      }
     }
   }, [localPlayer?.lastDiceResult]);
 
@@ -261,7 +270,8 @@ export const PlayerView: React.FC = () => {
         // Push custom popups to the global store so that CustomPopupOverlay can render them
         useVttStore.setState({
           customPopups: (data as any).customPopups || [],
-          activeCustomPopupId: (data as any).activeCustomPopupId || null
+          activeCustomPopupId: (data as any).activeCustomPopupId || null,
+          activeGroupVote: (data as any).activeGroupVote || null
         });
 
         // Normalize strings for comparison (remove accents & lowercase)
@@ -597,7 +607,7 @@ export const PlayerView: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className={`flex-1 flex flex-col gap-6 z-10 ${activeTab === 'game' && (displaySettings?.showTimerOnSmartphone !== false) ? 'pb-44' : 'pb-20'} overflow-y-auto custom-scrollbar pr-2`}>
+        <div className={`flex-1 flex flex-col gap-6 z-10 ${activeTab === 'game' && (displaySettings?.showTimerOnSmartphone === true) ? 'pb-44' : 'pb-20'} overflow-y-auto custom-scrollbar pr-2`}>
           
           {localPlayer.isSleeping && (
             <div className="absolute inset-0 bg-zinc-950 z-[100] flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-700">
@@ -1486,7 +1496,7 @@ export const PlayerView: React.FC = () => {
       )}
 
       {/* Timer Banner */}
-      {activeTab === 'game' && isConnected && localPlayer && displaySettings?.showTimerOnSmartphone !== false && (
+      {activeTab === 'game' && isConnected && localPlayer && displaySettings?.showTimerOnSmartphone === true && (
         <div className="fixed bottom-24 left-0 right-0 px-6 z-[50] animate-in slide-in-from-bottom-10 duration-700">
           <div className="bg-zinc-900/90 backdrop-blur-xl border border-amber-500/30 rounded-3xl p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-between group">
             <div className="flex items-center gap-4">
@@ -1655,6 +1665,121 @@ export const PlayerView: React.FC = () => {
               </div>
            </div>
         </div>
+      )}
+
+      {/* Group Vote Popup */}
+      {(isGroupVoter && activeGroupVote) && (
+        <div className="absolute inset-0 z-[200] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+           <div className="relative w-full max-w-sm bg-zinc-900 border-2 border-fuchsia-500/50 rounded-3xl shadow-[0_0_50px_rgba(217,70,239,0.2)] flex flex-col overflow-hidden animate-in zoom-in-95 duration-500 max-h-[80vh]">
+              <div className="p-5 bg-zinc-950/50 border-b border-zinc-800 flex flex-col items-center gap-2">
+                 <icons.Users size={32} className="text-fuchsia-500" />
+                 <h3 className="text-xl font-black text-center text-white">{activeGroupVote.question}</h3>
+                 <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest text-center mt-1">Vote de groupe en temps réel</p>
+              </div>
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2 bg-zinc-900/50">
+                 {roomPlayers.filter(p => {
+                    const isDead = p.isDead;
+                    const isVoter = activeGroupVote.allowedVoterIds.includes(p.id);
+                    const shouldExclude = activeGroupVote.excludeVoters && isVoter;
+                    return !isDead && !shouldExclude;
+                  }).map(player => {
+                    const votesForThisPlayer = Object.entries(activeGroupVote.votes).filter(([_, targetId]) => targetId === player.id).map(([voterId, _]) => {
+                      const voter = roomPlayers.find(vp => vp.id === voterId);
+                      return voter?.name || 'Inconnu';
+                    });
+                    
+                    const isVoterPlayer = activeGroupVote.allowedVoterIds.includes(player.id);
+                    const playerNameColor = (activeGroupVote.hideVoters) ? '#ffffff' : (isVoterPlayer ? (activeGroupVote.votersRoleColor || '#ef4444') : '#ffffff');
+                    
+                    const hasMyVote = activeGroupVote.votes[localPlayer?.id || ''] === player.id;
+
+                    return (
+                      <button
+                        key={player.id}
+                        onClick={() => {
+                          if (localPlayer) {
+                             channelRef.current?.send({
+                                type: 'broadcast',
+                                event: 'group_vote_response',
+                                payload: { playerId: localPlayer.id, voteId: activeGroupVote.id, targetId: player.id }
+                             }).catch(console.error);
+                          }
+                        }}
+                        className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${hasMyVote ? 'bg-fuchsia-500/20 border-fuchsia-500/50' : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700'}`}
+                      >
+                         <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-950 shrink-0">
+                             {player.imageUrl ? <img src={player.imageUrl} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-800" />}
+                           </div>
+                           <span className="font-bold text-sm" style={{ color: playerNameColor }}>{player.name}</span>
+                         </div>
+                         {votesForThisPlayer.length > 0 && (
+                           <div className="flex flex-col items-end gap-1 px-2 py-1 bg-zinc-950/50 rounded-lg">
+                             <div className="flex items-center gap-1.5">
+                               <span className="text-[10px] text-zinc-400 font-medium">Votes</span>
+                               <span className="text-sm font-black text-fuchsia-400">{votesForThisPlayer.length}</span>
+                             </div>
+                             {!activeGroupVote.hideVoters && (
+                               <div className="text-[8px] text-zinc-500 max-w-[100px] truncate text-right">
+                                 {votesForThisPlayer.join(', ')}
+                               </div>
+                             )}
+                           </div>
+                         )}
+                      </button>
+                    )
+                 })}
+              </div>
+               <div className="p-3 bg-zinc-950/80 border-t border-zinc-800">
+                 {(() => {
+                   const livingVoterIds = activeGroupVote.allowedVoterIds.filter(id => {
+                     const p = roomPlayers.find(rp => rp.id === id);
+                     return p && !p.isDead;
+                   });
+                   const allVoted = livingVoterIds.every(id => activeGroupVote.votes[id]);
+                   const voteCounts = Object.values(activeGroupVote.votes).reduce((acc, tid) => {
+                     acc[tid] = (acc[tid] || 0) + 1;
+                     return acc;
+                   }, {} as Record<string, number>);
+                   const sorted = Object.values(voteCounts).sort((a, b) => b - a);
+                   const hasTie = activeGroupVote.noTies && sorted.length > 1 && sorted[0] === sorted[1];
+                   
+                   if (activeGroupVote.mandatory && !allVoted) {
+                     return (
+                       <div className="w-full py-3 bg-zinc-800 text-zinc-500 font-black uppercase tracking-widest text-[10px] rounded-xl text-center border border-zinc-700/50 flex flex-col gap-1">
+                          <span>En attente des autres votants...</span>
+                          <span className="text-[8px] opacity-50">({Object.keys(activeGroupVote.votes).length} / {livingVoterIds.length})</span>
+                       </div>
+                     );
+                   }
+
+                   if (hasTie) {
+                     return (
+                       <div className="w-full py-3 bg-amber-900/20 text-amber-500 font-black uppercase tracking-widest text-[10px] rounded-xl text-center border border-amber-500/30 flex flex-col gap-1">
+                          <span>Égalité détectée !</span>
+                          <span className="text-[8px] opacity-70">Un vote décisif est nécessaire</span>
+                       </div>
+                     );
+                   }
+
+                   return (
+                     <button
+                       onClick={() => {
+                          channelRef.current?.send({
+                             type: 'broadcast',
+                             event: 'close_group_vote',
+                             payload: { voteId: activeGroupVote.id }
+                          }).catch(console.error);
+                       }}
+                       className="w-full py-3 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-black uppercase tracking-widest text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(217,70,239,0.3)]"
+                     >
+                       Valider le choix final
+                     </button>
+                   );
+                 })()}
+               </div>
+            </div>
+         </div>
       )}
 
       {/* Dice Result Popup */}

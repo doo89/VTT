@@ -97,6 +97,7 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'vibrateSmartphone', label: "Faire vibrer le Smartphone ($Joueur)", category: 'remote' },
   { value: 'lockSmartphone', label: "Verrouiller le Smartphone ($Joueur)", category: 'remote' },
   { value: 'sendPollToSmartphone', label: "Envoyer un Choix / Sondage ($Joueur)", category: 'remote' },
+  { value: 'sendGroupVoteToSmartphone', label: "Lancer un Vote de Groupe (Joueurs)", category: 'remote' },
   { value: 'blindPlayer', label: "Masquer la Salle / Aveugler ($Joueur)", category: 'remote' },
   { value: 'rollDice', label: "Lancer un Dé ($Joueur)", category: 'remote' },
   { value: 'playParticleEffect', label: "Jouer un Effet de Particules ($Joueur)", category: 'remote' },
@@ -171,6 +172,12 @@ export const ActionEffectWindow: React.FC = () => {
   const [lockMode, setLockMode] = useState<'lock' | 'unlock' | 'toggle'>('lock');
   const [pollQuestion, setPollQuestion] = useState<string>('');
   const [pollOptions, setPollOptions] = useState<string[]>(['Oui', 'Non']);
+  const [groupVoteVotersRoleColor, setGroupVoteVotersRoleColor] = useState<string>('#ef4444');
+  const [groupVoteHideVoters, setGroupVoteHideVoters] = useState<boolean>(false);
+  const [groupVoteExcludeVoters, setGroupVoteExcludeVoters] = useState<boolean>(false);
+  const [groupVoteMandatory, setGroupVoteMandatory] = useState<boolean>(false);
+  const [groupVoteNoTies, setGroupVoteNoTies] = useState<boolean>(false);
+  const [groupVoteTagId, setGroupVoteTagId] = useState<string>('');
   const [blindMode, setBlindMode] = useState<'blind' | 'unblind' | 'toggle'>('blind');
   const [diceSides, setDiceSides] = useState<number>(20);
   const [diceCount, setDiceCount] = useState<number>(1);
@@ -228,6 +235,12 @@ export const ActionEffectWindow: React.FC = () => {
         setLockMode(effect.lockMode || 'lock');
         setPollQuestion(effect.pollQuestion || '');
         setPollOptions(effect.pollOptions || ['Oui', 'Non']);
+        setGroupVoteVotersRoleColor(effect.groupVoteVotersRoleColor || '#ef4444');
+        setGroupVoteHideVoters(effect.groupVoteHideVoters || false);
+        setGroupVoteExcludeVoters(effect.groupVoteExcludeVoters || false);
+        setGroupVoteMandatory(effect.groupVoteMandatory || false);
+        setGroupVoteNoTies(effect.groupVoteNoTies || false);
+        setGroupVoteTagId(effect.groupVoteTagId || '');
         setBlindMode(effect.blindMode || 'blind');
         setDiceSides(effect.diceSides || 20);
         setDiceCount(effect.diceCount || 1);
@@ -277,6 +290,12 @@ export const ActionEffectWindow: React.FC = () => {
       setLockMode('lock');
       setPollQuestion('');
       setPollOptions(['Oui', 'Non']);
+      setGroupVoteVotersRoleColor('#ef4444');
+      setGroupVoteHideVoters(false);
+      setGroupVoteExcludeVoters(false);
+      setGroupVoteMandatory(false);
+      setGroupVoteNoTies(false);
+      setGroupVoteTagId('');
       setBlindMode('blind');
       setDiceSides(20);
       setDiceCount(1);
@@ -361,8 +380,14 @@ export const ActionEffectWindow: React.FC = () => {
       targetTab: type === 'forceSmartphoneTab' ? targetTab : undefined,
       vibrationDuration: type === 'vibrateSmartphone' ? vibrationDuration : undefined,
       lockMode: type === 'lockSmartphone' ? lockMode : undefined,
-      pollQuestion: type === 'sendPollToSmartphone' ? pollQuestion : undefined,
+      pollQuestion: (type === 'sendPollToSmartphone' || type === 'sendGroupVoteToSmartphone') ? pollQuestion : undefined,
       pollOptions: type === 'sendPollToSmartphone' ? pollOptions : undefined,
+      groupVoteVotersRoleColor: type === 'sendGroupVoteToSmartphone' ? groupVoteVotersRoleColor : undefined,
+      groupVoteHideVoters: type === 'sendGroupVoteToSmartphone' ? groupVoteHideVoters : undefined,
+      groupVoteExcludeVoters: type === 'sendGroupVoteToSmartphone' ? groupVoteExcludeVoters : undefined,
+      groupVoteMandatory: type === 'sendGroupVoteToSmartphone' ? groupVoteMandatory : undefined,
+      groupVoteNoTies: type === 'sendGroupVoteToSmartphone' ? groupVoteNoTies : undefined,
+      groupVoteTagId: type === 'sendGroupVoteToSmartphone' ? groupVoteTagId : undefined,
       blindMode: type === 'blindPlayer' ? blindMode : undefined,
       diceSides: type === 'rollDice' ? diceSides : undefined,
       diceCount: type === 'rollDice' ? diceCount : undefined,
@@ -684,6 +709,117 @@ export const ActionEffectWindow: React.FC = () => {
                 </div>
               </div>
               <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Le joueur recevra ce choix sur son smartphone et pourra y répondre une seule fois.</p>
+            </div>
+          )}
+
+          {type === 'sendGroupVoteToSmartphone' && (
+            <div className="flex flex-col gap-3 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg animate-in slide-in-from-top-2">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="group-vote-question" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Question du Vote</label>
+                <input
+                  id="group-vote-question"
+                  type="text"
+                  placeholder="Ex: Qui voulez-vous dévorer ?"
+                  value={pollQuestion}
+                  onChange={(e) => setPollQuestion(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="group-vote-color" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Couleur des votants (ex: #ff0000)</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    id="group-vote-color"
+                    value={groupVoteVotersRoleColor}
+                    onChange={(e) => setGroupVoteVotersRoleColor(e.target.value)}
+                    className="w-8 h-8 rounded border-none cursor-pointer bg-transparent"
+                  />
+                  <span className="text-xs font-mono">{groupVoteVotersRoleColor}</span>
+                </div>
+                <p className="text-[10px] text-zinc-500 italic px-1">La couleur utilisée pour mettre en évidence les noms des votants (ex: rouge pour les loups).</p>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-1 border-t border-indigo-500/10 mt-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${groupVoteHideVoters ? 'bg-indigo-500 border-indigo-500' : 'border-border group-hover:border-indigo-500/50'}`}>
+                    {groupVoteHideVoters && <Check size={12} className="text-white" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={groupVoteHideVoters}
+                    onChange={(e) => setGroupVoteHideVoters(e.target.checked)}
+                    className="hidden"
+                  />
+                  <span className="text-xs font-medium">Masquer les votants</span>
+                </label>
+                <p className="text-[10px] text-zinc-500 italic px-6 -mt-1">Si coché, les joueurs ne verront pas qui a voté quoi (vote anonyme).</p>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-1 border-t border-indigo-500/10 mt-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${groupVoteExcludeVoters ? 'bg-indigo-500 border-indigo-500' : 'border-border group-hover:border-indigo-500/50'}`}>
+                    {groupVoteExcludeVoters && <Check size={12} className="text-white" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={groupVoteExcludeVoters}
+                    onChange={(e) => setGroupVoteExcludeVoters(e.target.checked)}
+                    className="hidden"
+                  />
+                  <span className="text-xs font-medium">Exclure les votants de la sélection</span>
+                </label>
+                <p className="text-[10px] text-zinc-500 italic px-6 -mt-1">Si coché, les joueurs ayant le droit de voter ne pourront pas être choisis comme cible.</p>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-1 border-t border-indigo-500/10 mt-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${groupVoteMandatory ? 'bg-indigo-500 border-indigo-500' : 'border-border group-hover:border-indigo-500/50'}`}>
+                    {groupVoteMandatory && <Check size={12} className="text-white" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={groupVoteMandatory}
+                    onChange={(e) => setGroupVoteMandatory(e.target.checked)}
+                    className="hidden"
+                  />
+                  <span className="text-xs font-medium">Vote obligatoire</span>
+                </label>
+                <p className="text-[10px] text-zinc-500 italic px-6 -mt-1">Si coché, le bouton de validation n'apparaîtra que lorsque tous les votants auront voté.</p>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-1 border-t border-indigo-500/10 mt-1">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${groupVoteNoTies ? 'bg-indigo-500 border-indigo-500' : 'border-border group-hover:border-indigo-500/50'}`}>
+                    {groupVoteNoTies && <Check size={12} className="text-white" />}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={groupVoteNoTies}
+                    onChange={(e) => setGroupVoteNoTies(e.target.checked)}
+                    className="hidden"
+                  />
+                  <span className="text-xs font-medium">Interdire les égalités</span>
+                </label>
+                <p className="text-[10px] text-zinc-500 italic px-6 -mt-1">Si coché, le bouton de validation n'apparaîtra pas s'il y a une égalité entre les cibles les plus votées.</p>
+              </div>
+
+              <div className="flex flex-col gap-1.5 pt-2 border-t border-indigo-500/10 mt-1">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Tag à poser sur le vainqueur</label>
+                <select
+                  value={groupVoteTagId}
+                  onChange={(e) => setGroupVoteTagId(e.target.value)}
+                  className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-indigo-500/50"
+                >
+                  <option value="">Aucun tag</option>
+                  {[...useVttStore.getState().tags].sort((a, b) => a.name.localeCompare(b.name)).map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-zinc-500 italic px-1">Le tag choisi sera automatiquement assigné au joueur ayant reçu le plus de votes.</p>
+              </div>
+
+              <p className="text-[10px] text-zinc-500 italic px-1 mt-1">Un vote global sera affiché. Les joueurs ciblés par la condition verront ce vote sur la liste des joueurs.</p>
             </div>
           )}
 

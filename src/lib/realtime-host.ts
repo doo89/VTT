@@ -325,6 +325,53 @@ export const initHostRealtime = (roomCode: string) => {
         state.updatePlayer(player.id, { activePoll: null });
       }
     })
+    .on('broadcast', { event: 'group_vote_response' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      const player = state.players.find(p => p.id === payload.playerId);
+      if (player && state.activeGroupVote && state.activeGroupVote.id === payload.voteId) {
+        state.updateGroupVote(player.id, payload.targetId);
+      }
+    })
+    .on('broadcast', { event: 'close_group_vote' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      if (state.activeGroupVote && state.activeGroupVote.id === payload.voteId) {
+        const { votes, tagIdToAssign } = state.activeGroupVote;
+
+        // Calculate winner and results
+        const voteCounts = Object.values(votes).reduce((acc, tid) => {
+          acc[tid] = (acc[tid] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        
+        const sorted = Object.entries(voteCounts).sort((a, b) => b[1] - a[1]);
+        
+        if (sorted.length > 0) {
+          const resultsMsg = sorted.map(([tid, count]) => {
+            const target = state.players.find(p => p.id === tid);
+            return `${target?.name || 'Inconnu'} (${count} vote${count > 1 ? 's' : ''})`;
+          }).join(', ');
+          
+          state.addLog(`[Vote] Résultats : ${resultsMsg}`, 'system');
+
+          if (tagIdToAssign) {
+            const winnerId = sorted[0][0];
+            const tagModel = state.tags.find(t => t.id === tagIdToAssign);
+            const winner = state.players.find(p => p.id === winnerId);
+            
+            if (tagModel && winner) {
+              state.updatePlayer(winnerId, {
+                tags: [...winner.tags, { ...tagModel, instanceId: uuidv4() }]
+              });
+              state.addLog(`[Vote] ${winner.name} reçoit le tag "${tagModel.name}".`, 'system');
+            }
+          }
+        } else {
+          state.addLog(`[Vote] Aucun vote n'a été exprimé.`, 'system');
+        }
+
+        state.setActiveGroupVote(null);
+      }
+    })
     .on('broadcast', { event: 'soundboard_action' }, ({ payload }) => {
       const state = useVttStore.getState();
       if (!state.soundboard.remoteEnabled) {
@@ -503,6 +550,7 @@ export const forceBroadcastState = () => {
       imageUrl: stripImage(p.imageUrl)
     })),
     activeCustomPopupId: state.activeCustomPopupId,
+    activeGroupVote: state.activeGroupVote,
     smartphoneCountdown: state.smartphoneCountdown,
     timer: state.timer,
     actions: state.actions.map(a => ({ id: a.id, name: a.name, enabled: a.enabled })),
@@ -547,6 +595,7 @@ export const setupHostRealtimeSubscription = () => {
       state.checklist !== prevState.checklist ||
       state.customPopups !== prevState.customPopups ||
       state.activeCustomPopupId !== prevState.activeCustomPopupId ||
+      state.activeGroupVote !== prevState.activeGroupVote ||
       state.smartphoneCountdown !== prevState.smartphoneCountdown ||
       state.timer !== prevState.timer ||
       state.logs !== prevState.logs ||
