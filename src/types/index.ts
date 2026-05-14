@@ -448,6 +448,7 @@ export interface ActionEffect {
   targetY?: number;
   gatherRadius?: number;
   targetShape?: PlayerShape;
+  killOnGraveyard?: boolean;
   tagIncrement?: number;
   spreadRadius?: number;
   seenAsRoleId?: string | null;

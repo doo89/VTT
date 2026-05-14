@@ -186,6 +186,7 @@ export const ActionEffectWindow: React.FC = () => {
   const [actionEnabledMode, setActionEnabledMode] = useState<'enable' | 'disable' | 'toggle'>('enable');
   const [particleType, setParticleType] = useState<'confetti' | 'blood' | 'magic' | 'fire' | 'poison'>('confetti');
   const [particleDuration, setParticleDuration] = useState<number>(3000);
+  const [killOnGraveyard, setKillOnGraveyard] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
 
@@ -249,6 +250,7 @@ export const ActionEffectWindow: React.FC = () => {
         setActionEnabledMode(effect.actionEnabledMode || 'enable');
         setParticleType(effect.particleType || 'confetti');
         setParticleDuration(effect.particleDuration || 3000);
+        setKillOnGraveyard(effect.killOnGraveyard || false);
       }
     } else {
       setType('deleteAllTags');
@@ -304,6 +306,7 @@ export const ActionEffectWindow: React.FC = () => {
       setActionEnabledMode('enable');
       setParticleType('confetti');
       setParticleDuration(3000);
+      setKillOnGraveyard(false);
     }
   }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
 
@@ -395,7 +398,8 @@ export const ActionEffectWindow: React.FC = () => {
       diceCount: type === 'rollDice' ? diceCount : undefined,
       actionEnabledMode: type === 'toggleActionEnabled' ? actionEnabledMode : undefined,
       particleType: type === 'playParticleEffect' ? particleType : undefined,
-      particleDuration: type === 'playParticleEffect' ? particleDuration : undefined
+      particleDuration: type === 'playParticleEffect' ? particleDuration : undefined,
+      killOnGraveyard: type === 'movePlayerToGraveyard' ? killOnGraveyard : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -1238,6 +1242,19 @@ export const ActionEffectWindow: React.FC = () => {
                 </div>
               </div>
               <p className="text-[10px] text-zinc-500 italic px-1">Le centre du plateau est en X: 0, Y: 0.</p>
+              
+              <div className="flex items-center gap-3 px-1 mt-1 border-t border-red-500/10 pt-2">
+                <input
+                  id="kill-on-graveyard"
+                  type="checkbox"
+                  checked={killOnGraveyard}
+                  onChange={(e) => setKillOnGraveyard(e.target.checked)}
+                  className="w-4 h-4 rounded border-red-500/30 text-red-600 focus:ring-red-500 transition-all cursor-pointer"
+                />
+                <label htmlFor="kill-on-graveyard" className="text-xs font-medium text-red-400/80 cursor-pointer select-none">
+                  Tuer également le(s) joueur(s) envoyé(s) au cimetière
+                </label>
+              </div>
             </div>
           )}
 

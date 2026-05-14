@@ -900,80 +900,69 @@ export const useVttStore = create<VttStore>()(
                     if (c.operator === '!=') return calledPlayers.length > 0 ? !hasRole : true;
                   }
 
-                  if (c.type === 'playerRole' || c.type === 'playerTag' || c.type === 'playerPastille') {
-                    const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
-                    if (sortedPlayers.length === 0) return false;
-                    
-                    let targetIndex = (c.value - 1) % sortedPlayers.length;
-                    while (targetIndex < 0) targetIndex += sortedPlayers.length;
-                    
-                    const targetPlayer = sortedPlayers[targetIndex];
-                    if (targetPlayer && checkMatching(targetPlayer)) {
-                      mergeIntoJoueur(targetPlayer);
-                      return true;
-                    }
-                    return false;
-                  }
-
-                  if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille' || c.type === 'playerSelectionTeam') {
-                    if (c.selectionType === 'all' || c.selectionType === 'callOrder') {
-                      let sourcePlayers = state.players;
-                      if (c.selectionType === 'callOrder') {
-                        sourcePlayers = state.players.filter((p: any) => {
-                          const playerTags = p.tags || [];
-                          const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
-                          const allTags = [...playerTags, ...roleTags];
-                          return allTags.some((tag: any) => {
-                            const order = (state.cycleMode === 'dayNight' && state.isNight) ? tag.callOrderNight : tag.callOrderDay;
-                            return order !== null && order !== undefined && order !== '' && Number(order) === state.callOrderIndex;
+                  if (c.type.startsWith('player') && !c.type.includes('Distance')) {
+                    const checkMatchingPlayers = () => {
+                      if (c.selectionType === 'all' || c.selectionType === 'callOrder') {
+                        let sourcePlayers = state.players;
+                        if (c.selectionType === 'callOrder') {
+                          sourcePlayers = state.players.filter((p: any) => {
+                            const playerTags = p.tags || [];
+                            const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
+                            const allTags = [...playerTags, ...roleTags];
+                            return allTags.some((tag: any) => {
+                              const order = (state.cycleMode === 'dayNight' && state.isNight) ? tag.callOrderNight : tag.callOrderDay;
+                              return order !== null && order !== undefined && order !== '' && Number(order) === state.callOrderIndex;
+                            });
                           });
-                        });
+                        }
+
+                        const matchingPlayers = sourcePlayers.filter(checkMatching);
+                        if (matchingPlayers.length > 0) {
+                          const names = matchingPlayers.map((p: any) => p.name).join(', ');
+                          const ids = matchingPlayers.map((p: any) => p.id);
+                          mergeIntoJoueur({ ...matchingPlayers[0], name: names, _isMultiple: true, _ids: ids });
+                          return true;
+                        }
+                        return false;
                       }
 
-                      const matchingPlayers = sourcePlayers.filter(checkMatching);
-                      if (matchingPlayers.length > 0) {
-                        const names = matchingPlayers.map((p: any) => p.name).join(', ');
-                        const ids = matchingPlayers.map((p: any) => p.id);
-                        mergeIntoJoueur({ ...matchingPlayers[0], name: names, _isMultiple: true, _ids: ids });
-                        return true;
+                      if (c.selectionType === 'numeric') {
+                        const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
+                        if (sortedPlayers.length === 0) return false;
+                        
+                        let targetIndex = (c.value - 1) % sortedPlayers.length;
+                        while (targetIndex < 0) targetIndex += sortedPlayers.length;
+                        
+                        const targetPlayer = sortedPlayers[targetIndex];
+                        if (targetPlayer && checkMatching(targetPlayer)) {
+                          mergeIntoJoueur(targetPlayer);
+                          return true;
+                        }
+                        return false;
                       }
-                      return false;
-                    }
 
-                    if (c.selectionType === 'numeric') {
+                      if (c.selectionType === 'random') {
+                        const matchingPlayers = state.players.filter(checkMatching);
+                        if (matchingPlayers.length > 0) {
+                          const randomPlayer = matchingPlayers[Math.floor(Math.random() * matchingPlayers.length)];
+                          mergeIntoJoueur(randomPlayer);
+                          return true;
+                        }
+                        return false;
+                      }
+                      
                       const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
-                      if (sortedPlayers.length === 0) return false;
+                      if (c.selectionType === 'last') sortedPlayers.reverse();
+                      const foundPlayer = sortedPlayers.find(checkMatching);
                       
-                      let targetIndex = (c.value - 1) % sortedPlayers.length;
-                      while (targetIndex < 0) targetIndex += sortedPlayers.length;
-                      
-                      const targetPlayer = sortedPlayers[targetIndex];
-                      if (targetPlayer && checkMatching(targetPlayer)) {
-                        mergeIntoJoueur(targetPlayer);
+                      if (foundPlayer) {
+                        mergeIntoJoueur(foundPlayer);
                         return true;
                       }
                       return false;
-                    }
+                    };
 
-                    if (c.selectionType === 'random') {
-                      const matchingPlayers = state.players.filter(checkMatching);
-                      if (matchingPlayers.length > 0) {
-                        const randomPlayer = matchingPlayers[Math.floor(Math.random() * matchingPlayers.length)];
-                        mergeIntoJoueur(randomPlayer);
-                        return true;
-                      }
-                      return false;
-                    }
-                    
-                    const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
-                    if (c.selectionType === 'last') sortedPlayers.reverse();
-                    const foundPlayer = sortedPlayers.find(checkMatching);
-                    
-                    if (foundPlayer) {
-                      mergeIntoJoueur(foundPlayer);
-                      return true;
-                    }
-                    return false;
+                    return checkMatchingPlayers();
                   }
 
                   if (['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(c.type)) {
@@ -1567,13 +1556,29 @@ export const useVttStore = create<VttStore>()(
                 if (effect.type === 'movePlayerToGraveyard') {
                   const player = actionContext['$Joueur'];
                   if (player) {
-                    const ids = player._isMultiple ? player._ids : [player.id];
-                    nextPlayers = nextPlayers.map(p => ids.includes(p.id) ? {
-                      ...p,
-                      x: (effect.targetX !== undefined) ? effect.targetX : 0,
-                      y: (effect.targetY !== undefined) ? effect.targetY : 0
-                    } : p);
-                    state.addLog(`${player.name} envoyé(e) au cimetière`, 'action');
+                    const ids = player._isMultiple ? (player._ids || []) : [player.id];
+                    const targetX = effect.targetX !== undefined ? effect.targetX : 0;
+                    const targetY = effect.targetY !== undefined ? effect.targetY : 0;
+                    
+                    nextPlayers = nextPlayers.map(p => {
+                      if (ids.includes(p.id)) {
+                        const index = ids.indexOf(p.id);
+                        // Ajouter un petit décalage si plusieurs joueurs pour qu'ils ne soient pas parfaitement empilés
+                        const jitterX = ids.length > 1 ? (index % 5) * 20 - 40 : 0;
+                        const jitterY = ids.length > 1 ? Math.floor(index / 5) * 20 : 0;
+                        return {
+                          ...p,
+                          x: targetX + jitterX,
+                          y: targetY + jitterY,
+                          isDead: effect.killOnGraveyard ? true : p.isDead
+                        };
+                      }
+                      return p;
+                    });
+                    
+                    const count = ids.length;
+                    const logName = count > 1 ? `${count} joueurs` : player.name;
+                    state.addLog(`${logName} envoyé(e)${count > 1 ? 's' : ''} au cimetière`, 'action');
                   }
                 }
                 if (effect.type === 'gatherPlayers') {
