@@ -844,6 +844,10 @@ export const useVttStore = create<VttStore>()(
 
                 const checkSingle = (c: ActionCondition): boolean => {
                   const checkMatching = (p: any): boolean => {
+                    if (c.type === 'playerSelectionStatus') {
+                      return p.isDead === (c.distanceTargetStatus === 'dead');
+                    }
+                    
                     const playerTags = p.tags || [];
                     const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
                     const allPlayerTags = [...playerTags, ...roleTags];

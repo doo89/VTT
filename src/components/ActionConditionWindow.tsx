@@ -160,7 +160,7 @@ export const ActionConditionWindow: React.FC = () => {
       distanceFromPlayerId: isDist ? distanceFromPlayerId : null,
       distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null,
       distanceTargetTeamId: type === 'playerDistanceTeam' ? distanceTargetTeamId : null,
-      distanceTargetStatus: (type === 'playerDistanceStatus') ? distanceTargetStatus : null,
+      distanceTargetStatus: (type === 'playerDistanceStatus' || type === 'playerSelectionStatus') ? distanceTargetStatus : null,
       distanceUnit: isDist ? distanceUnit : null,
       cycleCheckType: type === 'cycleCheck' ? cycleCheckType : null,
       selectionTeamId: type === 'playerSelectionTeam' ? selectionTeamId : null,
@@ -650,9 +650,9 @@ export const ActionConditionWindow: React.FC = () => {
                   <input
                     id="identity-enabled"
                     type="checkbox"
-                    checked={['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) && enabled}
+                    checked={['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille', 'playerSelectionStatus'].includes(type) && enabled}
                     onChange={() => {
-                      if (!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type)) {
+                      if (!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille', 'playerSelectionStatus'].includes(type)) {
                         setType('playerSelectionRole');
                         setEnabled(true);
                         setOperator('=');
@@ -669,7 +669,7 @@ export const ActionConditionWindow: React.FC = () => {
                 <label htmlFor="identity-selection-type" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
                   id="identity-selection-type"
-                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) || !enabled}
+                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille', 'playerSelectionStatus'].includes(type) || !enabled}
                   value={selectionType || 'all'}
                   onChange={(e) => setSelectionType(e.target.value as any)}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -684,7 +684,7 @@ export const ActionConditionWindow: React.FC = () => {
                 {selectionType === 'numeric' && (
                   <input
                     id="identity-numeric-index"
-                    disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) || !enabled}
+                    disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille', 'playerSelectionStatus'].includes(type) || !enabled}
                     type="number"
                     min="1"
                     value={value || 1}
@@ -700,7 +700,7 @@ export const ActionConditionWindow: React.FC = () => {
                 <label htmlFor="identity-operator" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
                 <select
                   id="identity-operator"
-                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) || !enabled}
+                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille', 'playerSelectionStatus'].includes(type) || !enabled}
                   value={operator}
                   onChange={(e) => setOperator(e.target.value as ActionOperator)}
                   className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -719,7 +719,8 @@ export const ActionConditionWindow: React.FC = () => {
                     type === 'playerSelectionRole' || type === 'playerSelection' ? 'ROLE' :
                     type === 'playerSelectionTag' ? 'TAG' :
                     type === 'playerSelectionPastille' ? 'PASTILLE' :
-                    type === 'playerSelectionTeam' ? 'EQUIPE' : 'ROLE'
+                    type === 'playerSelectionTeam' ? 'EQUIPE' : 
+                    type === 'playerSelectionStatus' ? 'STATUT' : 'ROLE'
                   }
                   onChange={(e) => {
                     const val = e.target.value;
@@ -730,6 +731,7 @@ export const ActionConditionWindow: React.FC = () => {
                       setType('playerSelectionTeam');
                       if (!selectionTeamId && teams.length > 0) setSelectionTeamId(teams[0].id);
                     }
+                    else if (val === 'STATUT') setType('playerSelectionStatus');
                   }}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -737,6 +739,7 @@ export const ActionConditionWindow: React.FC = () => {
                   <option value="TAG">TAG</option>
                   <option value="PASTILLE">PASTILLE</option>
                   <option value="EQUIPE">EQUIPE</option>
+                  <option value="STATUT">STATUT</option>
                 </select>
               </div>
 
@@ -797,6 +800,17 @@ export const ActionConditionWindow: React.FC = () => {
                     {[...teams].sort((a,b) => a.name.localeCompare(b.name)).map(team => (
                       <option key={team.id} value={team.id}>{team.name}</option>
                     ))}
+                  </select>
+                ) : type === 'playerSelectionStatus' ? (
+                  <select
+                    id="identity-selection-value"
+                    disabled={!enabled}
+                    value={distanceTargetStatus || 'alive'}
+                    onChange={(e) => setDistanceTargetStatus(e.target.value as any)}
+                    className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                  >
+                    <option value="alive">VIVANT</option>
+                    <option value="dead">MORT</option>
                   </select>
                 ) : (
                   <div className="h-[38px] bg-input border border-border rounded-lg px-2 py-1.5 text-sm opacity-50 italic flex items-center">
