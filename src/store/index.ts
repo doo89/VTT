@@ -853,9 +853,9 @@ export const useVttStore = create<VttStore>()(
                         return order !== null && order !== undefined && order !== '' && Number(order) === state.callOrderIndex;
                       });
                     });
-                    const matching = called.filter(p => p.roleId === c.roleId);
+                    const matching = called.filter((p: any) => p.roleId === c.roleId);
                     const ok = c.operator === '=' ? matching.length > 0 : (called.length > 0 ? matching.length === 0 : true);
-                    return { success: ok, players: ok ? (c.operator === '=' ? matching : called.filter(p => p.roleId !== c.roleId)) : undefined };
+                    return { success: ok, players: ok ? (c.operator === '=' ? matching : called.filter((p: any) => p.roleId !== c.roleId)) : undefined };
                   }
 
                   if (c.type.startsWith('player') && !c.type.includes('Distance')) {
@@ -903,13 +903,13 @@ export const useVttStore = create<VttStore>()(
                       const ids = actionContext['$Joueur']._isMultiple ? actionContext['$Joueur']._ids : [actionContext['$Joueur'].id];
                       srcs = state.players.filter((p: any) => ids.includes(p.id));
                     } else if (c.distanceFromPlayerId === '$Selected') srcs = state.players.filter((p: any) => state.selectedEntityIds.includes(p.id));
-                    else srcs = state.players.filter(p => p.id === c.distanceFromPlayerId);
+                    else srcs = state.players.filter((p: any) => p.id === c.distanceFromPlayerId);
                     
                     if (srcs.length === 0) return { success: false };
                     const matching: any[] = [];
                     const sorted = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
                     srcs.forEach(s => {
-                      state.players.forEach(t => {
+                      state.players.forEach((t: any) => {
                         if (t.id === s.id) return;
                         let ok = false;
                         if (c.distanceUnit === 'physical') {
@@ -976,7 +976,7 @@ export const useVttStore = create<VttStore>()(
                 const groupResults = conditionGroups.map(group => {
                   let success = true;
                   let players: any[] | undefined = undefined;
-                  group.forEach((c, idx) => {
+                  group.forEach(c => {
                     const res = checkSingle(c);
                     success = success && res.success;
                     if (res.players) {
@@ -995,7 +995,8 @@ export const useVttStore = create<VttStore>()(
                   const allP: any[] = [];
                   groupResults.forEach(g => {
                     if (g.success && g.players) {
-                      g.players.forEach(p => { if (!allP.some(ap => ap.id === p.id)) allP.push(p); });
+                      const players = g.players as any[];
+                      players.forEach((p: any) => { if (!allP.some(ap => ap.id === p.id)) allP.push(p); });
                     }
                   });
                   if (allP.length > 0) {
