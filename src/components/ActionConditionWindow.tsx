@@ -155,15 +155,15 @@ export const ActionConditionWindow: React.FC = () => {
       roleId: (type === 'playerRole' || type === 'playerSelectionRole' || type === 'callOrderRole') ? roleId : null,
       tagId: (type === 'playerTag' || type === 'playerSelectionTag' || type === 'playerDistanceTag') ? tagId : null,
       pastilleIcon: (type === 'playerPastille' || type === 'playerSelectionPastille' || type === 'playerDistancePastille') ? pastilleIcon : null,
-      selectionType: ['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) ? selectionType : null,
-      selectionRoleId: (type === 'playerSelectionRole') ? selectionRoleId : null,
+      selectionType: ['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerSelectionStatus', 'playerSelectionRoleAndTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) ? selectionType : null,
+      selectionRoleId: (type === 'playerSelectionRole' || type === 'playerSelectionRoleAndTeam') ? selectionRoleId : null,
       distanceFromPlayerId: isDist ? distanceFromPlayerId : null,
-      distanceTargetRoleId: type === 'playerDistance' ? distanceTargetRoleId : null,
+      distanceTargetRoleId: (type === 'playerDistance' || type === 'playerDistanceSelected') ? distanceTargetRoleId : null,
       distanceTargetTeamId: type === 'playerDistanceTeam' ? distanceTargetTeamId : null,
       distanceTargetStatus: (type === 'playerDistanceStatus' || type === 'playerSelectionStatus') ? distanceTargetStatus : null,
       distanceUnit: isDist ? distanceUnit : null,
       cycleCheckType: type === 'cycleCheck' ? cycleCheckType : null,
-      selectionTeamId: type === 'playerSelectionTeam' ? selectionTeamId : null,
+      selectionTeamId: (type === 'playerSelectionTeam' || type === 'playerSelectionRoleAndTeam') ? selectionTeamId : null,
       teamId: type === 'roleTeamCheck' ? teamId : null
     };
 
@@ -577,10 +577,22 @@ export const ActionConditionWindow: React.FC = () => {
                       <option value="alive">VIVANT</option>
                       <option value="dead">MORT</option>
                     </select>
-                  ) : type === 'playerDistanceSelf' || type === 'playerDistanceSelected' ? (
+                  ) : type === 'playerDistanceSelf' ? (
                     <div className="h-[38px] bg-input border border-border rounded-lg px-2 py-1.5 text-sm opacity-50 italic flex items-center font-bold text-orange-500">
-                      {type === 'playerDistanceSelf' ? '$Joueur' : 'SÉLECTION'}
+                      $Joueur
                     </div>
+                  ) : type === 'playerDistanceSelected' ? (
+                    <select
+                      id="distance-target-value"
+                      disabled={!enabled}
+                      value={distanceTargetRoleId || ''}
+                      onChange={(e) => setDistanceTargetRoleId(e.target.value)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(role => (
+                        <option key={role.id} value={role.id}>{role.name}</option>
+                      ))}
+                    </select>
                   ) : (
                     <div className="h-[38px] bg-input border border-border rounded-lg px-2 py-1.5 text-sm opacity-50 italic flex items-center">
                       Sélectionnez un type...
@@ -650,9 +662,9 @@ export const ActionConditionWindow: React.FC = () => {
                   <input
                     id="identity-enabled"
                     type="checkbox"
-                    checked={['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille', 'playerSelectionStatus'].includes(type) && enabled}
+                    checked={['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerSelectionStatus', 'playerSelectionRoleAndTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) && enabled}
                     onChange={() => {
-                      if (!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille', 'playerSelectionStatus'].includes(type)) {
+                      if (!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerSelectionStatus', 'playerSelectionRoleAndTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type)) {
                         setType('playerSelectionRole');
                         setEnabled(true);
                         setOperator('=');
@@ -669,7 +681,7 @@ export const ActionConditionWindow: React.FC = () => {
                 <label htmlFor="identity-selection-type" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Joueur</label>
                 <select
                   id="identity-selection-type"
-                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille', 'playerSelectionStatus'].includes(type) || !enabled}
+                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerSelectionStatus', 'playerSelectionRoleAndTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) || !enabled}
                   value={selectionType || 'all'}
                   onChange={(e) => setSelectionType(e.target.value as any)}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -684,7 +696,7 @@ export const ActionConditionWindow: React.FC = () => {
                 {selectionType === 'numeric' && (
                   <input
                     id="identity-numeric-index"
-                    disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille', 'playerSelectionStatus'].includes(type) || !enabled}
+                    disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerSelectionStatus', 'playerSelectionRoleAndTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) || !enabled}
                     type="number"
                     min="1"
                     value={value || 1}
@@ -700,7 +712,7 @@ export const ActionConditionWindow: React.FC = () => {
                 <label htmlFor="identity-operator" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Op.</label>
                 <select
                   id="identity-operator"
-                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille', 'playerSelectionStatus'].includes(type) || !enabled}
+                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerSelectionStatus', 'playerSelectionRoleAndTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) || !enabled}
                   value={operator}
                   onChange={(e) => setOperator(e.target.value as ActionOperator)}
                   className="w-full bg-input border border-border rounded-lg px-2 py-2 text-sm outline-none transition-all font-mono font-bold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -714,13 +726,14 @@ export const ActionConditionWindow: React.FC = () => {
                 <label htmlFor="identity-target-type" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type</label>
                 <select
                   id="identity-target-type"
-                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) || !enabled}
+                  disabled={!['playerSelection', 'playerSelectionRole', 'playerSelectionTag', 'playerSelectionPastille', 'playerSelectionTeam', 'playerSelectionStatus', 'playerSelectionRoleAndTeam', 'playerRole', 'playerTag', 'playerPastille'].includes(type) || !enabled}
                   value={
                     type === 'playerSelectionRole' || type === 'playerSelection' ? 'ROLE' :
                     type === 'playerSelectionTag' ? 'TAG' :
                     type === 'playerSelectionPastille' ? 'PASTILLE' :
                     type === 'playerSelectionTeam' ? 'EQUIPE' : 
-                    type === 'playerSelectionStatus' ? 'STATUT' : 'ROLE'
+                    type === 'playerSelectionStatus' ? 'STATUT' :
+                    type === 'playerSelectionRoleAndTeam' ? 'ROLE+EQUIPE' : 'ROLE'
                   }
                   onChange={(e) => {
                     const val = e.target.value;
@@ -732,14 +745,20 @@ export const ActionConditionWindow: React.FC = () => {
                       if (!selectionTeamId && teams.length > 0) setSelectionTeamId(teams[0].id);
                     }
                     else if (val === 'STATUT') setType('playerSelectionStatus');
+                    else if (val === 'ROLE+EQUIPE') {
+                      setType('playerSelectionRoleAndTeam');
+                      if (!selectionRoleId && roles.length > 0) setSelectionRoleId(roles[0].id);
+                      if (!selectionTeamId && teams.length > 0) setSelectionTeamId(teams[0].id);
+                    }
                   }}
                   className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="ROLE">RÔLE</option>
-                  <option value="TAG">TAG</option>
-                  <option value="PASTILLE">PASTILLE</option>
-                  <option value="EQUIPE">EQUIPE</option>
-                  <option value="STATUT">STATUT</option>
+                   <option value="ROLE">RÔLE</option>
+                   <option value="TAG">TAG</option>
+                   <option value="PASTILLE">PASTILLE</option>
+                   <option value="EQUIPE">EQUIPE</option>
+                   <option value="STATUT">STATUT</option>
+                   <option value="ROLE+EQUIPE">RÔLE + ÉQUIPE</option>
                 </select>
               </div>
 
@@ -801,18 +820,44 @@ export const ActionConditionWindow: React.FC = () => {
                       <option key={team.id} value={team.id}>{team.name}</option>
                     ))}
                   </select>
-                ) : type === 'playerSelectionStatus' ? (
-                  <select
-                    id="identity-selection-value"
-                    disabled={!enabled}
-                    value={distanceTargetStatus || 'alive'}
-                    onChange={(e) => setDistanceTargetStatus(e.target.value as any)}
-                    className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold"
-                  >
-                    <option value="alive">VIVANT</option>
-                    <option value="dead">MORT</option>
-                  </select>
-                ) : (
+                  ) : type === 'playerSelectionStatus' ? (
+                    <select
+                      id="identity-selection-value"
+                      disabled={!enabled}
+                      value={distanceTargetStatus || 'alive'}
+                      onChange={(e) => setDistanceTargetStatus(e.target.value as any)}
+                      className="w-full bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+                    >
+                      <option value="alive">VIVANT</option>
+                      <option value="dead">MORT</option>
+                    </select>
+                  ) : type === 'playerSelectionRoleAndTeam' ? (
+                    <div className="flex gap-2">
+                      <select
+                        id="identity-selection-role"
+                        disabled={!enabled}
+                        value={selectionRoleId || ''}
+                        onChange={(e) => setSelectionRoleId(e.target.value)}
+                        className="flex-1 bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {roles.map(role => (
+                          <option key={role.id} value={role.id}>{role.name}</option>
+                        ))}
+                      </select>
+                      <select
+                        id="identity-selection-team"
+                        disabled={!enabled}
+                        value={selectionTeamId || ''}
+                        onChange={(e) => setSelectionTeamId(e.target.value)}
+                        className="flex-1 bg-input border border-border rounded-lg px-2 py-1.5 text-sm outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="">-- Aucune --</option>
+                        {[...teams].sort((a,b) => a.name.localeCompare(b.name)).map(team => (
+                          <option key={team.id} value={team.id}>{team.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
                   <div className="h-[38px] bg-input border border-border rounded-lg px-2 py-1.5 text-sm opacity-50 italic flex items-center">
                     Sélectionnez un type...
                   </div>

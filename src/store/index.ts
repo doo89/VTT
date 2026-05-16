@@ -814,429 +814,201 @@ export const useVttStore = create<VttStore>()(
                 const activeConditions = (conditions || []).filter(c => c.enabled);
                 if (activeConditions.length === 0) return { success: true };
 
-                const mergeIntoJoueur = (player: any) => {
-                  if (!player) return;
-                  if (!actionContext['$Joueur']) {
-                    actionContext['$Joueur'] = player;
-                    return;
-                  }
-                  
-                  const existing = actionContext['$Joueur'];
-                  const existingIds = existing._isMultiple ? (existing._ids || []) : [existing.id];
-                  const newIds = player._isMultiple ? (player._ids || []) : [player.id];
-                  
-                  const combinedIds = Array.from(new Set([...existingIds, ...newIds]));
-                  if (combinedIds.length === existingIds.length && combinedIds.every(id => existingIds.includes(id))) {
-                    return; 
-                  }
-                  
-                  const allPlayers = state.players.filter((p: any) => combinedIds.includes(p.id));
-                  const names = allPlayers.map((p: any) => p.name).join(', ');
-                  if (allPlayers.length > 0) {
-                    actionContext['$Joueur'] = { 
-                      ...allPlayers[0], 
-                      name: names, 
-                      _isMultiple: true, 
-                      _ids: combinedIds 
-                    };
-                  }
-                };
+                const checkSingle = (c: ActionCondition): { success: boolean, players?: any[] } => {
+                  const getMatchingPlayers = (p: any): boolean => {
+                    const playerRole = state.roles.find((r: any) => r.id === p.roleId);
+                    const allPlayerTags = [...(p.tags || []), ...(playerRole?.tags || [])];
+                    const effRoleId = p.seenAsRoleId || playerRole?.seenAsRoleId || p.roleId;
+                    const effTeamId = p.teamId || playerRole?.seenInTeamId || playerRole?.teamId || null;
 
-                const checkSingle = (c: ActionCondition): boolean => {
-                  const checkMatching = (p: any): boolean => {
-                    if (c.type === 'playerSelectionStatus') {
-                      return p.isDead === (c.distanceTargetStatus === 'dead');
-                    }
-                    
-                    const playerTags = p.tags || [];
-                    const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
-                    const allPlayerTags = [...playerTags, ...roleTags];
-                    
-                    // Priority: Player's seenAsRoleId > Role's seenAsRoleId > Player's real roleId
-                    const effectiveRoleId = p.seenAsRoleId || state.roles.find((r: any) => r.id === p.roleId)?.seenAsRoleId || p.roleId;
-
-                    if (c.type === 'playerRole') {
-                      const isRole = effectiveRoleId === c.roleId;
-                      if (c.operator === '=') return isRole;
-                      if (c.operator === '!=') return !isRole;
-                    } else if (c.type === 'playerTag') {
-                      const hasTag = allPlayerTags.some((t: any) => t.id === c.tagId);
-                      if (c.operator === '=') return hasTag;
-                      if (c.operator === '!=') return !hasTag;
-                    } else if (c.type === 'playerPastille') {
-                      const hasPastille = (p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon);
-                      if (c.operator === '=') return hasPastille;
-                      if (c.operator === '!=') return !hasPastille;
-                    } else if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
-                      const isRole = effectiveRoleId === (c.selectionRoleId || c.roleId);
-                      if (c.operator === '=') return isRole;
-                      if (c.operator === '!=') return !isRole;
-                    } else if (c.type === 'playerSelectionTag') {
-                      const hasTag = allPlayerTags.some((t: any) => t.id === c.tagId);
-                      if (c.operator === '=') return hasTag;
-                      if (c.operator === '!=') return !hasTag;
-                    } else if (c.type === 'playerSelectionPastille') {
-                      const hasPastille = (p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon);
-                      if (c.operator === '=') return hasPastille;
-                      if (c.operator === '!=') return !hasPastille;
-                    } else if (c.type === 'playerSelectionTeam') {
-                      const isTeam = p.teamId === (c.selectionTeamId || null);
-                      if (c.operator === '=') return isTeam;
-                      if (c.operator === '!=') return !isTeam;
+                    if (c.type === 'playerDistanceSelf') return true;
+                    if (c.type === 'playerDistanceSelected') return c.distanceTargetRoleId ? (c.operator === '=' ? (effRoleId === c.distanceTargetRoleId) : (effRoleId !== c.distanceTargetRoleId)) : true;
+                    if (c.type === 'playerDistance') return c.operator === '=' ? (effRoleId === c.distanceTargetRoleId) : (effRoleId !== c.distanceTargetRoleId);
+                    if (c.type === 'playerDistanceTag') return c.operator === '=' ? allPlayerTags.some((t: any) => t.id === c.tagId) : !allPlayerTags.some((t: any) => t.id === c.tagId);
+                    if (c.type === 'playerDistancePastille') return c.operator === '=' ? (p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon) : !(p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon);
+                    if (c.type === 'playerDistanceTeam') return c.operator === '=' ? (effTeamId === c.teamId) : (effTeamId !== c.teamId);
+                    if (c.type === 'playerRole') return c.operator === '=' ? (effRoleId === c.roleId) : (effRoleId !== c.roleId);
+                    if (c.type === 'playerTag') return c.operator === '=' ? allPlayerTags.some((t: any) => t.id === c.tagId) : !allPlayerTags.some((t: any) => t.id === c.tagId);
+                    if (c.type === 'playerPastille') return c.operator === '=' ? (p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon) : !(p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon);
+                    if (c.type === 'playerSelectionStatus' || c.type === 'playerDistanceStatus') return p.isDead === (c.distanceTargetStatus === 'dead');
+                    if (c.type.startsWith('playerSelection')) {
+                      if (c.type === 'playerSelectionRole') return c.operator === '=' ? (effRoleId === (c.selectionRoleId || c.roleId)) : (effRoleId !== (c.selectionRoleId || c.roleId));
+                      if (c.type === 'playerSelectionTag') return c.operator === '=' ? allPlayerTags.some((t: any) => t.id === c.tagId) : !allPlayerTags.some((t: any) => t.id === c.tagId);
+                      if (c.type === 'playerSelectionPastille') return c.operator === '=' ? (p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon) : !(p.selectionPastilles || []).some((past: any) => past.icon === c.pastilleIcon);
+                      if (c.type === 'playerSelectionTeam') return c.operator === '=' ? (effTeamId === (c.selectionTeamId || null)) : (effTeamId !== (c.selectionTeamId || null));
+                      if (c.type === 'playerSelectionRoleAndTeam') {
+                        const roleOk = c.operator === '=' ? (effRoleId === (c.selectionRoleId || c.roleId)) : (effRoleId !== (c.selectionRoleId || c.roleId));
+                        const teamOk = c.operator === '=' ? (effTeamId === (c.selectionTeamId || null)) : (effTeamId !== (c.selectionTeamId || null));
+                        return roleOk && teamOk;
+                      }
                     }
                     return false;
                   };
- 
+
                   if (c.type === 'callOrderRole') {
-                    const calledPlayers = state.players.filter((p: any) => {
-                      const playerTags = p.tags || [];
-                      const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
-                      const allTags = [...playerTags, ...roleTags];
+                    const called = state.players.filter((p: any) => {
+                      const allTags = [...(p.tags || []), ...(state.roles.find((r: any) => r.id === p.roleId)?.tags || [])];
                       return allTags.some((tag: any) => {
                         const order = (state.cycleMode === 'dayNight' && state.isNight) ? tag.callOrderNight : tag.callOrderDay;
                         return order !== null && order !== undefined && order !== '' && Number(order) === state.callOrderIndex;
                       });
                     });
-                    
-                    const hasRole = calledPlayers.some((p: any) => p.roleId === c.roleId);
-                    
-                    if (c.operator === '=') return hasRole;
-                    if (c.operator === '!=') return calledPlayers.length > 0 ? !hasRole : true;
+                    const matching = called.filter(p => p.roleId === c.roleId);
+                    const ok = c.operator === '=' ? matching.length > 0 : (called.length > 0 ? matching.length === 0 : true);
+                    return { success: ok, players: ok ? (c.operator === '=' ? matching : called.filter(p => p.roleId !== c.roleId)) : undefined };
                   }
 
                   if (c.type.startsWith('player') && !c.type.includes('Distance')) {
-                    const checkMatchingPlayers = () => {
-                      if (c.selectionType === 'all' || c.selectionType === 'callOrder') {
-                        let sourcePlayers = state.players;
-                        if (c.selectionType === 'callOrder') {
-                          sourcePlayers = state.players.filter((p: any) => {
-                            const playerTags = p.tags || [];
-                            const roleTags = state.roles.find((r: any) => r.id === p.roleId)?.tags || [];
-                            const allTags = [...playerTags, ...roleTags];
-                            return allTags.some((tag: any) => {
-                              const order = (state.cycleMode === 'dayNight' && state.isNight) ? tag.callOrderNight : tag.callOrderDay;
-                              return order !== null && order !== undefined && order !== '' && Number(order) === state.callOrderIndex;
-                            });
-                          });
-                        }
-
-                        const matchingPlayers = sourcePlayers.filter(checkMatching);
-                        if (matchingPlayers.length > 0) {
-                          const names = matchingPlayers.map((p: any) => p.name).join(', ');
-                          const ids = matchingPlayers.map((p: any) => p.id);
-                          mergeIntoJoueur({ ...matchingPlayers[0], name: names, _isMultiple: true, _ids: ids });
-                          return true;
-                        }
-                        return false;
-                      }
-
-                      if (c.selectionType === 'numeric') {
-                        const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
-                        if (sortedPlayers.length === 0) return false;
-                        
-                        let targetIndex = (c.value - 1) % sortedPlayers.length;
-                        while (targetIndex < 0) targetIndex += sortedPlayers.length;
-                        
-                        const targetPlayer = sortedPlayers[targetIndex];
-                        if (targetPlayer && checkMatching(targetPlayer)) {
-                          mergeIntoJoueur(targetPlayer);
-                          return true;
-                        }
-                        return false;
-                      }
-
-                      if (c.selectionType === 'random') {
-                        const matchingPlayers = state.players.filter(checkMatching);
-                        if (matchingPlayers.length > 0) {
-                          const randomPlayer = matchingPlayers[Math.floor(Math.random() * matchingPlayers.length)];
-                          mergeIntoJoueur(randomPlayer);
-                          return true;
-                        }
-                        return false;
-                      }
-                      
-                      const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
-                      if (c.selectionType === 'last') sortedPlayers.reverse();
-                      const foundPlayer = sortedPlayers.find(checkMatching);
-                      
-                      if (foundPlayer) {
-                        mergeIntoJoueur(foundPlayer);
-                        return true;
-                      }
-                      return false;
-                    };
-
-                    return checkMatchingPlayers();
+                    let source = state.players;
+                    if (c.selectionType === 'callOrder') {
+                      source = state.players.filter((p: any) => {
+                        const allTags = [...(p.tags || []), ...(state.roles.find((r: any) => r.id === p.roleId)?.tags || [])];
+                        return allTags.some((tag: any) => {
+                          const order = (state.cycleMode === 'dayNight' && state.isNight) ? tag.callOrderNight : tag.callOrderDay;
+                          return order !== null && order !== undefined && order !== '' && Number(order) === state.callOrderIndex;
+                        });
+                      });
+                    }
+                    if (c.selectionType === 'all' || c.selectionType === 'callOrder') {
+                      const matches = source.filter(getMatchingPlayers);
+                      return { success: matches.length > 0, players: matches.length > 0 ? matches : undefined };
+                    }
+                    if (c.selectionType === 'numeric') {
+                      const sorted = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
+                      if (sorted.length === 0) return { success: false };
+                      const p = sorted[(c.value - 1) % sorted.length];
+                      const ok = p && getMatchingPlayers(p);
+                      return { success: !!ok, players: ok ? [p] : undefined };
+                    }
+                    if (c.selectionType === 'random') {
+                      const matches = state.players.filter(getMatchingPlayers);
+                      return { success: matches.length > 0, players: matches.length > 0 ? [matches[Math.floor(Math.random() * matches.length)]] : undefined };
+                    }
+                    const sorted = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
+                    if (c.selectionType === 'last') sorted.reverse();
+                    const found = sorted.find(getMatchingPlayers);
+                    return { success: !!found, players: found ? [found] : undefined };
                   }
 
-                  if (['playerDistance', 'playerDistanceTag', 'playerDistancePastille', 'playerDistanceTeam', 'playerDistanceStatus', 'playerDistanceSelf', 'playerDistanceSelected'].includes(c.type)) {
-                    let sources: any[] = [];
-                    if (c.distanceFromPlayerId === '$Joueur') {
-                      if (actionContext['$Joueur']) sources = [actionContext['$Joueur']];
-                    } else if (c.distanceFromPlayerId === '$Selected') {
-                      sources = state.players.filter((p: any) => state.selectedEntityIds.includes(p.id));
-                    } else {
-                      const explicitPlayer = state.players.find((p: any) => p.id === c.distanceFromPlayerId);
-                      if (explicitPlayer) sources = [explicitPlayer];
-                    }
-
-                    if (sources.length === 0) return false;
-
-                    const sortedPlayers = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
-                    const minDist = Math.min(c.minValue ?? 0, c.maxValue ?? 0);
-                    const maxDist = Math.max(c.minValue ?? 0, c.maxValue ?? 0);
-
-                    const checkTargetCriteria = (targetPlayer: any) => {
-                      if (!targetPlayer) return false;
-                      const targetRoleTags = state.roles.find((r: any) => r.id === targetPlayer.roleId)?.tags || [];
-                      const allTargetTags = [...(targetPlayer.tags || []), ...targetRoleTags];
-
-                      if (c.type === 'playerDistance') {
-                        return targetPlayer.roleId === c.distanceTargetRoleId;
-                      } else if (c.type === 'playerDistanceTag') {
-                        return allTargetTags.some((t: any) => t.id === c.tagId);
-                      } else if (c.type === 'playerDistancePastille') {
-                        return (targetPlayer.selectionPastilles || []).some((p: any) => p.icon === c.pastilleIcon);
-                      } else if (c.type === 'playerDistanceTeam') {
-                        return targetPlayer.teamId === c.distanceTargetTeamId;
-                      } else if (c.type === 'playerDistanceStatus') {
-                        if (c.distanceTargetStatus === 'alive') return !targetPlayer.isDead;
-                        if (c.distanceTargetStatus === 'dead') return targetPlayer.isDead;
-                      } else if (c.type === 'playerDistanceSelf') {
-                        return targetPlayer.id === (actionContext['$Joueur']?.id);
-                      } else if (c.type === 'playerDistanceSelected') {
-                        return state.selectedEntityIds.includes(targetPlayer.id);
+                  if (c.type.startsWith('playerDistance')) {
+                    let srcs: any[] = [];
+                    if (c.type === 'playerDistanceSelf') {
+                      if (actionContext['$Joueur']) {
+                        const ids = actionContext['$Joueur']._isMultiple ? actionContext['$Joueur']._ids : [actionContext['$Joueur'].id];
+                        srcs = state.players.filter((p: any) => ids.includes(p.id));
                       }
-                      return false;
-                    };
-
-                    const matchingPlayers: any[] = [];
-                    sources.forEach(sourcePlayer => {
-                      if (c.distanceUnit === 'physical') {
-                        state.players.forEach((targetPlayer: any) => {
-                          if (targetPlayer.id === sourcePlayer.id) return;
-                          const dx = targetPlayer.x - sourcePlayer.x;
-                          const dy = targetPlayer.y - sourcePlayer.y;
-                          const dist = Math.sqrt(dx * dx + dy * dy);
-                          if (dist >= minDist && dist <= maxDist) {
-                            if (checkTargetCriteria(targetPlayer)) {
-                              if (!matchingPlayers.some(p => p.id === targetPlayer.id)) {
-                                matchingPlayers.push(targetPlayer);
-                              }
-                            }
-                          }
-                        });
-                      } else {
-                        // Logical distance (index)
-                        const sourceIndex = sortedPlayers.findIndex((p: any) => p.id === sourcePlayer.id);
-                        if (sourceIndex !== -1) {
-                          const len = sortedPlayers.length;
-                          if (len > 0) {
-                            // On vérifie dans les deux sens pour la distance logique
-                            for (let d = -maxDist; d <= maxDist; d++) {
-                              const absD = Math.abs(d);
-                              if (absD < minDist || absD > maxDist || d === 0) continue;
-                              
-                              const targetIndex = ((sourceIndex + d) % len + len) % len;
-                              const targetPlayer = sortedPlayers[targetIndex];
-                              if (checkTargetCriteria(targetPlayer)) {
-                                if (!matchingPlayers.some(p => p.id === targetPlayer.id)) {
-                                  matchingPlayers.push(targetPlayer);
-                                }
-                              }
-                            }
-                          }
+                    } else if (c.type === 'playerDistanceSelected') {
+                      srcs = state.players.filter((p: any) => state.selectedEntityIds.includes(p.id));
+                    } else if (c.distanceFromPlayerId === '$Joueur' && actionContext['$Joueur']) {
+                      const ids = actionContext['$Joueur']._isMultiple ? actionContext['$Joueur']._ids : [actionContext['$Joueur'].id];
+                      srcs = state.players.filter((p: any) => ids.includes(p.id));
+                    } else if (c.distanceFromPlayerId === '$Selected') srcs = state.players.filter((p: any) => state.selectedEntityIds.includes(p.id));
+                    else srcs = state.players.filter(p => p.id === c.distanceFromPlayerId);
+                    
+                    if (srcs.length === 0) return { success: false };
+                    const matching: any[] = [];
+                    const sorted = [...state.players].sort((a: any, b: any) => (a.creationOrder || 0) - (b.creationOrder || 0));
+                    srcs.forEach(s => {
+                      state.players.forEach(t => {
+                        if (t.id === s.id) return;
+                        let ok = false;
+                        if (c.distanceUnit === 'physical') {
+                          const d = Math.sqrt((t.x - s.x) ** 2 + (t.y - s.y) ** 2);
+                          ok = d >= (c.minValue ?? 0) && d <= (c.maxValue ?? 0);
+                        } else {
+                          const sIdx = sorted.findIndex(p => p.id === s.id);
+                          const tIdx = sorted.findIndex(p => p.id === t.id);
+                          const direct = Math.abs(sIdx - tIdx);
+                          const d = Math.min(direct, sorted.length - direct);
+                          ok = d >= (c.minValue ?? 0) && d <= (c.maxValue ?? 0);
                         }
-                      }
-                    });
-
-                    if (matchingPlayers.length > 0) {
-                      const names = matchingPlayers.map((p: any) => p.name).join(', ');
-                      const ids = matchingPlayers.map((p: any) => p.id);
-                      mergeIntoJoueur({ 
-                        ...matchingPlayers[0], 
-                        name: names, 
-                        _isMultiple: true, 
-                        _ids: ids 
+                        if (ok && getMatchingPlayers(t) && !matching.some(m => m.id === t.id)) matching.push(t);
                       });
-                      return true;
-                    }
-                    return false;
+                    });
+                    return { success: matching.length > 0, players: matching.length > 0 ? matching : undefined };
                   }
 
                   if (c.type === 'cycleCheck') {
-                    let compareVal = 0;
-                    let isActive = false;
-                    if (c.cycleCheckType === '$Jour') {
-                      isActive = !state.isNight;
-                      compareVal = state.cycleNumber;
-                    } else if (c.cycleCheckType === '$Nuit') {
-                      isActive = state.isNight;
-                      compareVal = state.cycleNumber;
-                    } else if (c.cycleCheckType === '$Cycle') {
-                      isActive = state.cycleMode !== 'none';
-                      compareVal = state.cycleNumber;
-                    } else if (c.cycleCheckType === '$Ordre') {
-                      isActive = state.callOrderIndex > 0;
-                      compareVal = state.callOrderIndex;
-                    } else if (c.cycleCheckType === '$Parité') {
-                      isActive = true;
-                      compareVal = state.cycleNumber % 2;
-                    } else if (c.cycleCheckType === '$Phase') {
-                      isActive = true;
-                      compareVal = state.isNight ? 1 : 0;
-                    } else if (c.cycleCheckType === '$Timer') {
-                      isActive = state.timer.isRunning;
-                      compareVal = (state.timer.minutes * 60) + state.timer.seconds;
-                    } else if (c.cycleCheckType === '$NbEnLigne') {
-                      isActive = true;
-                      compareVal = state.onlinePlayerIds.length;
-                    } else if (c.cycleCheckType === '$NbTotal') {
-                      isActive = true;
-                      compareVal = state.players.length;
-                    } else if (c.cycleCheckType === '$NbVivants') {
-                      isActive = true;
-                      compareVal = state.players.filter((p: any) => !p.isDead).length;
-                    } else if (c.cycleCheckType === '$NbMorts') {
-                      isActive = true;
-                      compareVal = state.players.filter((p: any) => p.isDead).length;
-                    } else if (c.cycleCheckType) {
-                      // Custom variable check
-                      isActive = true;
-                      compareVal = state.customVariables[c.cycleCheckType] || 0;
-                    }
-
-                    const op: string = c.operator;
-                    if (!op || op === '') return isActive;
-
+                    let val = 0;
+                    if (c.cycleCheckType === '$NbVivants') val = state.players.filter((p: any) => !p.isDead).length;
+                    else if (c.cycleCheckType === '$NbMorts') val = state.players.filter((p: any) => p.isDead).length;
+                    else if (c.cycleCheckType === '$NbTotal') val = state.players.length;
+                    else if (c.cycleCheckType === '$NbEnLigne') val = state.players.filter((p: any) => !p.isDead).length;
+                    else if (c.cycleCheckType === '$Cycle') val = state.cycleNumber;
+                    else if (c.cycleCheckType === '$Jour') val = !state.isNight ? state.cycleNumber : 0;
+                    else if (c.cycleCheckType === '$Nuit') val = state.isNight ? state.cycleNumber : 0;
+                    else if (c.cycleCheckType === '$Ordre') val = state.callOrderIndex;
+                    else if (c.cycleCheckType === '$Parité') val = state.cycleNumber % 2;
+                    else if (c.cycleCheckType === '$Phase') val = state.isNight ? 1 : 0;
+                    else if (c.cycleCheckType === '$Timer') val = (state.timer.minutes * 60) + state.timer.seconds;
+                    else val = state.cycleNumber;
+                    let ok = false;
                     switch (c.operator) {
-                      case '=': return isActive && compareVal === c.value;
-                      case '<': return isActive && compareVal < c.value;
-                      case '>': return isActive && compareVal > c.value;
-                      case '!=': return isActive && compareVal !== c.value;
-                      case '<=': return isActive && compareVal <= c.value;
-                      case '>=': return isActive && compareVal >= c.value;
-                      case 'modulo': return isActive && c.value > 0 && compareVal % c.value === 0;
-                      default: return isActive;
+                      case '=': ok = val === c.value; break;
+                      case '<': ok = val < c.value; break;
+                      case '>': ok = val > c.value; break;
+                      case '!=': ok = val !== c.value; break;
+                      case 'modulo': ok = c.value > 0 && val % c.value === 0; break;
+                      case '<=': ok = val <= c.value; break;
+                      case '>=': ok = val >= c.value; break;
+                      default: ok = true;
                     }
+                    return { success: ok };
                   }
 
                   if (c.type === 'roleTeamCheck') {
                     const role = state.roles.find((r: any) => r.id === c.roleId);
-                    const isTeam = (role?.teamId || null) === (c.teamId || null);
-                    if (c.operator === '=') return isTeam;
-                    if (c.operator === '!=') return !isTeam;
-                    return false;
+                    if (!role) return { success: false };
+                    const roleTeamId = role.teamId || null;
+                    const ok = c.operator === '=' ? (roleTeamId === c.teamId) : (roleTeamId !== c.teamId);
+                    return { success: ok };
                   }
 
-                  let compareVal = 0;
-                  if (c.type === 'day') {
-                    if (state.isNight) return false;
-                    compareVal = state.cycleNumber;
-                  } else if (c.type === 'night') {
-                    if (!state.isNight) return false;
-                    compareVal = state.cycleNumber;
-                  } else if (c.type === 'turn') {
-                    compareVal = state.cycleNumber;
-                  }
-
-                  switch (c.operator) {
-                    case '=': return compareVal === c.value;
-                    case '<': return compareVal < c.value;
-                    case '>': return compareVal > c.value;
-                    case '!=': return compareVal !== c.value;
-                    case '<=': return compareVal <= c.value;
-                    case '>=': return compareVal >= c.value;
-                    case 'modulo': return c.value > 0 && compareVal % c.value === 0;
-                    default: return false;
-                  }
+                  return { success: false };
                 };
 
-                const getConditionLabel = (c: ActionCondition): string => {
-                  if (c.type === 'playerRole') {
-                    const roleName = state.roles.find((r: any) => r.id === c.roleId)?.name || 'Inconnu';
-                    return `Joueur ${c.value} ${c.operator} ${roleName}`;
-                  }
-                  if (c.type === 'playerTag') {
-                    const tagName = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
-                    return `Joueur ${c.value} ${c.operator} ${tagName}`;
-                  }
-                  if (c.type === 'playerPastille') {
-                    return `Joueur ${c.value} ${c.operator} Pastille ${c.pastilleIcon}`;
-                  }
-                  if (c.type === 'playerSelection' || c.type === 'playerSelectionRole' || c.type === 'playerSelectionTag' || c.type === 'playerSelectionPastille' || c.type === 'playerSelectionTeam') {
-                    const selectionLabel = c.selectionType === 'all' ? 'Tous les Joueurs' : (c.selectionType === 'first' ? '1er Joueur' : (c.selectionType === 'last' ? 'Dernier Joueur' : (c.selectionType === 'numeric' ? `Joueur ${c.value}` : (c.selectionType === 'random' ? 'Aléatoire' : '$Ordre'))));
-                    let targetLabel = 'Inconnu';
-                    if (c.type === 'playerSelection' || c.type === 'playerSelectionRole') {
-                      targetLabel = state.roles.find((r: any) => r.id === (c.selectionRoleId || c.roleId))?.name || 'Inconnu';
-                    } else if (c.type === 'playerSelectionTag') {
-                      targetLabel = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
-                    } else if (c.type === 'playerSelectionPastille') {
-                      targetLabel = `Pastille ${c.pastilleIcon}`;
-                    } else if (c.type === 'playerSelectionTeam') {
-                      targetLabel = state.teams.find((t: any) => t.id === c.selectionTeamId)?.name || 'Aucune équipe';
+                const conditionGroups: ActionCondition[][] = [[]];
+                activeConditions.forEach(c => {
+                  if (c.logic === 'OR' && conditionGroups[conditionGroups.length - 1].length > 0) conditionGroups.push([c]);
+                  else conditionGroups[conditionGroups.length - 1].push(c);
+                });
+
+                const groupResults = conditionGroups.map(group => {
+                  let success = true;
+                  let players: any[] | undefined = undefined;
+                  group.forEach((c, idx) => {
+                    const res = checkSingle(c);
+                    success = success && res.success;
+                    if (res.players) {
+                      if (players === undefined) players = res.players;
+                      else {
+                        const ids = res.players.map(p => p.id);
+                        players = players.filter(p => ids.includes(p.id));
+                      }
                     }
-                    return `${selectionLabel} ${c.operator} ${targetLabel}`;
-                  }
-                  if (c.type === 'playerDistance' || c.type === 'playerDistanceTag' || c.type === 'playerDistancePastille') {
-                    let targetLabel = 'Inconnu';
-                    if (c.type === 'playerDistance') {
-                      targetLabel = state.roles.find((r: any) => r.id === c.distanceTargetRoleId)?.name || 'Inconnu';
-                    } else if (c.type === 'playerDistanceTag') {
-                      targetLabel = state.tags.find((t: any) => t.id === c.tagId)?.name || 'Inconnu';
-                    } else if (c.type === 'playerDistancePastille') {
-                      targetLabel = `Pastille ${c.pastilleIcon}`;
+                  });
+                  return { success, players };
+                });
+
+                const finalOk = groupResults.some(g => g.success);
+                if (finalOk) {
+                  const allP: any[] = [];
+                  groupResults.forEach(g => {
+                    if (g.success && g.players) {
+                      g.players.forEach(p => { if (!allP.some(ap => ap.id === p.id)) allP.push(p); });
                     }
-                    const fromLabel = c.distanceFromPlayerId === '$Joueur' ? '$Joueur' : (c.distanceFromPlayerId === '$Selected' ? 'Joueur(s) sélectionné(s)' : 'Joueur');
-                    const rangeLabel = (c.minValue !== undefined && c.maxValue !== undefined) 
-                      ? (c.minValue === c.maxValue ? `${c.minValue}` : `${c.minValue} à ${c.maxValue}`)
-                      : `${c.value}`;
-                    return `Dist. ${rangeLabel} de : ${fromLabel} (${targetLabel})`;
-                  }
-                  if (c.type === 'cycleCheck') {
-                    const op: string = c.operator;
-                    if (!op || op === '') return `${c.cycleCheckType} (Actif)`;
-                    const opLabel = c.operator === 'modulo' ? 'Tous les' : c.operator;
-                    return `${c.cycleCheckType} ${opLabel} ${c.value}`;
-                  }
-                  if (c.type === 'roleTeamCheck') {
-                    const roleName = state.roles.find((r: any) => r.id === c.roleId)?.name || 'Rôle Inconnu';
-                    const teamName = state.teams.find((t: any) => t.id === c.teamId)?.name || 'Aucune équipe';
-                    return `${roleName} ${c.operator} ${teamName}`;
-                  }
-                  const typeLabel = c.type === 'day' ? 'Jour' : c.type === 'night' ? 'Nuit' : 'Tour';
-                  const opLabel = c.operator === 'modulo' ? 'Tous les' : c.operator;
-                  return `${typeLabel} ${opLabel} ${c.value}`;
-                };
-
-                const andGroups: { result: boolean, label: string }[] = [];
-                let currentGroupResult = checkSingle(activeConditions[0]);
-                let currentGroupLabel = getConditionLabel(activeConditions[0]);
-
-                for (let i = 1; i < activeConditions.length; i++) {
-                  const c = activeConditions[i];
-                  const val = checkSingle(c);
-                  const label = getConditionLabel(c);
-
-                  if (c.logic === 'OR') {
-                    andGroups.push({ result: currentGroupResult, label: currentGroupLabel });
-                    currentGroupResult = val;
-                    currentGroupLabel = label;
-                  } else {
-                    currentGroupResult = currentGroupResult && val;
-                    currentGroupLabel = `${currentGroupLabel} ET ${label}`;
+                  });
+                  if (allP.length > 0) {
+                    actionContext['$Joueur'] = { ...allP[0], name: allP.map(p => p.name).join(', '), _isMultiple: true, _ids: allP.map(p => p.id) };
                   }
                 }
-                andGroups.push({ result: currentGroupResult, label: currentGroupLabel });
-
-                const finalResult = andGroups.some(g => g.result);
-                return { success: finalResult, failReason: finalResult ? undefined : andGroups.map(g => `(${g.label})`).join(' OU ') };
+                return { success: finalOk };
               };
 
               if (startEffectIndex === 0) {
                 const evaluation = evaluate(action.conditions || []);
                 if (!evaluation.success) {
-                  state.addLog(`Action "${action.name}" annulée : condition non remplie (${evaluation.failReason})`, 'system');
+                  state.addLog(`Action "${action.name}" annulée : condition non remplie`, 'system');
                   if (action.elseActionId && depth < 5) {
                     setTimeout(() => {
                       const currentState = (useVttStore.getState() as any);
