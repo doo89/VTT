@@ -1,27 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LogIn, User, Lock } from 'lucide-react';
 
 export const PlayerJoin: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  // Read code from URL query params
-  const getQueryParam = (param: string) => {
-    const searchParams = new URLSearchParams(location.search);
-    return searchParams.get(param)?.toUpperCase() || '';
-  };
+  // Persist code in sessionStorage to survive re-renders
+  const urlCode = searchParams.get('code')?.toUpperCase() || '';
+  if (urlCode) {
+    sessionStorage.setItem('VTT_JOIN_ROOM_CODE', urlCode);
+  }
+  const persistedCode = sessionStorage.getItem('VTT_JOIN_ROOM_CODE') || '';
 
-  const [roomCode, setRoomCode] = useState(() => getQueryParam('code'));
+  const [roomCode] = useState(persistedCode);
   const [playerName, setPlayerName] = useState('');
+  const playerNameRef = useRef<HTMLInputElement>(null);
 
   const hasCodeInUrl = roomCode.length > 0;
 
   // Auto-focus player name when code is pre-filled
   useEffect(() => {
-    if (hasCodeInUrl) {
-      const nameInput = document.getElementById('player-name-input');
-      nameInput?.focus();
+    if (hasCodeInUrl && playerNameRef.current) {
+      playerNameRef.current.focus();
     }
   }, [hasCodeInUrl]);
 
@@ -32,7 +33,7 @@ export const PlayerJoin: React.FC = () => {
     const cleanRoomCode = roomCode.trim().toUpperCase();
     const cleanName = playerName.trim();
 
-    navigate(`/player/${cleanRoomCode}/${encodeURIComponent(cleanName)}${location.search}`);
+    navigate(`/player/${cleanRoomCode}/${encodeURIComponent(cleanName)}?${searchParams.toString()}`);
   };
 
   return (
@@ -55,7 +56,7 @@ export const PlayerJoin: React.FC = () => {
           {hasCodeInUrl ? (
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Code de la Salle</label>
-              <div className="flex items-center justify-center gap-3 bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3">
+              <div className="flex items-center justify-center gap-3 bg-zinc-950 border border-blue-500/30 rounded-lg px-4 py-3">
                 <Lock size={16} className="text-blue-400 shrink-0" />
                 <span className="text-2xl font-black tracking-widest text-blue-400">{roomCode}</span>
               </div>
@@ -66,7 +67,9 @@ export const PlayerJoin: React.FC = () => {
               <input
                 type="text"
                 value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                onChange={(e) => {
+                  sessionStorage.setItem('VTT_JOIN_ROOM_CODE', e.target.value.toUpperCase());
+                }}
                 placeholder="ABCD"
                 maxLength={6}
                 id="room-code-vtt-input"
@@ -84,7 +87,7 @@ export const PlayerJoin: React.FC = () => {
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Votre Pseudo</label>
             <input
               type="text"
-              id="player-name-input"
+              ref={playerNameRef}
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               placeholder="Ex: Legolas"

@@ -8,6 +8,9 @@ import { createOptimizedBroadcastPayload, BROADCAST_FIELDS } from './utils/state
 let currentChannel: RealtimeChannel | null = null;
 export const getChannel = () => currentChannel;
 
+// Track if host channel is fully subscribed
+let isHostSubscribed = false;
+
 // Debounced version of forceBroadcastState to prevent spam
 let broadcastTimeout: ReturnType<typeof setTimeout> | null = null;
 const BROADCAST_DEBOUNCE_MS = 150; // Wait 150ms after last change before broadcasting
@@ -19,45 +22,15 @@ let lastBroadcastedState: Record<string, any> | null = null;
 let lastPositionBroadcast = 0;
 const POSITION_THROTTLE_MS = 500; // Max 2 position broadcasts per second
 
-const broadcastStateInternal = (forceFull: boolean = false) => {
-  if (!currentChannel) return;
-
+/**
+ * Build the full state payload for broadcast
+ */
+const buildFullStatePayload = () => {
   const state = useVttStore.getState();
-
-  // Use diff-based broadcast for incremental updates
-  if (!forceFull && lastBroadcastedState) {
-    const { payload, shouldBroadcast } = createOptimizedBroadcastPayload(
-      lastBroadcastedState,
-      state as Record<string, any>
-    );
-
-    if (!shouldBroadcast) {
-      return; // No changes, skip broadcast
-    }
-
-    // Calculate payload size
-    const payloadSize = JSON.stringify(payload).length;
-    if (payloadSize > 200_000) {
-      console.warn(`[VTT] Broadcast payload is large: ${Math.round(payloadSize / 1024)}KB. Forcing full broadcast.`);
-      // Fall back to full broadcast if diff is too large
-    } else {
-      currentChannel.send({
-        type: 'broadcast',
-        event: 'sync_state_diff',
-        payload: payload,
-      }).catch(err => console.error("Broadcast failed", err));
-      
-      // Update last broadcasted state
-      lastBroadcastedState = { ...state } as Record<string, any>;
-      return;
-    }
-  }
-
-  // Full broadcast (initial or fallback)
   const stripImage = (url: string | null | undefined) =>
     url && (url.startsWith('data:') || url.length > 2000) ? null : url;
 
-  const payload = {
+  return {
     players: state.players.map(p => ({
       ...p,
       imageUrl: stripImage(p.imageUrl),
@@ -118,6 +91,55 @@ const broadcastStateInternal = (forceFull: boolean = false) => {
     actions: state.actions.map(a => ({ id: a.id, name: a.name, enabled: a.enabled })),
     logs: state.logs,
   };
+};
+
+/**
+ * Send full state with retries to ensure delivery to newly connected players
+ * Broadcasts 3 times: immediately, at 500ms, and at 1200ms
+ */
+export const sendFullStateWithRetry = () => {
+  if (!currentChannel || !isHostSubscribed) {
+    console.warn('[VTT] Cannot broadcast: channel not ready', { hasChannel: !!currentChannel, isSubscribed: isHostSubscribed });
+    return;
+  }
+
+  const payload = buildFullStatePayload();
+  const payloadSize = JSON.stringify(payload).length;
+  if (payloadSize > 200_000) {
+    console.warn(`[VTT] Broadcast payload is large: ${Math.round(payloadSize / 1024)}KB. Some images may have been stripped.`);
+  }
+
+  const doSend = (attempt: number) => {
+    currentChannel!.send({
+      type: 'broadcast',
+      event: 'sync_state',
+      payload: payload,
+    }).then(() => {
+      console.log(`[VTT] sync_state broadcast sent (attempt ${attempt + 1})`);
+    }).catch(err => {
+      console.error(`[VTT] Broadcast failed (attempt ${attempt + 1})`, err);
+    });
+  };
+
+  // Immediate send
+  doSend(0);
+  // Retry at 500ms
+  setTimeout(() => doSend(1), 500);
+  // Retry at 1200ms
+  setTimeout(() => doSend(2), 1200);
+
+  // Update last broadcasted state for future diff computation
+  lastBroadcastedState = { ...useVttStore.getState() } as Record<string, any>;
+};
+
+const broadcastStateInternal = (forceFull: boolean = false) => {
+  if (!currentChannel || !isHostSubscribed) return;
+
+  const state = useVttStore.getState();
+
+  // Always send full state - diff-based broadcast was broken because
+  // the player client only listens to 'sync_state', not 'sync_state_diff'
+  const payload = buildFullStatePayload();
 
   const payloadSize = JSON.stringify(payload).length;
   if (payloadSize > 200_000) {
@@ -130,7 +152,7 @@ const broadcastStateInternal = (forceFull: boolean = false) => {
     payload: payload,
   }).catch(err => console.error("Broadcast failed", err));
 
-  // Store state for future diff computation
+  // Store state for tracking (even though we always send full state)
   lastBroadcastedState = { ...state } as Record<string, any>;
 };
 
@@ -148,6 +170,7 @@ export const forceBroadcastState = () => {
  * Immediate broadcast for critical updates (no debounce)
  */
 export const forceBroadcastStateImmediate = () => {
+  if (!isHostSubscribed) return;
   if (broadcastTimeout !== null) {
     clearTimeout(broadcastTimeout);
     broadcastTimeout = null;
@@ -184,6 +207,7 @@ export const initHostRealtime = (roomCode: string) => {
   currentChannel
     .on('broadcast', { event: 'join_request' }, ({ payload }) => {
       const { playerName } = payload;
+      console.log(`[VTT] join_request received for: ${playerName}`);
 
       const state = useVttStore.getState();
       const existingPlayer = getPlayerByName(state.players, playerName);
@@ -207,22 +231,27 @@ export const initHostRealtime = (roomCode: string) => {
             tags: [],
           });
           state.addLog(`${playerName} a rejoint la partie.`, 'system');
-          // State change will automatically trigger a broadcast via the subscriber below
+          // Send state with retries so the newly added player receives it
+          sendFullStateWithRetry();
         } else {
           // Private room logic - queue for approval
-          console.log(`Private room: Join request received for ${playerName}`);
+          console.log(`Private room: Join request queued for ${playerName}`);
           if (!state.joinRequests.includes(playerName)) {
             state.addJoinRequest(playerName);
           }
+          // Still send state with retries so the waiting player can see "En attente" with debug info
+          sendFullStateWithRetry();
         }
       } else {
-        // Player exists, force a broadcast so their client syncs immediately
-        forceBroadcastState();
+        // Player exists, send state with retries so their client syncs immediately
+        console.log(`[VTT] Player ${playerName} already exists, sending state with retry`);
+        sendFullStateWithRetry();
       }
     })
     .on('broadcast', { event: 'get_state' }, () => {
       // Direct request from a player client to get current state (useful for late joiners)
-      forceBroadcastState();
+      console.log('[VTT] get_state received, sending state with retry');
+      sendFullStateWithRetry();
     })
     .on('broadcast', { event: 'smartphone_action' }, ({ payload }) => {
       const state = useVttStore.getState();
@@ -630,6 +659,7 @@ export const initHostRealtime = (roomCode: string) => {
     })
     .subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
+        isHostSubscribed = true;
         console.log(`Host connected to room:${roomCode}`);
         await currentChannel?.track({ isHost: true });
         forceBroadcastState();
@@ -642,6 +672,7 @@ export const cleanupHostRealtime = () => {
     supabase.removeChannel(currentChannel);
     currentChannel = null;
   }
+  isHostSubscribed = false;
   if (broadcastTimeout !== null) {
     clearTimeout(broadcastTimeout);
     broadcastTimeout = null;

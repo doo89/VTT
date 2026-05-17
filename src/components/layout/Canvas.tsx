@@ -6,6 +6,7 @@ import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, 
 import { v4 as uuidv4 } from 'uuid';
 import type { Marker, Player, MagneticPoint } from '../../types';
 import { supabase, getEnvUrl, getEnvKey } from '../../lib/supabase';
+import { sendFullStateWithRetry } from '../../lib/realtime-host';
 import { calculateTagEffect, getEffectiveStats } from '../../lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
 import type { PlayerShape } from '../../types';
@@ -212,6 +213,8 @@ export const Canvas: React.FC = () => {
       tags: [],
     });
     useVttStore.getState().addLog(`${playerName} a rejoint la partie.`, 'system');
+    // Send state with retries so the accepted player receives it reliably
+    sendFullStateWithRetry();
   };
 
   const handleRejectJoin = (playerName: string) => {

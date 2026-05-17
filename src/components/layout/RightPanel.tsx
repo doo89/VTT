@@ -53,7 +53,9 @@ export const RightPanel: React.FC = () => {
     }
   };
 
-  const [useEnvExample, setUseEnvExample] = useState(false);
+  const [useEnvExample, setUseEnvExample] = useState(() => {
+    return localStorage.getItem('VTT_USE_ENV_EXAMPLE') === 'true';
+  });
 
   const loadEnvExample = async () => {
     try {
@@ -76,6 +78,21 @@ export const RightPanel: React.FC = () => {
       }
     } catch (e) {
       console.error('Failed to load .env.example', e);
+    }
+  };
+
+  // Auto-load env example on mount if checkbox was previously checked
+  useEffect(() => {
+    if (useEnvExample) {
+      loadEnvExample();
+    }
+  }, []);
+
+  const handleToggleEnvExample = (checked: boolean) => {
+    setUseEnvExample(checked);
+    localStorage.setItem('VTT_USE_ENV_EXAMPLE', String(checked));
+    if (checked) {
+      loadEnvExample();
     }
   };
 
@@ -1235,12 +1252,7 @@ export const RightPanel: React.FC = () => {
                   type="checkbox"
                   id="use-env-example"
                   checked={useEnvExample}
-                  onChange={async (e) => {
-                    setUseEnvExample(e.target.checked);
-                    if (e.target.checked) {
-                      await loadEnvExample();
-                    }
-                  }}
+                  onChange={(e) => handleToggleEnvExample(e.target.checked)}
                   className="w-4 h-4 rounded border-border text-primary focus:ring-ring cursor-pointer"
                 />
                 <label htmlFor="use-env-example" className="text-sm font-medium cursor-pointer select-none">
