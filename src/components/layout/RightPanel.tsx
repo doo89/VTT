@@ -53,6 +53,32 @@ export const RightPanel: React.FC = () => {
     }
   };
 
+  const [useEnvExample, setUseEnvExample] = useState(false);
+
+  const loadEnvExample = async () => {
+    try {
+      const response = await fetch('/env.example');
+      if (response.ok) {
+        const text = await response.text();
+        const lines = text.split('\n');
+        let url = '';
+        let key = '';
+        lines.forEach(line => {
+          if (line.startsWith('VITE_SUPABASE_URL=')) {
+            url = line.split('=')[1]?.trim() || '';
+          }
+          if (line.startsWith('VITE_SUPABASE_ANON_KEY=')) {
+            key = line.split('=')[1]?.trim() || '';
+          }
+        });
+        if (urlRef.current) urlRef.current.value = url;
+        if (keyRef.current) keyRef.current.value = key;
+      }
+    } catch (e) {
+      console.error('Failed to load .env.example', e);
+    }
+  };
+
   const toggleSection = (section: string) => {
     if (activeSection === 'soundboard' && section === 'soundboard' && editingEntity?.type === 'soundButton') {
       setEditingEntity(null);
@@ -1204,6 +1230,23 @@ export const RightPanel: React.FC = () => {
               <p className="text-sm text-muted-foreground">
                 Enregistrez vos clés Supabase pour cette session locale. Cela permet de tester sur Vercel facilement sans fichier .env.
               </p>
+              <div className="flex items-center gap-2 p-2 bg-muted/30 rounded border border-border/50">
+                <input
+                  type="checkbox"
+                  id="use-env-example"
+                  checked={useEnvExample}
+                  onChange={async (e) => {
+                    setUseEnvExample(e.target.checked);
+                    if (e.target.checked) {
+                      await loadEnvExample();
+                    }
+                  }}
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-ring cursor-pointer"
+                />
+                <label htmlFor="use-env-example" className="text-sm font-medium cursor-pointer select-none">
+                  Utiliser le fichier .env.example
+                </label>
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold">URL Supabase</label>
                 <input

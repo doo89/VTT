@@ -1,30 +1,38 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { LogIn, User, Lock } from 'lucide-react';
 
 export const PlayerJoin: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Read directly from window.location.search — same approach as supabase.ts for sburl/sbkey
-  // This is guaranteed to work since Vercel preserves query params on rewrites
-  const rawParams = new URLSearchParams(window.location.search);
-  const codeFromUrl = rawParams.get('code')?.toUpperCase() || '';
-  const hasCodeInUrl = codeFromUrl.length > 0;
+  // Read code from URL query params
+  const getQueryParam = (param: string) => {
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.get(param)?.toUpperCase() || '';
+  };
 
-  const [roomCode, setRoomCode] = useState('');
+  const [roomCode, setRoomCode] = useState(() => getQueryParam('code'));
   const [playerName, setPlayerName] = useState('');
 
-  const effectiveCode = hasCodeInUrl ? codeFromUrl : roomCode;
+  const hasCodeInUrl = roomCode.length > 0;
+
+  // Auto-focus player name when code is pre-filled
+  useEffect(() => {
+    if (hasCodeInUrl) {
+      const nameInput = document.getElementById('player-name-input');
+      nameInput?.focus();
+    }
+  }, [hasCodeInUrl]);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!effectiveCode.trim() || !playerName.trim()) return;
+    if (!roomCode.trim() || !playerName.trim()) return;
 
-    const cleanRoomCode = effectiveCode.trim().toUpperCase();
+    const cleanRoomCode = roomCode.trim().toUpperCase();
     const cleanName = playerName.trim();
 
-    const search = window.location.search;
-    navigate(`/player/${cleanRoomCode}/${encodeURIComponent(cleanName)}${search}`);
+    navigate(`/player/${cleanRoomCode}/${encodeURIComponent(cleanName)}${location.search}`);
   };
 
   return (
@@ -49,7 +57,7 @@ export const PlayerJoin: React.FC = () => {
               <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Code de la Salle</label>
               <div className="flex items-center justify-center gap-3 bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3">
                 <Lock size={16} className="text-blue-400 shrink-0" />
-                <span className="text-2xl font-black tracking-widest text-blue-400">{codeFromUrl}</span>
+                <span className="text-2xl font-black tracking-widest text-blue-400">{roomCode}</span>
               </div>
             </div>
           ) : (
@@ -76,6 +84,7 @@ export const PlayerJoin: React.FC = () => {
             <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Votre Pseudo</label>
             <input
               type="text"
+              id="player-name-input"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
               placeholder="Ex: Legolas"
@@ -87,7 +96,7 @@ export const PlayerJoin: React.FC = () => {
 
           <button
             type="submit"
-            disabled={!effectiveCode.trim() || !playerName.trim()}
+            disabled={!roomCode.trim() || !playerName.trim()}
             className="mt-4 w-full bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-bold py-3.5 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-900/20"
           >
             <LogIn size={20} /> Rejoindre

@@ -2,9 +2,171 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { useVttStore } from '../store';
 import { v4 as uuidv4 } from 'uuid';
+import { getPlayerByName } from './utils/entity-lookups';
+import { createOptimizedBroadcastPayload, BROADCAST_FIELDS } from './utils/state-diff';
 
 let currentChannel: RealtimeChannel | null = null;
 export const getChannel = () => currentChannel;
+
+// Debounced version of forceBroadcastState to prevent spam
+let broadcastTimeout: ReturnType<typeof setTimeout> | null = null;
+const BROADCAST_DEBOUNCE_MS = 150; // Wait 150ms after last change before broadcasting
+
+// Store last broadcasted state for diff computation
+let lastBroadcastedState: Record<string, any> | null = null;
+
+// Throttle for position updates (pan/zoom)
+let lastPositionBroadcast = 0;
+const POSITION_THROTTLE_MS = 500; // Max 2 position broadcasts per second
+
+const broadcastStateInternal = (forceFull: boolean = false) => {
+  if (!currentChannel) return;
+
+  const state = useVttStore.getState();
+
+  // Use diff-based broadcast for incremental updates
+  if (!forceFull && lastBroadcastedState) {
+    const { payload, shouldBroadcast } = createOptimizedBroadcastPayload(
+      lastBroadcastedState,
+      state as Record<string, any>
+    );
+
+    if (!shouldBroadcast) {
+      return; // No changes, skip broadcast
+    }
+
+    // Calculate payload size
+    const payloadSize = JSON.stringify(payload).length;
+    if (payloadSize > 200_000) {
+      console.warn(`[VTT] Broadcast payload is large: ${Math.round(payloadSize / 1024)}KB. Forcing full broadcast.`);
+      // Fall back to full broadcast if diff is too large
+    } else {
+      currentChannel.send({
+        type: 'broadcast',
+        event: 'sync_state_diff',
+        payload: payload,
+      }).catch(err => console.error("Broadcast failed", err));
+      
+      // Update last broadcasted state
+      lastBroadcastedState = { ...state } as Record<string, any>;
+      return;
+    }
+  }
+
+  // Full broadcast (initial or fallback)
+  const stripImage = (url: string | null | undefined) =>
+    url && (url.startsWith('data:') || url.length > 2000) ? null : url;
+
+  const payload = {
+    players: state.players.map(p => ({
+      ...p,
+      imageUrl: stripImage(p.imageUrl),
+    })),
+    roles: state.roles.map(r => ({
+      ...r,
+      imageUrl: stripImage(r.imageUrl),
+    })),
+    teams: state.teams,
+    tags: state.tags.map(t => ({
+      ...t,
+      imageUrl: (t as any).imageUrl ? stripImage((t as any).imageUrl) : undefined
+    })),
+    handouts: state.handouts.map(h => ({
+      ...h,
+      imageUrl: stripImage(h.imageUrl),
+      referenceImageUrl: stripImage((h as any).referenceImageUrl),
+    })),
+    soundboard: {
+      remoteEnabled: state.soundboard?.remoteEnabled || false,
+      remoteShowSounds: state.soundboard?.remoteShowSounds ?? true,
+      remoteShowTasks: state.soundboard?.remoteShowTasks ?? true,
+      remoteShowHandouts: state.soundboard?.remoteShowHandouts ?? true,
+      remoteShowActions: state.soundboard?.remoteShowActions ?? true,
+      remoteShowPlayers: state.soundboard?.remoteShowPlayers ?? false,
+      remoteShowDeadPlayers: state.soundboard?.remoteShowDeadPlayers ?? false,
+      remoteAllowPrivateNotes: state.soundboard?.remoteAllowPrivateNotes ?? false,
+      cols: state.soundboard?.cols || 4,
+      rows: state.soundboard?.rows || 3,
+      buttons: state.soundboard.buttons.map(b => ({
+        index: b.index,
+        name: b.name,
+        icon: b.icon,
+        color: b.color,
+        hasAudio: !!b.audioUrl,
+        isOneShot: b.isOneShot,
+        imageUrl: stripImage(b.imageUrl)
+      }))
+    },
+    isNight: state.isNight,
+    cycleMode: state.cycleMode,
+    isPublicMode: state.isPublicMode,
+    displaySettings: state.displaySettings,
+    wiki: state.wiki,
+    checklist: state.checklist,
+    room: {
+      ...state.room,
+      backgroundImage: stripImage(state.room.backgroundImage),
+    },
+    customPopups: state.customPopups.map(p => ({
+      ...p,
+      imageUrl: stripImage(p.imageUrl)
+    })),
+    activeCustomPopupId: state.activeCustomPopupId,
+    activeGroupVote: state.activeGroupVote,
+    smartphoneCountdown: state.smartphoneCountdown,
+    timer: state.timer,
+    actions: state.actions.map(a => ({ id: a.id, name: a.name, enabled: a.enabled })),
+    logs: state.logs,
+  };
+
+  const payloadSize = JSON.stringify(payload).length;
+  if (payloadSize > 200_000) {
+    console.warn(`[VTT] Broadcast payload is large: ${Math.round(payloadSize / 1024)}KB. Some images may have been stripped.`);
+  }
+
+  currentChannel.send({
+    type: 'broadcast',
+    event: 'sync_state',
+    payload: payload,
+  }).catch(err => console.error("Broadcast failed", err));
+
+  // Store state for future diff computation
+  lastBroadcastedState = { ...state } as Record<string, any>;
+};
+
+/**
+ * Broadcast state with debounce
+ */
+export const forceBroadcastState = () => {
+  if (broadcastTimeout !== null) {
+    clearTimeout(broadcastTimeout);
+  }
+  broadcastTimeout = setTimeout(() => broadcastStateInternal(false), BROADCAST_DEBOUNCE_MS);
+};
+
+/**
+ * Immediate broadcast for critical updates (no debounce)
+ */
+export const forceBroadcastStateImmediate = () => {
+  if (broadcastTimeout !== null) {
+    clearTimeout(broadcastTimeout);
+    broadcastTimeout = null;
+  }
+  broadcastStateInternal(true);
+};
+
+/**
+ * Throttled broadcast for position updates (pan/zoom)
+ * Prevents spamming during drag operations
+ */
+export const throttledPositionBroadcast = () => {
+  const now = Date.now();
+  if (now - lastPositionBroadcast < POSITION_THROTTLE_MS) {
+    return; // Throttled
+  }
+  lastPositionBroadcast = now;
+  forceBroadcastState();
+};
 
 export const initHostRealtime = (roomCode: string) => {
   if (!supabase) return;
@@ -24,9 +186,7 @@ export const initHostRealtime = (roomCode: string) => {
       const { playerName } = payload;
 
       const state = useVttStore.getState();
-      const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-      const rawName = normalize(playerName);
-      const existingPlayer = state.players.find(p => normalize(p.name) === rawName);
+      const existingPlayer = getPlayerByName(state.players, playerName);
 
       if (!existingPlayer) {
         if (state.isRoomPublic) {
@@ -482,91 +642,13 @@ export const cleanupHostRealtime = () => {
     supabase.removeChannel(currentChannel);
     currentChannel = null;
   }
-};
-
-export const forceBroadcastState = () => {
-  if (!currentChannel) return;
-
-  const state = useVttStore.getState();
-
-  // Strip large binary data (base64 images) from payload to avoid the
-  // Supabase Realtime 250KB broadcast size limit. Only send URLs, not embedded data.
-  const stripImage = (url: string | null | undefined) =>
-    url && (url.startsWith('data:') || url.length > 2000) ? null : url;
-
-  const payload = {
-    players: state.players.map(p => ({
-      ...p,
-      imageUrl: stripImage(p.imageUrl),
-    })),
-    roles: state.roles.map(r => ({
-      ...r,
-      imageUrl: stripImage(r.imageUrl),
-    })),
-    teams: state.teams,
-    tags: state.tags.map(t => ({
-      ...t,
-      imageUrl: (t as any).imageUrl ? stripImage((t as any).imageUrl) : undefined
-    })),
-    handouts: state.handouts.map(h => ({
-      ...h,
-      imageUrl: stripImage(h.imageUrl),
-      referenceImageUrl: stripImage((h as any).referenceImageUrl),
-    })),
-    soundboard: {
-      remoteEnabled: state.soundboard?.remoteEnabled || false,
-      remoteShowSounds: state.soundboard?.remoteShowSounds ?? true,
-      remoteShowTasks: state.soundboard?.remoteShowTasks ?? true,
-      remoteShowHandouts: state.soundboard?.remoteShowHandouts ?? true,
-      remoteShowActions: state.soundboard?.remoteShowActions ?? true,
-      remoteShowPlayers: state.soundboard?.remoteShowPlayers ?? false,
-      remoteShowDeadPlayers: state.soundboard?.remoteShowDeadPlayers ?? false,
-      remoteAllowPrivateNotes: state.soundboard?.remoteAllowPrivateNotes ?? false,
-      cols: state.soundboard?.cols || 4,
-      rows: state.soundboard?.rows || 3,
-      buttons: state.soundboard.buttons.map(b => ({
-        index: b.index,
-        name: b.name,
-        icon: b.icon,
-        color: b.color,
-        hasAudio: !!b.audioUrl,
-        isOneShot: b.isOneShot,
-        imageUrl: stripImage(b.imageUrl)
-      }))
-    },
-    isNight: state.isNight,
-    cycleMode: state.cycleMode,
-    isPublicMode: state.isPublicMode,
-    displaySettings: state.displaySettings,
-    wiki: state.wiki,
-    checklist: state.checklist,
-    room: {
-      ...state.room,
-      // Strip backgroundImage if it's a base64 blob — send only external URLs
-      backgroundImage: stripImage(state.room.backgroundImage),
-    },
-    customPopups: state.customPopups.map(p => ({
-      ...p,
-      imageUrl: stripImage(p.imageUrl)
-    })),
-    activeCustomPopupId: state.activeCustomPopupId,
-    activeGroupVote: state.activeGroupVote,
-    smartphoneCountdown: state.smartphoneCountdown,
-    timer: state.timer,
-    actions: state.actions.map(a => ({ id: a.id, name: a.name, enabled: a.enabled })),
-    logs: state.logs,
-  };
-
-  const payloadSize = JSON.stringify(payload).length;
-  if (payloadSize > 200_000) {
-    console.warn(`[VTT] Broadcast payload is large: ${Math.round(payloadSize / 1024)}KB. Some images may have been stripped.`);
+  if (broadcastTimeout !== null) {
+    clearTimeout(broadcastTimeout);
+    broadcastTimeout = null;
   }
-
-  currentChannel.send({
-    type: 'broadcast',
-    event: 'sync_state',
-    payload: payload,
-  }).catch(err => console.error("Broadcast failed", err));
+  // Reset broadcast state
+  lastBroadcastedState = null;
+  lastPositionBroadcast = 0;
 };
 
 export const setupHostRealtimeSubscription = () => {

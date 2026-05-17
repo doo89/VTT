@@ -57,6 +57,25 @@ export const EditingModal: React.FC = () => {
   const testAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const [isTesting, setIsTesting] = React.useState(false);
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+    });
+  };
+
+  const handleImageFile = async (file: File, onUpdate: (url: string) => void) => {
+    const supabaseUrl = await uploadFileToStorage(file);
+    if (supabaseUrl) {
+      onUpdate(supabaseUrl);
+    } else {
+      const base64 = await fileToBase64(file);
+      onUpdate(base64);
+    }
+  };
+
   // Stop test audio when closing or changing entity
   React.useEffect(() => {
     return () => {
@@ -194,10 +213,7 @@ export const EditingModal: React.FC = () => {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const url = await uploadFileToStorage(file);
-                    if (url) {
-                      updatePlayerTemplate(template.id, { imageUrl: url });
-                    }
+                    await handleImageFile(file, (url) => updatePlayerTemplate(template.id, { imageUrl: url }));
                   }
                 }}
                 className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
@@ -334,10 +350,7 @@ export const EditingModal: React.FC = () => {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const url = await uploadFileToStorage(file);
-                    if (url) {
-                      updatePlayer(player.id, { imageUrl: url });
-                    }
+                    await handleImageFile(file, (url) => updatePlayer(player.id, { imageUrl: url }));
                   }
                 }}
                 className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
@@ -657,10 +670,7 @@ export const EditingModal: React.FC = () => {
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const url = await uploadFileToStorage(file);
-                            if (url) {
-                              updateRole(role.id, { imageUrl: url });
-                            }
+                            await handleImageFile(file, (url) => updateRole(role.id, { imageUrl: url }));
                           }
                         }}
                         className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
@@ -897,10 +907,7 @@ export const EditingModal: React.FC = () => {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const url = await uploadFileToStorage(file);
-                    if (url) {
-                      updateTeam(team.id, { imageUrl: url });
-                    }
+                    await handleImageFile(file, (url) => updateTeam(team.id, { imageUrl: url }));
                   }
                 }}
                 className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
@@ -1311,10 +1318,7 @@ export const EditingModal: React.FC = () => {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          const url = await uploadFileToStorage(file);
-                          if (url) {
-                            updateTagModel(tag.id, { imageUrl: url });
-                          }
+                          await handleImageFile(file, (url) => updateTagModel(tag.id, { imageUrl: url }));
                         }
                       }}
                       className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
@@ -1974,10 +1978,7 @@ export const EditingModal: React.FC = () => {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const url = await uploadFileToStorage(file);
-                        if (url) {
-                          updateTagInstance({ imageUrl: url });
-                        }
+                        await handleImageFile(file, (url) => updateTagInstance({ imageUrl: url }));
                       }
                     }}
                     className="text-sm flex-1 text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
@@ -2801,10 +2802,7 @@ export const EditingModal: React.FC = () => {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const url = await uploadFileToStorage(file);
-                    if (url) {
-                      updateSoundButton(index, { imageUrl: url });
-                    }
+                    await handleImageFile(file, (url) => updateSoundButton(index, { imageUrl: url }));
                   }
                 }}
                 className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
