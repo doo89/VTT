@@ -1,9 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, PlayerTemplate, LogEvent, CustomPopup, GroupVote, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState, ActionEffect, ActionEffectCreatorState, PlayerShape, RoleSelectorState } from '../types';
+import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, HandoutCategory, PlayerTemplate, LogEvent, CustomPopup, GroupVote, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState, ActionEffect, ActionEffectCreatorState, PlayerShape, RoleSelectorState } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { executeAction as executeActionEngine } from '../lib/action-engine';
+import { storeAudio, deleteAudio, makeIdbKey } from '../lib/audio-storage';
+
+let undoLimit = 50;
+export const setUndoLimit = (limit: number) => {
+  undoLimit = limit;
+};
+export const getUndoLimit = () => undoLimit;
 
 export interface VttStore extends GameState {
   setCycleMode: (mode: GameState['cycleMode']) => void;
@@ -12,6 +19,7 @@ export interface VttStore extends GameState {
   setSoundboard: (soundboardUpdate: Partial<GameState['soundboard']>) => void;
   updateSoundButton: (index: number, updates: Partial<GameState['soundboard']['buttons'][0]>) => void;
   removeSoundButton: (index: number) => void;
+  swapSoundButtons: (indexA: number, indexB: number) => void;
   setScoreboard: (scoreboardUpdate: Partial<GameState['scoreboard']>) => void;
   setWiki: (wikiUpdate: Partial<GameState['wiki']>) => void;
   setChecklistState: (checklistUpdate: Partial<GameState['checklistState']>) => void;
@@ -37,11 +45,15 @@ export interface VttStore extends GameState {
   setPan: (x: number, y: number) => void;
   setZoom: (zoom: number) => void;
   setActiveLeftTab: (tab: GameState['activeLeftTab']) => void;
+  setGameTabState: (updates: Partial<GameState['gameTabState']>) => void;
+  resetGameTabState: () => void;
   setEditingEntity: (entity: GameState['editingEntity']) => void;
   toggleLeftPanel: () => void;
   toggleRightPanel: () => void;
+  toggleLeftPanelExpanded: () => void;
   isLeftPanelOpen: boolean;
   isRightPanelOpen: boolean;
+  isLeftPanelExpanded: boolean;
 
   // Tools
   setGrid: (grid: GameState['grid']) => void;
@@ -93,6 +105,11 @@ export interface VttStore extends GameState {
   updateHandout: (id: EntityId, updates: Partial<Handout>) => void;
   deleteHandout: (id: EntityId) => void;
   toggleHandout: (id: EntityId) => void;
+  bringToFrontHandout: (id: EntityId) => void;
+  handoutCategories: HandoutCategory[];
+  addHandoutCategory: (category: Omit<HandoutCategory, 'id'>) => void;
+  updateHandoutCategory: (id: EntityId, updates: Partial<HandoutCategory>) => void;
+  deleteHandoutCategory: (id: EntityId) => void;
 
   // Action Creator
   setActionCreatorState: (state: Partial<ActionCreatorState>) => void;
@@ -169,6 +186,9 @@ export interface VttStore extends GameState {
   snapPlayersToPoints: () => void;
   resetStore: () => void;
   setCoordinatePicker: (picker: { isActive: boolean; onPick?: (x: number, y: number) => void } | null) => void;
+  exportFullState: () => void;
+  exportPartialState: (sections: string[]) => void;
+  importState: (jsonData: string) => { success: boolean; error?: string };
 }
 
 export const initialState = {
@@ -192,6 +212,7 @@ export const initialState = {
   isMagneticEnabled: true,
   tagCategories: [],
   handouts: [],
+  handoutCategories: [],
   logs: [],
   recentColors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff', '#000000', '#6b7280'], // default colors
   customPopups: [],
@@ -231,7 +252,8 @@ export const initialState = {
     remoteShowPlayers: false,
     remoteShowDeadPlayers: false,
     remoteAllowPrivateNotes: false,
-    remotePlayTrigger: null
+    remotePlayTrigger: null,
+    remoteStopTrigger: null
   },
   scoreboard: {
     isDetached: false,
@@ -300,6 +322,13 @@ export const initialState = {
   activeLeftTab: 'players' as const,
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
+  isLeftPanelExpanded: false,
+  gameTabState: {
+    treatedEntities: [] as string[],
+    playerNotes: {} as Record<string, string>,
+    focusMode: false,
+    focusIndex: 0,
+  },
   editingEntity: null,
   smartphoneActionMessage: null,
   canvas: {
@@ -318,9 +347,11 @@ export const initialState = {
     height: 850,
     backgroundColor: '#6B7280',
     backgroundImage: null,
+    nightBackgroundImage: null,
     backgroundStyle: 'mosaic' as const,
   },
   displaySettings: {
+    showRolesOnBoard: true,
     showTooltip: true,
     showRole: true,
     showTeam: true,
@@ -343,6 +374,12 @@ export const initialState = {
       topRight: { type: 'none' as const, bgColor: '#ef4444', textColor: '#ffffff' },
       bottomLeft: { type: 'none' as const, bgColor: '#3b82f6', textColor: '#ffffff' },
       bottomRight: { type: 'none' as const, bgColor: '#10b981', textColor: '#ffffff' },
+    },
+    showPlayerBadges: {
+      topLeft: true,
+      topRight: true,
+      bottomLeft: true,
+      bottomRight: true,
     },
     smartphoneImageStyle: 'original' as const,
     panels: {
@@ -425,6 +462,40 @@ export const initialState = {
     magneticPointsSnapMode: 'nearest' as 'nearest' | 'order',
     magneticPointsFreeSnap: false,
     distributionActionId: null,
+    customShortcuts: {},
+    zoomMin: 0.1,
+    zoomMax: 5,
+    zoomSpeed: 0.001,
+    panSpeed: 1,
+    wheelBehavior: 'both' as const,
+    devMode: false,
+    fontSize: 1,
+    highContrast: false,
+    reduceMotion: false,
+    colorblindMode: 'none' as const,
+    undoLimit: 50,
+    imageRendering: 'auto' as const,
+    fpsLimit: 60,
+    lazyLoadImages: true,
+    lowQualityMode: false,
+    language: 'fr' as const,
+    customTheme: {},
+    customCSS: '',
+    focusModeGroupByOrder: false,
+    toolbarPosition: 'bottom-left' as const,
+    showToolbarZoom: true,
+    showToolbarResetView: true,
+    showToolbarUndoRedo: true,
+    showToolbarInteraction: true,
+    showToolbarGrid: true,
+    showToolbarCycle: true,
+    showToolbarTimer: true,
+    showToolbarMagneticPoints: true,
+    showToolbarCoordinates: true,
+    showToolbarRoles: true,
+    showToolbarGrimoire: true,
+    showToolbarSettings: true,
+    showToolbarFullscreen: true,
   },
   downloadLogs: () => {
     const logs = useVttStore.getState().logs;
@@ -474,8 +545,15 @@ export const useVttStore = create<VttStore>()(
   setCycleMode: (mode) => set({ cycleMode: mode }),
   setPublicMode: (mode) => set({ isPublicMode: mode }),
   setActiveLeftTab: (tab) => set({ activeLeftTab: tab }),
+  setGameTabState: (updates) => set((state) => ({
+    gameTabState: { ...state.gameTabState, ...updates }
+  })),
+  resetGameTabState: () => set({
+    gameTabState: { treatedEntities: [], playerNotes: {}, focusMode: false, focusIndex: 0 }
+  }),
   setEditingEntity: (entity) => set({ editingEntity: entity }),
   toggleLeftPanel: () => set((state) => ({ isLeftPanelOpen: !state.isLeftPanelOpen })),
+  toggleLeftPanelExpanded: () => set((state) => ({ isLeftPanelExpanded: !state.isLeftPanelExpanded })),
   toggleRightPanel: () => set((state) => {
     const newState = { isRightPanelOpen: !state.isRightPanelOpen };
     if (state.isRightPanelOpen && state.editingEntity?.type === 'soundButton') {
@@ -500,28 +578,47 @@ export const useVttStore = create<VttStore>()(
   setChecklistState: (update) => set((state) => ({ checklistState: { ...state.checklistState, ...update } })),
   setTagDistributorState: (update) => set((state) => ({ tagDistributorState: { ...state.tagDistributorState, ...update } })),
   setRoleSelectorState: (update) => set((state) => ({ roleSelectorState: { ...state.roleSelectorState, ...update } })),
-  updateSoundButton: (index, updates) => set((state) => {
-    const newButtons = [...state.soundboard.buttons];
-    const existingIndex = newButtons.findIndex(b => b.index === index);
-    if (existingIndex >= 0) {
-      newButtons[existingIndex] = { ...newButtons[existingIndex], ...updates };
-    } else {
-      newButtons.push({
-        index,
-        name: updates.name || '',
-        audioUrl: updates.audioUrl || '',
-        isOneShot: updates.isOneShot ?? true,
-        color: updates.color || '#3b82f6',
-        icon: updates.icon || 'Music',
-        volume: updates.volume ?? 1.0,
-        ...updates
-      });
+  updateSoundButton: (index, updates) => {
+    if (updates.audioUrl && updates.audioUrl.startsWith('data:')) {
+      const key = makeIdbKey(index);
+      storeAudio(key, updates.audioUrl).catch(() => {});
+      updates = { ...updates, audioUrl: `idb://${key}` };
     }
+    set((state) => {
+      const newButtons = [...state.soundboard.buttons];
+      const existingIndex = newButtons.findIndex(b => b.index === index);
+      if (existingIndex >= 0) {
+        newButtons[existingIndex] = { ...newButtons[existingIndex], ...updates };
+      } else {
+        newButtons.push({
+          index,
+          name: updates.name || '',
+          audioUrl: updates.audioUrl || '',
+          isOneShot: updates.isOneShot ?? true,
+          color: updates.color || '#3b82f6',
+          icon: updates.icon || 'Music',
+          volume: updates.volume ?? 1.0,
+          ...updates
+        });
+      }
+      return { soundboard: { ...state.soundboard, buttons: newButtons } };
+    });
+  },
+  removeSoundButton: (index) => {
+    deleteAudio(makeIdbKey(index)).catch(() => {});
+    set((state) => ({
+      soundboard: { ...state.soundboard, buttons: state.soundboard.buttons.filter(b => b.index !== index) }
+    }));
+  },
+  swapSoundButtons: (indexA, indexB) => set((state) => {
+    if (indexA === indexB) return state;
+    const newButtons = state.soundboard.buttons.map(b => {
+      if (b.index === indexA) return { ...b, index: indexB };
+      if (b.index === indexB) return { ...b, index: indexA };
+      return b;
+    });
     return { soundboard: { ...state.soundboard, buttons: newButtons } };
   }),
-  removeSoundButton: (index) => set((state) => ({
-    soundboard: { ...state.soundboard, buttons: state.soundboard.buttons.filter(b => b.index !== index) }
-  })),
 
   // Player Templates
   addPlayerTemplate: (templateData) => set((state) => ({
@@ -623,7 +720,12 @@ export const useVttStore = create<VttStore>()(
     markers: state.markers.map(m => m.tag.id === id ? { ...m, tag: { ...m.tag, ...updates } } : m)
   })),
   deleteTagModel: (id) => set((state) => ({
-    tags: state.tags.filter(t => t.id !== id)
+    tags: state.tags.filter(t => t.id !== id),
+    players: state.players.map(p => ({
+      ...p,
+      tags: p.tags.filter(t => t.id !== id)
+    })),
+    markers: state.markers.filter(m => m.tag.id !== id)
   })),
 
   // Tag Categories
@@ -634,7 +736,8 @@ export const useVttStore = create<VttStore>()(
     tagCategories: state.tagCategories.map(c => c.id === id ? { ...c, ...updates } : c)
   })),
   deleteTagCategory: (id) => set((state) => ({
-    tagCategories: state.tagCategories.filter(c => c.id !== id)
+    tagCategories: state.tagCategories.filter(c => c.id !== id),
+    tags: state.tags.map(t => t.categoryId === id ? { ...t, categoryId: null } : t)
   })),
 
   // Markers
@@ -662,6 +765,22 @@ export const useVttStore = create<VttStore>()(
   toggleHandout: (id) => set((state) => ({
     handouts: state.handouts.map(h => h.id === id ? { ...h, isOpen: !h.isOpen } : h)
   })),
+  bringToFrontHandout: (id) => set((state) => {
+    const maxZ = Math.max(0, ...state.handouts.map(h => h.zIndex || 0));
+    return {
+      handouts: state.handouts.map(h => h.id === id ? { ...h, zIndex: maxZ + 1 } : h)
+    };
+  }),
+  addHandoutCategory: (category) => set((state) => ({
+    handoutCategories: [...state.handoutCategories, { ...category, id: uuidv4() }]
+  })),
+  updateHandoutCategory: (id, updates) => set((state) => ({
+    handoutCategories: state.handoutCategories.map(c => c.id === id ? { ...c, ...updates } : c)
+  })),
+  deleteHandoutCategory: (id) => set((state) => ({
+    handoutCategories: state.handoutCategories.filter(c => c.id !== id),
+    handouts: state.handouts.map(h => h.category === id ? { ...h, category: undefined } : h)
+  })),
 
   // Game Logic
   setNight: (isNight) => set({ isNight }),
@@ -671,7 +790,8 @@ export const useVttStore = create<VttStore>()(
       msg = `Le jour se lève (Cycle ${state.cycleNumber + 1})`;
       const updates: any = { 
         isNight: false, 
-        cycleNumber: state.cycleNumber + 1
+        cycleNumber: state.cycleNumber + 1,
+        gameTabState: { ...state.gameTabState, treatedEntities: [], playerNotes: {}, focusIndex: 0 }
       };
       if (state.displaySettings.recordLogs !== false) {
         updates.logs = [{ id: uuidv4(), timestamp: Date.now(), message: msg, type: 'system' as const }, ...state.logs].slice(0, 100);
@@ -679,14 +799,17 @@ export const useVttStore = create<VttStore>()(
       return updates;
     } else {
       msg = `La nuit tombe (Cycle ${state.cycleNumber})`;
-      const updates: any = { isNight: true };
+      const updates: any = {
+        isNight: true,
+        gameTabState: { ...state.gameTabState, treatedEntities: [], playerNotes: {}, focusIndex: 0 }
+      };
       if (state.displaySettings.recordLogs !== false) {
         updates.logs = [{ id: uuidv4(), timestamp: Date.now(), message: msg, type: 'system' as const }, ...state.logs].slice(0, 100);
       }
       return updates;
     }
   }),
-  resetCycle: () => set({ isNight: false, cycleNumber: 1 }),
+  resetCycle: () => set({ isNight: false, cycleNumber: 1, gameTabState: { treatedEntities: [], playerNotes: {}, focusMode: false, focusIndex: 0 } }),
 
   // Settings
       updateDisplaySettings: (updates) => set((state) => ({
@@ -891,6 +1014,127 @@ export const useVttStore = create<VttStore>()(
         }),
         resetStore: () => set({ ...initialState }),
         setCoordinatePicker: (picker: { isActive: boolean; onPick?: (x: number, y: number) => void } | null) => set({ coordinatePicker: picker }),
+        exportFullState: () => {
+          const state = get();
+          const exportData = {
+            version: '1.0',
+            exportedAt: new Date().toISOString(),
+            roomName: state.roomName,
+            data: {
+              players: state.players,
+              roles: state.roles,
+              teams: state.teams,
+              tags: state.tags,
+              tagCategories: state.tagCategories,
+              markers: state.markers,
+              handouts: state.handouts,
+              handoutCategories: state.handoutCategories,
+              actions: state.actions,
+              customPopups: state.customPopups,
+              checklist: state.checklist,
+              magneticPoints: state.magneticPoints,
+              displaySettings: state.displaySettings,
+              soundboard: state.soundboard,
+              scoreboard: state.scoreboard,
+              wiki: state.wiki,
+              room: state.room,
+              grid: state.grid,
+              cycleMode: state.cycleMode,
+              isNight: state.isNight,
+              cycleNumber: state.cycleNumber,
+              gameTabState: state.gameTabState,
+              timer: state.timer,
+              playerTemplates: state.playerTemplates,
+            }
+          };
+          const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `vtt-export-${state.roomName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        },
+        exportPartialState: (sections: string[]) => {
+          const state = get();
+          const sectionMap: Record<string, any> = {
+            players: state.players,
+            roles: state.roles,
+            teams: state.teams,
+            tags: state.tags,
+            tagCategories: state.tagCategories,
+            markers: state.markers,
+            handouts: state.handouts,
+            actions: state.actions,
+            customPopups: state.customPopups,
+            checklist: state.checklist,
+            magneticPoints: state.magneticPoints,
+            displaySettings: state.displaySettings,
+            soundboard: state.soundboard,
+            scoreboard: state.scoreboard,
+            wiki: state.wiki,
+            room: state.room,
+            grid: state.grid,
+            playerTemplates: state.playerTemplates,
+          };
+          const exportData = {
+            version: '1.0',
+            exportedAt: new Date().toISOString(),
+            roomName: state.roomName,
+            sections,
+            data: Object.fromEntries(sections.filter(s => sectionMap[s] !== undefined).map(s => [s, sectionMap[s]])),
+          };
+          const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `vtt-export-partial-${new Date().toISOString().split('T')[0]}.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        },
+        importState: (jsonData: string) => {
+          try {
+            const parsed = JSON.parse(jsonData);
+            if (!parsed.data || typeof parsed.data !== 'object') {
+              return { success: false, error: 'Format de fichier invalide' };
+            }
+            const data = parsed.data;
+            const updates: Partial<any> = {};
+            if (data.players) updates.players = data.players;
+            if (data.roles) updates.roles = data.roles;
+            if (data.teams) updates.teams = data.teams;
+            if (data.tags) updates.tags = data.tags;
+            if (data.tagCategories) updates.tagCategories = data.tagCategories;
+            if (data.markers) updates.markers = data.markers;
+            if (data.handouts) updates.handouts = data.handouts;
+            if (data.handoutCategories) updates.handoutCategories = data.handoutCategories;
+            if (data.actions) updates.actions = data.actions;
+            if (data.customPopups) updates.customPopups = data.customPopups;
+            if (data.checklist) updates.checklist = data.checklist;
+            if (data.magneticPoints) updates.magneticPoints = data.magneticPoints;
+            if (data.displaySettings) updates.displaySettings = { ...get().displaySettings, ...data.displaySettings };
+            if (data.soundboard) updates.soundboard = { ...get().soundboard, ...data.soundboard };
+            if (data.scoreboard) updates.scoreboard = { ...get().scoreboard, ...data.scoreboard };
+            if (data.wiki) updates.wiki = { ...get().wiki, ...data.wiki };
+            if (data.room) updates.room = { ...get().room, ...data.room };
+            if (data.grid) updates.grid = { ...get().grid, ...data.grid };
+            if (data.cycleMode) updates.cycleMode = data.cycleMode;
+            if (data.isNight !== undefined) updates.isNight = data.isNight;
+            if (data.cycleNumber !== undefined) updates.cycleNumber = data.cycleNumber;
+            if (data.gameTabState) updates.gameTabState = { ...get().gameTabState, ...data.gameTabState };
+            if (data.timer) updates.timer = { ...get().timer, ...data.timer };
+            if (data.playerTemplates) updates.playerTemplates = data.playerTemplates;
+            if (parsed.roomName) updates.roomName = parsed.roomName;
+            set(updates);
+            return { success: true };
+          } catch (e) {
+            return { success: false, error: 'Erreur de parsing JSON' };
+          }
+        },
       }),
       {
         partialize: (state) => ({
@@ -911,13 +1155,15 @@ export const useVttStore = create<VttStore>()(
           tagDistributorState: state.tagDistributorState,
           magneticPoints: state.magneticPoints,
           showMagneticPoints: state.showMagneticPoints,
+          gameTabState: state.gameTabState,
         }),
-        limit: 50, // Keep last 50 states to prevent memory issues
+        limit: undoLimit,
         equality: (pastState, currentState) => {
           return pastState.players === currentState.players &&
                  pastState.markers === currentState.markers &&
                  pastState.isNight === currentState.isNight &&
-                 pastState.cycleNumber === currentState.cycleNumber;
+                 pastState.cycleNumber === currentState.cycleNumber &&
+                 pastState.gameTabState === currentState.gameTabState;
         },
       }
     ),
@@ -931,6 +1177,22 @@ export const useVttStore = create<VttStore>()(
           state.actionEffectCreatorState = { ...state.actionEffectCreatorState, isOpen: false, editingEffectId: null };
           state.pendingActionConditions = [];
           state.pendingActionEffects = [];
+
+          // Migration: move base64 audio from localStorage to IndexedDB
+          const buttons = state.soundboard?.buttons;
+          if (buttons) {
+            buttons.forEach(btn => {
+              if (btn.audioUrl && btn.audioUrl.startsWith('data:')) {
+                const key = makeIdbKey(btn.index);
+                storeAudio(key, btn.audioUrl).then(() => {
+                  const current = useVttStore.getState().soundboard.buttons.find(b => b.index === btn.index);
+                  if (current && current.audioUrl === btn.audioUrl) {
+                    useVttStore.getState().updateSoundButton(btn.index, { audioUrl: `idb://${key}` });
+                  }
+                }).catch(() => {});
+              }
+            });
+          }
         }
       },
       partialize: (state) => {

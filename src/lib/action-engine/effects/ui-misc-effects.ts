@@ -249,6 +249,30 @@ export const handleSetRoomColor: EffectHandler = (effect, context, state) => {
 };
 
 /**
+ * Increment call order effect
+ */
+export const handleIncrementCallOrder: EffectHandler = (effect, context, state, storeApi) => {
+  state.callOrderIndex = (state.callOrderIndex || 0) + 1;
+  storeApi?.addLog(`$Ordre incrémenté → ${state.callOrderIndex}`, 'action');
+};
+
+/**
+ * Decrement call order effect
+ */
+export const handleDecrementCallOrder: EffectHandler = (effect, context, state, storeApi) => {
+  state.callOrderIndex = Math.max(0, (state.callOrderIndex || 0) - 1);
+  storeApi?.addLog(`$Ordre décrémenté → ${state.callOrderIndex}`, 'action');
+};
+
+/**
+ * Reset call order effect
+ */
+export const handleResetCallOrder: EffectHandler = (effect, context, state, storeApi) => {
+  state.callOrderIndex = 0;
+  storeApi?.addLog(`$Ordre réinitialisé → 0`, 'action');
+};
+
+/**
  * Roll dice effect
  */
 export const handleRollDice: EffectHandler = (effect, context, state, storeApi) => {

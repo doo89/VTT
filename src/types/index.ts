@@ -42,6 +42,7 @@ export interface Player {
   isAsleep?: boolean;
   lastDiceResult?: { id: string, result: number, formula: string, timestamp: number } | null;
   activeParticle?: { id: string, type: 'confetti' | 'blood' | 'magic' | 'fire' | 'poison', duration: number } | null;
+  coupleId?: string | null;
 }
 
 export interface PlayerTemplate {
@@ -55,6 +56,7 @@ export interface PlayerTemplate {
   smartphoneImageStyle?: 'circle' | 'square' | 'original' | 'background' | 'none';
   isSleeping?: boolean;
   shape?: PlayerShape;
+  description?: string;
 }
 
 export interface Role {
@@ -172,7 +174,7 @@ export interface MagneticPoint {
   order: number;
 }
 
-export type PlayerShape = 'circle' | 'square' | 'oval' | 'triangle' | 'trapezoid' | 'octagon' | 'star' | 'pentagon' | 'hexagon';
+export type PlayerShape = 'circle' | 'square' | 'oval' | 'triangle' | 'trapezoid' | 'octagon' | 'star' | 'pentagon' | 'hexagon' | 'diamond' | 'shield' | 'cross' | 'heart' | 'crescent';
 
 export type BadgeType = 'none' | 'team' | 'lives' | 'votes' | 'points' | 'uses' | 'callOrderDay' | 'callOrderNight' | 'connection' | 'creationOrder' | 'sleeping';
 
@@ -191,14 +193,25 @@ export interface BadgeConfig {
 export interface Handout {
   id: EntityId;
   name: string;
-  imageUrl: string; // URL of the file (image or PDF)
-  type: 'image' | 'pdf';
+  imageUrl: string;
+  referenceImageUrl?: string;
+  type: 'image' | 'pdf' | 'text';
+  content?: string;
   isOpen: boolean;
   x: number;
   y: number;
   width: number;
   height: number;
   isMaximized?: boolean;
+  zIndex?: number;
+  category?: string;
+}
+
+export interface HandoutCategory {
+  id: EntityId;
+  name: string;
+  color?: string;
+  collapsed?: boolean;
 }
 
 export interface SoundButton {
@@ -210,6 +223,9 @@ export interface SoundButton {
   color?: string;
   imageUrl?: string;
   volume?: number;
+  shortcut?: string;
+  category?: string;
+  isAmbient?: boolean;
 }
 
 export interface LogEvent {
@@ -236,6 +252,7 @@ export interface SoundboardState {
   remoteShowDeadPlayers?: boolean;
   remoteAllowPrivateNotes?: boolean;
   remotePlayTrigger?: { index: number, timestamp: number } | null;
+  remoteStopTrigger?: { index: number, timestamp: number } | null;
 }
 
 export interface CustomPopup {
@@ -389,6 +406,7 @@ export type ActionEffectType =
   | 'removePlayerRole'
   | 'swapPlayerRole'
   | 'movePlayerToGraveyard'
+  | 'moveCibleToGraveyard'
   | 'gatherPlayers'
   | 'changePlayerShape'
   | 'swapPlayerTags'
@@ -409,7 +427,14 @@ export type ActionEffectType =
   | 'stopExecution'
   | 'toggleActionEnabled'
   | 'resetBoard'
-  | 'playParticleEffect';
+  | 'playParticleEffect'
+  | 'createCouple'
+  | 'killPartner'
+  | 'randomSelect'
+  | 'checkRole'
+  | 'revealRoleToGM'
+  | 'infectPlayer'
+  | 'curePlayer';
 
 export interface ActionEffect {
   id: string;
@@ -443,7 +468,7 @@ export interface ActionEffect {
   pastilleIcon?: string;
   pastilleColor?: string;
   pastilleMode?: 'add' | 'remove' | 'toggle';
-  swapTargetMode?: 'role' | 'tag' | 'random';
+  swapTargetMode?: 'role' | 'tag' | 'random' | 'cible';
   targetX?: number;
   targetY?: number;
   gatherRadius?: number;
@@ -467,9 +492,22 @@ export interface ActionEffect {
   actionEnabledMode?: 'enable' | 'disable' | 'toggle';
   particleType?: 'confetti' | 'blood' | 'magic' | 'fire' | 'poison';
   particleDuration?: number;
+  targetRoleId?: string | null;
+  targetTagId?: string | null;
+  targetTeamId?: string | null;
+  selectionType?: 'first' | 'last' | 'all' | 'callOrder' | 'numeric' | 'random' | 'role' | 'tag' | 'pastille' | 'team' | 'alive' | null;
+  selectionRoleId?: string | null;
+  selectionTagId?: string | null;
+  selectionTeamId?: string | null;
+  selectionStatus?: 'alive' | 'dead' | null;
+  excludeSelf?: boolean;
+  excludeDead?: boolean;
+  excludeRoleIds?: string[];
+  excludeTagIds?: string[];
+  excludeTeamIds?: string[];
 }
 
-export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck' | 'playerSelectionStatus' | 'playerSelectionRoleAndTeam';
+export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck' | 'playerSelectionStatus' | 'playerSelectionRoleAndTeam' | 'roleCount' | 'hasTag' | 'randomChance' | 'isCouple' | 'partnerDead' | 'targetExists' | 'playerAlive' | 'playerDead' | 'isNightPhase' | 'isDayPhase';
 export type ActionOperator = '=' | '<' | '>' | '!=' | '<=' | '>=' | 'modulo' | '';
 
 export interface ActionCondition {
@@ -495,6 +533,8 @@ export interface ActionCondition {
   distanceUnit?: 'logical' | 'physical' | null;
   enabled: boolean;
   logic?: 'AND' | 'OR';
+  chancePercent?: number;
+  targetPlayerId?: string | null;
 }
 
 export interface ActionCreatorState {
@@ -556,6 +596,7 @@ export interface GameState {
   tags: TagModel[];
   tagCategories: TagCategory[];
   handouts: Handout[];
+  handoutCategories: HandoutCategory[];
   logs: LogEvent[];
   recentColors: string[];
   customPopups: CustomPopup[];
@@ -612,6 +653,12 @@ export interface GameState {
     showStatus: boolean;
   };
   activeLeftTab: 'players' | 'roles' | 'tags' | 'game' | 'handouts';
+  gameTabState: {
+    treatedEntities: string[];
+    playerNotes: Record<string, string>;
+    focusMode: boolean;
+    focusIndex: number;
+  };
   editingEntity: { type: 'player' | 'playerTemplate' | 'role' | 'tagModel' | 'tagInstance' | 'team' | 'tagCategory' | 'playerNotes' | 'playerPublicNotes' | 'soundButton', id: EntityId, parentId?: EntityId } | null;
   canvas: {
     panX: number;
@@ -629,10 +676,12 @@ export interface GameState {
     height: number;
     backgroundColor: string;
     backgroundImage: string | null;
+    nightBackgroundImage: string | null;
     backgroundStyle: 'mosaic' | 'center' | 'stretch';
     minimapImageUrl?: string | null;
   };
   displaySettings: {
+    showRolesOnBoard: boolean;
     showTooltip: boolean;
     showRole: boolean;
     showTeam: boolean;
@@ -655,6 +704,12 @@ export interface GameState {
       topRight: BadgeConfig;
       bottomLeft: BadgeConfig;
       bottomRight: BadgeConfig;
+    };
+    showPlayerBadges: {
+      topLeft: boolean;
+      topRight: boolean;
+      bottomLeft: boolean;
+      bottomRight: boolean;
     };
     smartphoneImageStyle: 'circle' | 'square' | 'original' | 'background' | 'none';
     panels: {
@@ -737,5 +792,48 @@ export interface GameState {
     magneticPointsSnapMode?: 'nearest' | 'order';
     magneticPointsFreeSnap?: boolean;
     distributionActionId?: string | null;
+    customShortcuts?: Record<string, { key: string; modifiers: { ctrl?: boolean; shift?: boolean; alt?: boolean } }>;
+    zoomMin?: number;
+    zoomMax?: number;
+    zoomSpeed?: number;
+    panSpeed?: number;
+    wheelBehavior?: 'zoom' | 'pan' | 'both';
+    devMode?: boolean;
+    fontSize?: number;
+    highContrast?: boolean;
+    reduceMotion?: boolean;
+    colorblindMode?: 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia';
+    undoLimit?: number;
+    imageRendering?: 'auto' | 'pixelated' | 'crisp-edges';
+    fpsLimit?: number;
+    lazyLoadImages?: boolean;
+    lowQualityMode?: boolean;
+    language?: 'fr' | 'en' | 'es' | 'de' | 'it' | 'pt' | 'ja' | 'zh';
+    customTheme?: {
+      primary?: string;
+      background?: string;
+      card?: string;
+      muted?: string;
+      border?: string;
+      accent?: string;
+      destructive?: string;
+      ring?: string;
+    };
+    customCSS?: string;
+    focusModeGroupByOrder?: boolean;
+    toolbarPosition?: 'bottom-left' | 'bottom-center' | 'bottom-right' | 'top-left' | 'top-center' | 'top-right' | 'hidden';
+    showToolbarZoom?: boolean;
+    showToolbarResetView?: boolean;
+    showToolbarUndoRedo?: boolean;
+    showToolbarInteraction?: boolean;
+    showToolbarGrid?: boolean;
+    showToolbarCycle?: boolean;
+    showToolbarTimer?: boolean;
+    showToolbarMagneticPoints?: boolean;
+    showToolbarCoordinates?: boolean;
+    showToolbarRoles?: boolean;
+    showToolbarGrimoire?: boolean;
+    showToolbarSettings?: boolean;
+    showToolbarFullscreen?: boolean;
   };
 }

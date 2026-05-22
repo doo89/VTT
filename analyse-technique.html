@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse VTTApp - Supabase & Synchronisation</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.7;
+            color: #1f2937;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 40px;
+            background: #ffffff;
+        }
+        h1 {
+            font-size: 28px;
+            color: #1e40af;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 12px;
+            margin-top: 40px;
+        }
+        h2 {
+            font-size: 22px;
+            color: #1d4ed8;
+            margin-top: 36px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+        }
+        h3 {
+            font-size: 18px;
+            color: #2563eb;
+            margin-top: 28px;
+        }
+        p {
+            margin: 12px 0;
+        }
+        code {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #0f172a;
+        }
+        pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 16px 0;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .key-comment { color: #64748b; }
+        .key-string { color: #22c55e; }
+        .key-keyword { color: #a78bfa; }
+        .key-type { color: #38bdf8; }
+        ul, ol {
+            padding-left: 24px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .diagram {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            margin: 20px 0;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        .badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 2px;
+        }
+        .badge-green {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .badge-amber {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: #334155;
+        }
+        .toc {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px 28px;
+            margin: 24px 0;
+        }
+        .toc h2 {
+            border: none;
+            padding-left: 0;
+            margin-top: 0;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            padding: 4px 0;
+        }
+        .toc a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .highlight-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+        @media print {
+            body {
+                padding: 0;
+                max-width: none;
+            }
+            .no-print {
+                display: none;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            pre {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+        <button onclick="window.print()" style="background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer;">
+            Imprimer en PDF
+        </button>
+    </div>
+
+    <h1>Analyse Technique VTTApp</h1>
+    <p style="color: #64748b; font-size: 14px;">
+        Connexion Supabase &middot; Fichier .env.example &middot; Synchronisation MJ &harr; Smartphone (/join)
+    </p>
+    <p style="color: #64748b; font-size: 14px;">Date : 17 mai 2026</p>
+
+    <div class="toc">
+        <h2>Table des mati&egrave;res</h2>
+        <ul>
+            <li><a href="#section-1">1. Connexion avec Supabase</a></li>
+            <li><a href="#section-2">2. Utilisation du fichier .env.example</a></li>
+            <li><a href="#section-3">3. Synchronisation des donn&eacute;es MJ &harr; Smartphone</a>
+                <ul>
+                    <li><a href="#section-3-1">3.1 Architecture g&eacute;n&eacute;rale</a></li>
+                    <li><a href="#section-3-2">3.2 C&ocirc;t&eacute; MJ (Host)</a></li>
+                    <li><a href="#section-3-3">3.3 C&ocirc;t&eacute; Smartphone (Player)</a></li>
+                    <li><a href="#section-3-4">3.4 Flow de connexion d'un joueur</a></li>
+                    <li><a href="#section-3-5">3.5 &Eacute;v&eacute;nements &eacute;chang&eacute;s</a></li>
+                    <li><a href="#section-3-6">3.6 Optimisations</a></li>
+                </ul>
+            </li>
+            <li><a href="#section-4">4. Store Zustand</a></li>
+            <li><a href="#section-5">5. R&eacute;sum&eacute; des fichiers cl&eacute;s</a></li>
+        </ul>
+    </div>
+
+    <!-- ==================== SECTION 1 ==================== -->
+    <h2 id="section-1">1. Connexion avec Supabase</h2>
+
+    <h3>1.1 Fichier principal : <code>src/lib/supabase.ts</code></h3>
+
+    <p>Le client Supabase est initialis&eacute; avec un syst&egrave;me de <strong>cascade de priorit&eacute;s</strong> pour r&eacute;soudre les credentials (URL et cl&eacute; anon).</p>
+
+    <h3>1.2 Cascade de r&eacute;solution des credentials</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Priorit&eacute;</th>
+                <th>Source</th>
+                <th>Cl&eacute;s</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="badge">1</span></td>
+                <td>Param&egrave;tres URL</td>
+                <td><code>?sburl=</code> / <code>?sbkey=</code></td>
+                <td>Base64 encod&eacute;s, stock&eacute;s en sessionStorage</td>
+            </tr>
+            <tr>
+                <td><span class="badge">2</span></td>
+                <td>sessionStorage</td>
+                <td><code>VTT_SB_URL_OVERRIDE</code></td>
+                <td>Persiste pendant la session du navigateur</td>
+            </tr>
+            <tr>
+                <td><span class="badge">3</span></td>
+                <td>localStorage</td>
+                <td><code>VTT_SUPABASE_URL</code></td>
+                <td>Persiste entre les sessions</td>
+            </tr>
+            <tr>
+                <td><span class="badge">4</span></td>
+                <td>Variables d'environnement</td>
+                <td><code>VITE_SUPABASE_URL</code></td>
+                <td>Fallback d&eacute;fini dans <code>.env</code></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>1.3 Logique d'initialisation</h3>
+
+    <pre><code><span class="key-keyword">const</span> supabaseUrl = <span class="key-type">getEnvUrl</span>() <span class="key-keyword">as</span> string;
+<span class="key-keyword">const</span> supabaseAnonKey = <span class="key-type">getEnvKey</span>() <span class="key-keyword">as</span> string;
+
+<span class="key-keyword">let</span> sbClient = <span class="key-keyword">null</span>;
+<span class="key-keyword">if</span> (supabaseUrl && supabaseAnonKey && supabaseUrl.<span class="key-type">startsWith</span>(<span class="key-string">'http'</span>)) {
+  sbClient = <span class="key-type">createClient</span>(supabaseUrl, supabaseAnonKey);
+}
+
+<span class="key-comment">// Le client peut être null (permet le dev local sans Supabase)</span>
+<span class="key-keyword">export const</span> supabase = sbClient;</code></pre>
+
+    <h3>1.4 Fonctions utilitaires</h3>
+
+    <ul>
+        <li><code>uploadFileToStorage(file: File)</code> &rarr; Upload vers le bucket <code>images-all</code>, retourne l'URL publique</li>
+        <li><code>deleteFileFromStorage(fileUrl: string)</code> &rarr; Supprime un fichier du bucket via son URL publique</li>
+    </ul>
+
+    <h3>1.5 Types export&eacute;s</h3>
+
+    <ul>
+        <li><code>SyncStatePayload</code> &rarr; Structure compl&egrave;te de l'&eacute;tat broadcast&eacute; (players, roles, teams, tags, handouts, wiki, room, logs, etc.)</li>
+        <li><code>JoinRequestPayload</code> &rarr; Payload de demande de connexion (<code>playerName</code>)</li>
+    </ul>
+
+    <!-- ==================== SECTION 2 ==================== -->
+    <h2 id="section-2">2. Utilisation du fichier .env.example</h2>
+
+    <h3>2.1 Contenu</h3>
+
+    <pre><code><span class="key-comment"># .env.example</span>
+<span class="key-type">VITE_SUPABASE_URL</span>=<span class="key-string">https://qxtnkhwjvhorvadjwmfh.supabase.co</span>
+<span class="key-type">VITE_SUPABASE_ANON_KEY</span>=<span class="key-string">sb_publishable_lyk52r8Cy5Y_F8K14Orw_51yurkaD</span></code></pre>
+
+    <h3>2.2 R&ocirc;le</h3>
+
+    <ul>
+        <li>Fournit les <strong>credentials par d&eacute;faut</strong> pour Supabase</li>
+        <li>Utilis&eacute; comme <strong>dernier fallback</strong> dans la cascade de <code>getEnvUrl()</code> / <code>getEnvKey()</code></li>
+        <li>Le pr&eacute;fixe <code>VITE_</code> est requis pour que Vite expose ces variables au client via <code>import.meta.env</code></li>
+    </ul>
+
+    <div class="highlight-box">
+        <strong>Important :</strong> Le fichier <code>.env.example</code> sert de template. En production ou en local, il faut cr&eacute;er un fichier <code>.env</code> (non versionn&eacute;) avec ses propres credentials Supabase.
+    </div>
+
+    <h3>2.3 Fichiers .env.example trouv&eacute;s</h3>
+
+    <ul>
+        <li><code>.env.example</code> &rarr; Racine du projet (principal)</li>
+        <li><code>public/.env.example</code> &rarr; Probablement redondant ou pour un autre usage</li>
+    </ul>
+
+    <!-- ==================== SECTION 3 ==================== -->
+    <h2 id="section-3">3. Synchronisation des donn&eacute;es MJ &harr; Smartphone</h2>
+
+    <h3 id="section-3-1">3.1 Architecture g&eacute;n&eacute;rale</h3>
+
+    <p>Le syst&egrave;me utilise une architecture <strong>Hub-and-Spoke</strong> via Supabase Realtime. Le MJ est le hub central, les smartphones sont des clients connect&eacute;s au m&ecirc;me canal.</p>
+
+    <div class="diagram">
+                    +-----------------+
+                    |    Supabase     |
+                    |   Realtime      |
+                    |   Channel       |
+                    +--------+--------+
+                             |
+            +----------------+----------------+
+            |                |                |
+            v                v                v
+       +---------+      +--------+      +--------+
+       |   MJ    |      | Joueur |      | Joueur |
+       |  (Host) |      |   1    |      |   2    |
+       +---------+      +--------+      +--------+</div>
+
+    <h3>3.2 Canaux de communication</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>&Eacute;l&eacute;ment</th>
+                <th>Canal Supabase</th>
+                <th>Cl&eacute; de pr&eacute;sence</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>MJ (Host)</td>
+                <td><code>room:{roomCode}</code></td>
+                <td><code>'host'</code></td>
+            </tr>
+            <tr>
+                <td>Smartphone (Player)</td>
+                <td><code>room:{roomId}</code></td>
+                <td><code>playerName</code></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 id="section-3-2">3.3 C&ocirc;t&eacute; MJ (Host)</h3>
+
+    <p><strong>Fichier :</strong> <code>src/lib/realtime-host.ts</code></p>
+
+    <h4>Initialisation</h4>
+    <ul>
+        <li><code>setupHostRealtimeSubscription()</code> s'abonne au store Zustand</li>
+        <li>D&egrave;s qu'un <code>roomCode</code> est g&eacute;n&eacute;r&eacute;, <code>initHostRealtime(code)</code> cr&eacute;e le canal</li>
+        <li>Le canal est configur&eacute; avec <code>broadcast: { self: false, ack: false }</code> pour optimiser les performances</li>
+    </ul>
+
+    <h4>Broadcast de l'&eacute;tat</h4>
+    <p>Chaque changement du store d&eacute;clenche un broadcast :</p>
+
+    <ul>
+        <li><span class="badge badge-green">Full sync</span> <code>sync_state</code> &rarr; &Eacute;tat complet envoy&eacute; au premier chargement ou quand le diff est trop volumineux</li>
+        <li><span class="badge badge-amber">Diff sync</span> <code>sync_state_diff</code> &rarr; Uniquement les champs modifi&eacute;s (optimis&eacute; via <code>state-diff.ts</code>)</li>
+    </ul>
+
+    <p>M&eacute;canismes de contr&ocirc;le du d&eacute;bit :</p>
+    <ul>
+        <li><strong>Debounce</strong> : 150ms apr&egrave;s le dernier changement avant broadcast</li>
+        <li><strong>Throttle positions</strong> : pan/zoom limit&eacute; &agrave; 2 broadcasts/seconde (500ms)</li>
+        <li><strong>Seuil payload</strong> : si le diff exc&egrave;de 200KB, fallback vers un full broadcast</li>
+    </ul>
+
+    <h4>&Eacute;coute des &eacute;v&eacute;nements clients</h4>
+    <p>Le MJ &eacute;coute et traite les &eacute;v&eacute;nements suivants :</p>
+    <ul>
+        <li><code>join_request</code> &rarr; Ajoute le joueur automatiquement (room publique) ou met en file d'attente (room priv&eacute;e)</li>
+        <li><code>get_state</code> &rarr; Force un broadcast imm&eacute;diat de l'&eacute;tat complet</li>
+        <li><code>smartphone_action</code> &rarr; Traite les actions complexes des tags (s&eacute;lection de joueurs, fusion de tags, feedback, r&eacute;v&eacute;lation d'info, v&eacute;rification de r&ocirc;le, etc.)</li>
+        <li><code>poll_response</code> &rarr; Enregistre la r&eacute;ponse d'un joueur &agrave; un sondage</li>
+        <li><code>group_vote_response</code> &rarr; Enregistre un vote dans un vote de groupe</li>
+        <li><code>close_group_vote</code> &rarr; Calcule les r&eacute;sultats et assigne le tag au gagnant</li>
+        <li><code>soundboard_action</code> &rarr; D&eacute;clenche un son &agrave; distance (v&eacute;rification du passcode)</li>
+        <li><code>checklist_action</code> &rarr; Coche/d&eacute;coche un item de checklist &agrave; distance</li>
+        <li><code>action_trigger</code> &rarr; Ex&eacute;cute une action &agrave; distance</li>
+        <li><code>remote_player_update</code> &rarr; Met &agrave; jour les notes priv&eacute;es d'un joueur</li>
+    </ul>
+
+    <h3 id="section-3-3">3.4 C&ocirc;t&eacute; Smartphone (Player)</h3>
+
+    <p><strong>Fichier :</strong> <code>src/pages/PlayerView.tsx</code></p>
+
+    <h4>Connexion</h4>
+    <ul>
+        <li>Rejoint le canal <code>room:{roomId}</code> avec <code>presence: { key: playerName }</code></li>
+        <li>Utilise <code>matchedPlayerIdRef</code> (ref) pour r&eacute;sister aux renommages par le MJ</li>
+    </ul>
+
+    <h4>R&eacute;ception du state (<code>sync_state</code>)</h4>
+    <ul>
+        <li>Trouve le joueur par <strong>ID</strong> (priorit&eacute;) ou par <strong>nom normalis&eacute;</strong> (accents supprim&eacute;s, lowercase)</li>
+        <li>Stocke <code>matchedPlayerIdRef.current</code> pour les mises &agrave; jour futures</li>
+        <li>Envoie <code>channel.track({ playerId, name })</code> pour la pr&eacute;sence</li>
+        <li>Met &agrave; jour tous les state locaux : r&ocirc;le, &eacute;quipe, tags, handouts, wiki, logs, custom popups, votes, countdown, timer</li>
+    </ul>
+
+    <h4>Actions joueur</h4>
+    <p><code>handleSmartphoneAction()</code> envoie un &eacute;v&eacute;nement <code>smartphone_action</code> au MJ avec :</p>
+    <ul>
+        <li><code>playerName</code> et <code>playerId</code></li>
+        <li><code>tagInstanceId</code> &rarr; Le tag concern&eacute;</li>
+        <li><code>feedbackMessage</code> &rarr; Message &agrave; afficher au MJ</li>
+        <li><code>selectedPlayerIds</code> &rarr; Joueurs s&eacute;lectionn&eacute;s (pour les s&eacute;lecteurs)</li>
+        <li><code>smartphoneReturnInfo</code> &rarr; Type d'info &agrave; r&eacute;v&eacute;ler (role, team, seen_role, seen_team)</li>
+        <li><code>autoDeleteSmartphoneUI</code> &rarr; Supprimer le tag apr&egrave;s utilisation</li>
+    </ul>
+
+    <h3 id="section-3-4">3.5 Flow de connexion d'un joueur</h3>
+
+    <div class="diagram">
+Smartphone                          MJ (Host)
+    |                                   |
+    |  1. Rejoint canal room:{code}     |
+    |---------------------------------->|
+    |                                   |
+    |  2. join_request { playerName }   |
+    |---------------------------------->|
+    |                                   |
+    |  3. get_state                     |
+    |---------------------------------->|
+    |                                   |
+    |         4. sync_state (full)      |
+    |<----------------------------------|
+    |                                   |
+    |  5. Trouve joueur par nom/ID      |
+    |     matchedPlayerIdRef = found.id |
+    |                                   |
+    |  6. track({ playerId, name })     |
+    |---------------------------------->|
+    |                                   |
+    |  7. Retry toutes les 4s si        |
+    |     pas match&eacute; jusqu'&agrave; succ&egrave;s  |
+    |---------------------------------->|</div>
+
+    <h3 id="section-3-5">3.6 &Eacute;v&eacute;nements &eacute;chang&eacute;s</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>&Eacute;v&eacute;nement</th>
+                <th>Direction</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>join_request</code></td>
+                <td>Player &rarr; Host</td>
+                <td>Demande de connexion &agrave; la salle</td>
+            </tr>
+            <tr>
+                <td><code>get_state</code></td>
+                <td>Player &rarr; Host</td>
+                <td>Demande l'&eacute;tat complet du jeu</td>
+            </tr>
+            <tr>
+                <td><code>sync_state</code></td>
+                <td>Host &rarr; Player</td>
+                <td>Broadcast de l'&eacute;tat complet</td>
+            </tr>
+            <tr>
+                <td><code>sync_state_diff</code></td>
+                <td>Host &rarr; Player</td>
+                <td>Broadcast incr&eacute;mental (diff uniquement)</td>
+            </tr>
+            <tr>
+                <td><code>smartphone_action</code></td>
+                <td>Player &rarr; Host</td>
+                <td>Action d'un tag (s&eacute;lection, fusion, feedback)</td>
+            </tr>
+            <tr>
+                <td><code>feedback_popup</code></td>
+                <td>Host &rarr; Player</td>
+                <td>Message de feedback &agrave; afficher au joueur</td>
+            </tr>
+            <tr>
+                <td><code>poll_response</code></td>
+                <td>Player &rarr; Host</td>
+                <td>R&eacute;ponse &agrave; un sondage</td>
+            </tr>
+            <tr>
+                <td><code>group_vote_response</code></td>
+                <td>Player &rarr; Host</td>
+                <td>Vote dans un vote de groupe</td>
+            </tr>
+            <tr>
+                <td><code>close_group_vote</code></td>
+                <td>Host &rarr; Host</td>
+                <td>Fermeture et calcul d'un vote de groupe</td>
+            </tr>
+            <tr>
+                <td><code>soundboard_action</code></td>
+                <td>Remote &rarr; Host</td>
+                <td>D&eacute;clenchement son &agrave; distance</td>
+            </tr>
+            <tr>
+                <td><code>checklist_action</code></td>
+                <td>Remote &rarr; Host</td>
+                <td>Toggle checklist &agrave; distance</td>
+            </tr>
+            <tr>
+                <td><code>action_trigger</code></td>
+                <td>Remote &rarr; Host</td>
+                <td>Ex&eacute;cution d'action &agrave; distance</td>
+            </tr>
+            <tr>
+                <td><code>remote_player_update</code></td>
+                <td>Remote &rarr; Host</td>
+                <td>Update notes priv&eacute;es joueur</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 id="section-3-6">3.7 Optimisations</h3>
+
+    <h4>Diff-based broadcast (<code>src/lib/utils/state-diff.ts</code>)</h4>
+    <ul>
+        <li>Compare l'&eacute;tat pr&eacute;c&eacute;dent avec le nouveau via <code>computeStateDiff()</code></li>
+        <li>N'envoie que les champs qui ont chang&eacute; (d&eacute;finis dans <code>BROADCAST_FIELDS</code>)</li>
+        <li>Merge c&ocirc;t&eacute; client via <code>mergeStateDiff()</code></li>
+    </ul>
+
+    <h4>Image stripping</h4>
+    <ul>
+        <li>Les images en data URI ou sup&eacute;rieures &agrave; 2000 caract&egrave;res sont remplac&eacute;es par <code>null</code> dans les broadcasts</li>
+        <li>&Eacute;vite de saturer le canal avec des payloads trop lourds</li>
+    </ul>
+
+    <h4>Champs broadcast&eacute;s</h4>
+    <pre><code><span class="key-keyword">export const</span> BROADCAST_FIELDS = [
+  <span class="key-string">'players'</span>, <span class="key-string">'roles'</span>, <span class="key-string">'teams'</span>, <span class="key-string">'tags'</span>,
+  <span class="key-string">'handouts'</span>, <span class="key-string">'isNight'</span>, <span class="key-string">'cycleMode'</span>,
+  <span class="key-string">'isPublicMode'</span>, <span class="key-string">'displaySettings'</span>,
+  <span class="key-string">'wiki'</span>, <span class="key-string">'checklist'</span>, <span class="key-string">'customPopups'</span>,
+  <span class="key-string">'activeCustomPopupId'</span>, <span class="key-string">'activeGroupVote'</span>,
+  <span class="key-string">'smartphoneCountdown'</span>, <span class="key-string">'timer'</span>,
+  <span class="key-string">'logs'</span>, <span class="key-string">'room'</span>,
+];</code></pre>
+
+    <h4>Pr&eacute;sence</h4>
+    <ul>
+        <li>Le MJ suit les joueurs connect&eacute;s via Supabase Presence</li>
+        <li><code>isHostOnline</code> est d&eacute;tect&eacute; c&ocirc;t&eacute; smartphone</li>
+        <li>Les joueurs sont track&eacute;s par <code>playerId</code> une fois match&eacute;s</li>
+    </ul>
+
+    <!-- ==================== SECTION 4 ==================== -->
+    <h2 id="section-4">4. Store Zustand</h2>
+
+    <p><strong>Fichier :</strong> <code>src/store/index.ts</code></p>
+
+    <h3>4.1 Configuration</h3>
+    <ul>
+        <li><strong>State management :</strong> Zustand avec middleware <code>persist</code> (localStorage)</li>
+        <li><strong>Undo/Redo :</strong> Middleware <code>zundo</code> (temporal) avec limite de 50 &eacute;tats</li>
+        <li><strong>S&eacute;lecteurs optimis&eacute;s :</strong> Export&eacute;s depuis <code>src/store/selectors.ts</code></li>
+    </ul>
+
+    <h3>4.2 Persistance</h3>
+    <p>Le store est persist&eacute; dans <code>localStorage</code> sous la cl&eacute; <code>vtt-storage</code>. Certains &eacute;tats transitoires sont exclus de la persistance :</p>
+    <ul>
+        <li><code>editingEntity</code></li>
+        <li><code>actionCreatorState</code> (et sous-&eacute;tats)</li>
+        <li><code>pendingActionConditions</code> / <code>pendingActionEffects</code></li>
+        <li><code>tagDistributorState</code></li>
+        <li><code>magneticPoints</code> / <code>showMagneticPoints</code></li>
+        <li><code>checklistState</code></li>
+        <li><code>activeCustomPopupId</code></li>
+    </ul>
+
+    <h3>4.3 Rehydratation</h3>
+    <p>Au rechargement de la page, le store est rehydrat&eacute; depuis localStorage et les &eacute;tats transitoires sont r&eacute;initialis&eacute;s :</p>
+    <pre><code><span class="key-keyword">onRehydrateStorage</span>: () => (state) => {
+  <span class="key-keyword">if</span> (state) {
+    state.editingEntity = <span class="key-keyword">null</span>;
+    state.actionCreatorState.isOpen = <span class="key-keyword">false</span>;
+    state.pendingActionConditions = [];
+    state.pendingActionEffects = [];
+  }
+}</code></pre>
+
+    <!-- ==================== SECTION 5 ==================== -->
+    <h2 id="section-5">5. R&eacute;sum&eacute; des fichiers cl&eacute;s</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Fichier</th>
+                <th>R&ocirc;le</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>.env.example</code></td>
+                <td>Template des variables d'environnement Supabase</td>
+            </tr>
+            <tr>
+                <td><code>src/lib/supabase.ts</code></td>
+                <td>Client Supabase, r&eacute;solution des credentials, upload/storage</td>
+            </tr>
+            <tr>
+                <td><code>src/lib/realtime-host.ts</code></td>
+                <td>Logique de broadcast MJ, &eacute;coute des &eacute;v&eacute;nements clients</td>
+            </tr>
+            <tr>
+                <td><code>src/lib/utils/state-diff.ts</code></td>
+                <td>Calcul de diff entre &eacute;tats pour optimiser les broadcasts</td>
+            </tr>
+            <tr>
+                <td><code>src/store/index.ts</code></td>
+                <td>Store Zustand central (state, actions, persistance)</td>
+            </tr>
+            <tr>
+                <td><code>src/pages/GmView.tsx</code></td>
+                <td>Vue MJ, initialise le realtime host</td>
+            </tr>
+            <tr>
+                <td><code>src/pages/PlayerJoin.tsx</code></td>
+                <td>Page /join pour entrer le code salle et le pseudo</td>
+            </tr>
+            <tr>
+                <td><code>src/pages/PlayerView.tsx</code></td>
+                <td>Vue smartphone, connexion realtime, affichage du state</td>
+            </tr>
+            <tr>
+                <td><code>src/App.tsx</code></td>
+                <td>Routing (/, /join, /player/:roomId/:playerName, /remote, /reset)</td>
+            </tr>
+            <tr>
+                <td><code>src/lib/db.ts</code></td>
+                <td>IndexedDB pour l'historique d'export (max 10 entr&eacute;es)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Analyse technique VTTApp &mdash; G&eacute;n&eacute;r&eacute;e le 17 mai 2026</p>
+    </div>
+
+</body>
+</html>

@@ -47,7 +47,7 @@ const buildFullStatePayload = () => {
     handouts: state.handouts.map(h => ({
       ...h,
       imageUrl: stripImage(h.imageUrl),
-      referenceImageUrl: stripImage((h as any).referenceImageUrl),
+      referenceImageUrl: h.referenceImageUrl ? stripImage(h.referenceImageUrl) : undefined,
     })),
     soundboard: {
       remoteEnabled: state.soundboard?.remoteEnabled || false,
@@ -473,7 +473,20 @@ export const initHostRealtime = (roomCode: string) => {
             actionInitialContext['$Joueur'] = state.players.find(p => p.id === payload.playerId);
           }
           if (payload.selectedPlayerIds && payload.selectedPlayerIds.length > 0) {
-            actionInitialContext['$Cible'] = state.players.find(p => p.id === payload.selectedPlayerIds[0]);
+            const isMulti = !!tagData.isMultiPlayerSelector;
+            if (isMulti && payload.selectedPlayerIds.length > 1) {
+              const ciblePlayers = payload.selectedPlayerIds.map((pid: string) => state.players.find(p => p.id === pid)).filter(Boolean);
+              const cibleNames = ciblePlayers.map((p: any) => p.name).join(', ');
+              const cibleIds = ciblePlayers.map((p: any) => p.id);
+              actionInitialContext['$Cible'] = {
+                ...ciblePlayers[0],
+                name: cibleNames,
+                _isMultiple: true,
+                _ids: cibleIds,
+              };
+            } else {
+              actionInitialContext['$Cible'] = state.players.find(p => p.id === payload.selectedPlayerIds[0]);
+            }
           }
           state.executeAction(tagData.smartphoneActionId, actionInitialContext);
         }
@@ -584,6 +597,20 @@ export const initHostRealtime = (roomCode: string) => {
         soundboard: {
           ...s.soundboard,
           remotePlayTrigger: { index: payload.index, timestamp: Date.now() }
+        }
+      }));
+    })
+    .on('broadcast', { event: 'soundboard_stop' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      if (!state.soundboard.remoteEnabled) return;
+      if ((state.soundboard.remotePasscode || "").trim() !== (payload.passcode || "").trim()) return;
+      
+      console.log(`[VTT] Remote soundboard stop received for index ${payload.index}`);
+      
+      useVttStore.setState(s => ({
+        soundboard: {
+          ...s.soundboard,
+          remoteStopTrigger: { index: payload.index, timestamp: Date.now() }
         }
       }));
     })

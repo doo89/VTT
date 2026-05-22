@@ -3,9 +3,40 @@ import { useVttStore } from '../../store';
 import type { EffectContext, EffectState, EffectResult } from './types';
 import { effectRegistry } from './effects/registry';
 
-/**
- * Evaluate conditions for an action
- */
+function getVariableValue(varName: string, state: any, context: EffectContext): number {
+  if (varName === '$Jour') return state.isNight ? 0 : state.cycleNumber;
+  if (varName === '$Nuit') return state.isNight ? state.cycleNumber : 0;
+  if (varName === '$Cycle') return state.cycleNumber;
+  if (varName === '$Ordre') return state.callOrderIndex;
+  if (varName === '$Parité') return state.cycleNumber % 2;
+  if (varName === '$Phase') return state.isNight ? 1 : 0;
+  if (varName === '$Timer') {
+    const t = state.timer;
+    return t.isRunning ? t.minutes * 60 + t.seconds : 0;
+  }
+  if (varName === '$NbEnLigne') return (state.onlinePlayerIds || []).length;
+  if (varName === '$NbTotal') return (state.players || []).length;
+  if (varName === '$NbVivants') return (state.players || []).filter((p: any) => !p.isDead).length;
+  if (varName === '$NbMorts') return (state.players || []).filter((p: any) => p.isDead).length;
+  if (state.customVariables && state.customVariables[varName] !== undefined) {
+    return state.customVariables[varName];
+  }
+  return 0;
+}
+
+function compareValues(actual: number, operator: string, expected: number): boolean {
+  switch (operator) {
+    case '=': return actual === expected;
+    case '!=': return actual !== expected;
+    case '<': return actual < expected;
+    case '>': return actual > expected;
+    case '<=': return actual <= expected;
+    case '>=': return actual >= expected;
+    case 'modulo': return expected !== 0 && actual % expected === 0;
+    default: return true;
+  }
+}
+
 function evaluateConditions(
   conditions: ActionCondition[],
   state: any,
@@ -14,7 +45,6 @@ function evaluateConditions(
   const activeConditions = (conditions || []).filter(c => c.enabled);
   if (activeConditions.length === 0) return { success: true };
 
-  // Group conditions by OR logic
   const conditionGroups: ActionCondition[][] = [[]];
   activeConditions.forEach(c => {
     if (c.logic === 'OR' && conditionGroups[conditionGroups.length - 1].length > 0) {
@@ -24,11 +54,9 @@ function evaluateConditions(
     }
   });
 
-  // Evaluate each group (simplified - full evaluation is in original store)
   const groupResults = conditionGroups.map(group => {
     let success = true;
     group.forEach(c => {
-      // Simplified condition check - delegates to original logic
       success = success && checkSingleCondition(c, state, context);
     });
     return { success };
@@ -38,17 +66,196 @@ function evaluateConditions(
   return { success: finalOk };
 }
 
-/**
- * Check a single condition (simplified version)
- */
 function checkSingleCondition(
   condition: ActionCondition,
   state: any,
   context: EffectContext
 ): boolean {
-  // This is a simplified version - the full logic remains in the original store
-  // for backward compatibility during migration
-  return true; // Placeholder - full implementation needed
+  const players: any[] = state.players || [];
+  const roles: any[] = state.roles || [];
+  const tags: any[] = state.tags || [];
+  const joueur = context.$Joueur;
+
+  switch (condition.type) {
+    case 'day':
+      return compareValues(state.isNight ? 0 : state.cycleNumber, condition.operator, condition.value);
+    case 'night':
+      return compareValues(state.isNight ? state.cycleNumber : 0, condition.operator, condition.value);
+    case 'turn':
+      return compareValues(state.cycleNumber, condition.operator, condition.value);
+    case 'cycleCheck': {
+      const varVal = getVariableValue(condition.cycleCheckType || '$Jour', state, context);
+      return compareValues(varVal, condition.operator, condition.value);
+    }
+    case 'isNightPhase':
+      return state.isNight === true;
+    case 'isDayPhase':
+      return state.isNight === false;
+    case 'playerRole': {
+      if (!joueur) return false;
+      const playerRole = players.find(p => p.id === joueur.id)?.roleId;
+      return condition.operator === '=' ? playerRole === condition.roleId : playerRole !== condition.roleId;
+    }
+    case 'playerTag': {
+      if (!joueur) return false;
+      const player = players.find(p => p.id === joueur.id);
+      const hasTag = player?.tags?.some((t: any) => t.id === condition.tagId);
+      return condition.operator === '=' ? hasTag : !hasTag;
+    }
+    case 'playerPastille': {
+      if (!joueur) return false;
+      const player = players.find(p => p.id === joueur.id);
+      const hasPastille = player?.selectionPastilles?.some((p: any) => p.icon === condition.pastilleIcon);
+      return condition.operator === '=' ? hasPastille : !hasPastille;
+    }
+    case 'playerSelection':
+    case 'playerSelectionRole':
+    case 'playerSelectionTag':
+    case 'playerSelectionPastille':
+    case 'playerSelectionTeam':
+    case 'playerSelectionStatus':
+    case 'playerSelectionRoleAndTeam': {
+      let filtered = [...players];
+      if (condition.selectionType === 'callOrder') {
+        const orderIdx = state.callOrderIndex;
+        filtered = filtered.filter((_, i) => i === orderIdx);
+      } else if (condition.selectionType === 'numeric') {
+        const idx = condition.value - 1;
+        filtered = filtered.filter((_, i) => i === idx);
+      } else if (condition.selectionType === 'random') {
+        if (filtered.length === 0) return false;
+        filtered = [filtered[Math.floor(Math.random() * filtered.length)]];
+      } else if (condition.selectionType === 'first') {
+        filtered = filtered.slice(0, 1);
+      } else if (condition.selectionType === 'last') {
+        filtered = filtered.slice(-1);
+      }
+
+      if (condition.type === 'playerSelectionRole' || condition.type === 'playerSelection') {
+        filtered = filtered.filter(p => p.roleId === condition.selectionRoleId);
+      } else if (condition.type === 'playerSelectionTag') {
+        filtered = filtered.filter(p => p.tags?.some((t: any) => t.id === condition.tagId));
+      } else if (condition.type === 'playerSelectionPastille') {
+        filtered = filtered.filter(p => p.selectionPastilles?.some((p: any) => p.icon === condition.pastilleIcon));
+      } else if (condition.type === 'playerSelectionTeam') {
+        filtered = filtered.filter(p => p.teamId === condition.selectionTeamId);
+      } else if (condition.type === 'playerSelectionStatus') {
+        filtered = filtered.filter(p => condition.distanceTargetStatus === 'alive' ? !p.isDead : p.isDead);
+      } else if (condition.type === 'playerSelectionRoleAndTeam') {
+        filtered = filtered.filter(p => p.roleId === condition.selectionRoleId && p.teamId === condition.selectionTeamId);
+      }
+
+      return condition.operator === '=' ? filtered.length > 0 : filtered.length === 0;
+    }
+    case 'callOrderRole': {
+      const orderIdx = state.callOrderIndex;
+      const player = players[orderIdx];
+      if (!player) return false;
+      return condition.operator === '=' ? player.roleId === condition.roleId : player.roleId !== condition.roleId;
+    }
+    case 'roleTeamCheck': {
+      if (!joueur) return false;
+      const player = players.find(p => p.id === joueur.id);
+      return condition.operator === '=' ? player?.teamId === condition.teamId : player?.teamId !== condition.teamId;
+    }
+    case 'playerDistance':
+    case 'playerDistanceTag':
+    case 'playerDistancePastille':
+    case 'playerDistanceTeam':
+    case 'playerDistanceStatus':
+    case 'playerDistanceSelf':
+    case 'playerDistanceSelected': {
+      const sourceId = condition.distanceFromPlayerId === '$Selected' 
+        ? (state.selectedEntityIds?.[0] || joueur?.id) 
+        : joueur?.id;
+      if (!sourceId) return false;
+      const source = players.find(p => p.id === sourceId);
+      if (!source) return false;
+
+      let targets: any[] = [];
+      if (condition.type === 'playerDistance') {
+        targets = players.filter(p => p.roleId === condition.distanceTargetRoleId);
+      } else if (condition.type === 'playerDistanceTag') {
+        targets = players.filter(p => p.tags?.some((t: any) => t.id === condition.tagId));
+      } else if (condition.type === 'playerDistancePastille') {
+        targets = players.filter(p => p.selectionPastilles?.some((p: any) => p.icon === condition.pastilleIcon));
+      } else if (condition.type === 'playerDistanceTeam') {
+        targets = players.filter(p => p.teamId === condition.distanceTargetTeamId);
+      } else if (condition.type === 'playerDistanceStatus') {
+        targets = players.filter(p => condition.distanceTargetStatus === 'alive' ? !p.isDead : p.isDead);
+      } else if (condition.type === 'playerDistanceSelf') {
+        targets = [source];
+      } else if (condition.type === 'playerDistanceSelected') {
+        targets = players.filter(p => state.selectedEntityIds?.includes(p.id) && p.roleId === condition.distanceTargetRoleId);
+      }
+
+      const distances = targets.map(t => {
+        if (condition.distanceUnit === 'physical') {
+          return Math.sqrt((t.x - source.x) ** 2 + (t.y - source.y) ** 2);
+        }
+        const srcIdx = players.indexOf(source);
+        const tgtIdx = players.indexOf(t);
+        return Math.abs(tgtIdx - srcIdx);
+      });
+
+      const minDist = distances.length > 0 ? Math.min(...distances) : Infinity;
+      const maxDist = distances.length > 0 ? Math.max(...distances) : -Infinity;
+      const minVal = condition.minValue ?? 0;
+      const maxVal = condition.maxValue ?? Infinity;
+      return minDist >= minVal && maxDist <= maxVal;
+    }
+    case 'roleCount': {
+      let count = players.filter(p => p.roleId === condition.roleId).length;
+      if (condition.distanceTargetStatus === 'alive') count = players.filter(p => p.roleId === condition.roleId && !p.isDead).length;
+      else if (condition.distanceTargetStatus === 'dead') count = players.filter(p => p.roleId === condition.roleId && p.isDead).length;
+      return compareValues(count, condition.operator, condition.value);
+    }
+    case 'hasTag': {
+      const targetId = condition.targetPlayerId === '$Joueur' ? joueur?.id : condition.targetPlayerId;
+      if (!targetId) return false;
+      const player = players.find(p => p.id === targetId);
+      const hasTag = player?.tags?.some((t: any) => t.id === condition.tagId);
+      return condition.operator === '=' ? hasTag : !hasTag;
+    }
+    case 'randomChance': {
+      const chance = condition.chancePercent ?? condition.value;
+      return Math.random() * 100 < chance;
+    }
+    case 'isCouple': {
+      if (!joueur) return false;
+      const player = players.find(p => p.id === joueur.id);
+      return condition.operator === '=' ? !!player?.coupleId : !player?.coupleId;
+    }
+    case 'partnerDead': {
+      if (!joueur) return false;
+      const player = players.find(p => p.id === joueur.id);
+      if (!player?.coupleId) return false;
+      const partner = players.find(p => p.coupleId === player.coupleId && p.id !== joueur.id);
+      if (!partner) return false;
+      return condition.operator === '=' ? partner.isDead : !partner.isDead;
+    }
+    case 'targetExists': {
+      let targets: any[] = [...players];
+      if (condition.roleId) targets = targets.filter(p => p.roleId === condition.roleId);
+      if (condition.tagId) targets = targets.filter(p => p.tags?.some((t: any) => t.id === condition.tagId));
+      if (condition.teamId) targets = targets.filter(p => p.teamId === condition.teamId);
+      if (condition.distanceTargetStatus === 'alive') targets = targets.filter(p => !p.isDead);
+      if (condition.distanceTargetStatus === 'dead') targets = targets.filter(p => p.isDead);
+      return condition.operator === '=' ? targets.length > 0 : targets.length === 0;
+    }
+    case 'playerAlive': {
+      if (!joueur) return false;
+      const player = players.find(p => p.id === joueur.id);
+      return condition.operator === '=' ? !player?.isDead : player?.isDead;
+    }
+    case 'playerDead': {
+      if (!joueur) return false;
+      const player = players.find(p => p.id === joueur.id);
+      return condition.operator === '=' ? player?.isDead : !player?.isDead;
+    }
+    default:
+      return true;
+  }
 }
 
 /**
@@ -244,6 +451,7 @@ export function executeAction(
         smartphoneActionMessage: effectState.smartphoneActionMessage,
         activeCustomPopupId: effectState.activeCustomPopupId,
         customPopups: effectState.customPopups,
+        callOrderIndex: effectState.callOrderIndex,
       };
       
       // Handle phase shifts

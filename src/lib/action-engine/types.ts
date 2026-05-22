@@ -5,7 +5,7 @@ import type { ActionEffect, Player, Role, TagModel, Team, Action, CustomPopup, G
  */
 export interface EffectContext {
   $Joueur?: Player & { _isMultiple?: boolean; _ids?: string[] };
-  $Cible?: Player;
+  $Cible?: Player & { _isMultiple?: boolean; _ids?: string[] };
   [key: string]: any;
 }
 

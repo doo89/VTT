@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useStore } from 'zustand';
 import { useVttStore } from '../../store';
 import * as icons from 'lucide-react';
-import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, Sun, Moon, Copy, Heart, Users, Hand, MousePointer2, Undo2, Redo2, Radio, Lock, Globe, Bell, Check, X, WifiOff, FileText, FastForward, Smartphone, QrCode } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, Tag, Skull, Trash2, Settings, ChevronRight, Sun, Moon, Copy, Heart, Users, Hand, MousePointer2, Undo2, Redo2, Radio, Lock, Globe, Bell, Check, X, WifiOff, FileText, FastForward, Smartphone, QrCode, Magnet, Eye, EyeOff, Timer, SlidersHorizontal, Minus, Plus, Fullscreen, BookOpen, Minimize } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Marker, Player, MagneticPoint } from '../../types';
 import { supabase, getEnvUrl, getEnvKey } from '../../lib/supabase';
@@ -23,6 +23,11 @@ const getShapeClipPath = (shape?: PlayerShape) => {
     case 'star': return 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
     case 'pentagon': return 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)';
     case 'hexagon': return 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
+    case 'diamond': return 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+    case 'shield': return 'polygon(50% 0%, 100% 15%, 100% 65%, 50% 100%, 0% 65%, 0% 15%)';
+    case 'cross': return 'polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)';
+    case 'heart': return 'path("M50 88 C25 65 0 45 0 25 C0 10 15 0 25 0 C35 0 50 15 50 15 C50 15 65 0 75 0 C85 0 100 10 100 25 C100 45 75 65 50 88Z")';
+    case 'crescent': return 'path("M60 10 C30 10 10 35 10 60 C10 85 30 100 60 100 C40 90 30 75 30 60 C30 45 40 30 60 10Z")';
     case 'circle':
     default: return 'circle(50% at 50% 50%)';
   }
@@ -39,14 +44,14 @@ export const Canvas: React.FC = () => {
   const {
     roomName, setRoomName, roomCode, generateRoomCode, clearRoomCode, isRoomPublic, toggleRoomPublic,
     joinRequests, removeJoinRequest, onlinePlayerIds,
-    canvas, setPan, setZoom, isNight, nextCycle, cycleMode, isPublicMode, setPublicMode,
+    canvas, setPan, setZoom, isNight, nextCycle, cycleMode, cycleNumber, isPublicMode, setPublicMode,
     players, updatePlayer, updatePlayers, addPlayer, deletePlayer, clearPlayers,
     markers, updateMarker, addMarker, deleteMarker, clearMarkers,
-    roles, teams, tags, tagCategories, grid, setGrid, room, displaySettings,
+    roles, teams, tags, tagCategories, grid, setGrid, room, displaySettings, updateDisplaySettings,
     selectedEntityIds, setSelectedEntityIds, clearSelection,
     interactionMode, setInteractionMode,
-    magneticPoints, showMagneticPoints, updateMagneticPoint, deleteMagneticPoint,
-    coordinatePicker, setCoordinatePicker
+    magneticPoints, showMagneticPoints, setShowMagneticPoints, updateMagneticPoint, deleteMagneticPoint,
+    coordinatePicker, setCoordinatePicker, timer, setTimer
   } = useVttStore();
 
   const { undo, redo, pastStates, futureStates } = useStore(useVttStore.temporal);
@@ -57,6 +62,8 @@ export const Canvas: React.FC = () => {
   const [selectionBoxCurrent, setSelectionBoxCurrent] = useState<{ x: number, y: number } | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -70,15 +77,31 @@ export const Canvas: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Periodic refresh for transient effects (like pings)
+  useEffect(() => {
+    const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
+  // Periodic refresh for transient effects (like pings) - respects FPS limit
   const [, setTick] = useState(0);
   useEffect(() => {
     const hasActivePing = players.some(p => p.pingTimestamp && (Date.now() - p.pingTimestamp < 5000));
     if (hasActivePing) {
-      const interval = setInterval(() => setTick(t => t + 1), 1000);
+      const fps = displaySettings.fpsLimit ?? 60;
+      const intervalMs = Math.max(16, Math.round(1000 / Math.min(fps, 60)));
+      const interval = setInterval(() => setTick(t => t + 1), intervalMs);
       return () => clearInterval(interval);
     }
-  }, [players]);
+  }, [players, displaySettings.fpsLimit]);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, canvasX: number, canvasY: number, type: 'player' | 'marker' | 'canvas' | 'group', entityId: string | null } | null>(null);
   const [circlePreview, setCirclePreview] = useState<{
     centerX: number;
@@ -429,17 +452,19 @@ export const Canvas: React.FC = () => {
   useEffect(() => {
     if (roomRef.current) {
       const r = roomRef.current;
+      const isNightPhase = cycleMode === 'dayNight' && isNight;
+      const activeBgImage = isNightPhase ? room.nightBackgroundImage : room.backgroundImage;
       r.style.setProperty('--room-width', `${room.width}px`);
       r.style.setProperty('--room-height', `${room.height}px`);
       r.style.setProperty('--room-left', `${-room.width / 2}px`);
       r.style.setProperty('--room-top', `${-room.height / 2}px`);
       r.style.setProperty('--room-bg-color', room.backgroundColor);
-      r.style.setProperty('--room-bg-image', room.backgroundImage ? `url(${room.backgroundImage})` : 'none');
+      r.style.setProperty('--room-bg-image', activeBgImage ? `url(${activeBgImage})` : 'none');
       r.style.setProperty('--room-bg-repeat', room.backgroundStyle === 'mosaic' ? 'repeat' : 'no-repeat');
       r.style.setProperty('--room-bg-pos', room.backgroundStyle === 'center' ? 'center' : '0 0');
       r.style.setProperty('--room-bg-size', room.backgroundStyle === 'stretch' ? '100% 100%' : 'auto');
     }
-  }, [room]);
+  }, [room, isNight, cycleMode]);
 
   // Update infinite canvas styles via ref to avoid inline style linting errors
   useEffect(() => {
@@ -469,14 +494,22 @@ export const Canvas: React.FC = () => {
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    if (e.ctrlKey) {
-      // Zoom
-      const zoomSensitivity = 0.001;
-      const newZoom = Math.min(Math.max(0.1, canvas.zoom - e.deltaY * zoomSensitivity), 5);
+    const wheelBehavior = displaySettings.wheelBehavior || 'both';
+    const zoomSpeed = displaySettings.zoomSpeed ?? 0.001;
+    const panSpeed = displaySettings.panSpeed ?? 1;
+    const zoomMin = displaySettings.zoomMin ?? 0.1;
+    const zoomMax = displaySettings.zoomMax ?? 5;
+
+    if (wheelBehavior === 'both' && e.ctrlKey) {
+      const newZoom = Math.min(Math.max(zoomMin, canvas.zoom - e.deltaY * zoomSpeed), zoomMax);
       setZoom(newZoom);
-    } else {
-      // Pan
-      setPan(canvas.panX - e.deltaX, canvas.panY - e.deltaY);
+    } else if (wheelBehavior === 'both') {
+      setPan(canvas.panX - e.deltaX * panSpeed, canvas.panY - e.deltaY * panSpeed);
+    } else if (wheelBehavior === 'zoom') {
+      const newZoom = Math.min(Math.max(zoomMin, canvas.zoom - e.deltaY * zoomSpeed), zoomMax);
+      setZoom(newZoom);
+    } else if (wheelBehavior === 'pan') {
+      setPan(canvas.panX - e.deltaX * panSpeed, canvas.panY - e.deltaY * panSpeed);
     }
   };
 
@@ -548,6 +581,14 @@ export const Canvas: React.FC = () => {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    // Track mouse position in canvas coordinates
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect) {
+      const canvasX = (e.clientX - rect.left - canvas.panX - rect.width / 2) / canvas.zoom;
+      const canvasY = (e.clientY - rect.top - canvas.panY - rect.height / 2) / canvas.zoom;
+      setMousePos({ x: Math.round(canvasX), y: Math.round(canvasY) });
+    }
+
     if (circlePreview) {
       const coords = getCanvasCoordinates(e);
       const dx = coords.x - circlePreview.centerX;
@@ -666,8 +707,15 @@ export const Canvas: React.FC = () => {
     }
   }, [players, roles, updatePlayer]);
 
+  const colorblindFilter = displaySettings.colorblindMode && displaySettings.colorblindMode !== 'none'
+    ? `url(#cb-${displaySettings.colorblindMode})`
+    : undefined;
+
   return (
-    <div className="flex-1 relative flex flex-col min-w-0">
+    <div
+      className="flex-1 relative flex flex-col min-w-0"
+      style={colorblindFilter ? { filter: colorblindFilter } : undefined}
+    >
       {/* Banner */}
       <div className="h-12 bg-card border-b border-border flex items-center shrink-0 z-40 relative shadow-sm px-4 justify-between">
         <div className="flex items-center gap-2">
@@ -952,59 +1000,148 @@ export const Canvas: React.FC = () => {
           />
         )}
 
-        <div className="absolute bottom-4 left-4 z-40 flex gap-2 bg-card p-2 rounded-lg border border-border shadow-md">
-          <button onClick={() => setZoom(Math.max(0.1, canvas.zoom - 0.1))} className="p-1 hover:bg-accent rounded-md" title="Zoom Arrière"><ZoomOut size={20} /></button>
-          <span className="w-12 text-center text-sm flex items-center justify-center font-mono">{(canvas.zoom * 100).toFixed(0)}%</span>
-          <button onClick={() => setZoom(Math.min(5, canvas.zoom + 0.1))} className="p-1 hover:bg-accent rounded-md" title="Zoom Avant"><ZoomIn size={20} /></button>
-          <div className="w-px h-6 bg-border mx-1" />
-          <button onClick={() => { setZoom(1); setPan(0, 0); }} className="p-1 hover:bg-accent rounded-md" title="Reset View"><Maximize size={20} /></button>
-          <div className="w-px h-6 bg-border mx-1" />
-          <button
-            onClick={() => undo()}
-            disabled={pastStates.length === 0}
-            className={`p-1 rounded-md ${pastStates.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent'}`}
-            title="Annuler (Undo)"
-          >
-            <Undo2 size={20} />
-          </button>
-          <button
-            onClick={() => redo()}
-            disabled={futureStates.length === 0}
-            className={`p-1 rounded-md ${futureStates.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent'}`}
-            title="Rétablir (Redo)"
-          >
-            <Redo2 size={20} />
-          </button>
-          <div className="w-px h-6 bg-border mx-1" />
-          <button
-            onClick={() => setInteractionMode('pan')}
-            className={`p-1 rounded-md ${interactionMode === 'pan' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
-            title="Mode Déplacement (Pan)"
-          >
-            <Hand size={20} />
-          </button>
-          <button
-            onClick={() => setInteractionMode('select')}
-            className={`p-1 rounded-md ${interactionMode === 'select' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
-            title="Mode Sélection Multiple"
-          >
-            <MousePointer2 size={20} />
-          </button>
-          <div className="w-px h-6 bg-border mx-1" />
-          <button
-            onClick={() => setGrid({ ...grid, enabled: !grid.enabled })}
-            className={`p-1 rounded-md transition-all ${grid.enabled ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'hover:bg-accent text-muted-foreground'}`}
-            title={grid.enabled ? "Désactiver la grille" : "Activer la grille"}
-          >
-            <icons.Magnet size={20} />
-          </button>
-          <button
-            onClick={() => setGrid({ ...grid, show: !grid.show })}
-            className={`p-1 rounded-md transition-all ${grid.show ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30' : 'hover:bg-accent text-muted-foreground'}`}
-            title={grid.show ? "Masquer la grille" : "Afficher la grille"}
-          >
-            {grid.show ? <icons.Eye size={20} /> : <icons.EyeOff size={20} />}
-          </button>
+        <div className={`absolute z-40 flex items-center gap-1.5 bg-card/95 backdrop-blur-sm p-2 rounded-lg border border-border shadow-lg ${
+          displaySettings.toolbarPosition === 'bottom-center' ? 'bottom-4 left-1/2 -translate-x-1/2 max-w-[95vw] overflow-x-auto' :
+          displaySettings.toolbarPosition === 'bottom-right' ? 'bottom-4 right-4 max-w-[90vw]' :
+          displaySettings.toolbarPosition === 'top-left' ? 'top-4 left-4 max-w-[90vw]' :
+          displaySettings.toolbarPosition === 'top-center' ? 'top-4 left-1/2 -translate-x-1/2 max-w-[95vw] overflow-x-auto' :
+          displaySettings.toolbarPosition === 'top-right' ? 'top-4 right-4 max-w-[90vw]' :
+          displaySettings.toolbarPosition === 'hidden' ? 'hidden' :
+          'bottom-4 left-4 max-w-[90vw]'
+        }`}>
+          {/* Zoom Controls */}
+          {displaySettings.showToolbarZoom !== false && (
+            <>
+              <div className="flex items-center gap-1">
+                <button onClick={() => setZoom(Math.max(displaySettings.zoomMin ?? 0.1, canvas.zoom - 0.1))} className="p-1.5 hover:bg-accent rounded-md transition-colors" aria-label="Zoom arrière" title="Zoom arrière"><ZoomOut size={18} /></button>
+                <input type="range" min={displaySettings.zoomMin ?? 0.1} max={displaySettings.zoomMax ?? 5} step="0.05" value={canvas.zoom} onChange={(e) => setZoom(parseFloat(e.target.value))} className="w-16 h-1 accent-primary cursor-pointer" aria-label="Niveau de zoom" />
+                <button onClick={() => setZoom(Math.min(displaySettings.zoomMax ?? 5, canvas.zoom + 0.1))} className="p-1.5 hover:bg-accent rounded-md transition-colors" aria-label="Zoom avant" title="Zoom avant"><ZoomIn size={18} /></button>
+                <span className="w-12 text-center text-xs font-mono font-bold text-muted-foreground">{(canvas.zoom * 100).toFixed(0)}%</span>
+              </div>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Reset View */}
+          {displaySettings.showToolbarResetView !== false && (
+            <>
+              <button onClick={() => { setZoom(1); setPan(0, 0); }} className="p-1.5 hover:bg-accent rounded-md transition-colors" aria-label="Réinitialiser la vue" title="Réinitialiser la vue"><Maximize size={18} /></button>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Undo / Redo */}
+          {displaySettings.showToolbarUndoRedo !== false && (
+            <>
+              <button onClick={() => undo()} disabled={pastStates.length === 0} className={`p-1.5 rounded-md transition-colors ${pastStates.length === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-accent'}`} aria-label="Annuler" title={`Annuler (${pastStates.length} disponible(s))`}><Undo2 size={18} /></button>
+              <button onClick={() => redo()} disabled={futureStates.length === 0} className={`p-1.5 rounded-md transition-colors ${futureStates.length === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-accent'}`} aria-label="Rétablir" title={`Rétablir (${futureStates.length} disponible(s))`}><Redo2 size={18} /></button>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Interaction Modes */}
+          {displaySettings.showToolbarInteraction !== false && (
+            <>
+              <button onClick={() => setInteractionMode('pan')} className={`p-1.5 rounded-md transition-all ${interactionMode === 'pan' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-accent'}`} aria-label="Mode déplacement" title="Mode déplacement"><Hand size={18} /></button>
+              <button onClick={() => setInteractionMode('select')} className={`p-1.5 rounded-md transition-all relative ${interactionMode === 'select' ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-accent'}`} aria-label="Mode sélection" title="Mode sélection"><MousePointer2 size={18} />{selectedEntityIds.length > 0 && (<span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">{selectedEntityIds.length}</span>)}</button>
+              {selectedEntityIds.length > 0 && (<button onClick={() => clearSelection()} className="p-1 rounded-md hover:bg-red-500/20 text-red-400 transition-colors" aria-label="Désélectionner" title="Désélectionner tout"><X size={14} /></button>)}
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Grid Controls */}
+          {displaySettings.showToolbarGrid !== false && (
+            <>
+              <button onClick={() => setGrid({ ...grid, enabled: !grid.enabled })} className={`p-1.5 rounded-md transition-all ${grid.enabled ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30' : 'hover:bg-accent text-muted-foreground'}`} aria-label="Aimantage" title="Aimantage à la grille"><Magnet size={18} /></button>
+              <button onClick={() => setGrid({ ...grid, show: !grid.show })} className={`p-1.5 rounded-md transition-all ${grid.show ? 'bg-blue-500/20 text-blue-500 border border-blue-500/30' : 'hover:bg-accent text-muted-foreground'}`} aria-label="Grille" title="Afficher/masquer la grille">{grid.show ? <Eye size={18} /> : <EyeOff size={18} />}</button>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Cycle Day/Night */}
+          {displaySettings.showToolbarCycle !== false && (
+            <>
+              <button onClick={() => nextCycle()} className={`p-1.5 rounded-md transition-all ${isNight ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`} aria-label="Cycle" title={`Cycle ${cycleNumber}`}>{isNight ? <Moon size={18} /> : <Sun size={18} />}</button>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Timer */}
+          {displaySettings.showToolbarTimer !== false && (
+            <>
+              <button
+                onClick={() => setTimer({ isRunning: !timer.isRunning })}
+                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-all font-mono text-xs ${
+                  timer.isRunning
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                    : 'hover:bg-accent text-muted-foreground'
+                }`}
+                aria-label="Chronomètre"
+                title="Chronomètre"
+              >
+                <Timer size={18} />
+                {timer.isRunning && (
+                  <span className="font-bold tabular-nums">
+                    {String(timer.minutes).padStart(2, '0')}:{String(timer.seconds).padStart(2, '0')}
+                  </span>
+                )}
+              </button>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Magnetic Points Toggle */}
+          {displaySettings.showToolbarMagneticPoints !== false && (
+            <>
+              <button onClick={() => setShowMagneticPoints(!showMagneticPoints)} className={`p-1.5 rounded-md transition-all ${showMagneticPoints ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'hover:bg-accent text-muted-foreground'}`} aria-label="Points aimantés" title="Points aimantés"><SlidersHorizontal size={18} /></button>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Coordinates Display */}
+          {displaySettings.showToolbarCoordinates !== false && (
+            <>
+              <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground bg-muted/30 px-2 py-1 rounded border border-border/30 whitespace-nowrap tabular-nums">
+                <span className="text-muted-foreground/60">PAN:</span>
+                <span>X:<span className="inline-block w-10 text-right">{Math.round(canvas.panX)}</span></span>
+                <span>Y:<span className="inline-block w-10 text-right">{Math.round(canvas.panY)}</span></span>
+                <span className="text-border/50">│</span>
+                <span className="text-muted-foreground/60">CURSEUR:</span>
+                <span className="text-primary font-bold">X:<span className="inline-block w-10 text-right">{mousePos.x}</span></span>
+                <span className="text-primary font-bold">Y:<span className="inline-block w-10 text-right">{mousePos.y}</span></span>
+              </div>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Show/Hide Roles */}
+          {displaySettings.showToolbarRoles !== false && (
+            <>
+              <button onClick={() => updateDisplaySettings({ showRolesOnBoard: !displaySettings.showRolesOnBoard })} className={`p-1.5 rounded-md transition-all ${displaySettings.showRolesOnBoard ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30' : 'hover:bg-accent text-muted-foreground'}`} aria-label="Rôles" title="Afficher/masquer les rôles">{displaySettings.showRolesOnBoard ? <Eye size={18} /> : <EyeOff size={18} />}</button>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Toggle Grimoire (Public Mode) */}
+          {displaySettings.showToolbarGrimoire !== false && (
+            <>
+              <button onClick={() => setPublicMode(!isPublicMode)} className={`p-1.5 rounded-md transition-all ${isPublicMode ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'hover:bg-accent text-muted-foreground'}`} aria-label="Grimoire" title="Grimoire (mode public)">{isPublicMode ? <BookOpen size={18} /> : <BookOpen size={18} />}</button>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Settings */}
+          {displaySettings.showToolbarSettings !== false && (
+            <>
+              <button onClick={() => { const evt = new CustomEvent('open-settings'); window.dispatchEvent(evt); }} className="p-1.5 hover:bg-accent rounded-md transition-colors" aria-label="Paramètres" title="Paramètres"><Settings size={18} /></button>
+              <div className="w-px h-5 bg-border/50" />
+            </>
+          )}
+
+          {/* Fullscreen */}
+          {displaySettings.showToolbarFullscreen !== false && (
+            <button onClick={toggleFullscreen} className={`p-1.5 rounded-md transition-all ${isFullscreen ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'hover:bg-accent'}`} aria-label="Plein écran" title="Plein écran">{isFullscreen ? <icons.Minimize size={18} /> : <Fullscreen size={18} />}</button>
+          )}
         </div>
 
         {/* The actual infinite canvas */}
@@ -1080,8 +1217,10 @@ export const Canvas: React.FC = () => {
             };
 
             const renderBadge = (position: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight') => {
+              if (!displaySettings.showRolesOnBoard) return null;
               const config = displaySettings.playerBadges?.[position];
               if (!config || config.type === 'none') return null;
+              if (displaySettings.showPlayerBadges?.[position] === false) return null;
 
               const baseClasses = "absolute min-w-[24px] h-6 px-1 rounded-full flex items-center justify-center border-2 border-background shadow-sm text-[11px] font-bold z-20";
               let posClass = "";
@@ -1187,11 +1326,12 @@ export const Canvas: React.FC = () => {
             };
 
             let imageToShow = null;
-            if (displaySettings.showPlayerImage && player.imageUrl && displaySettings.showRoleImage && role?.imageUrl) {
+            const showRoleImg = displaySettings.showRolesOnBoard && displaySettings.showRoleImage;
+            if (displaySettings.showPlayerImage && player.imageUrl && showRoleImg && role?.imageUrl) {
               imageToShow = displaySettings.imagePriority === 'player' ? player.imageUrl : role.imageUrl;
             } else if (displaySettings.showPlayerImage && player.imageUrl) {
               imageToShow = player.imageUrl;
-            } else if (displaySettings.showRoleImage && role?.imageUrl) {
+            } else if (showRoleImg && role?.imageUrl) {
               imageToShow = role.imageUrl;
             }
 
@@ -1252,8 +1392,8 @@ export const Canvas: React.FC = () => {
                 onDoubleClick={() => useVttStore.getState().setEditingEntity({ type: 'player', id: player.id })}
               >
                 <div className="relative flex flex-col items-center justify-center">
-                  {/* Ping / Halo Effect */}
-                  {player.pingTimestamp && (Date.now() - player.pingTimestamp < 5000) && (
+                  {/* Ping / Halo Effect (disabled in low quality mode) */}
+                  {player.pingTimestamp && (Date.now() - player.pingTimestamp < 5000) && !displaySettings.lowQualityMode && (
                     <>
                       <div 
                         key={`ping-${player.pingTimestamp}`}
@@ -1295,7 +1435,7 @@ export const Canvas: React.FC = () => {
                       height: player.size * 2,
                       backgroundColor: player.isDead ? '#27272a' : player.color,
                       clipPath: getShapeClipPath(effectiveShape),
-                      border: effectiveShape === 'circle' || effectiveShape === 'square' ? `4px solid ${player.isDead ? '#7f1d1d' : (displaySettings.showRoleColor && role?.color) ? role.color : player.color}` : 'none',
+                      border: effectiveShape === 'circle' || effectiveShape === 'square' ? `4px solid ${player.isDead ? '#7f1d1d' : (displaySettings.showRolesOnBoard && displaySettings.showRoleColor && role?.color) ? role.color : player.color}` : 'none',
                       padding: (effectiveShape === 'circle' || effectiveShape === 'square') && imageToShow ? '2px' : '0'
                     }}
                   >
@@ -1307,7 +1447,7 @@ export const Canvas: React.FC = () => {
                          className="w-full h-full flex items-center justify-center"
                          style={{
                            padding: '4px',
-                           backgroundColor: player.isDead ? '#7f1d1d' : (displaySettings.showRoleColor && role?.color) ? role.color : player.color,
+                            backgroundColor: player.isDead ? '#7f1d1d' : (displaySettings.showRolesOnBoard && displaySettings.showRoleColor && role?.color) ? role.color : player.color,
                            clipPath: getShapeClipPath(effectiveShape),
                          }}
                        >
@@ -1324,6 +1464,7 @@ export const Canvas: React.FC = () => {
                                 alt={player.name}
                                 className="w-full h-full object-cover bg-background"
                                 draggable={false}
+                                loading={displaySettings.lazyLoadImages !== false ? 'lazy' : 'eager'}
                               />
                             )}
                             {player.isDead && (
@@ -1339,6 +1480,7 @@ export const Canvas: React.FC = () => {
                             alt={player.name}
                             className="w-full h-full object-cover rounded-full bg-background"
                             draggable={false}
+                            loading={displaySettings.lazyLoadImages !== false ? 'lazy' : 'eager'}
                           />
                         )}
                         {player.isDead && (
@@ -1385,11 +1527,18 @@ export const Canvas: React.FC = () => {
                   {renderBadge('bottomRight')}
 
                   {/* Pastilles (Selection + Action + Tags with showPastille) */}
-                  {((player.selectionPastilles && player.selectionPastilles.length > 0) || 
-                    (player.actionPastilles && player.actionPastilles.length > 0) ||
-                    player.tags.some(t => t.showPastille) || 
-                    (role?.tags || []).some(t => t.showPastille)) && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1 z-30">
+                  {(() => {
+                    const allBadgesHidden = !displaySettings.showPlayerBadges?.topLeft && !displaySettings.showPlayerBadges?.topRight && !displaySettings.showPlayerBadges?.bottomLeft && !displaySettings.showPlayerBadges?.bottomRight;
+                    const tagPastillesVisible = displaySettings.showRolesOnBoard && !allBadgesHidden;
+                    const visibleTagPastilles = tagPastillesVisible
+                      ? [...player.tags, ...(role?.tags || [])].filter(t => t.showPastille)
+                      : [];
+                    const hasVisiblePastilles = (player.selectionPastilles && player.selectionPastilles.length > 0) ||
+                      (player.actionPastilles && player.actionPastilles.length > 0) ||
+                      visibleTagPastilles.length > 0;
+                    if (!hasVisiblePastilles) return null;
+                    return (
+                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex items-center justify-center gap-1 z-30">
                       {(player.selectionPastilles || []).map((p, idx) => {
                         const PIcon = (icons as any)[p.icon] || Tag;
                         return (
@@ -1418,8 +1567,8 @@ export const Canvas: React.FC = () => {
                           </div>
                         );
                       })}
-                      {/* Tags with showPastille */}
-                      {[...player.tags, ...(role?.tags || [])].filter(t => t.showPastille).map((t, idx) => {
+                        {/* Tags with showPastille */}
+                        {visibleTagPastilles.map((t, idx) => {
                         const PIcon = (icons as any)[t.icon] || Tag;
                         return (
                           <div
@@ -1436,11 +1585,12 @@ export const Canvas: React.FC = () => {
                           </div>
                         );
                       })}
-                    </div>
-                  )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Revealed Role Card */}
-                  {player.isRoleRevealedOnBoard && role && !isPublicMode && (
+                  {displaySettings.showRolesOnBoard && player.isRoleRevealedOnBoard && role && !isPublicMode && (
                     <div 
                       className="absolute left-[calc(100%+10px)] top-1/2 -translate-y-1/2 w-16 h-24 bg-card rounded-md shadow-2xl border-2 overflow-hidden flex flex-col items-center justify-center animate-in zoom-in-75 duration-300 z-40 pointer-events-none"
                       style={{ borderColor: role.color || '#fff' }}
@@ -1461,17 +1611,19 @@ export const Canvas: React.FC = () => {
                 {displaySettings.showTooltip && (
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max max-w-[200px] bg-popover text-popover-foreground text-xs p-2 rounded shadow-xl border border-border opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                     {displaySettings.showPlayerName !== false && <p className="font-bold">{player.name}</p>}
-                    {displaySettings.showRole && effectiveRole && !isPublicMode && <p>Rôle: <span style={{ color: effectiveRole.color }}>{effectiveRole.name}</span></p>}
-                    {displaySettings.showTeam && team && !isPublicMode && <p>Équipe: <span style={{ color: team.color }}>{team.name}</span></p>}
+                    {displaySettings.showRolesOnBoard && displaySettings.showRole && effectiveRole && !isPublicMode && <p>Rôle: <span style={{ color: effectiveRole.color }}>{effectiveRole.name}</span></p>}
+                    {displaySettings.showRolesOnBoard && displaySettings.showTeam && team && !isPublicMode && <p>Équipe: <span style={{ color: team.color }}>{team.name}</span></p>}
                     {player.isDead && <p className="text-destructive font-bold">Mort</p>}
-                    {displaySettings.showTags && displaySettings.showTagTooltip !== false && (
-                      player.tags.some(t => t.showInTooltip !== false) ||
-                      (role && role.tags && role.tags.some(t => t.showInTooltip !== false))
-                    ) && (
+                    {(() => {
+                      const visibleRoleTags = role?.tags?.filter(t => t.showInTooltip !== false && (!isPublicMode || !t.isSecret)) || [];
+                      const visiblePlayerTags = player.tags.filter(t => t.showInTooltip !== false && (!isPublicMode || !t.isSecret));
+                      const hasVisibleTags = visibleRoleTags.length > 0 || visiblePlayerTags.length > 0;
+                      if (!displaySettings.showTags || displaySettings.showTagTooltip === false || !hasVisibleTags) return null;
+                      return (
                         <div className="mt-1 border-t border-border pt-1">
                           <p className="font-semibold text-[10px] text-muted-foreground">Tags:</p>
                           <ul className="flex flex-col gap-1 mt-1">
-                            {role?.tags?.filter(t => t.showInTooltip !== false && (!isPublicMode || !t.isSecret)).map(t => {
+                            {visibleRoleTags.map(t => {
                               const TIcon = icons[t.icon as keyof typeof icons] || Tag;
                               return (
                                 <li key={`role-tag-${t.id}`} className="flex flex-col bg-muted px-1.5 py-0.5 rounded text-[10px] border border-dashed border-border" title="Tag de Rôle">
@@ -1519,7 +1671,7 @@ export const Canvas: React.FC = () => {
                                 </li>
                               );
                             })}
-                            {player.tags.filter(t => t.showInTooltip !== false && (!isPublicMode || !t.isSecret)).map(t => {
+                            {visiblePlayerTags.map(t => {
                               const TIcon = icons[t.icon as keyof typeof icons] || Tag;
                               return (
                                 <li key={t.instanceId} className="flex flex-col bg-muted px-1.5 py-0.5 rounded text-[10px]">
@@ -1569,7 +1721,8 @@ export const Canvas: React.FC = () => {
                             })}
                           </ul>
                         </div>
-                      )}
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -1635,7 +1788,7 @@ export const Canvas: React.FC = () => {
                   style={{ borderColor: marker.tag.color }}
                 >
                   {marker.tag.imageUrl ? (
-                    <img src={marker.tag.imageUrl} alt={marker.tag.name} className="w-full h-full object-cover" draggable={false} />
+                    <img src={marker.tag.imageUrl} alt={marker.tag.name} className="w-full h-full object-cover" draggable={false} loading={displaySettings.lazyLoadImages !== false ? 'lazy' : 'eager'} />
                   ) : (
                     React.createElement(TagIconComponent as any, { size: 20, style: { color: marker.tag.color } })
                   )}
@@ -2961,6 +3114,81 @@ export const Canvas: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Dev Mode Overlay */}
+        {displaySettings.devMode && (
+          <div className="absolute top-2 left-2 z-[50] pointer-events-none select-none">
+            <div className="bg-black/80 text-green-400 font-mono text-[10px] p-2 rounded border border-green-500/30 space-y-1 min-w-[280px]">
+              <div className="font-bold text-green-300 border-b border-green-500/30 pb-1 mb-1">⚡ DEV MODE</div>
+              <div>Zoom: <span className="text-white">{canvas.zoom.toFixed(3)}</span></div>
+              <div>Pan: <span className="text-white">X:{Math.round(canvas.panX)} Y:{Math.round(canvas.panY)}</span></div>
+              <div>Room: <span className="text-white">{room.width}×{room.height}</span></div>
+              <div>Grid: <span className="text-white">{grid.enabled ? `${grid.sizeX}px` : 'OFF'}</span></div>
+              <div>Cycle: <span className="text-white">{cycleNumber}{isNight ? ' (Nuit)' : ' (Jour)'}</span></div>
+              <div className="border-t border-green-500/30 pt-1 mt-1">
+                <div>Players: <span className="text-white">{players.length}</span> | Roles: <span className="text-white">{roles.length}</span></div>
+                <div>Markers: <span className="text-white">{markers.length}</span> | Tags: <span className="text-white">{tags.length}</span></div>
+              </div>
+              {selectedEntityIds.length > 0 && (
+                <div className="border-t border-green-500/30 pt-1 mt-1">
+                  <div className="text-amber-400">Selected ({selectedEntityIds.length}):</div>
+                  {selectedEntityIds.map(id => {
+                    const player = players.find(p => p.id === id);
+                    const marker = markers.find(m => m.id === id);
+                    return (
+                      <div key={id} className="text-amber-300 truncate">
+                        {player ? `P:${player.name} (${player.x?.toFixed(0)},${player.y?.toFixed(0)})` :
+                          marker ? `M:${marker.tag.name || id.slice(0,8)}` : id.slice(0, 8)}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {players.filter(p => p.x !== undefined).slice(0, 5).map(p => (
+                <div key={p.id} className="text-zinc-500 truncate">
+                  {p.name?.slice(0, 12)}: ({p.x?.toFixed(0)}, {p.y?.toFixed(0)})
+                </div>
+              ))}
+              {players.length > 5 && (
+                <div className="text-zinc-600">... +{players.length - 5} more</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Dev Mode: Player ID badges */}
+        {displaySettings.devMode && players.filter(p => p.x !== undefined && p.y !== undefined).map(player => {
+          const screenX = (player.x * canvas.zoom) + canvas.panX + containerSize.width / 2;
+          const screenY = (player.y * canvas.zoom) + canvas.panY + containerSize.height / 2;
+          return (
+            <div
+              key={`dev-${player.id}`}
+              className="absolute z-[45] pointer-events-none select-none"
+              style={{ left: screenX, top: screenY - 20, transform: 'translate(-50%, -100%)' }}
+            >
+              <div className="bg-black/70 text-cyan-400 font-mono text-[9px] px-1.5 py-0.5 rounded border border-cyan-500/20 whitespace-nowrap">
+                {player.id.slice(0, 8)} | ({player.x?.toFixed(0)}, {player.y?.toFixed(0)})
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Dev Mode: Marker ID badges */}
+        {displaySettings.devMode && markers.filter(m => m.x !== undefined && m.y !== undefined).map(marker => {
+          const screenX = (marker.x * canvas.zoom) + canvas.panX + containerSize.width / 2;
+          const screenY = (marker.y * canvas.zoom) + canvas.panY + containerSize.height / 2;
+          return (
+            <div
+              key={`dev-m-${marker.id}`}
+              className="absolute z-[45] pointer-events-none select-none"
+              style={{ left: screenX, top: screenY - 16, transform: 'translate(-50%, -100%)' }}
+            >
+              <div className="bg-black/70 text-pink-400 font-mono text-[9px] px-1.5 py-0.5 rounded border border-pink-500/20 whitespace-nowrap">
+                M:{marker.id.slice(0, 8)} | ({marker.x?.toFixed(0)}, {marker.y?.toFixed(0)})
+              </div>
+            </div>
+          );
+        })}
 
       </div>
     </div>

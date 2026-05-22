@@ -401,37 +401,38 @@ export const ActionCreatorWindow: React.FC = () => {
                     </span>
                     <span className="font-bold">
                       {effect.type === 'deleteAllTags' ? 'Supprimer tous les tags' : 
-                       effect.type === 'nextPhase' ? 'Passer à la phase suivante' : 
-                       effect.type === 'previousPhase' ? 'Revenir à la phase précédente' : 
-                       effect.type === 'resetCycle' ? 'Réinitialiser le Cycle (Jour 1)' :
-                       effect.type === 'setCycleDayNight' ? 'Cycle : Jour/Nuit' :
-                       effect.type === 'setCycleTurn' ? 'Cycle : par Tour' :
-                       effect.type === 'setCycleNone' ? 'Cycle : Aucun' :
-                       effect.type === 'distributeRoles' ? 'Distribuer (Rôles)' :
-                       effect.type === 'showPlayerImage' ? "Afficher l'image du joueur" :
-                       effect.type === 'hidePlayerImage' ? "Cacher l'image du joueur" :
-                       effect.type === 'showRoleImage' ? "Afficher l'image du Rôle" :
-                       effect.type === 'hideRoleImage' ? "Cacher l'image du Rôle" :
-                       effect.type === 'deleteAllPlayerTags' ? 'Supprimer tous les tags des joueurs' : 
-                       effect.type === 'deleteSelectionPastilles' ? 'Supprimer les pastilles tags' :
-                       effect.type === 'resurrectAllPlayers' ? 'Ressusciter tous les joueurs' :
-                       effect.type === 'showAllPlayers' ? 'Afficher tous les joueurs' :
-                       effect.type === 'hideAllPlayers' ? 'Masquer tous les joueurs' :
-                       effect.type === 'showPlayerTooltip' ? 'Afficher info bulle joueurs' :
-                       effect.type === 'hidePlayerTooltip' ? 'Masquer info bulle joueurs' :
-                       effect.type === 'showTagTooltip' ? 'Afficher info bulle tags' :
-                       effect.type === 'hideTagTooltip' ? 'Masquer info bulle tags' :
-                       effect.type === 'showRoleColor' ? 'Afficher couleur rôle' :
-                       effect.type === 'hideRoleColor' ? 'Masquer couleur rôle' :
-                       effect.type === 'popupPlayer' ? 'Popup $Joueur' :
-                       effect.type === 'triggerAction' ? `Exécuter: ${actions.find(a => a.id === effect.targetActionId)?.name || 'Action inconnue'}` :
-                       effect.type === 'assignTagToRole' ? `Assigner Tag ${tags.find(t => t.id === effect.tagId)?.name || ''} au Rôle ${roles.find(r => r.id === effect.roleId)?.name || ''}` :
-                       effect.type === 'removeTagFromRole' ? `Enlever Tag ${tags.find(t => t.id === effect.tagId)?.name || ''} au Rôle ${roles.find(r => r.id === effect.roleId)?.name || ''}` :
-                       effect.type === 'assignTeam' ? `Assigner Équipe: Joueur(${effect.teamId === 'unchanged' ? 'Inchangé' : effect.teamId ? (teams.find(t => t.id === effect.teamId)?.name || 'Inconnue') : 'Aucune'}) Rôle(${effect.roleTeamId === 'unchanged' ? 'Inchangé' : effect.roleTeamId ? (teams.find(t => t.id === effect.roleTeamId)?.name || 'Inconnue') : 'Aucune'})` :
-                       effect.type === 'selectCallOrderPlayer' ? 'Sélectionner joueur $Ordre' :
-                       effect.type === 'wait' ? `Attendre ${effect.value || 0}s${effect.showCountdown ? ` (⏲️ ${effect.countdownMessage || '...'})` : ''}` :
-                       effect.type === 'modifyVariable' ? `${effect.variable} ${effect.operator} ${effect.value}` :
-                       effect.type}
+                        effect.type === 'nextPhase' ? 'Passer à la phase suivante' : 
+                        effect.type === 'previousPhase' ? 'Revenir à la phase précédente' : 
+                        effect.type === 'resetCycle' ? 'Réinitialiser le Cycle (Jour 1)' :
+                        effect.type === 'setCycleDayNight' ? 'Cycle : Jour/Nuit' :
+                        effect.type === 'setCycleTurn' ? 'Cycle : par Tour' :
+                        effect.type === 'setCycleNone' ? 'Cycle : Aucun' :
+                        effect.type === 'distributeRoles' ? 'Distribuer (Rôles)' :
+                        effect.type === 'showPlayerImage' ? "Afficher l'image du joueur" :
+                        effect.type === 'hidePlayerImage' ? "Cacher l'image du joueur" :
+                        effect.type === 'showRoleImage' ? "Afficher l'image du Rôle" :
+                        effect.type === 'hideRoleImage' ? "Cacher l'image du Rôle" :
+                        effect.type === 'deleteAllPlayerTags' ? 'Supprimer tous les tags des joueurs' : 
+                        effect.type === 'deleteSelectionPastilles' ? 'Supprimer les pastilles tags' :
+                        effect.type === 'resurrectAllPlayers' ? 'Ressusciter tous les joueurs' :
+                        effect.type === 'showAllPlayers' ? 'Afficher tous les joueurs' :
+                        effect.type === 'hideAllPlayers' ? 'Masquer tous les joueurs' :
+                        effect.type === 'showPlayerTooltip' ? 'Afficher info bulle joueurs' :
+                        effect.type === 'hidePlayerTooltip' ? 'Masquer info bulle joueurs' :
+                        effect.type === 'showTagTooltip' ? 'Afficher info bulle tags' :
+                        effect.type === 'hideTagTooltip' ? 'Masquer info bulle tags' :
+                        effect.type === 'showRoleColor' ? 'Afficher couleur rôle' :
+                        effect.type === 'hideRoleColor' ? 'Masquer couleur rôle' :
+                        effect.type === 'popupPlayer' ? 'Popup $Joueur' :
+                        effect.type === 'triggerAction' ? `Exécuter: ${actions.find(a => a.id === effect.targetActionId)?.name || 'Action inconnue'}` :
+                        effect.type === 'assignTagToRole' ? `Assigner Tag ${tags.find(t => t.id === effect.tagId)?.name || ''} au Rôle ${roles.find(r => r.id === effect.roleId)?.name || ''}` :
+                        effect.type === 'removeTagFromRole' ? `Enlever Tag ${tags.find(t => t.id === effect.tagId)?.name || ''} au Rôle ${roles.find(r => r.id === effect.roleId)?.name || ''}` :
+                        effect.type === 'assignTeam' ? `Assigner Équipe: Joueur(${effect.teamId === 'unchanged' ? 'Inchangé' : effect.teamId ? (teams.find(t => t.id === effect.teamId)?.name || 'Inconnue') : 'Aucune'}) Rôle(${effect.roleTeamId === 'unchanged' ? 'Inchangé' : effect.roleTeamId ? (teams.find(t => t.id === effect.roleTeamId)?.name || 'Inconnue') : 'Aucune'})` :
+                        effect.type === 'selectCallOrderPlayer' ? 'Sélectionner joueur $Ordre' :
+                        effect.type === 'moveCibleToGraveyard' ? 'Isoler $Cible / Envoyer au cimetière' :
+                        effect.type === 'wait' ? `Attendre ${effect.value || 0}s${effect.showCountdown ? ` (⏲️ ${effect.countdownMessage || '...'})` : ''}` :
+                        effect.type === 'modifyVariable' ? `${effect.variable} ${effect.operator} ${effect.value}` :
+                        effect.type}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">

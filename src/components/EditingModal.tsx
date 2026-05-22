@@ -1,61 +1,51 @@
 import React from 'react';
 import { useVttStore } from '../store';
 import * as icons from 'lucide-react';
-import { X, Trash2, Play, Pause, Square } from 'lucide-react';
+import { X, Trash2, Play, Pause, Square, Keyboard, Mic } from 'lucide-react';
 import { uploadFileToStorage, deleteFileFromStorage } from '../lib/supabase';
 import { ColorPicker } from './ColorPicker';
-
-const TEAM_ICONS = [
-  'Users', 'Shield', 'Sword', 'Heart', 'Star', 'Flag', 'Skull', 'Ghost',
-  'Crown', 'Flame', 'Zap', 'Droplet', 'Sun', 'Moon', 'Eye', 'Feather',
-  'Key', 'Anchor', 'Axe', 'Castle', 'Crosshair', 'Hexagon', 'Sprout', 'Target', 'Gem',
-  'Wind', 'Waves', 'Mountain', 'Trees', 'Cloud', 'Compass', 'Map', 'FlaskConical',
-  'Scroll', 'Book', 'Wand', 'Hammer', 'Pickaxe', 'LifeBuoy', 'Tent', 'Rocket',
-  'Fish', 'Bird', 'Bug', 'Leaf', 'Smile', 'Angry', 'Lightbulb', 'Music', 'Bell',
-  'Gift', 'Coffee', 'Trash2', 'Camera', 'Lock', 'Unlock', 'Ear', 'Pointer',
-  'ArrowBigUp', 'ArrowBigDown', 'ArrowBigLeft', 'ArrowBigRight', 'RefreshCw',
-  'Dna', 'Magnet', 'Infinity', 'Aperture', 'Atom', 'Battery', 'Bicycle',
-  'Bus', 'Car', 'Candy', 'Citrus', 'Cookie', 'Clover', 'CloudLightning',
-  'Egg', 'Fingerprint', 'Grape', 'Gamepad2', 'Gavel', 'Glasses', 'Hand', 'HeartPulse',
-  'Heater', 'IceCream', 'Lamp', 'Languages', 'Mail', 'Microscope', 'MoonStar',
-  'Palmtree', 'Paperclip', 'Peace', 'Pencil', 'Piano', 'Pizza', 'Plane',
-  'Puzzle', 'Radiation', 'Rainbow', 'Rat', 'Robot', 'Siren', 'Snowflake',
-  'Speaker', 'Stethoscope', 'Syringe', 'Telescope', 'Thermometer', 'Ticket',
-  'Timer', 'Trophy', 'Truck', 'Turtle', 'Umbrella', 'Usb', 'User', 'VenetianMask',
-  'Volcano', 'Wallet', 'Watch', 'Wrench', 'YingYang'
-];
-
-export const TAG_ICONS = [
-  'Tag', 'Shield', 'Sword', 'Heart', 'Star', 'Flag', 'Skull', 'Ghost',
-  'Crown', 'Flame', 'Zap', 'Droplet', 'Sun', 'Moon', 'Eye', 'Feather',
-  'Key', 'Anchor', 'Axe', 'Castle', 'Crosshair', 'Hexagon', 'Sprout', 'Target', 'Gem',
-  'Wind', 'Waves', 'Mountain', 'Trees', 'Cloud', 'Compass', 'Map', 'FlaskConical',
-  'Scroll', 'Book', 'Wand', 'Hammer', 'Pickaxe', 'LifeBuoy', 'Tent', 'Rocket',
-  'Fish', 'Bird', 'Bug', 'Leaf', 'Smile', 'Angry', 'Lightbulb', 'Music', 'Bell',
-  'Gift', 'Coffee', 'Trash2', 'Camera', 'Lock', 'Unlock', 'Ear', 'Pointer',
-  'ArrowBigUp', 'ArrowBigDown', 'ArrowBigLeft', 'ArrowBigRight', 'RefreshCw',
-  'Dna', 'Magnet', 'Infinity', 'Aperture', 'Atom', 'Battery', 'Bicycle',
-  'Bus', 'Car', 'Candy', 'Citrus', 'Cookie', 'Clover', 'CloudLightning',
-  'Egg', 'Fingerprint', 'Grape', 'Gamepad2', 'Gavel', 'Glasses', 'Hand', 'HeartPulse',
-  'Heater', 'IceCream', 'Lamp', 'Languages', 'Mail', 'Microscope', 'MoonStar',
-  'Palmtree', 'Paperclip', 'Peace', 'Pencil', 'Piano', 'Pizza', 'Plane',
-  'Puzzle', 'Radiation', 'Rainbow', 'Rat', 'Robot', 'Siren', 'Snowflake',
-  'Speaker', 'Stethoscope', 'Syringe', 'Telescope', 'Thermometer', 'Ticket',
-  'Timer', 'Trophy', 'Truck', 'Turtle', 'Umbrella', 'Usb', 'User', 'VenetianMask',
-  'Volcano', 'Wallet', 'Watch', 'Wrench', 'YingYang'
-];
+import { TagModelForm, TagInstanceForm } from './tags';
+import { TEAM_ICONS, TAG_ICONS } from '../lib/icons';
+import { getAudio, isIdbUrl, idbUrlToKey } from '../lib/audio-storage';
 
 export const EditingModal: React.FC = () => {
   const { editingEntity, setEditingEntity, players, playerTemplates, roles, teams, tags, tagCategories, markers, soundboard, handouts, actions, updatePlayer, updatePlayerTemplate, updateRole, updateTeam, updateTagModel, updateTagCategory, updateMarker, updateSoundButton, removeSoundButton, addLog } = useVttStore();
-  const [activeTagTab, setActiveTagTab] = React.useState<'general' | 'appearance' | 'fields' | 'container' | 'smartphone'>('general');
-  const [activeRoleTab, setActiveRoleTab] = React.useState<'general' | 'appearance' | 'tags'>('general');
+  const [activeRoleTab, setActiveRoleTab] = React.useState<'general' | 'distribution' | 'appearance' | 'tags'>('general');
+  const [roleNameError, setRoleNameError] = React.useState('');
+  const [activePlayerTemplateTab, setActivePlayerTemplateTab] = React.useState<'general' | 'appearance' | 'preview'>('general');
+  const [activeTeamTab, setActiveTeamTab] = React.useState<'general' | 'appearance' | 'members'>('general');
+  const [templateNameError, setTemplateNameError] = React.useState('');
+  const [teamNameError, setTeamNameError] = React.useState('');
+  const [teamIconSearch, setTeamIconSearch] = React.useState('');
   const [tagSearchQuery, setTagSearchQuery] = React.useState('');
-  const [expandedContainerCategories, setExpandedContainerCategories] = React.useState<Record<string, boolean>>({});
-  const [isSmartphoneFiltersExpanded, setIsSmartphoneFiltersExpanded] = React.useState(false);
   
   // Test audio for sound buttons
   const testAudioRef = React.useRef<HTMLAudioElement | null>(null);
   const [isTesting, setIsTesting] = React.useState(false);
+  // Keyboard shortcut capture
+  const [capturingShortcut, setCapturingShortcut] = React.useState(false);
+  const [capturingShortcutIndex, setCapturingShortcutIndex] = React.useState<number | null>(null);
+  // Audio recording
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [recordingDuration, setRecordingDuration] = React.useState(0);
+  const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = React.useRef<MediaStream | null>(null);
+  const recordingTimerRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  React.useEffect(() => {
+    if (capturingShortcutIndex === null) return;
+    const handler = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const key = e.key.length === 1 ? e.key : '';
+      if (key) {
+        updateSoundButton(capturingShortcutIndex, { shortcut: key.toLowerCase() });
+      }
+      setCapturingShortcut(false);
+      setCapturingShortcutIndex(null);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [capturingShortcutIndex]);
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -87,29 +77,54 @@ export const EditingModal: React.FC = () => {
     };
   }, [editingEntity?.id, editingEntity?.type]);
 
-  const tagsByCategory = React.useMemo(() => {
-    const grouped: Record<string, typeof tags> = {
-      'no-category': []
-    };
-    tagCategories.forEach(c => grouped[c.id] = []);
-    tags.forEach(tag => {
-      if (tag.categoryId && grouped[tag.categoryId]) {
-        grouped[tag.categoryId].push(tag);
-      } else {
-        grouped['no-category'].push(tag);
-      }
-    });
-
-    return grouped;
-  }, [tags, tagCategories]);
-
   const [initialNotes, setInitialNotes] = React.useState<string | null>(null);
+
+  // Focus trap
+  const modalRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!editingEntity) return;
+    const modal = modalRef.current;
+    if (!modal) return;
+
+    const focusableSelector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+    const getFocusable = () => Array.from(modal.querySelectorAll<HTMLElement>(focusableSelector));
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+
+    const timer = setTimeout(() => {
+      const focusable = getFocusable();
+      if (focusable.length > 0 && !focusable.includes(document.activeElement as HTMLElement)) {
+        focusable[0].focus();
+      }
+    }, 50);
+
+    modal.addEventListener('keydown', handleKeyDown);
+    return () => {
+      modal.removeEventListener('keydown', handleKeyDown);
+      clearTimeout(timer);
+    };
+  }, [editingEntity]);
 
   // Reset tab when editing entity changes
   React.useEffect(() => {
-    setActiveTagTab('general');
     setActiveRoleTab('general');
-    setIsSmartphoneFiltersExpanded(false);
+    setRoleNameError('');
+    setActivePlayerTemplateTab('general');
+    setActiveTeamTab('general');
+    setTemplateNameError('');
+    setTeamNameError('');
+    setTeamIconSearch('');
     
     if (editingEntity?.type === 'playerNotes') {
         const player = useVttStore.getState().players.find(p => p.id === editingEntity.id);
@@ -146,136 +161,375 @@ export const EditingModal: React.FC = () => {
     const template = playerTemplates.find(p => p.id === editingEntity.id);
     if (!template) return null;
 
-    entityTitle = `Modifier Modèle de Joueur: ${template.name}`;
-    entityContent = (
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium" htmlFor={`template-name-${template.id}`}>Nom</label>
-          <input
-            id={`template-name-${template.id}`}
-            type="text"
-            value={template.name}
-            onChange={(e) => updatePlayerTemplate(template.id, { name: e.target.value })}
-            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-        </div>
-        <div className="flex gap-4">
-          <div className="flex flex-col gap-1 flex-1">
-            <label className="text-sm font-medium">Couleur</label>
-            <div className="flex items-center gap-3">
-              <ColorPicker
-                color={template.color}
-                onChange={(c) => updatePlayerTemplate(template.id, { color: c })}
-                label="Couleur"
-                className="!w-10 !h-10"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-1 flex-1">
-            <label className="text-sm font-medium" htmlFor={`template-size-${template.id}`}>Taille (Rayon px)</label>
-            <input
-              id={`template-size-${template.id}`}
-              type="number"
-              value={template.size}
-              onChange={(e) => updatePlayerTemplate(template.id, { size: Math.max(10, parseInt(e.target.value) || 40) })}
-              className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            />
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium" htmlFor={`template-shape-${template.id}`}>Forme du pion</label>
-          <select
-            id={`template-shape-${template.id}`}
-            value={template.shape || ''}
-            onChange={(e) => updatePlayerTemplate(template.id, { shape: (e.target.value || undefined) as any })}
-            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          >
-            <option value="">Utiliser le défaut</option>
-            <option value="circle">Rond</option>
-            <option value="square">Carré</option>
-            <option value="oval">Ovale</option>
-            <option value="triangle">Triangle</option>
-            <option value="trapezoid">Trapèze</option>
-            <option value="octagon">Octogone</option>
-            <option value="star">Étoile</option>
-            <option value="pentagon">Pentagone</option>
-            <option value="hexagon">Hexagone</option>
-          </select>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium" htmlFor={`template-image-file-${template.id}`}>Image / Icône (Modèle)</label>
-          <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
-            <div className="flex flex-col gap-2">
-              <input
-                id={`template-image-file-${template.id}`}
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    await handleImageFile(file, (url) => updatePlayerTemplate(template.id, { imageUrl: url }));
-                  }
-                }}
-                className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
-              />
-              <label className="sr-only" htmlFor={`template-image-url-${template.id}`}>URL de l'image (Modèle)</label>
-              <input
-                id={`template-image-url-${template.id}`}
-                type="text"
-                value={template.imageUrl || ''}
-                onChange={(e) => updatePlayerTemplate(template.id, { imageUrl: e.target.value })}
-                placeholder="Ou collez l'URL d'une image ici..."
-                className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
+    const instanceCount = players.filter(pl => pl.name === template.name && pl.color === template.color).length;
+    const selectedShape = template.shape || 'circle';
 
-            {template.imageUrl && (
-              <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
-                <div className="relative group">
-                  <img src={template.imageUrl} alt="Preview" className="w-12 h-12 rounded-full object-cover border-2 border-primary/20 shadow-sm" />
+    const handleDuplicateTemplate = () => {
+      let newName = `${template.name} (Copie)`;
+      let counter = 1;
+      while (playerTemplates.some(p => p.name === newName)) {
+        newName = `${template.name} (Copie ${counter})`;
+        counter++;
+      }
+      const { id, ...templateData } = template;
+      useVttStore.getState().addPlayerTemplate({ ...templateData, name: newName });
+    };
+
+    const handleValidateTemplateName = (value: string) => {
+      if (value.trim() && playerTemplates.some(p => p.id !== template.id && p.name.toLowerCase() === value.trim().toLowerCase())) {
+        setTemplateNameError(`Un modèle nommé "${value.trim}" existe déjà.`);
+      } else {
+        setTemplateNameError('');
+      }
+      updatePlayerTemplate(template.id, { name: value });
+    };
+
+    const SHAPES: { value: string; label: string; svg: React.ReactNode }[] = [
+      { value: 'circle', label: 'Rond', svg: <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="currentColor" /></svg> },
+      { value: 'square', label: 'Carré', svg: <svg viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="28" rx="2" fill="currentColor" /></svg> },
+      { value: 'oval', label: 'Ovale', svg: <svg viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="16" ry="10" fill="currentColor" /></svg> },
+      { value: 'triangle', label: 'Triangle', svg: <svg viewBox="0 0 40 40"><polygon points="20,4 36,36 4,36" fill="currentColor" /></svg> },
+      { value: 'trapezoid', label: 'Trapèze', svg: <svg viewBox="0 0 40 40"><polygon points="12,8 28,8 36,32 4,32" fill="currentColor" /></svg> },
+      { value: 'octagon', label: 'Octogone', svg: <svg viewBox="0 0 40 40"><polygon points="14,4 26,4 36,14 36,26 26,36 14,36 4,26 4,14" fill="currentColor" /></svg> },
+      { value: 'star', label: 'Étoile', svg: <svg viewBox="0 0 40 40"><polygon points="20,2 25,14 38,14 27,22 31,36 20,28 9,36 13,22 2,14 15,14" fill="currentColor" /></svg> },
+      { value: 'pentagon', label: 'Pentagone', svg: <svg viewBox="0 0 40 40"><polygon points="20,3 37,15 31,35 9,35 3,15" fill="currentColor" /></svg> },
+      { value: 'hexagon', label: 'Hexagone', svg: <svg viewBox="0 0 40 40"><polygon points="20,3 36,12 36,28 20,37 4,28 4,12" fill="currentColor" /></svg> },
+      { value: 'diamond', label: 'Diamant', svg: <svg viewBox="0 0 40 40"><polygon points="20,3 37,20 20,37 3,20" fill="currentColor" /></svg> },
+      { value: 'shield', label: 'Bouclier', svg: <svg viewBox="0 0 40 40"><path d="M20,3 L36,10 L36,22 C36,30 28,36 20,38 C12,36 4,30 4,22 L4,10 Z" fill="currentColor" /></svg> },
+      { value: 'cross', label: 'Croix', svg: <svg viewBox="0 0 40 40"><polygon points="14,4 26,4 26,14 36,14 36,26 26,26 26,36 14,36 14,26 4,26 4,14 14,14" fill="currentColor" /></svg> },
+      { value: 'heart', label: 'Cœur', svg: <svg viewBox="0 0 40 40"><path d="M20,36 C12,28 4,22 4,14 C4,8 8,4 14,4 C17,4 19,6 20,8 C21,6 23,4 26,4 C32,4 36,8 36,14 C36,22 28,28 20,36Z" fill="currentColor" /></svg> },
+      { value: 'crescent', label: 'Croissant', svg: <svg viewBox="0 0 40 40"><path d="M24,4 C14,4 6,12 6,22 C6,32 14,38 24,38 C18,34 14,28 14,22 C14,16 18,10 24,4Z" fill="currentColor" /></svg> },
+    ];
+
+    entityTitle = `Modifier Modèle: ${template.name}`;
+    entityContent = (
+      <div className="flex flex-col h-full w-full">
+        {/* Header with duplicate button */}
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: template.color }}>
+              {template.imageUrl ? <img src={template.imageUrl} className="w-full h-full rounded-full object-cover" alt="" /> : template.name.charAt(0)}
+            </div>
+            <div>
+              <span className="text-sm font-medium">{template.name}</span>
+              <span className="text-[10px] text-muted-foreground ml-2">×{instanceCount} instance{instanceCount !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          <button
+            onClick={handleDuplicateTemplate}
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-muted hover:bg-accent transition-colors"
+            title="Dupliquer ce modèle"
+          >
+            <icons.Copy size={12} /> Dupliquer
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-border mb-4 shrink-0">
+          {(['general', 'appearance', 'preview'] as const).map(tab => (
+            <button
+              key={tab}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${
+                activePlayerTemplateTab === tab ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+              onClick={() => setActivePlayerTemplateTab(tab)}
+            >
+              {tab === 'general' ? 'Général' : tab === 'appearance' ? 'Apparence' : 'Aperçu'}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
+          {/* TAB: General */}
+          {activePlayerTemplateTab === 'general' && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium" htmlFor={`template-name-${template.id}`}>Nom</label>
+                <input
+                  id={`template-name-${template.id}`}
+                  type="text"
+                  value={template.name}
+                  onChange={(e) => handleValidateTemplateName(e.target.value)}
+                  className={`bg-input border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 ${templateNameError ? 'border-destructive focus:ring-destructive' : 'border-border focus:ring-ring'}`}
+                />
+                {templateNameError && <p className="text-[10px] text-destructive mt-1">{templateNameError}</p>}
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium" htmlFor={`template-role-${template.id}`}>Rôle par défaut</label>
+                <select
+                  id={`template-role-${template.id}`}
+                  value={template.roleId || ''}
+                  onChange={(e) => updatePlayerTemplate(template.id, { roleId: e.target.value || null })}
+                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="">Aucun rôle</option>
+                  {roles.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium" htmlFor={`template-team-${template.id}`}>Équipe par défaut</label>
+                <select
+                  id={`template-team-${template.id}`}
+                  value={template.teamId || ''}
+                  onChange={(e) => updatePlayerTemplate(template.id, { teamId: e.target.value || null })}
+                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="">Aucune équipe</option>
+                  {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-sm font-medium">Couleur</label>
+                  <ColorPicker
+                    color={template.color}
+                    onChange={(c) => updatePlayerTemplate(template.id, { color: c })}
+                    label="Couleur"
+                    className="!w-10 !h-10"
+                  />
                 </div>
-                <div className="flex flex-col flex-1">
-                  <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu & Style Smartphone</span>
-                  <div className="flex items-center gap-2">
-                    <label className="sr-only" htmlFor={`template-image-style-${template.id}`}>Style Smartphone</label>
-                    <select
-                      id={`template-image-style-${template.id}`}
-                      value={template.smartphoneImageStyle || 'circle'}
-                      onChange={(e) => updatePlayerTemplate(template.id, { smartphoneImageStyle: e.target.value as any })}
-                      className="bg-background border border-border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1"
-                    >
-                      <option value="circle">Rond</option>
-                      <option value="square">Carré</option>
-                      <option value="original">Taille réelle</option>
-                      <option value="background">Fond de carte</option>
-                    </select>
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-sm font-medium" htmlFor={`template-size-${template.id}`}>Taille (px)</label>
+                  <input
+                    id={`template-size-${template.id}`}
+                    type="number"
+                    min={10}
+                    max={200}
+                    value={template.size}
+                    onChange={(e) => updatePlayerTemplate(template.id, { size: Math.max(10, Math.min(200, parseInt(e.target.value) || 40)) })}
+                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium" htmlFor={`template-desc-${template.id}`}>Description / Mémo MJ</label>
+                <textarea
+                  id={`template-desc-${template.id}`}
+                  value={template.description || ''}
+                  onChange={(e) => updatePlayerTemplate(template.id, { description: e.target.value })}
+                  placeholder="Note pour le MJ : rôle dans la partie, comportement attendu..."
+                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[60px] resize-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* TAB: Appearance */}
+          {activePlayerTemplateTab === 'appearance' && (
+            <div className="flex flex-col gap-4">
+              {/* Shape Grid */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Forme du pion</label>
+                <div className="grid grid-cols-4 gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+                  {SHAPES.map(shape => (
                     <button
-                      onClick={async () => {
-                        if (template.imageUrl) await deleteFileFromStorage(template.imageUrl);
-                        updatePlayerTemplate(template.id, { imageUrl: undefined });
-                      }}
-                      className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
-                      title="Supprimer l'image"
+                      key={shape.value}
+                      onClick={() => updatePlayerTemplate(template.id, { shape: shape.value as any })}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-md border transition-all ${
+                        selectedShape === shape.value
+                          ? 'bg-primary/10 border-primary ring-1 ring-primary/30'
+                          : 'bg-background/50 border-border/50 hover:bg-muted'
+                      }`}
+                      title={shape.label}
                     >
-                      <Trash2 size={12} />
+                      <div className="w-8 h-8" style={{ color: template.color }}>
+                        {shape.svg}
+                      </div>
+                      <span className="text-[9px] font-medium text-muted-foreground">{shape.label}</span>
                     </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Image Upload */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Image / Icône</label>
+                <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) await handleImageFile(file, (url) => updatePlayerTemplate(template.id, { imageUrl: url }));
+                    }}
+                    className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={template.imageUrl || ''}
+                    onChange={(e) => updatePlayerTemplate(template.id, { imageUrl: e.target.value })}
+                    placeholder="Ou collez l'URL d'une image..."
+                    className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+
+                  {template.imageUrl && (
+                    <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
+                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary/20 shadow-sm flex items-center justify-center" style={{ backgroundColor: template.color }}>
+                        <img src={template.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex flex-col flex-1 gap-1">
+                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Style Smartphone</span>
+                        <div className="flex items-center gap-2">
+                          <select
+                            value={template.smartphoneImageStyle || 'circle'}
+                            onChange={(e) => updatePlayerTemplate(template.id, { smartphoneImageStyle: e.target.value as any })}
+                            className="bg-background border border-border rounded px-2 py-1 text-[10px] focus:outline-none focus:ring-1 focus:ring-ring flex-1"
+                          >
+                            <option value="circle">Rond</option>
+                            <option value="square">Carré</option>
+                            <option value="original">Taille réelle</option>
+                            <option value="background">Fond de carte</option>
+                          </select>
+                          <button
+                            onClick={async () => {
+                              if (template.imageUrl) await deleteFileFromStorage(template.imageUrl);
+                              updatePlayerTemplate(template.id, { imageUrl: undefined });
+                            }}
+                            className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
+                            title="Supprimer l'image"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: Preview */}
+          {activePlayerTemplateTab === 'preview' && (
+            <div className="flex flex-col gap-4">
+              {/* Canvas Preview */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Aperçu sur le Canvas</label>
+                <div className="flex items-center justify-center p-6 bg-muted/20 rounded-lg border border-border/50 min-h-[180px]">
+                  <div className="relative">
+                    <div
+                      className="flex items-center justify-center text-white font-bold shadow-lg"
+                      style={{
+                        width: `${Math.max(48, template.size)}px`,
+                        height: `${Math.max(48, template.size)}px`,
+                        backgroundColor: template.color,
+                        clipPath: selectedShape === 'circle' ? 'circle(50%)' :
+                          selectedShape === 'square' ? 'inset(0)' :
+                          selectedShape === 'oval' ? 'ellipse(50% 35% at 50% 50%)' :
+                          selectedShape === 'triangle' ? 'polygon(50% 0%, 100% 100%, 0% 100%)' :
+                          selectedShape === 'trapezoid' ? 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)' :
+                          selectedShape === 'octagon' ? 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)' :
+                          selectedShape === 'star' ? 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' :
+                          selectedShape === 'pentagon' ? 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)' :
+                          selectedShape === 'hexagon' ? 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)' :
+                          selectedShape === 'diamond' ? 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' :
+                          selectedShape === 'shield' ? 'polygon(50% 0%, 100% 25%, 100% 65%, 50% 100%, 0% 65%, 0% 25%)' :
+                          selectedShape === 'cross' ? 'polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)' :
+                          selectedShape === 'heart' ? 'polygon(50% 15%, 65% 0%, 85% 0%, 100% 15%, 100% 40%, 85% 65%, 50% 100%, 15% 65%, 0% 40%, 0% 15%, 15% 0%, 35% 0%)' :
+                          selectedShape === 'crescent' ? 'polygon(60% 0%, 40% 5%, 20% 15%, 10% 30%, 5% 50%, 10% 70%, 20% 85%, 40% 95%, 60% 100%, 45% 85%, 35% 70%, 30% 50%, 35% 30%, 45% 15%)' :
+                          'circle(50%)',
+                      }}
+                    >
+                      {template.imageUrl && (
+                        <img src={template.imageUrl} alt="" className="w-full h-full object-cover" style={{ borderRadius: selectedShape === 'circle' ? '50%' : selectedShape === 'square' ? '0' : '0' }} />
+                      )}
+                      {!template.imageUrl && (
+                        <span style={{ fontSize: `${Math.max(14, template.size * 0.4)}px` }}>{template.name.charAt(0)}</span>
+                      )}
+                    </div>
+                    {instanceCount > 0 && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center shadow">
+                        {instanceCount}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium" htmlFor={`template-team-${template.id}`}>Équipe par défaut</label>
-          <select
-            id={`template-team-${template.id}`}
-            value={template.teamId || ''}
-            onChange={(e) => updatePlayerTemplate(template.id, { teamId: e.target.value || null })}
-            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          >
-            <option value="">Aucune équipe</option>
-            {teams.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
+
+              {/* Smartphone Preview */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-center flex items-center justify-center gap-2">
+                  <icons.Smartphone size={14} className="text-primary" />
+                  Aperçu Smartphone
+                </label>
+                <div className="relative mx-auto w-full max-w-[200px] aspect-[9/18] bg-[#09090b] rounded-[32px] border-[6px] border-[#18181b] shadow-2xl overflow-hidden flex flex-col ring-1 ring-white/5">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-20 bg-[#18181b] rounded-b-xl z-20" />
+                  <div className="flex-1 flex flex-col p-3 pt-8 overflow-hidden relative">
+                    <div className="flex-1 flex flex-col items-center bg-[#18181b] rounded-xl border border-white/5 p-3 shadow-xl overflow-hidden relative">
+                      {(() => {
+                        const style = template.smartphoneImageStyle || 'circle';
+                        return (
+                          <>
+                            {style === 'background' && template.imageUrl && (
+                              <div className="absolute inset-0 z-0 opacity-40">
+                                <img src={template.imageUrl} alt="" className="w-full h-full object-cover blur-sm brightness-50" />
+                              </div>
+                            )}
+                            <div className="flex flex-col items-center gap-3 w-full z-10 py-2">
+                              {style !== 'background' && (
+                                <div
+                                  className={`flex items-center justify-center border-3 border-[#09090b] bg-[#09090b] overflow-hidden shadow-lg ${
+                                    style === 'square' ? 'w-16 h-16 rounded-xl' :
+                                    style === 'original' ? 'max-w-[80%] rounded-lg' :
+                                    'w-16 h-16 rounded-full'
+                                  }`}
+                                  style={{ borderColor: template.color }}
+                                >
+                                  {template.imageUrl ? (
+                                    <img src={template.imageUrl} alt="" className={`w-full h-full ${style === 'original' ? 'object-contain' : 'object-cover'}`} />
+                                  ) : (
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: template.color }}>
+                                      {template.name.charAt(0)}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              <div className="text-center">
+                                <span className="text-[7px] font-bold text-zinc-500 uppercase tracking-widest">Joueur</span>
+                                <h4 className="text-base font-black leading-none" style={{ color: template.color }}>{template.name}</h4>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="p-3 bg-muted/30 rounded-lg border border-border/50 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Forme</span>
+                  <span className="font-medium capitalize">{selectedShape}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Taille</span>
+                  <span className="font-medium">{template.size}px</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Instances</span>
+                  <span className="font-medium">{instanceCount}</span>
+                </div>
+                {template.roleId && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Rôle</span>
+                    <span className="font-medium">{roles.find(r => r.id === template.roleId)?.name || '—'}</span>
+                  </div>
+                )}
+                {template.teamId && (
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Équipe</span>
+                    <span className="font-medium">{teams.find(t => t.id === template.teamId)?.name || '—'}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -337,6 +591,11 @@ export const EditingModal: React.FC = () => {
             <option value="star">Étoile</option>
             <option value="pentagon">Pentagone</option>
             <option value="hexagon">Hexagone</option>
+            <option value="diamond">Diamant</option>
+            <option value="shield">Bouclier</option>
+            <option value="cross">Croix</option>
+            <option value="heart">Cœur</option>
+            <option value="crescent">Croissant</option>
           </select>
         </div>
         <div className="flex flex-col gap-1">
@@ -490,32 +749,88 @@ export const EditingModal: React.FC = () => {
     const role = roles.find(r => r.id === editingEntity.id);
     if (!role) return null;
 
+    const playerCount = players.filter(p => p.roleId === role.id).length;
+    const team = teams.find(t => t.id === role.teamId);
+
+    const handleDuplicateRole = () => {
+      let newName = `${role.name} (Copie)`;
+      let counter = 1;
+      while (roles.some(r => r.name === newName)) {
+        newName = `${role.name} (Copie ${counter})`;
+        counter++;
+      }
+      const { id, ...roleData } = role;
+      useVttStore.getState().addRole({ ...roleData, name: newName, isSelectableForDistribution: false });
+    };
+
+    const handleValidateRoleName = (value: string) => {
+      if (value.trim() && roles.some(r => r.id !== role.id && r.name.toLowerCase() === value.trim().toLowerCase())) {
+        setRoleNameError(`Un rôle nommé "${value.trim}" existe déjà.`);
+      } else {
+        setRoleNameError('');
+      }
+      updateRole(role.id, { name: value });
+    };
+
+    const toggleRoleTag = (tagId: string) => {
+      const currentTags = role.tags || [];
+      const hasTag = currentTags.some(t => t.id === tagId);
+      const newTags = hasTag
+        ? currentTags.filter(t => t.id !== tagId)
+        : [...currentTags, tags.find(t => t.id === tagId)!].filter(Boolean);
+      updateRole(role.id, { tags: newTags });
+    };
+
+    const filteredTags = tagSearchQuery.trim()
+      ? tags.filter(t => t.name.toLowerCase().includes(tagSearchQuery.toLowerCase()))
+      : tags;
+
+    const roleTagIds = new Set((role.tags || []).map(t => t.id));
+
     entityTitle = `Modifier Rôle: ${role.name}`;
     entityContent = (
       <div className="flex flex-col h-full w-full">
-        {/* Tabs */}
-        <div className="flex border-b border-border mb-4 sticky top-0 bg-card z-10 shrink-0">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm" style={{ backgroundColor: role.color }}>
+              {role.imageUrl ? (
+                <img src={role.imageUrl} className="w-full h-full rounded-full object-cover" alt="" />
+              ) : (
+                role.name.charAt(0).toUpperCase()
+              )}
+            </div>
+            <div>
+              <span className="text-sm font-medium">{role.name}</span>
+              <span className="text-[10px] text-muted-foreground ml-2">×{playerCount} joueur{playerCount !== 1 ? 's' : ''} • {role.isUnique ? 'Unique' : `${role.distributionQuantity ?? 1} ex.`}</span>
+            </div>
+          </div>
           <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeRoleTab === 'general' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveRoleTab('general')}
+            onClick={handleDuplicateRole}
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-muted hover:bg-accent transition-colors"
+            title="Dupliquer ce rôle"
           >
-            Général
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeRoleTab === 'appearance' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveRoleTab('appearance')}
-          >
-            Apparence
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeRoleTab === 'tags' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveRoleTab('tags')}
-          >
-            Tags
+            <icons.Copy size={12} /> Dupliquer
           </button>
         </div>
 
+        {/* Tabs */}
+        <div className="flex border-b border-border mb-4 shrink-0">
+          {(['general', 'distribution', 'appearance', 'tags'] as const).map(tab => (
+            <button
+              key={tab}
+              className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${
+                activeRoleTab === tab ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+              onClick={() => setActiveRoleTab(tab)}
+            >
+              {tab === 'general' ? 'Général' : tab === 'distribution' ? 'Distribution' : tab === 'appearance' ? 'Apparence' : 'Tags'}
+            </button>
+          ))}
+        </div>
+
         <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
+          {/* TAB: General */}
           {activeRoleTab === 'general' && (
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
@@ -524,13 +839,15 @@ export const EditingModal: React.FC = () => {
                   id={`role-name-${role.id}`}
                   type="text"
                   value={role.name}
-                  onChange={(e) => updateRole(role.id, { name: e.target.value })}
-                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  onChange={(e) => handleValidateRoleName(e.target.value)}
+                  className={`bg-input border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 ${roleNameError ? 'border-destructive focus:ring-destructive' : 'border-border focus:ring-ring'}`}
                 />
+                {roleNameError && <p className="text-[10px] text-destructive mt-1">{roleNameError}</p>}
               </div>
+
               <div className="flex gap-4 items-end">
                 <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-sm font-medium" htmlFor={`role-team-${role.id}`}>Équipe (réelle)</label>
+                  <label className="text-sm font-medium" htmlFor={`role-team-${role.id}`}>Équipe</label>
                   <select
                     id={`role-team-${role.id}`}
                     value={role.teamId || ''}
@@ -553,17 +870,20 @@ export const EditingModal: React.FC = () => {
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-1 flex-1">
+
+              <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium" htmlFor={`role-lives-${role.id}`}>Vies</label>
                 <input
                   id={`role-lives-${role.id}`}
                   type="number"
+                  min={0}
                   value={role.lives}
                   onChange={(e) => updateRole(role.id, { lives: parseInt(e.target.value) || 0 })}
                   className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 />
               </div>
-              <div className="flex items-center gap-2 mt-2">
+
+              <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   id="unique-role-edit"
@@ -576,49 +896,56 @@ export const EditingModal: React.FC = () => {
                 </label>
               </div>
 
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium" htmlFor={`role-desc-${role.id}`}>Description</label>
+                <textarea
+                  id={`role-desc-${role.id}`}
+                  value={role.description || ''}
+                  onChange={(e) => updateRole(role.id, { description: e.target.value })}
+                  placeholder="Ex: Si tué la nuit, ressuscite le lendemain..."
+                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[60px] resize-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* TAB: Distribution */}
+          {activeRoleTab === 'distribution' && (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+                <input
+                  type="checkbox"
+                  id="role-in-distribution"
+                  checked={role.isSelectableForDistribution ?? false}
+                  onChange={(e) => updateRole(role.id, { isSelectableForDistribution: e.target.checked })}
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-ring cursor-pointer"
+                />
+                <label htmlFor="role-in-distribution" className="text-sm font-medium cursor-pointer">
+                  Inclure dans la distribution automatique
+                </label>
+              </div>
+
+              {!role.isSelectableForDistribution && (
+                <p className="text-xs text-amber-500 bg-amber-500/10 p-2 rounded border border-amber-500/20">
+                  Ce rôle ne sera pas proposé lors de la distribution automatique.
+                </p>
+              )}
+
               {!role.isUnique && (
-                <div className="ml-6 flex flex-col gap-3 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
+                <div className="flex flex-col gap-3 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
                   <div className="flex items-center gap-3">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]" htmlFor={`role-default-count-${role.id}`}>Par défaut:</label>
-                    <div className="flex items-center gap-4">
-                      <input
-                        id={`role-default-count-${role.id}`}
-                        type="number"
-                        min="0"
-                        value={role.defaultCount ?? role.distributionQuantity ?? 1}
-                        onChange={(e) => updateRole(role.id, { defaultCount: parseInt(e.target.value) || 0, distributionQuantity: parseInt(e.target.value) || 0 })}
-                        className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
-                      />
-                      <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id="isFiller-edit"
-                            checked={role.isFiller || false}
-                            onChange={(e) => updateRole(role.id, { isFiller: e.target.checked })}
-                            className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
-                          />
-                          <label htmlFor="isFiller-edit" className="text-[11px] font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-                            Compléter avec
-                          </label>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id="isMinMandatory-edit"
-                            checked={role.isMinMandatory || false}
-                            onChange={(e) => updateRole(role.id, { isMinMandatory: e.target.checked })}
-                            className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
-                          />
-                          <label htmlFor="isMinMandatory-edit" className="text-[11px] font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
-                            Minimum obligatoire
-                          </label>
-                        </div>
-                      </div>
-                    </div>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[80px]" htmlFor={`role-default-count-${role.id}`}>Par défaut</label>
+                    <input
+                      id={`role-default-count-${role.id}`}
+                      type="number"
+                      min="0"
+                      value={role.distributionQuantity ?? 1}
+                      onChange={(e) => updateRole(role.id, { distributionQuantity: parseInt(e.target.value) || 0 })}
+                      className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
+                    />
                   </div>
                   <div className="flex items-center gap-3">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]" htmlFor={`role-min-count-${role.id}`}>Minimum:</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[80px]" htmlFor={`role-min-count-${role.id}`}>Minimum</label>
                     <input
                       id={`role-min-count-${role.id}`}
                       type="number"
@@ -629,7 +956,7 @@ export const EditingModal: React.FC = () => {
                     />
                   </div>
                   <div className="flex items-center gap-3">
-                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[100px]" htmlFor={`role-max-count-${role.id}`}>Maximum:</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-w-[80px]" htmlFor={`role-max-count-${role.id}`}>Maximum</label>
                     <input
                       id={`role-max-count-${role.id}`}
                       type="number"
@@ -639,50 +966,67 @@ export const EditingModal: React.FC = () => {
                       className="w-20 bg-background border border-border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-center font-mono"
                     />
                   </div>
+                  <div className="flex flex-col gap-2 pt-2 border-t border-border/30">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="isFiller-edit"
+                        checked={role.isFiller || false}
+                        onChange={(e) => updateRole(role.id, { isFiller: e.target.checked })}
+                        className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
+                      />
+                      <label htmlFor="isFiller-edit" className="text-xs font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                        Compléter automatiquement si pas assez de joueurs
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="isMinMandatory-edit"
+                        checked={role.isMinMandatory || false}
+                        onChange={(e) => updateRole(role.id, { isMinMandatory: e.target.checked })}
+                        className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring cursor-pointer"
+                      />
+                      <label htmlFor="isMinMandatory-edit" className="text-xs font-medium cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+                        Minimum obligatoire
+                      </label>
+                    </div>
+                  </div>
                 </div>
               )}
-              
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium" htmlFor={`role-description-${role.id}`}>Description libre</label>
-                <textarea
-                  id={`role-description-${role.id}`}
-                  value={role.description || ''}
-                  onChange={(e) => updateRole(role.id, { description: e.target.value })}
-                  placeholder="Ex: Si tué la nuit, ressuscite le lendemain..."
-                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[80px]"
-                />
-              </div>
+
+              {role.isUnique && (
+                <p className="text-xs text-muted-foreground italic p-3 bg-muted/20 rounded-lg">
+                  Les paramètres de distribution ne s'appliquent pas aux rôles uniques.
+                </p>
+              )}
             </div>
           )}
 
+          {/* TAB: Appearance */}
           {activeRoleTab === 'appearance' && (
             <div className="grid grid-cols-2 gap-6 h-full min-h-[450px]">
               {/* Left Column: Settings */}
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium" htmlFor={`role-image-file-${role.id}`}>Image du rôle</label>
+                  <label className="text-sm font-medium">Image du rôle</label>
                   <div className="flex flex-col gap-3 p-4 bg-muted/30 rounded-xl border border-border/50">
                     <div className="flex flex-col gap-2">
                       <input
-                        id={`role-image-file-${role.id}`}
                         type="file"
                         accept="image/*"
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (file) {
-                            await handleImageFile(file, (url) => updateRole(role.id, { imageUrl: url }));
-                          }
+                          if (file) await handleImageFile(file, (url) => updateRole(role.id, { imageUrl: url }));
                         }}
                         className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
                       />
                       <div className="flex items-center gap-2">
-                        <label className="sr-only" htmlFor={`role-image-url-${role.id}`}>URL de l'image du rôle</label>
                         <input
-                          id={`role-image-url-${role.id}`}
                           type="text"
                           value={role.imageUrl || ''}
                           onChange={(e) => updateRole(role.id, { imageUrl: e.target.value })}
-                          placeholder="Ou collez l'URL d'une image ici..."
+                          placeholder="Ou collez l'URL d'une image..."
                           className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring flex-1"
                         />
                         {role.imageUrl && (
@@ -701,9 +1045,8 @@ export const EditingModal: React.FC = () => {
                     </div>
 
                     <div className="pt-3 border-t border-border/30 flex flex-col gap-2">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest" htmlFor={`role-image-style-${role.id}`}>Style d'affichage</label>
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Style d'affichage</label>
                       <select
-                        id={`role-image-style-${role.id}`}
                         value={role.smartphoneImageStyle || 'circle'}
                         onChange={(e) => updateRole(role.id, { smartphoneImageStyle: e.target.value as any })}
                         className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -727,34 +1070,23 @@ export const EditingModal: React.FC = () => {
                   <icons.Smartphone size={14} className="text-primary" />
                   Aperçu Smartphone
                 </label>
-                
+
                 <div className="relative mx-auto w-full max-w-[240px] aspect-[9/18] bg-[#09090b] rounded-[40px] border-[8px] border-[#18181b] shadow-2xl overflow-hidden flex flex-col ring-1 ring-white/5">
-                  {/* Smartphone Notch */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-24 bg-[#18181b] rounded-b-2xl z-20" />
-                  
-                  {/* Smartphone Screen Content */}
                   <div className="flex-1 flex flex-col p-4 pt-10 overflow-hidden relative">
-                    {/* Mock Header */}
                     <div className="flex flex-col gap-0.5 mb-4 opacity-50">
                       <div className="h-1.5 w-12 bg-zinc-800 rounded-full" />
                       <div className="h-3 w-20 bg-zinc-700 rounded-full" />
                     </div>
 
-                    {/* Mock Role Card (simplified version of PlayerView.tsx) */}
                     {(() => {
                       const effectiveStyle = role.smartphoneImageStyle || 'circle';
-                      const team = teams.find(t => t.id === role.teamId);
-                      
                       return (
                         <div className="flex-1 flex flex-col items-center bg-[#18181b] rounded-2xl border border-white/5 p-4 shadow-xl overflow-hidden relative">
                           {team && (
-                            <div 
-                              className="absolute top-0 left-0 w-full h-1" 
-                              style={{ backgroundColor: team.color }}
-                            />
+                            <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: team.color }} />
                           )}
 
-                          {/* Background Image Style */}
                           {effectiveStyle === 'background' && role.imageUrl && (
                             <div className="absolute inset-0 z-0 opacity-40">
                               <img src={role.imageUrl} alt="" className="w-full h-full object-cover blur-sm brightness-50" />
@@ -763,10 +1095,10 @@ export const EditingModal: React.FC = () => {
 
                           <div className="flex flex-col items-center gap-4 w-full z-10 py-2">
                             {effectiveStyle !== 'background' && (
-                              <div 
+                              <div
                                 className={`flex items-center justify-center border-4 border-[#09090b] bg-[#09090b] overflow-hidden shadow-lg transition-all ${
                                   effectiveStyle === 'square' ? 'w-24 h-24 rounded-2xl' :
-                                  effectiveStyle === 'original' ? 'max-w-full rounded-lg' : 
+                                  effectiveStyle === 'original' ? 'max-w-full rounded-lg' :
                                   'w-24 h-24 rounded-full'
                                 }`}
                                 style={{ borderColor: role.color }}
@@ -801,7 +1133,6 @@ export const EditingModal: React.FC = () => {
                       );
                     })()}
 
-                    {/* Mock Bottom Tabs */}
                     <div className="mt-auto pt-4 flex justify-around opacity-20">
                       <div className="h-6 w-6 rounded-full bg-zinc-800" />
                       <div className="h-6 w-6 rounded-full bg-zinc-800" />
@@ -813,56 +1144,98 @@ export const EditingModal: React.FC = () => {
             </div>
           )}
 
+          {/* TAB: Tags & Members */}
           {activeRoleTab === 'tags' && (
             <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-sm font-medium" htmlFor={`role-tags-${role.id}`}>Tags attachés</label>
-                  <div className="relative">
-                    <icons.Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <label className="sr-only" htmlFor={`role-tag-filter-${role.id}`}>Filtrer les tags</label>
-                    <input
-                      id={`role-tag-filter-${role.id}`}
-                      type="text"
-                      placeholder="Filtrer les tags..."
-                      value={tagSearchQuery}
-                      onChange={(e) => setTagSearchQuery(e.target.value)}
-                      className="bg-input border border-border rounded-md pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring w-48"
-                    />
-                  </div>
+              {/* Tags Section */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Tags attachés</label>
+                  <span className="text-[10px] text-muted-foreground">{role.tags?.length || 0} sélectionné(s)</span>
                 </div>
+
+                {role.tags && role.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 p-2 bg-muted/20 rounded-md border border-border/50">
+                    {role.tags.map(tag => {
+                      const category = tagCategories.find(c => c.id === tag.categoryId);
+                      return (
+                        <button
+                          key={tag.id}
+                          onClick={() => toggleRoleTag(tag.id)}
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-colors hover:opacity-80"
+                          style={{ backgroundColor: `${tag.color}20`, borderColor: tag.color, color: tag.color }}
+                        >
+                          {tag.name}
+                          <icons.X size={10} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="relative">
+                  <icons.Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher un tag..."
+                    value={tagSearchQuery}
+                    onChange={(e) => setTagSearchQuery(e.target.value)}
+                    className="w-full bg-input border border-border rounded-md pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+                </div>
+
                 {tags.length === 0 ? (
                   <p className="text-xs text-muted-foreground italic">Aucun tag défini dans le jeu.</p>
                 ) : (
-                  <select
-                    id={`role-tags-${role.id}`}
-                    multiple
-                    value={(role.tags || []).map(t => t.id)}
-                    onChange={(e) => {
-                      const options = Array.from(e.target.selectedOptions);
-                      const selectedVisibleIds = options.map(o => o.value);
-                      
-                      const currentSelectedIds = (role.tags || []).map(t => t.id);
-                      const filteredTags = tags.filter(t => t.name.toLowerCase().includes(tagSearchQuery.toLowerCase()));
-                      const filteredTagIds = filteredTags.map(t => t.id);
-                      
-                      // Keep tags that are selected but NOT currently visible (filtered out)
-                      const selectedHiddenIds = currentSelectedIds.filter(id => !filteredTagIds.includes(id));
-                      
-                      const finalIds = [...selectedHiddenIds, ...selectedVisibleIds];
-                      const newTags = tags.filter(t => finalIds.includes(t.id));
-                      updateRole(role.id, { tags: newTags });
-                    }}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[150px] custom-scrollbar"
-                  >
-                    {tags
-                      .filter(t => t.name.toLowerCase().includes(tagSearchQuery.toLowerCase()))
-                      .map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                  </select>
+                  <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-2 bg-muted/10 rounded-md border border-border/30">
+                    {filteredTags.map(tag => {
+                      const isSelected = roleTagIds.has(tag.id);
+                      const category = tagCategories.find(c => c.id === tag.categoryId);
+                      return (
+                        <button
+                          key={tag.id}
+                          onClick={() => toggleRoleTag(tag.id)}
+                          className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-all ${
+                            isSelected
+                              ? 'ring-1 ring-offset-1'
+                              : 'opacity-60 hover:opacity-100'
+                          }`}
+                          style={{
+                            backgroundColor: isSelected ? `${tag.color}30` : 'transparent',
+                            borderColor: tag.color,
+                            color: tag.color,
+                          }}
+                        >
+                          {isSelected && <icons.Check size={10} />}
+                          {tag.name}
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
-                <p className="text-xs text-muted-foreground mt-1">Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs tags.</p>
+              </div>
+
+              {/* Members Section */}
+              <div className="flex flex-col gap-2 pt-3 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Joueurs avec ce rôle</h5>
+                  <span className="text-[10px] text-muted-foreground">{playerCount}</span>
+                </div>
+
+                {playerCount === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Aucun joueur n'a ce rôle actuellement.</p>
+                ) : (
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {players.filter(p => p.roleId === role.id).map(player => (
+                      <div key={player.id} className="flex items-center gap-2 p-1.5 bg-muted/20 rounded text-xs">
+                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: player.color }} />
+                        <span className="flex-1 truncate">{player.name}</span>
+                        {player.isDead && <span className="text-[9px] text-destructive">Mort</span>}
+                        {player.isSleeping && <span className="text-[9px] text-indigo-400">Dort</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -873,104 +1246,274 @@ export const EditingModal: React.FC = () => {
     const team = teams.find(t => t.id === editingEntity.id);
     if (!team) return null;
 
+    const roleCount = roles.filter(r => r.teamId === team.id).length;
+    const playerCount = players.filter(p => p.teamId === team.id).length;
+    const templateCount = playerTemplates.filter(pt => pt.teamId === team.id).length;
+    const TeamIconComponent = (icons[team.icon as keyof typeof icons] || icons.Users) as React.ComponentType<any>;
+
+    const handleDuplicateTeam = () => {
+      let newName = `${team.name} (Copie)`;
+      let counter = 1;
+      while (teams.some(t => t.name === newName)) {
+        newName = `${team.name} (Copie ${counter})`;
+        counter++;
+      }
+      const { id, ...teamData } = team;
+      useVttStore.getState().addTeam({ ...teamData, name: newName });
+    };
+
+    const handleValidateTeamName = (value: string) => {
+      if (value.trim() && teams.some(t => t.id !== team.id && t.name.toLowerCase() === value.trim().toLowerCase())) {
+        setTeamNameError(`Une équipe nommée "${value.trim}" existe déjà.`);
+      } else {
+        setTeamNameError('');
+      }
+      updateTeam(team.id, { name: value });
+    };
+
+    const filteredIcons = teamIconSearch.trim()
+      ? TEAM_ICONS.filter(name => name.toLowerCase().includes(teamIconSearch.toLowerCase()))
+      : TEAM_ICONS;
+
     entityTitle = `Modifier Équipe: ${team.name}`;
     entityContent = (
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium" htmlFor={`team-name-${team.id}`}>Nom de l'équipe</label>
-          <input
-            id={`team-name-${team.id}`}
-            type="text"
-            value={team.name}
-            onChange={(e) => updateTeam(team.id, { name: e.target.value })}
-            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium" htmlFor={`team-description-${team.id}`}>Description de l'équipe (Mémo)</label>
-          <textarea
-            id={`team-description-${team.id}`}
-            value={team.description || ''}
-            onChange={(e) => updateTeam(team.id, { description: e.target.value })}
-            placeholder="Description, objectives ou notes sur l'équipe..."
-            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[80px] resize-none"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium" htmlFor={`team-image-file-${team.id}`}>Image de l'équipe</label>
-          <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
-            <div className="flex flex-col gap-2">
-              <input
-                id={`team-image-file-${team.id}`}
-                type="file"
-                accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    await handleImageFile(file, (url) => updateTeam(team.id, { imageUrl: url }));
-                  }
-                }}
-                className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
-              />
-              <label className="sr-only" htmlFor={`team-image-url-${team.id}`}>URL de l'image de l'équipe</label>
-              <input
-                id={`team-image-url-${team.id}`}
-                type="text"
-                value={team.imageUrl || ''}
-                onChange={(e) => updateTeam(team.id, { imageUrl: e.target.value })}
-                placeholder="Ou collez l'URL d'une image ici..."
-                className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-              />
+      <div className="flex flex-col h-full w-full">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white shadow-sm" style={{ backgroundColor: team.color }}>
+              {team.imageUrl ? (
+                <img src={team.imageUrl} className="w-full h-full rounded-full object-cover" alt="" />
+              ) : (
+                <TeamIconComponent size={16} />
+              )}
             </div>
+            <div>
+              <span className="text-sm font-medium">{team.name}</span>
+              <span className="text-[10px] text-muted-foreground ml-2">{roleCount} rôles • {playerCount} joueurs</span>
+            </div>
+          </div>
+          <button
+            onClick={handleDuplicateTeam}
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-muted hover:bg-accent transition-colors"
+            title="Dupliquer cette équipe"
+          >
+            <icons.Copy size={12} /> Dupliquer
+          </button>
+        </div>
 
-            {team.imageUrl && (
-              <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
-                <img src={team.imageUrl} alt="Preview" className="w-12 h-12 rounded-lg object-cover border-2 border-primary/20 shadow-sm" />
-                <button
-                  onClick={async () => {
-                    if (team.imageUrl) await deleteFileFromStorage(team.imageUrl);
-                    updateTeam(team.id, { imageUrl: undefined });
-                  }}
-                  className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
-                  title="Supprimer l'image"
-                >
-                  <Trash2 size={12} />
-                </button>
+        {/* Tabs */}
+        <div className="flex border-b border-border mb-4 shrink-0">
+          {(['general', 'appearance', 'members'] as const).map(tab => (
+            <button
+              key={tab}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${
+                activeTeamTab === tab ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+              onClick={() => setActiveTeamTab(tab)}
+            >
+              {tab === 'general' ? 'Général' : tab === 'appearance' ? 'Apparence' : 'Membres'}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex-1 overflow-y-auto min-h-0 pr-2 custom-scrollbar">
+          {/* TAB: General */}
+          {activeTeamTab === 'general' && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium" htmlFor={`team-name-${team.id}`}>Nom de l'équipe</label>
+                <input
+                  id={`team-name-${team.id}`}
+                  type="text"
+                  value={team.name}
+                  onChange={(e) => handleValidateTeamName(e.target.value)}
+                  className={`bg-input border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 ${teamNameError ? 'border-destructive focus:ring-destructive' : 'border-border focus:ring-ring'}`}
+                />
+                {teamNameError && <p className="text-[10px] text-destructive mt-1">{teamNameError}</p>}
               </div>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Icône de l'équipe</label>
-          <div className="flex flex-wrap gap-1.5 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto">
-            {TEAM_ICONS.map((iconName: string) => {
-              const IconComponent = icons[iconName as keyof typeof icons];
-              if (!IconComponent) return null;
-              return (
-                <button
-                  key={iconName}
-                  onClick={() => updateTeam(team.id, { icon: iconName })}
-                  className={`p-2 rounded-md transition-colors flex items-center justify-center ${
-                    team.icon === iconName
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'hover:bg-accent hover:text-accent-foreground text-muted-foreground'
-                  }`}
-                  title={iconName}
-                >
-                  {React.createElement(IconComponent as any, { size: 20 })}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Couleur</label>
-          <ColorPicker
-            color={team.color}
-            onChange={(c) => updateTeam(team.id, { color: c })}
-            label="Couleur"
-            className="!w-10 !h-10"
-          />
+
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium" htmlFor={`team-desc-${team.id}`}>Description / Mémo</label>
+                <textarea
+                  id={`team-desc-${team.id}`}
+                  value={team.description || ''}
+                  onChange={(e) => updateTeam(team.id, { description: e.target.value })}
+                  placeholder="Objectifs, notes, stratégie..."
+                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[60px] resize-none"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-sm font-medium">Couleur</label>
+                  <ColorPicker
+                    color={team.color}
+                    onChange={(c) => updateTeam(team.id, { color: c })}
+                    label="Couleur"
+                    className="!w-10 !h-10"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Icône</label>
+                <div className="relative">
+                  <icons.Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher une icône..."
+                    value={teamIconSearch}
+                    onChange={(e) => setTeamIconSearch(e.target.value)}
+                    className="w-full bg-input border border-border rounded-md pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring mb-2"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-1.5 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto">
+                  {filteredIcons.length === 0 ? (
+                    <p className="text-xs text-muted-foreground w-full text-center py-2">Aucune icône trouvée</p>
+                  ) : (
+                    filteredIcons.map((iconName: string) => {
+                      const IconComponent = (icons[iconName as keyof typeof icons] || icons.Users) as React.ComponentType<any>;
+                      if (!IconComponent) return null;
+                      return (
+                        <button
+                          key={iconName}
+                          onClick={() => updateTeam(team.id, { icon: iconName })}
+                          className={`p-2 rounded-md transition-colors flex items-center justify-center ${
+                            team.icon === iconName
+                              ? 'bg-primary text-primary-foreground shadow-sm'
+                              : 'hover:bg-accent hover:text-accent-foreground text-muted-foreground'
+                          }`}
+                          title={iconName}
+                        >
+                          <IconComponent size={18} />
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: Appearance */}
+          {activeTeamTab === 'appearance' && (
+            <div className="flex flex-col gap-4">
+              {/* Preview */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Aperçu</label>
+                <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-lg border border-border/50">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg" style={{ backgroundColor: team.color }}>
+                    {team.imageUrl ? (
+                      <img src={team.imageUrl} className="w-full h-full rounded-full object-cover" alt="" />
+                    ) : (
+                      <TeamIconComponent size={32} />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold" style={{ color: team.color }}>{team.name}</h4>
+                    <p className="text-xs text-muted-foreground">{roleCount} rôles • {playerCount} joueurs placés</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Image Upload */}
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Image de l'équipe</label>
+                <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) await handleImageFile(file, (url) => updateTeam(team.id, { imageUrl: url }));
+                    }}
+                    className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={team.imageUrl || ''}
+                    onChange={(e) => updateTeam(team.id, { imageUrl: e.target.value })}
+                    placeholder="Ou collez l'URL d'une image..."
+                    className="bg-input border border-border rounded-md px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                  />
+
+                  {team.imageUrl && (
+                    <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
+                      <img src={team.imageUrl} alt="Preview" className="w-12 h-12 rounded-lg object-cover border-2 border-primary/20 shadow-sm" />
+                      <button
+                        onClick={async () => {
+                          if (team.imageUrl) await deleteFileFromStorage(team.imageUrl);
+                          updateTeam(team.id, { imageUrl: undefined });
+                        }}
+                        className="flex items-center justify-center p-1.5 bg-destructive/10 text-destructive hover:bg-destructive hover:text-white rounded transition-colors"
+                        title="Supprimer l'image"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: Members */}
+          {activeTeamTab === 'members' && (
+            <div className="flex flex-col gap-4">
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-muted/30 rounded-md p-2 text-center">
+                  <div className="text-lg font-bold">{roleCount}</div>
+                  <div className="text-[10px] text-muted-foreground">Rôles</div>
+                </div>
+                <div className="bg-muted/30 rounded-md p-2 text-center">
+                  <div className="text-lg font-bold">{playerCount}</div>
+                  <div className="text-[10px] text-muted-foreground">Joueurs</div>
+                </div>
+                <div className="bg-muted/30 rounded-md p-2 text-center">
+                  <div className="text-lg font-bold">{templateCount}</div>
+                  <div className="text-[10px] text-muted-foreground">Modèles</div>
+                </div>
+              </div>
+
+              {/* Roles */}
+              <div className="flex flex-col gap-2">
+                <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Rôles de l'équipe</h5>
+                {roleCount === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Aucun rôle assigné à cette équipe.</p>
+                ) : (
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {roles.filter(r => r.teamId === team.id).map(role => (
+                      <div key={role.id} className="flex items-center gap-2 p-1.5 bg-muted/20 rounded text-xs">
+                        <div className="w-3 h-3 rounded shrink-0" style={{ backgroundColor: role.color }} />
+                        <span className="flex-1 truncate">{role.name}</span>
+                        <span className="text-[9px] text-muted-foreground">{role.isUnique ? 'Unique' : 'Multiple'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Players */}
+              <div className="flex flex-col gap-2">
+                <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Joueurs placés</h5>
+                {playerCount === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">Aucun joueur placé pour cette équipe.</p>
+                ) : (
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {players.filter(p => p.teamId === team.id).map(player => (
+                      <div key={player.id} className="flex items-center gap-2 p-1.5 bg-muted/20 rounded text-xs">
+                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: player.color }} />
+                        <span className="flex-1 truncate">{player.name}</span>
+                        {player.isDead && <span className="text-[9px] text-destructive">Mort</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1028,1571 +1571,20 @@ export const EditingModal: React.FC = () => {
   } else if (editingEntity.type === 'tagModel') {
     const tag = tags.find(t => t.id === editingEntity.id);
     if (!tag) return null;
-
     entityTitle = `Modifier Tag: ${tag.name}`;
-    entityContent = (
-      <div className="flex flex-col h-full w-full">
-        {/* Tabs */}
-        <div className="flex border-b border-border mb-4 sticky top-0 bg-card z-10 shrink-0">
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'general' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveTagTab('general')}
-          >
-            Général
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'appearance' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveTagTab('appearance')}
-          >
-            Apparence
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'fields' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveTagTab('fields')}
-          >
-            Champs
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'smartphone' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveTagTab('smartphone')}
-          >
-            Smartphone
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'container' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveTagTab('container')}
-          >
-            Container
-          </button>
-        </div>
-
-        {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-[300px]">
-          {activeTagTab === 'general' && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium" htmlFor={`tag-name-${tag.id}`}>Nom</label>
-                <input
-                  id={`tag-name-${tag.id}`}
-                  type="text"
-                  value={tag.name}
-                  onChange={(e) => updateTagModel(tag.id, { name: e.target.value })}
-                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium" htmlFor={`tag-category-${tag.id}`}>Catégorie</label>
-                <select
-                  id={`tag-category-${tag.id}`}
-                  value={tag.categoryId || ''}
-                  onChange={(e) => updateTagModel(tag.id, { categoryId: e.target.value || null })}
-                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  <option value="">Sans catégorie</option>
-                  {tagCategories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-2 mt-4">
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.showInTooltip !== false}
-                    onChange={(e) => updateTagModel(tag.id, { showInTooltip: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Visible dans l'info-bulle (au survol du joueur)
-                </label>
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.showInGameTab !== false}
-                    onChange={(e) => updateTagModel(tag.id, { showInGameTab: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Visible dans l'onglet Jeu (sous le joueur)
-                </label>
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.showOnSmartphone || false}
-                    onChange={(e) => updateTagModel(tag.id, { showOnSmartphone: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Visible sur smartphone (version joueur)
-                </label>
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.showPastille || false}
-                    onChange={(e) => updateTagModel(tag.id, { showPastille: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Afficher la pastille (au dessus du joueur)
-                </label>
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.visibleInWiki || false}
-                    onChange={(e) => updateTagModel(tag.id, { visibleInWiki: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Visible dans le WIKI
-                </label>
-                <div className="border-t border-border/20 pt-2 mt-1">
-                  <label className="flex items-center gap-2 text-sm text-destructive font-semibold cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={tag.isSecret || false}
-                      onChange={(e) => updateTagModel(tag.id, { isSecret: e.target.checked })}
-                      className="rounded border-destructive w-4 h-4 text-destructive focus:ring-destructive"
-                    />
-                    Tag Secret (Invisible pour les joueurs)
-                  </label>
-                  <p className="text-[10px] text-muted-foreground ml-6">
-                    Même si les autres options de visibilité sont cochées, ce tag restera caché sur l'interface des joueurs et sur l'écran public.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTagTab === 'container' && (
-            <div className="flex flex-col gap-4">
-              <p className="text-sm text-muted-foreground mb-2">
-                Ce tag peut servir de "Container". Lorsqu'il est appliqué à un joueur, tous les tags sélectionnés ici seront appliqués en même temps avec lui.
-              </p>
-              <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto custom-scrollbar pr-2 pb-2">
-                {tagCategories.map(cat => {
-                  const catTags = tagsByCategory[cat.id]?.filter(t => t.id !== tag.id);
-                  if (!catTags || catTags.length === 0) return null;
-                  
-                  const CatIcon = icons[cat.icon as keyof typeof icons] || icons.Folder;
-                  const isExpanded = expandedContainerCategories[cat.id] ?? true;
-
-                  const handleToggleCat = () => {
-                    setExpandedContainerCategories(prev => ({ ...prev, [cat.id]: !isExpanded }));
-                  };
-
-                  return (
-                    <div key={cat.id} className="flex flex-col bg-card border border-border rounded-md overflow-hidden">
-                      <button 
-                        onClick={handleToggleCat}
-                        className="flex items-center justify-between bg-muted/50 hover:bg-muted p-2 transition-colors w-full text-left"
-                      >
-                        <div className="flex items-center gap-2 flex-1">
-                          <div className="p-1 rounded bg-background shadow-sm" style={{ color: cat.color }}>
-                            {React.createElement(CatIcon as any, { size: 14 })}
-                          </div>
-                          <span className="font-semibold text-sm flex-1">{cat.name}</span>
-                          <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">
-                            {catTags.length}
-                          </span>
-                        </div>
-                        {isExpanded ? <icons.ChevronDown size={14} className="text-muted-foreground" /> : <icons.ChevronRight size={14} className="text-muted-foreground" />}
-                      </button>
-
-                      {isExpanded && (
-                        <div className="flex flex-col gap-1 p-2 bg-background/50 border-t border-border">
-                          {catTags.map(otherTag => (
-                            <label key={otherTag.id} className="flex items-center gap-3 p-2 hover:bg-accent hover:text-accent-foreground rounded-md cursor-pointer transition-colors">
-                              <input
-                                type="checkbox"
-                                checked={tag.childTagIds?.includes(otherTag.id) || false}
-                                onChange={(e) => {
-                                  const currentList = tag.childTagIds || [];
-                                  const newList = e.target.checked
-                                    ? [...currentList, otherTag.id]
-                                    : currentList.filter((id: string) => id !== otherTag.id);
-                                  updateTagModel(tag.id, { childTagIds: newList });
-                                }}
-                                className="rounded border-border w-4 h-4"
-                              />
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: otherTag.color }} />
-                              <span className="text-sm font-medium flex-1">{otherTag.name}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {/* Uncategorized Tags */}
-                {(() => {
-                  const noCatTags = tagsByCategory['no-category']?.filter(t => t.id !== tag.id);
-                  if (!noCatTags || noCatTags.length === 0) return null;
-                  
-                  const isExpanded = expandedContainerCategories['no-category'] ?? true;
-
-                  const handleToggleCat = () => {
-                    setExpandedContainerCategories(prev => ({ ...prev, ['no-category']: !isExpanded }));
-                  };
-
-                  return (
-                    <div className="flex flex-col bg-card border border-border rounded-md overflow-hidden">
-                      <button 
-                        onClick={handleToggleCat}
-                        className="flex items-center justify-between bg-muted/50 hover:bg-muted p-2 transition-colors w-full text-left"
-                      >
-                        <div className="flex items-center gap-2 flex-1">
-                          <div className="p-1 rounded bg-background shadow-sm text-muted-foreground">
-                            <icons.Folder size={14} />
-                          </div>
-                          <span className="font-semibold text-sm flex-1 text-muted-foreground italic">Sans catégorie</span>
-                          <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">
-                            {noCatTags.length}
-                          </span>
-                        </div>
-                        {isExpanded ? <icons.ChevronDown size={14} className="text-muted-foreground" /> : <icons.ChevronRight size={14} className="text-muted-foreground" />}
-                      </button>
-                      
-                      {isExpanded && (
-                        <div className="flex flex-col gap-1 p-2 bg-background/50 border-t border-border">
-                          {noCatTags.map(otherTag => (
-                            <label key={otherTag.id} className="flex items-center gap-3 p-2 hover:bg-accent hover:text-accent-foreground rounded-md cursor-pointer transition-colors">
-                              <input
-                                type="checkbox"
-                                checked={tag.childTagIds?.includes(otherTag.id) || false}
-                                onChange={(e) => {
-                                  const currentList = tag.childTagIds || [];
-                                  const newList = e.target.checked
-                                    ? [...currentList, otherTag.id]
-                                    : currentList.filter((id: string) => id !== otherTag.id);
-                                  updateTagModel(tag.id, { childTagIds: newList });
-                                }}
-                                className="rounded border-border w-4 h-4"
-                              />
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: otherTag.color }} />
-                              <span className="text-sm font-medium flex-1">{otherTag.name}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                {tags.filter(t => t.id !== tag.id).length === 0 && (
-                  <div className="text-sm text-muted-foreground text-center py-4">Aucun autre tag disponible</div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTagTab === 'appearance' && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Icône du tag</label>
-                <div className="flex flex-wrap gap-1 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto custom-scrollbar">
-                  {TAG_ICONS.map((iconName: string) => {
-                    const IconComponent = icons[iconName as keyof typeof icons];
-                    if (!IconComponent) return null;
-                    return (
-                      <button
-                        key={iconName}
-                        onClick={() => updateTagModel(tag.id, { icon: iconName })}
-                        className={`p-2 rounded-md transition-colors flex items-center justify-center ${
-                          tag.icon === iconName
-                            ? 'bg-primary text-primary-foreground shadow-sm'
-                            : 'hover:bg-accent hover:text-accent-foreground text-muted-foreground'
-                        }`}
-                        title={iconName}
-                      >
-                        {React.createElement(IconComponent as any, { size: 20 })}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium" htmlFor={`tag-image-file-${tag.id}`}>Image personnalisée</label>
-                <div className="flex flex-col gap-2 p-3 bg-muted/30 rounded-lg border border-border/50">
-                  <div className="flex flex-col gap-2">
-                    <input
-                      id={`tag-image-file-${tag.id}`}
-                      type="file"
-                      accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          await handleImageFile(file, (url) => updateTagModel(tag.id, { imageUrl: url }));
-                        }
-                      }}
-                      className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
-                    />
-                    <label className="sr-only" htmlFor={`tag-image-url-${tag.id}`}>URL de l'image personnalisée</label>
-                    <input
-                      id={`tag-image-url-${tag.id}`}
-                      type="text"
-                      value={tag.imageUrl || ''}
-                      onChange={(e) => updateTagModel(tag.id, { imageUrl: e.target.value })}
-                      placeholder="Ou collez l'URL d'une image ici..."
-                      className="bg-input border border-border rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    />
-                  </div>
-
-                  {tag.imageUrl && (
-                    <div className="flex items-center gap-3 mt-1 pt-2 border-t border-border/30">
-                      <img src={tag.imageUrl} alt="Preview" className="w-14 h-14 rounded-md object-cover border-2 border-primary/20 shadow-sm" />
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">Aperçu</span>
-                        <button
-                          onClick={async () => {
-                            if (tag.imageUrl) await deleteFileFromStorage(tag.imageUrl);
-                            updateTagModel(tag.id, { imageUrl: undefined });
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive hover:bg-destructive text-[11px] font-bold hover:text-destructive-foreground rounded-md transition-all shadow-sm"
-                        >
-                          <Trash2 size={12} /> Supprimer l'image
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1 mt-2">
-                <label className="text-sm font-medium">Couleur</label>
-                <div className="flex items-center gap-3">
-                  <ColorPicker
-                    color={tag.color}
-                    onChange={(c) => updateTagModel(tag.id, { color: c })}
-                    label="Couleur"
-                    className="!w-10 !h-10"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTagTab === 'fields' && (
-            <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium" title="Ordre d'Appel Jour" htmlFor={`tag-call-day-${tag.id}`}>Appel Jour</label>
-                  <input
-                    id={`tag-call-day-${tag.id}`}
-                    type="text"
-                    value={tag.callOrderDay ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { callOrderDay: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring text-center"
-                    placeholder="ex: 5 ou +2"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium" title="Ordre d'Appel Nuit" htmlFor={`tag-call-night-${tag.id}`}>Appel Nuit</label>
-                  <input
-                    id={`tag-call-night-${tag.id}`}
-                    type="text"
-                    value={tag.callOrderNight ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { callOrderNight: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring text-center"
-                    placeholder="ex: 5 ou +2"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-lives-${tag.id}`}>Ajout Vie</label>
-                  <input
-                    id={`tag-lives-${tag.id}`}
-                    type="text"
-                    value={tag.lives ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { lives: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="ex: 1 ou +1"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-votes-${tag.id}`}>Votes</label>
-                  <input
-                    id={`tag-votes-${tag.id}`}
-                    type="text"
-                    value={tag.votes ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { votes: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="ex: 10 ou -2"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-points-${tag.id}`}>Points</label>
-                  <input
-                    id={`tag-points-${tag.id}`}
-                    type="text"
-                    value={tag.points ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { points: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="ex: 100 ou +50"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-uses-${tag.id}`}>Uses</label>
-                  <input
-                    id={`tag-uses-${tag.id}`}
-                    type="text"
-                    value={tag.uses ?? ''}
-                    onChange={(e) => updateTagModel(tag.id, { uses: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="ex: 3"
-                  />
-                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer mt-2">
-                    <input
-                      type="checkbox"
-                      checked={tag.autoDeleteOnZeroUses || false}
-                      onChange={(e) => updateTagModel(tag.id, { autoDeleteOnZeroUses: e.target.checked })}
-                      className="rounded border-border w-3.5 h-3.5"
-                    />
-                    Suppr. auto à 0
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex gap-4 mb-2">
-                <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-seen-role-${tag.id}`}>Vu comme rôle (info-bulle)</label>
-                  <select
-                    id={`tag-seen-role-${tag.id}`}
-                    value={tag.seenAsRoleId || ''}
-                    onChange={(e) => updateTagModel(tag.id, { seenAsRoleId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">-- Aucun --</option>
-                    {roles.map(r => (
-                      <option key={r.id} value={r.id}>{r.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-seen-team-${tag.id}`}>Vu dans équipe (info-bulle)</label>
-                  <select
-                    id={`tag-seen-team-${tag.id}`}
-                    value={tag.seenInTeamId || ''}
-                    onChange={(e) => updateTagModel(tag.id, { seenInTeamId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">-- Identique à réelle --</option>
-                    {teams.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1 mt-2">
-                <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-description-${tag.id}`}>Texte libre</label>
-                <textarea
-                  id={`tag-description-${tag.id}`}
-                  value={tag.description || ''}
-                  onChange={(e) => updateTagModel(tag.id, { description: e.target.value })}
-                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[100px] resize-y"
-                  placeholder="Saisissez un texte libre ici..."
-                />
-              </div>
-            </div>
-          )}
-
-          {activeTagTab === 'smartphone' && (
-            <div className="flex flex-col gap-4">
-
-              <div className="flex flex-col gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
-                <h4 className="text-sm font-semibold flex items-center gap-2">
-                  <icons.Smartphone size={16} className="text-blue-400" />
-                  Interface Smartphone
-                </h4>
-
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-medium text-muted-foreground">Sélection de joueur(s) sur Smartphone</p>
-                  <div className="flex flex-col gap-2 bg-background/50 p-2 rounded-md border border-border">
-                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                      <input
-                        type="radio"
-                        name="playerSelectorMode"
-                        checked={!tag.isMultiPlayerSelector && !tag.isSinglePlayerSelector}
-                        onChange={() => updateTagModel(tag.id, { isMultiPlayerSelector: false, isSinglePlayerSelector: false })}
-                        className="w-4 h-4 text-primary"
-                      />
-                      Aucun (Action simple)
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                      <input
-                        type="radio"
-                        name="playerSelectorMode"
-                        checked={tag.isSinglePlayerSelector || false}
-                        onChange={() => updateTagModel(tag.id, { isMultiPlayerSelector: false, isSinglePlayerSelector: true })}
-                        className="w-4 h-4 text-primary"
-                      />
-                      Sélecteur de joueur (le joueur choisit UN joueur)
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                      <input
-                        type="radio"
-                        name="playerSelectorMode"
-                        checked={tag.isMultiPlayerSelector || false}
-                        onChange={() => updateTagModel(tag.id, { isMultiPlayerSelector: true, isSinglePlayerSelector: false })}
-                        className="w-4 h-4 text-primary"
-                      />
-                      Sélecteur multi-joueurs (le joueur choisit PLUSIEURS joueurs)
-                    </label>
-                  </div>
-
-                  {(tag.isSinglePlayerSelector || tag.isMultiPlayerSelector) && (
-                    <div className="flex flex-col gap-2 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
-                      <button 
-                        onClick={() => setIsSmartphoneFiltersExpanded(!isSmartphoneFiltersExpanded)}
-                        className="flex items-center justify-between w-full text-left"
-                      >
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Filtres du sélecteur</span>
-                        {isSmartphoneFiltersExpanded ? <icons.ChevronDown size={14} className="text-muted-foreground" /> : <icons.ChevronRight size={14} className="text-muted-foreground" />}
-                      </button>
-
-                      {isSmartphoneFiltersExpanded && (
-                        <div className="flex flex-col gap-3 mt-1 animate-in slide-in-from-top-1 duration-200">
-                          {/* Two-column grid for filters */}
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                            <div className="flex flex-col gap-2">
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterAlive || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterAlive: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Tout les joueurs vivants</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterDead || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterDead: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Tout les joueurs morts</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterMyRole || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterMyRole: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Tout les joueurs ayant mon rôle</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterNotMe || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotMe: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Sauf moi</span>
-                              </label>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterNotMyRole || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotMyRole: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant mon rôle</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterMyTeam || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterMyTeam: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Tout les joueurs de mon équipes</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterNotMyTeam || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotMyTeam: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Sauf les joueurs de mon équipe</span>
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* Tag selector filter (bottom line) */}
-                          <div className="flex items-center gap-2 w-full pt-2 border-t border-border/10">
-                            <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group shrink-0">
-                              <input type="checkbox" checked={tag.smartphoneFilterNotThisTag || false} onChange={e => updateTagModel(tag.id, { smartphoneFilterNotThisTag: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                              <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant ce tag :</span>
-                            </label>
-                            <label className="sr-only" htmlFor={`tag-exclude-filter-${tag.id}`}>Tag à exclure du filtre</label>
-                            <select 
-                              id={`tag-exclude-filter-${tag.id}`}
-                              value={tag.smartphoneFilterExcludeTagId || ''} 
-                              onChange={e => updateTagModel(tag.id, { smartphoneFilterExcludeTagId: e.target.value || null })}
-                              className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
-                              disabled={!tag.smartphoneFilterNotThisTag}
-                            >
-                              <option value="">Sélectionner un tag...</option>
-                              {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(t => (
-                                <option key={t.id} value={t.id}>{t.name}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/10">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Information à retourner</span>
-                            <div className="flex flex-wrap gap-x-4 gap-y-2">
-                              {[
-                                { key: 'none', label: 'Aucun' },
-                                { key: 'real_role', label: 'Rôle réel' },
-                                { key: 'real_team', label: 'Equipe réelle' },
-                                { key: 'seen_role', label: 'Vu comme rôle' },
-                                { key: 'seen_team', label: 'Vu dans l’équipe' }
-                              ].map(info => (
-                                <label key={info.key} className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                  <input
-                                    type="radio"
-                                    name={`returnInfo-model-${tag.id}`}
-                                    checked={(tag.smartphoneReturnInfo || 'none') === info.key}
-                                    onChange={() => updateTagModel(tag.id, { smartphoneReturnInfo: info.key as any })}
-                                    className="w-3 h-3 text-primary"
-                                  />
-                                  <span className="group-hover:text-primary transition-colors">{info.label}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
-                            <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer group shrink-0">
-                              <input 
-                                type="checkbox" 
-                                checked={tag.smartphoneIsCheckRoleEnabled || false} 
-                                onChange={e => updateTagModel(tag.id, { smartphoneIsCheckRoleEnabled: e.target.checked })} 
-                                className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" 
-                              />
-                              <span className="group-hover:text-primary transition-colors">A bien le rôle de :</span>
-                            </label>
-                            <label className="sr-only" htmlFor={`tag-role-check-${tag.id}`}>Rôle à vérifier</label>
-                            <select 
-                              id={`tag-role-check-${tag.id}`}
-                              value={tag.smartphoneCheckRoleId || ''} 
-                              onChange={e => updateTagModel(tag.id, { smartphoneCheckRoleId: e.target.value || null })}
-                              className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
-                              disabled={!tag.smartphoneIsCheckRoleEnabled}
-                            >
-                              <option value="">Sélectionner un rôle...</option>
-                              {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(r => (
-                                <option key={r.id} value={r.id}>{r.name}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {(tag.isMultiPlayerSelector || false) && tag.smartphoneIsCheckRoleEnabled && (
-                            <div className="flex items-center gap-4 mt-1 ml-6">
-                              <label className="flex items-center gap-2 text-[10px] text-foreground cursor-pointer group">
-                                <input 
-                                  type="checkbox" 
-                                  checked={tag.smartphoneCheckRoleVague || false} 
-                                  onChange={e => updateTagModel(tag.id, { smartphoneCheckRoleVague: e.target.checked })} 
-                                  className="w-3 h-3 rounded border-border text-primary focus:ring-ring" 
-                                />
-                                <span className="group-hover:text-primary transition-colors">Réponse vague</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-[10px] text-foreground cursor-pointer group">
-                                <input 
-                                  type="checkbox" 
-                                  checked={tag.smartphoneCheckRoleCount || false} 
-                                  onChange={e => updateTagModel(tag.id, { smartphoneCheckRoleCount: e.target.checked })} 
-                                  className="w-3 h-3 rounded border-border text-primary focus:ring-ring" 
-                                />
-                                <span className="group-hover:text-primary transition-colors">Combien</span>
-                              </label>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-button-text-${tag.id}`}>Texte du bouton d'action</label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      id={`tag-button-text-${tag.id}`}
-                      type="text"
-                      value={tag.smartphoneButtonText || ''}
-                      onChange={(e) => updateTagModel(tag.id, { smartphoneButtonText: e.target.value })}
-                      placeholder="Ex: Utiliser la potion"
-                      className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring w-1/2"
-                    />
-                    <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer hover:text-primary transition-colors whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={tag.smartphoneShowPastille || false}
-                        onChange={(e) => updateTagModel(tag.id, { smartphoneShowPastille: e.target.checked })}
-                        className="rounded border-border w-3.5 h-3.5 text-primary"
-                      />
-                      Afficher la pastille tag au dessus du joueur
-                    </label>
-                  </div>
-                  {tag.smartphoneButtonText && (
-                    <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer mt-1 ml-1 hover:text-primary transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={tag.smartphoneAutoDelete || false}
-                        onChange={(e) => updateTagModel(tag.id, { smartphoneAutoDelete: e.target.checked })}
-                        className="rounded border-border w-3.5 h-3.5 text-primary"
-                      />
-                      Suppression automatique (efface le tag après clic)
-                    </label>
-                  )}
-                </div>
-
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-player-feedback-${tag.id}`}>Retour au smartphone (popup)</label>
-                  <input
-                    id={`tag-player-feedback-${tag.id}`}
-                    type="text"
-                    value={tag.smartphonePlayerFeedback || ''}
-                    onChange={(e) => updateTagModel(tag.id, { smartphonePlayerFeedback: e.target.value })}
-                    placeholder="Ex: Action envoyée au MJ."
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  />
-                  <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup sur le smartphone du joueur quand il appuie sur le bouton.</p>
-                </div>
-
-
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-mj-feedback-${tag.id}`}>Message retour au MJ (popup)</label>
-                  <input
-                    id={`tag-mj-feedback-${tag.id}`}
-                    type="text"
-                    value={tag.smartphoneButtonFeedback || ''}
-                    onChange={(e) => updateTagModel(tag.id, { smartphoneButtonFeedback: e.target.value })}
-                    placeholder="Ex: La sorciere utilise sa potion de vie"
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  />
-                  <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup chez le MJ quand le joueur appuie sur le bouton.</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-merge-${tag.id}`}>Fusionner aux joueurs</label>
-                    <select
-                      id={`tag-merge-${tag.id}`}
-                      value={tag.smartphoneMergeTagId || ''}
-                      onChange={(e) => updateTagModel(tag.id, { smartphoneMergeTagId: e.target.value || null })}
-                      className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
-                    >
-                      <option value="">-- Aucun --</option>
-                      {[...tags].filter(t => t.id !== tag.id).sort((a,b) => a.name.localeCompare(b.name)).map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-self-merge-${tag.id}`}>Me fusionner ce Tag</label>
-                    <select
-                      id={`tag-self-merge-${tag.id}`}
-                      value={tag.smartphoneSelfMergeTagId || ''}
-                      onChange={(e) => updateTagModel(tag.id, { smartphoneSelfMergeTagId: e.target.value || null })}
-                      className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
-                    >
-                      <option value="">-- Aucun --</option>
-                      {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-action-${tag.id}`}>Déclencher une Action</label>
-                  <select
-                    id={`tag-action-${tag.id}`}
-                    value={tag.smartphoneActionId || ''}
-                    onChange={(e) => updateTagModel(tag.id, { smartphoneActionId: e.target.value || null })}
-                    className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
-                  >
-                    <option value="">-- Aucune --</option>
-                    {[...actions].sort((a,b) => a.name.localeCompare(b.name)).map(a => (
-                      <option key={a.id} value={a.id}>{a.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-
-
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2" htmlFor={`tag-handout-${tag.id}`}>
-                    <icons.BookOpen size={12} className="text-primary/50" />
-                    Associer une Aide de Jeu
-                  </label>
-                  <select
-                    id={`tag-handout-${tag.id}`}
-                    value={tag.handoutId || ''}
-                    onChange={(e) => updateTagModel(tag.id, { handoutId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">Aucune (Optionnel)</option>
-                    {[...handouts].sort((a,b) => a.name.localeCompare(b.name)).map(h => (
-                      <option key={h.id} value={h.id}>{h.name}</option>
-                    ))}
-                  </select>
-                  <p className="text-[10px] text-muted-foreground leading-tight mt-1 bg-primary/5 p-2 rounded border border-primary/10 italic">
-                    L'image de cette aide s'affichera dans une galerie sur le smartphone du joueur possédant ce tag.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
+    entityContent = <TagModelForm tagId={editingEntity.id} onClose={handleClose} />;
   } else if (editingEntity.type === 'tagInstance') {
-    let tag: any = null;
-    let updateTagInstance: (updates: any) => void;
-
-    // Check if it's attached to a player
-    if (editingEntity.parentId) {
-      const player = players.find(p => p.id === editingEntity.parentId);
-      if (!player) return null;
-      tag = player.tags.find(t => t.instanceId === editingEntity.id);
-      if (!tag) return null;
-
-      updateTagInstance = (updates: any) => {
-        const newTags = player.tags.map(t => t.instanceId === tag.instanceId ? { ...t, ...updates } : t);
-        updatePlayer(player.id, { tags: newTags });
-      };
-      entityTitle = `Modifier Tag de ${player.name}: ${tag.name}`;
-    } else {
-      // Otherwise, it's a standalone marker on the canvas
-      const marker = markers.find((m: any) => m.tag.instanceId === editingEntity.id);
-      if (!marker) return null;
-      tag = marker.tag;
-
-      updateTagInstance = (updates: any) => {
-        updateMarker(marker.id, { tag: { ...tag, ...updates } });
-      };
-      entityTitle = `Modifier Marqueur: ${tag.name}`;
-    }
-
-    entityContent = (
-      <div className="flex flex-col h-full w-full">
-        {/* Tabs */}
-        <div className="flex border-b border-border mb-4 sticky top-0 bg-card z-10 shrink-0">
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'general' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveTagTab('general')}
-          >
-            Général
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'appearance' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveTagTab('appearance')}
-          >
-            Apparence
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'fields' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveTagTab('fields')}
-          >
-            Champs
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'smartphone' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveTagTab('smartphone')}
-          >
-            Smartphone
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex-1 ${activeTagTab === 'container' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
-            onClick={() => setActiveTagTab('container')}
-          >
-            Container
-          </button>
-        </div>
-
-        {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 min-h-[300px]">
-          {activeTagTab === 'general' && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium" htmlFor={`tag-instance-name-${tag.instanceId}`}>Nom</label>
-                <input
-                  id={`tag-instance-name-${tag.instanceId}`}
-                  type="text"
-                  value={tag.name}
-                  onChange={(e) => updateTagInstance({ name: e.target.value })}
-                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                />
-              </div>
-              <div className="flex flex-col gap-2 mt-4">
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.showInTooltip !== false}
-                    onChange={(e) => updateTagInstance({ showInTooltip: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Visible dans l'info-bulle (au survol du joueur)
-                </label>
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.showInGameTab !== false}
-                    onChange={(e) => updateTagInstance({ showInGameTab: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Visible dans l'onglet Jeu (sous le joueur)
-                </label>
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.showOnSmartphone || false}
-                    onChange={(e) => updateTagInstance({ showOnSmartphone: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Visible sur smartphone (version joueur)
-                </label>
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={tag.showPastille || false}
-                    onChange={(e) => updateTagInstance({ showPastille: e.target.checked })}
-                    className="rounded border-border w-4 h-4"
-                  />
-                  Afficher la pastille (au dessus du joueur)
-                </label>
-              </div>
-            </div>
-          )}
-
-          {activeTagTab === 'appearance' && (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Icône du tag</label>
-                <div className="flex flex-wrap gap-1 bg-input border border-border rounded-md p-2 max-h-40 overflow-y-auto custom-scrollbar">
-                  {TAG_ICONS.map((iconName: string) => {
-                    const IconComponent = icons[iconName as keyof typeof icons];
-                    if (!IconComponent) return null;
-                    return (
-                      <button
-                        key={iconName}
-                        onClick={() => updateTagInstance({ icon: iconName })}
-                        className={`p-2 rounded-md transition-colors flex items-center justify-center ${
-                          tag.icon === iconName
-                            ? 'bg-primary text-primary-foreground shadow-sm'
-                            : 'hover:bg-accent hover:text-accent-foreground text-muted-foreground'
-                        }`}
-                        title={iconName}
-                      >
-                        {React.createElement(IconComponent as any, { size: 20 })}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium" htmlFor={`tag-instance-image-file-${tag.instanceId}`}>Image personnalisée</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    id={`tag-instance-image-file-${tag.instanceId}`}
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        await handleImageFile(file, (url) => updateTagInstance({ imageUrl: url }));
-                      }
-                    }}
-                    className="text-sm flex-1 text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                  />
-                  {tag.imageUrl && (
-                    <button
-                      onClick={() => updateTagInstance({ imageUrl: undefined })}
-                      className="p-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
-                      title="Supprimer l'image"
-                    >
-                      <X size={16} />
-                    </button>
-                  )}
-                </div>
-                {tag.imageUrl && (
-                  <div className="mt-2 w-16 h-16 rounded-md overflow-hidden border border-border">
-                    <img src={tag.imageUrl} alt={tag.name} className="w-full h-full object-cover" />
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1 mt-2">
-                <label className="text-sm font-medium">Couleur</label>
-                <div className="flex items-center gap-3">
-                  <ColorPicker
-                    color={tag.color}
-                    onChange={(c) => updateTagInstance({ color: c })}
-                    label="Couleur"
-                    className="!w-10 !h-10"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTagTab === 'fields' && (
-            <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium" title="Ordre d'Appel Jour" htmlFor={`tag-instance-call-day-${tag.instanceId}`}>Appel Jour</label>
-                  <input
-                    id={`tag-instance-call-day-${tag.instanceId}`}
-                    type="text"
-                    value={tag.callOrderDay ?? ''}
-                    onChange={(e) => updateTagInstance({ callOrderDay: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring text-center"
-                    placeholder="ex: 5 ou +2"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium" title="Ordre d'Appel Nuit" htmlFor={`tag-instance-call-night-${tag.instanceId}`}>Appel Nuit</label>
-                  <input
-                    id={`tag-instance-call-night-${tag.instanceId}`}
-                    type="text"
-                    value={tag.callOrderNight ?? ''}
-                    onChange={(e) => updateTagInstance({ callOrderNight: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring text-center"
-                    placeholder="ex: 5 ou +2"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-instance-lives-${tag.instanceId}`}>Ajout Vie</label>
-                  <input
-                    id={`tag-instance-lives-${tag.instanceId}`}
-                    type="text"
-                    value={tag.lives ?? ''}
-                    onChange={(e) => updateTagInstance({ lives: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="ex: 1 ou +1"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-instance-votes-${tag.instanceId}`}>Votes</label>
-                  <input
-                    id={`tag-instance-votes-${tag.instanceId}`}
-                    type="text"
-                    value={tag.votes ?? ''}
-                    onChange={(e) => updateTagInstance({ votes: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="ex: 10 ou -2"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-instance-points-${tag.instanceId}`}>Points</label>
-                  <input
-                    id={`tag-instance-points-${tag.instanceId}`}
-                    type="text"
-                    value={tag.points ?? ''}
-                    onChange={(e) => updateTagInstance({ points: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="ex: 100 ou +50"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-instance-uses-${tag.instanceId}`}>Uses</label>
-                  <input
-                    id={`tag-instance-uses-${tag.instanceId}`}
-                    type="text"
-                    value={tag.uses ?? ''}
-                    onChange={(e) => updateTagInstance({ uses: e.target.value })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="ex: 3"
-                  />
-                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer mt-2">
-                    <input
-                      type="checkbox"
-                      checked={tag.autoDeleteOnZeroUses || false}
-                      onChange={(e) => updateTagInstance({ autoDeleteOnZeroUses: e.target.checked })}
-                      className="rounded border-border w-3.5 h-3.5"
-                    />
-                    Suppr. auto à 0
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex gap-4 mb-2">
-                <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-instance-seen-role-${tag.instanceId}`}>Vu comme rôle (info-bulle)</label>
-                  <select
-                    id={`tag-instance-seen-role-${tag.instanceId}`}
-                    value={tag.seenAsRoleId || ''}
-                    onChange={(e) => updateTagInstance({ seenAsRoleId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">-- Aucun --</option>
-                    {roles.map(r => (
-                      <option key={r.id} value={r.id}>{r.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex flex-col gap-1 flex-1">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-instance-seen-team-${tag.instanceId}`}>Vu dans équipe (info-bulle)</label>
-                  <select
-                    id={`tag-instance-seen-team-${tag.instanceId}`}
-                    value={tag.seenInTeamId || ''}
-                    onChange={(e) => updateTagInstance({ seenInTeamId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">-- Identique à réelle --</option>
-                    {teams.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1 mt-2">
-                <label className="text-sm font-medium text-muted-foreground" htmlFor={`tag-instance-description-${tag.instanceId}`}>Texte libre</label>
-                <textarea
-                  id={`tag-instance-description-${tag.instanceId}`}
-                  value={tag.description || ''}
-                  onChange={(e) => updateTagInstance({ description: e.target.value })}
-                  className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring min-h-[100px] resize-y"
-                  placeholder="Saisissez un texte libre ici..."
-                />
-              </div>
-            </div>
-          )}
-
-          {activeTagTab === 'smartphone' && (
-            <div className="flex flex-col gap-4">
-
-              <div className="flex flex-col gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
-                <h4 className="text-sm font-semibold flex items-center gap-2">
-                  <icons.Smartphone size={16} className="text-blue-400" />
-                  Interface Smartphone
-                </h4>
-
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-medium text-muted-foreground">Sélection de joueur(s) sur Smartphone</p>
-                  <div className="flex flex-col gap-2 bg-background/50 p-2 rounded-md border border-border">
-                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                      <input
-                        type="radio"
-                        name="playerSelectorModeInstance"
-                        checked={!tag.isMultiPlayerSelector && !tag.isSinglePlayerSelector}
-                        onChange={() => updateTagInstance({ isMultiPlayerSelector: false, isSinglePlayerSelector: false })}
-                        className="w-4 h-4 text-primary"
-                      />
-                      Aucun (Action simple)
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                      <input
-                        type="radio"
-                        name="playerSelectorModeInstance"
-                        checked={tag.isSinglePlayerSelector || false}
-                        onChange={() => updateTagInstance({ isMultiPlayerSelector: false, isSinglePlayerSelector: true })}
-                        className="w-4 h-4 text-primary"
-                      />
-                      Sélecteur de joueur (le joueur choisit UN joueur)
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                      <input
-                        type="radio"
-                        name="playerSelectorModeInstance"
-                        checked={tag.isMultiPlayerSelector || false}
-                        onChange={() => updateTagInstance({ isMultiPlayerSelector: true, isSinglePlayerSelector: false })}
-                        className="w-4 h-4 text-primary"
-                      />
-                      Sélecteur multi-joueurs (le joueur choisit PLUSIEURS joueurs)
-                    </label>
-                  </div>
-
-                  {(tag.isSinglePlayerSelector || tag.isMultiPlayerSelector) && (
-                    <div className="flex flex-col gap-2 mt-2 p-3 bg-muted/20 border-l-2 border-primary/30 rounded-r-lg">
-                      <button 
-                        onClick={() => setIsSmartphoneFiltersExpanded(!isSmartphoneFiltersExpanded)}
-                        className="flex items-center justify-between w-full text-left"
-                      >
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Filtres du sélecteur</span>
-                        {isSmartphoneFiltersExpanded ? <icons.ChevronDown size={14} className="text-muted-foreground" /> : <icons.ChevronRight size={14} className="text-muted-foreground" />}
-                      </button>
-
-                      {isSmartphoneFiltersExpanded && (
-                        <div className="flex flex-col gap-3 mt-1 animate-in slide-in-from-top-1 duration-200">
-                          {/* Two-column grid for filters */}
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                            <div className="flex flex-col gap-2">
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterAlive || false} onChange={e => updateTagInstance({ smartphoneFilterAlive: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Tout les joueurs vivants</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterDead || false} onChange={e => updateTagInstance({ smartphoneFilterDead: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Tout les joueurs morts</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterMyRole || false} onChange={e => updateTagInstance({ smartphoneFilterMyRole: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Tout les joueurs ayant mon rôle</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterNotMe || false} onChange={e => updateTagInstance({ smartphoneFilterNotMe: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Sauf moi</span>
-                              </label>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterNotMyRole || false} onChange={e => updateTagInstance({ smartphoneFilterNotMyRole: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant mon rôle</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterMyTeam || false} onChange={e => updateTagInstance({ smartphoneFilterMyTeam: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Tout les joueurs de mon équipes</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                <input type="checkbox" checked={tag.smartphoneFilterNotMyTeam || false} onChange={e => updateTagInstance({ smartphoneFilterNotMyTeam: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                                <span className="group-hover:text-primary transition-colors">Sauf les joueurs de mon équipe</span>
-                              </label>
-                            </div>
-                          </div>
-
-                          {/* Tag selector filter (bottom line) */}
-                          <div className="flex items-center gap-2 w-full pt-2 border-t border-border/10">
-                            <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer group shrink-0">
-                              <input type="checkbox" checked={tag.smartphoneFilterNotThisTag || false} onChange={e => updateTagInstance({ smartphoneFilterNotThisTag: e.target.checked })} className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" />
-                              <span className="group-hover:text-primary transition-colors">Sauf les joueurs ayant ce tag :</span>
-                            </label>
-                            <label className="sr-only" htmlFor={`tag-instance-exclude-filter-${tag.instanceId}`}>Tag à exclure du filtre</label>
-                            <select 
-                              id={`tag-instance-exclude-filter-${tag.instanceId}`}
-                              value={tag.smartphoneFilterExcludeTagId || ''} 
-                              onChange={e => updateTagInstance({ smartphoneFilterExcludeTagId: e.target.value || null })}
-                              className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
-                              disabled={!tag.smartphoneFilterNotThisTag}
-                            >
-                              <option value="">Sélectionner un tag...</option>
-                              {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(t => (
-                                <option key={t.id} value={t.id}>{t.name}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-border/10">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Information à retourner</span>
-                            <div className="flex flex-wrap gap-x-4 gap-y-2">
-                              {[
-                                { key: 'none', label: 'Aucun' },
-                                { key: 'real_role', label: 'Rôle réel' },
-                                { key: 'real_team', label: 'Equipe réelle' },
-                                { key: 'seen_role', label: 'Vu comme rôle' },
-                                { key: 'seen_team', label: 'Vu dans l’équipe' }
-                              ].map(info => (
-                                <label key={info.key} className="flex items-center gap-2 text-xs text-foreground cursor-pointer group">
-                                  <input
-                                    type="radio"
-                                    name={`returnInfo-instance-${tag.id}`}
-                                    checked={(tag.smartphoneReturnInfo || 'none') === info.key}
-                                    onChange={() => updateTagInstance({ smartphoneReturnInfo: info.key as any })}
-                                    className="w-3.5 h-3.5 text-primary"
-                                  />
-                                  <span className="group-hover:text-primary transition-colors">{info.label}</span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/10">
-                            <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer group shrink-0">
-                              <input 
-                                type="checkbox" 
-                                checked={tag.smartphoneIsCheckRoleEnabled || false} 
-                                onChange={e => updateTagInstance({ smartphoneIsCheckRoleEnabled: e.target.checked })} 
-                                className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-ring" 
-                              />
-                              <span className="group-hover:text-primary transition-colors">A bien le rôle de :</span>
-                            </label>
-                            <label className="sr-only" htmlFor={`tag-instance-role-check-${tag.instanceId}`}>Rôle à vérifier</label>
-                            <select 
-                              id={`tag-instance-role-check-${tag.instanceId}`}
-                              value={tag.smartphoneCheckRoleId || ''} 
-                              onChange={e => updateTagInstance({ smartphoneCheckRoleId: e.target.value || null })}
-                              className="bg-background border border-border/80 rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-primary flex-1 h-7 text-foreground cursor-pointer hover:border-primary/50 transition-colors shadow-sm"
-                              disabled={!tag.smartphoneIsCheckRoleEnabled}
-                            >
-                              <option value="">Sélectionner un rôle...</option>
-                              {[...roles].sort((a,b) => a.name.localeCompare(b.name)).map(r => (
-                                <option key={r.id} value={r.id}>{r.name}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          {(tag.isMultiPlayerSelector || false) && tag.smartphoneIsCheckRoleEnabled && (
-                            <div className="flex items-center gap-4 mt-1 ml-6">
-                              <label className="flex items-center gap-2 text-[10px] text-foreground cursor-pointer group">
-                                <input 
-                                  type="checkbox" 
-                                  checked={tag.smartphoneCheckRoleVague || false} 
-                                  onChange={e => updateTagInstance({ smartphoneCheckRoleVague: e.target.checked })} 
-                                  className="w-3 h-3 rounded border-border text-primary focus:ring-ring" 
-                                />
-                                <span className="group-hover:text-primary transition-colors">Réponse vague</span>
-                              </label>
-                              <label className="flex items-center gap-2 text-[10px] text-foreground cursor-pointer group">
-                                <input 
-                                  type="checkbox" 
-                                  checked={tag.smartphoneCheckRoleCount || false} 
-                                  onChange={e => updateTagInstance({ smartphoneCheckRoleCount: e.target.checked })} 
-                                  className="w-3 h-3 rounded border-border text-primary focus:ring-ring" 
-                                />
-                                <span className="group-hover:text-primary transition-colors">Combien</span>
-                              </label>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-instance-button-text-${tag.instanceId}`}>Texte du bouton d'action</label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      id={`tag-instance-button-text-${tag.instanceId}`}
-                      type="text"
-                      value={tag.smartphoneButtonText || ''}
-                      onChange={(e) => updateTagInstance({ smartphoneButtonText: e.target.value })}
-                      placeholder="Ex: Utiliser la potion…"
-                      className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring w-1/2"
-                    />
-                    <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer hover:text-primary transition-colors whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={tag.smartphoneShowPastille || false}
-                        onChange={(e) => updateTagInstance({ smartphoneShowPastille: e.target.checked })}
-                        className="rounded border-border w-3.5 h-3.5 text-primary"
-                      />
-                      Afficher la pastille tag au dessus du joueur
-                    </label>
-                  </div>
-                  {tag.smartphoneButtonText && (
-                    <label className="flex items-center gap-2 text-[11px] text-foreground cursor-pointer mt-1 ml-1 hover:text-primary transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={tag.smartphoneAutoDelete || false}
-                        onChange={(e) => updateTagInstance({ smartphoneAutoDelete: e.target.checked })}
-                        className="rounded border-border w-3.5 h-3.5 text-primary"
-                      />
-                      Suppression automatique (efface le tag après clic)
-                    </label>
-                  )}
-                  <p className="text-[10px] text-muted-foreground leading-tight">Si rempli, un bouton apparaît sur le smartphone du joueur possédant ce tag.</p>
-                </div>
-
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-instance-player-feedback-${tag.instanceId}`}>Message retour au smartphone (popup)</label>
-                  <input
-                    id={`tag-instance-player-feedback-${tag.instanceId}`}
-                    type="text"
-                    value={tag.smartphonePlayerFeedback || ''}
-                    onChange={(e) => updateTagInstance({ smartphonePlayerFeedback: e.target.value })}
-                    placeholder="Ex: Action envoyée au MJ."
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  />
-                  <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup sur le smartphone du joueur quand il appuie sur le bouton.</p>
-                </div>
-
-
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`tag-instance-mj-feedback-${tag.instanceId}`}>Message retour au MJ (popup)</label>
-                  <input
-                    id={`tag-instance-mj-feedback-${tag.instanceId}`}
-                    type="text"
-                    value={tag.smartphoneButtonFeedback || ''}
-                    onChange={(e) => updateTagInstance({ smartphoneButtonFeedback: e.target.value })}
-                    placeholder="Ex: La sorcière utilise sa potion de vie"
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  />
-                  <p className="text-[10px] text-muted-foreground leading-tight">Ce message s'affiche en popup chez le MJ quand le joueur appuie sur le bouton.</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mt-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-instance-merge-${tag.instanceId}`}>Fusionner aux joueurs</label>
-                    <select
-                      id={`tag-instance-merge-${tag.instanceId}`}
-                      value={tag.smartphoneMergeTagId || ''}
-                      onChange={(e) => updateTagInstance({ smartphoneMergeTagId: e.target.value || null })}
-                      className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
-                    >
-                      <option value="">-- Aucun --</option>
-                      {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-instance-self-merge-${tag.instanceId}`}>Me fusionner ce Tag</label>
-                    <select
-                      id={`tag-instance-self-merge-${tag.instanceId}`}
-                      value={tag.smartphoneSelfMergeTagId || ''}
-                      onChange={(e) => updateTagInstance({ smartphoneSelfMergeTagId: e.target.value || null })}
-                      className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
-                    >
-                      <option value="">-- Aucun --</option>
-                      {[...tags].sort((a,b) => a.name.localeCompare(b.name)).map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground italic" htmlFor={`tag-instance-action-${tag.instanceId}`}>Déclencher une Action</label>
-                  <select
-                    id={`tag-instance-action-${tag.instanceId}`}
-                    value={tag.smartphoneActionId || ''}
-                    onChange={(e) => updateTagInstance({ smartphoneActionId: e.target.value || null })}
-                    className="bg-background border border-border/80 rounded-md px-1.5 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary text-foreground h-9 shadow-sm"
-                  >
-                    <option value="">-- Aucune --</option>
-                    {[...actions].sort((a,b) => a.name.localeCompare(b.name)).map(a => (
-                      <option key={a.id} value={a.id}>{a.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-
-
-                <div className="flex flex-col gap-1 mt-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 italic flex items-center gap-2" htmlFor={`tag-instance-handout-${tag.instanceId}`}>
-                    <icons.BookOpen size={12} className="text-primary/50" />
-                    Associer une Aide de Jeu
-                  </label>
-                  <select
-                    id={`tag-instance-handout-${tag.instanceId}`}
-                    value={tag.handoutId || ''}
-                    onChange={(e) => updateTagInstance({ handoutId: e.target.value || null })}
-                    className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  >
-                    <option value="">Aucune (Optionnel)</option>
-                    {[...handouts].sort((a,b) => a.name.localeCompare(b.name)).map(h => (
-                      <option key={h.id} value={h.id}>{h.name}</option>
-                    ))}
-                  </select>
-                  <p className="text-[10px] text-muted-foreground leading-tight mt-1 bg-primary/5 p-2 rounded border border-primary/10 italic">
-                    L'image de cette aide s'affichera dans une galerie sur le smartphone du joueur possédant ce tag.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTagTab === 'container' && (
-            <div className="flex flex-col gap-4">
-              <p className="text-sm text-muted-foreground mb-2">
-                Ce tag peut servir de "Container". Lorsqu'il est appliqué à un joueur, tous les tags sélectionnés ici seront appliqués en même temps avec lui.
-              </p>
-              <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto custom-scrollbar pr-2 pb-2">
-                {tagCategories.map(cat => {
-                  const catTags = tagsByCategory[cat.id]?.filter(t => t.id !== tag.id);
-                  if (!catTags || catTags.length === 0) return null;
-                  
-                  const CatIcon = icons[cat.icon as keyof typeof icons] || icons.Folder;
-                  const isExpanded = expandedContainerCategories[cat.id] ?? true;
-
-                  const handleToggleCat = () => {
-                    setExpandedContainerCategories(prev => ({ ...prev, [cat.id]: !isExpanded }));
-                  };
-
-                  return (
-                    <div key={cat.id} className="flex flex-col bg-card border border-border rounded-md overflow-hidden">
-                      <button 
-                        onClick={handleToggleCat}
-                        className="flex items-center justify-between bg-muted/50 hover:bg-muted p-2 transition-colors w-full text-left"
-                      >
-                        <div className="flex items-center gap-2 flex-1">
-                          <div className="p-1 rounded bg-background shadow-sm" style={{ color: cat.color }}>
-                            {React.createElement(CatIcon as any, { size: 14 })}
-                          </div>
-                          <span className="font-semibold text-sm flex-1">{cat.name}</span>
-                          <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">
-                            {catTags.length}
-                          </span>
-                        </div>
-                        {isExpanded ? <icons.ChevronDown size={14} className="text-muted-foreground" /> : <icons.ChevronRight size={14} className="text-muted-foreground" />}
-                      </button>
-
-                      {isExpanded && (
-                        <div className="flex flex-col gap-1 p-2 bg-background/50 border-t border-border">
-                          {catTags.map(otherTag => (
-                            <label key={otherTag.id} className="flex items-center gap-3 p-2 hover:bg-accent hover:text-accent-foreground rounded-md cursor-pointer transition-colors">
-                              <input
-                                type="checkbox"
-                                checked={tag.childTagIds?.includes(otherTag.id) || false}
-                                onChange={(e) => {
-                                  const currentList = tag.childTagIds || [];
-                                  const newList = e.target.checked
-                                    ? [...currentList, otherTag.id]
-                                    : currentList.filter((id: string) => id !== otherTag.id);
-                                  updateTagInstance({ childTagIds: newList });
-                                }}
-                                className="rounded border-border w-4 h-4"
-                              />
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: otherTag.color }} />
-                              <span className="text-sm font-medium flex-1">{otherTag.name}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {/* Uncategorized Tags */}
-                {(() => {
-                  const noCatTags = tagsByCategory['no-category']?.filter(t => t.id !== tag.id);
-                  if (!noCatTags || noCatTags.length === 0) return null;
-                  
-                  const isExpanded = expandedContainerCategories['no-category'] ?? true;
-
-                  const handleToggleCat = () => {
-                    setExpandedContainerCategories(prev => ({ ...prev, ['no-category']: !isExpanded }));
-                  };
-
-                  return (
-                    <div className="flex flex-col bg-card border border-border rounded-md overflow-hidden">
-                      <button 
-                        onClick={handleToggleCat}
-                        className="flex items-center justify-between bg-muted/50 hover:bg-muted p-2 transition-colors w-full text-left"
-                      >
-                        <div className="flex items-center gap-2 flex-1">
-                          <div className="p-1 rounded bg-background shadow-sm text-muted-foreground">
-                            <icons.Folder size={14} />
-                          </div>
-                          <span className="font-semibold text-sm flex-1 text-muted-foreground italic">Sans catégorie</span>
-                          <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">
-                            {noCatTags.length}
-                          </span>
-                        </div>
-                        {isExpanded ? <icons.ChevronDown size={14} className="text-muted-foreground" /> : <icons.ChevronRight size={14} className="text-muted-foreground" />}
-                      </button>
-                      
-                      {isExpanded && (
-                        <div className="flex flex-col gap-1 p-2 bg-background/50 border-t border-border">
-                          {noCatTags.map(otherTag => (
-                            <label key={otherTag.id} className="flex items-center gap-3 p-2 hover:bg-accent hover:text-accent-foreground rounded-md cursor-pointer transition-colors">
-                              <input
-                                type="checkbox"
-                                checked={tag.childTagIds?.includes(otherTag.id) || false}
-                                onChange={(e) => {
-                                  const currentList = tag.childTagIds || [];
-                                  const newList = e.target.checked
-                                    ? [...currentList, otherTag.id]
-                                    : currentList.filter((id: string) => id !== otherTag.id);
-                                  updateTagInstance({ childTagIds: newList });
-                                }}
-                                className="rounded border-border w-4 h-4"
-                              />
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: otherTag.color }} />
-                              <span className="text-sm font-medium flex-1">{otherTag.name}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                {tags.filter(t => t.id !== tag.id).length === 0 && (
-                  <div className="text-sm text-muted-foreground text-center py-4">Aucun autre tag disponible</div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    );
+    entityTitle = (() => {
+      if (editingEntity.parentId) {
+        const p = players.find(pl => pl.id === editingEntity.parentId);
+        if (!p) return '';
+        const t = p.tags.find(tg => tg.instanceId === editingEntity.id);
+        return t ? `Modifier Tag de ${p.name}: ${t.name}` : '';
+      }
+      const m = markers.find(mk => mk.tag.instanceId === editingEntity.id);
+      return m ? `Modifier Marqueur: ${m.tag.name}` : '';
+    })();
+    entityContent = <TagInstanceForm instanceId={editingEntity.id} parentId={editingEntity.parentId} onClose={handleClose} />;
   } else if (editingEntity.type === 'playerNotes') {
     const player = players.find(p => p.id === editingEntity.id);
     if (!player) return null;
@@ -2675,6 +1667,54 @@ export const EditingModal: React.FC = () => {
           />
         </div>
         <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Raccourci clavier</label>
+          <div className="flex items-center gap-2">
+            <div
+              onClick={() => { setCapturingShortcut(true); setCapturingShortcutIndex(index); }}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md border text-sm font-bold transition-all cursor-pointer ${
+                capturingShortcut && capturingShortcutIndex === index
+                  ? 'border-pink-500 bg-pink-500/10 text-pink-400 animate-pulse'
+                  : btn.shortcut
+                    ? 'border-border bg-muted text-foreground'
+                    : 'border-dashed border-border text-muted-foreground hover:border-pink-500/50'
+              }`}
+            >
+              {capturingShortcut && capturingShortcutIndex === index ? (
+                <><Keyboard size={14} /> Appuyez sur une touche...</>
+              ) : btn.shortcut ? (
+                <><Keyboard size={14} /> Touche : <span className="text-lg font-black tracking-widest uppercase">{btn.shortcut}</span></>
+              ) : (
+                <><Keyboard size={14} /> Cliquez pour assigner une touche</>
+              )}
+            </div>
+            {btn.shortcut && (
+              <button
+                onClick={() => updateSoundButton(index, { shortcut: undefined })}
+                className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                title="Supprimer le raccourci"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium">Catégorie</label>
+          <input
+            type="text"
+            value={btn.category || ''}
+            onChange={(e) => updateSoundButton(index, { category: e.target.value || undefined })}
+            placeholder="Ex: Ambiance, Combat, Personnages..."
+            className="bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            list="sound-categories"
+          />
+          <datalist id="sound-categories">
+            {Array.from(new Set(soundboard.buttons.map(b => b.category).filter(Boolean))).map(cat => (
+              <option key={cat} value={cat} />
+            ))}
+          </datalist>
+        </div>
+        <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Fichier audio (.mp3, .wav, .ogg)</label>
           <div className="flex items-center gap-2">
             <label className="sr-only" htmlFor={`sound-file-${index}`}>Sélectionner un fichier audio</label>
@@ -2695,6 +1735,60 @@ export const EditingModal: React.FC = () => {
               className="text-sm flex-1 text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
             />
           </div>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="h-px flex-1 bg-border/50" />
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">ou</span>
+            <div className="h-px flex-1 bg-border/50" />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                if (isRecording) {
+                  mediaRecorderRef.current?.stop();
+                  mediaStreamRef.current?.getTracks().forEach(t => t.stop());
+                  if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+                  setIsRecording(false);
+                  setRecordingDuration(0);
+                } else {
+                  try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaStreamRef.current = stream;
+                    const recorder = new MediaRecorder(stream);
+                    const chunks: Blob[] = [];
+                    recorder.ondataavailable = (e) => chunks.push(e.data);
+                    recorder.onstop = () => {
+                      const blob = new Blob(chunks, { type: 'audio/webm' });
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        if (reader.result) updateSoundButton(index, { audioUrl: reader.result as string });
+                      };
+                      reader.readAsDataURL(blob);
+                      stream.getTracks().forEach(t => t.stop());
+                    };
+                    mediaRecorderRef.current = recorder;
+                    recorder.start();
+                    setIsRecording(true);
+                    setRecordingDuration(0);
+                    const startTime = Date.now();
+                    recordingTimerRef.current = setInterval(() => {
+                      setRecordingDuration(Math.floor((Date.now() - startTime) / 1000));
+                    }, 200);
+                  } catch (err) {
+                    console.error("Microphone access denied", err);
+                  }
+                }
+              }}
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md text-xs font-bold uppercase transition-all ${
+                isRecording
+                  ? 'bg-red-600 text-white animate-pulse'
+                  : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent border border-border'
+              }`}
+            >
+              <Mic size={14} />
+              {isRecording ? `Arrêter ${recordingDuration}s` : 'Enregistrer (micro)'}
+            </button>
+          </div>
+        </div>
           {btn.audioUrl && (
             <>
               <div className="text-xs text-green-500 font-medium mt-1 flex items-center gap-1">
@@ -2734,11 +1828,24 @@ export const EditingModal: React.FC = () => {
                         if (testAudioRef.current) {
                           testAudioRef.current.pause();
                         }
-                        const audio = new Audio(btn.audioUrl);
+                        const audio = new Audio();
                         audio.volume = btn.volume ?? 1;
                         audio.onended = () => setIsTesting(false);
                         testAudioRef.current = audio;
-                        audio.play();
+
+                        const testSrc = btn.audioUrl;
+                        if (isIdbUrl(testSrc)) {
+                          getAudio(idbUrlToKey(testSrc)).then(base64 => {
+                            if (base64 && testAudioRef.current) {
+                              testAudioRef.current.src = base64;
+                              testAudioRef.current.load();
+                              testAudioRef.current.play();
+                            }
+                          });
+                        } else {
+                          audio.src = testSrc;
+                          audio.play();
+                        }
                         setIsTesting(true);
                       }
                     }}
@@ -2764,7 +1871,6 @@ export const EditingModal: React.FC = () => {
               </div>
             </>
           )}
-        </div>
 
         <div className="flex flex-col gap-1 mt-2">
           <label className="text-sm font-medium">Icône</label>
@@ -2863,6 +1969,21 @@ export const EditingModal: React.FC = () => {
             Si décoché, le son sera lu en boucle jusqu'au prochain clic.
           </p>
         </div>
+        <div className="flex flex-col gap-1">
+          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer" htmlFor={`sound-ambient-${index}`}>
+            <input
+              id={`sound-ambient-${index}`}
+              type="checkbox"
+              checked={btn.isAmbient || false}
+              onChange={(e) => updateSoundButton(index, { isAmbient: e.target.checked })}
+              className="rounded border-border w-4 h-4"
+            />
+            <span>Ambiance <span className="text-muted-foreground font-normal">(crossfade automatique)</span></span>
+          </label>
+          <p className="text-xs text-muted-foreground ml-6">
+            Les sons d'ambiance se fondent progressivement lors du changement (fondu enchaîné).
+          </p>
+        </div>
 
         {btn.audioUrl && (
           <div className="mt-4 pt-4 border-t border-border">
@@ -2881,12 +2002,13 @@ export const EditingModal: React.FC = () => {
     );
   }
 
-  const isWiderModal = editingEntity.type === 'tagModel' || editingEntity.type === 'tagInstance';
+  const isTagEntity = editingEntity.type === 'tagModel' || editingEntity.type === 'tagInstance';
+  const isWiderModal = isTagEntity;
   const isRoleModal = editingEntity.type === 'role';
 
   return (
     <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
-      <div className={`bg-card w-full ${isRoleModal ? 'max-w-3xl min-h-[500px]' : isWiderModal ? 'max-w-2xl min-h-[400px]' : 'max-w-md'} rounded-xl shadow-xl border border-border flex flex-col overflow-hidden max-h-[90vh]`}>
+      <div ref={modalRef} className={`bg-card w-full ${isRoleModal ? 'max-w-3xl min-h-[500px]' : isWiderModal ? 'max-w-2xl min-h-[400px]' : 'max-w-md'} rounded-xl shadow-xl border border-border flex flex-col overflow-hidden max-h-[90vh]`}>
         <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
           <h2 className="font-bold text-lg">{entityTitle}</h2>
           <button
@@ -2901,14 +2023,16 @@ export const EditingModal: React.FC = () => {
         <div className={`p-6 flex-1 flex flex-col ${isWiderModal ? 'overflow-hidden' : ''}`}>
           {entityContent}
         </div>
-        <div className="p-4 border-t border-border flex justify-end bg-muted/30">
-          <button
-            onClick={handleClose}
-            className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-sm font-medium"
-          >
-            Terminé
-          </button>
-        </div>
+        {!isTagEntity && (
+          <div className="p-4 border-t border-border flex justify-end bg-muted/30">
+            <button
+              onClick={handleClose}
+              className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md text-sm font-medium"
+            >
+              Terminé
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

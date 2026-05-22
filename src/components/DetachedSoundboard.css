@@ -5,22 +5,22 @@
   min-width: 200px;
   max-width: 95vw;
   max-height: 85vh;
-  background-color: #ffffff;
-  border: 1px solid hsl(var(--border));
+  background-color: var(--background);
+  border: 1px solid var(--border);
   border-radius: 0.75rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* La fenêtre elle-même ne défile pas, c'est la grille */
+  overflow: hidden;
 }
 
 .drag-handle {
-  background-color: #f8f9fa !important;
-  border-bottom: 1px solid #eeeeee !important;
+  background-color: var(--muted) !important;
+  border-bottom: 1px solid var(--border) !important;
 }
 
 .drag-handle .text-muted-foreground {
-  color: #495057 !important;
+  color: var(--muted-foreground) !important;
 }
 
 .soundboard-grid {
@@ -40,12 +40,13 @@
 }
 
 .soundboard-grid::-webkit-scrollbar-thumb {
-  background: hsla(var(--muted-foreground), 0.2);
+  background: var(--muted-foreground);
+  opacity: 0.15;
   border-radius: 10px;
 }
 
 .soundboard-grid::-webkit-scrollbar-thumb:hover {
-  background: hsla(var(--muted-foreground), 0.4);
+  opacity: 0.3;
 }
 
 .soundboard-btn {
@@ -84,13 +85,15 @@
 }
 
 .soundboard-btn-empty {
-  background-color: hsl(var(--muted));
+  background-color: var(--muted);
   border-style: dashed;
-  border-color: hsla(var(--muted-foreground), 0.3);
-  color: hsl(var(--muted-foreground));
+  border-color: var(--muted-foreground);
+  opacity: 0.5;
+  color: var(--muted-foreground);
 }
 
 .soundboard-btn-empty:hover {
-  background-color: hsl(var(--accent));
-  color: hsl(var(--foreground));
+  background-color: var(--accent);
+  color: var(--foreground);
+  opacity: 1;
 }

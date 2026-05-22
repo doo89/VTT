@@ -9,4 +9,8 @@ export default defineConfig({
     tailwindcss(),
   ],
   envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+  },
 })

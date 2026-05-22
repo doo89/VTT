@@ -1,4 +1,5 @@
 import type { EffectHandler, EffectContext } from '../types';
+import { distributeRoles } from '../../distribute-roles';
 
 /**
  * Get player IDs from context
@@ -11,10 +12,12 @@ function getPlayerIds(context: EffectContext): string[] {
 /**
  * Get target player IDs based on effect configuration
  */
-function getTargetIds(effect: any, state: any, initiatorIds: string[]): string[] {
+function getTargetIds(effect: any, state: any, context: EffectContext, initiatorIds: string[]): string[] {
   let targetIds: string[] = [];
   
-  if (effect.swapTargetMode === 'role' && effect.roleId) {
+  if (effect.swapTargetMode === 'cible' && context.$Cible) {
+    targetIds = context.$Cible._isMultiple ? (context.$Cible._ids || []) : [context.$Cible.id];
+  } else if (effect.swapTargetMode === 'role' && effect.roleId) {
     targetIds = state.players.filter((p: any) => p.roleId === effect.roleId).map((p: any) => p.id);
   } else if (effect.swapTargetMode === 'tag' && effect.tagId) {
     targetIds = state.players.filter((p: any) => p.tags?.some((t: any) => t.id === effect.tagId)).map((p: any) => p.id);
@@ -48,7 +51,7 @@ export const handleSwapPlayerRole: EffectHandler = (effect, context, state) => {
   const initiatorIds = getPlayerIds(context);
   if (initiatorIds.length === 0) return;
   
-  const targetIds = getTargetIds(effect, state, initiatorIds);
+  const targetIds = getTargetIds(effect, state, context, initiatorIds);
   
   if (targetIds.length > 0 && initiatorIds.length > 0) {
     const idA = initiatorIds[0];
@@ -76,7 +79,7 @@ export const handleStealRoleAndKill: EffectHandler = (effect, context, state) =>
   const initiatorIds = getPlayerIds(context);
   if (initiatorIds.length === 0) return;
   
-  const targetIds = getTargetIds(effect, state, initiatorIds);
+  const targetIds = getTargetIds(effect, state, context, initiatorIds);
   
   if (targetIds.length > 0 && initiatorIds.length > 0) {
     const idB = targetIds[0];
@@ -108,32 +111,12 @@ export const handleSetFakeRole: EffectHandler = (effect, context, state) => {
  * Distribute roles effect
  */
 export const handleDistributeRoles: EffectHandler = (effect, context, state) => {
-  const rolesToDistribute = state.roles.filter((r: any) => r.isSelectableForDistribution);
-  if (rolesToDistribute.length === 0) return;
-  
-  let rolePool: { id: string, teamId: string | null }[] = [];
-  rolesToDistribute.forEach((role: any) => {
-    const qty = role.isUnique ? 1 : (role.distributionQuantity || 1);
-    for (let i = 0; i < qty; i++) { 
-      rolePool.push({ id: role.id, teamId: role.teamId }); 
+  const result = distributeRoles(state.roles, state.players, {});
+  result.assignments.forEach(a => {
+    const player = state.players.find((p: any) => p.id === a.playerId);
+    if (player) {
+      Object.assign(player, a.updates);
     }
-  });
-  
-  // Shuffle
-  for (let i = rolePool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [rolePool[i], rolePool[j]] = [rolePool[j], rolePool[i]];
-  }
-  
-  state.players = state.players.map((player, idx) => {
-    if (idx < rolePool.length) {
-      return { 
-        ...player, 
-        roleId: rolePool[idx].id, 
-        teamId: rolePool[idx].teamId 
-      };
-    }
-    return player;
   });
 };
 
@@ -192,7 +175,7 @@ export const handleJoinTargetTeam: EffectHandler = (effect, context, state) => {
   const initiatorIds = getPlayerIds(context);
   if (initiatorIds.length === 0) return;
   
-  const targetIds = getTargetIds(effect, state, initiatorIds);
+  const targetIds = getTargetIds(effect, state, context, initiatorIds);
   
   if (targetIds.length > 0 && initiatorIds.length > 0) {
     const idB = targetIds[0];

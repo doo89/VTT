@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Soundboard - VTTApp</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.8cm;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 40px;
+            background: #ffffff;
+        }
+        h1 {
+            font-size: 26px;
+            color: #7c3aed;
+            border-bottom: 3px solid #a855f7;
+            padding-bottom: 12px;
+            margin-top: 40px;
+        }
+        h1:first-of-type {
+            margin-top: 0;
+        }
+        h2 {
+            font-size: 20px;
+            color: #7c3aed;
+            margin-top: 32px;
+            border-left: 4px solid #a855f7;
+            padding-left: 12px;
+        }
+        h3 {
+            font-size: 17px;
+            color: #6d28d9;
+            margin-top: 24px;
+        }
+        p {
+            margin: 10px 0;
+        }
+        code {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #f5f3ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #5b21b6;
+        }
+        pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 14px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-red { background: #fce4ec; color: #c62828; }
+        .badge-amber { background: #fef3c7; color: #92400e; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+        th {
+            background: #7c3aed;
+            color: #fff;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        tr:nth-child(even) td {
+            background: #faf5ff;
+        }
+        tr:hover td {
+            background: #f3e8ff;
+        }
+        .severity-critical {
+            background: #dc2626;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .severity-high {
+            background: #ea580c;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .severity-medium {
+            background: #ca8a04;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .severity-low {
+            background: #6b7280;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .cover-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 90vh;
+            text-align: center;
+        }
+        .cover-page h1 {
+            font-size: 36px;
+            border: none;
+            margin: 0;
+        }
+        .cover-page .subtitle {
+            font-size: 18px;
+            color: #6b7280;
+            margin-top: 12px;
+        }
+        .cover-page .meta {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+        .toc a {
+            color: #7c3aed;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+        .toc li {
+            margin: 6px 0;
+        }
+        .improvement-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 16px;
+            margin: 12px 0;
+            background: #faf5ff;
+            border-left: 4px solid #a855f7;
+        }
+        .improvement-card h3 {
+            margin-top: 0;
+        }
+        .improvement-card .effort {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .effort-low { background: #dcfce7; color: #166534; }
+        .effort-med { background: #fef3c7; color: #92400e; }
+        .effort-high { background: #fce4ec; color: #c62828; }
+    </style>
+</head>
+<body>
+
+<!-- ==================== COVER PAGE ==================== -->
+<div class="cover-page">
+    <h1>🎧 Analyse &amp; Améliorations</h1>
+    <h1 style="border:none; font-size:40px; color:#7c3aed;">Soundboard VTTApp</h1>
+    <p class="subtitle">Analyse technique, problèmes identifiés et propositions d'amélioration</p>
+    <p class="meta">Document généré le 22 mai 2026</p>
+</div>
+
+<div style="page-break-before: always;"></div>
+
+<!-- ==================== TABLE OF CONTENTS ==================== -->
+<h1>Table des matières</h1>
+<ol class="toc">
+    <li><a href="#archi">Architecture actuelle</a></li>
+    <li><a href="#points-forts">Points forts</a></li>
+    <li><a href="#problemes">Problèmes identifiés</a></li>
+    <li><a href="#urgent">Correctifs urgents</a></li>
+    <li><a href="#ameliorations">Améliorations proposées</a></li>
+    <li><a href="#feuille-route">Feuille de route priorisée</a></li>
+</ol>
+
+<!-- ==================== 1. ARCHITECTURE ACTUELLE ==================== -->
+<div style="page-break-before: always;"></div>
+<h1 id="archi">1. Architecture actuelle</h1>
+
+<h2>1.1 Stack technique</h2>
+<table>
+    <tr><th>Couche</th><th>Technologie</th></tr>
+    <tr><td>Framework</td><td>React 19 + TypeScript 5.9</td></tr>
+    <tr><td>État</td><td>Zustand 5 + Zundo (undo/redo)</td></tr>
+    <tr><td>Realtime</td><td>Supabase Realtime (Broadcast)</td></tr>
+    <tr><td>Audio</td><td>HTMLAudioElement + Data URLs (base64)</td></tr>
+    <tr><td>Icônes</td><td>lucide-react</td></tr>
+    <tr><td>Build</td><td>Vite 7</td></tr>
+</table>
+
+<h2>1.2 Structure des fichiers</h2>
+<table>
+    <tr><th>Fichier</th><th>Rôle</th><th>Lignes</th></tr>
+    <tr><td><code>src/types/index.ts</code></td><td>Interfaces <code>SoundButton</code> &amp; <code>SoundboardState</code></td><td>~35 (Soundboard)</td></tr>
+    <tr><td><code>src/store/index.ts</code></td><td>État Zustand : <code>setSoundboard</code>, <code>updateSoundButton</code>, <code>removeSoundButton</code></td><td>~40</td></tr>
+    <tr><td><code>src/components/DetachedSoundboard.tsx</code></td><td>Fenêtre flottante de la soundboard (playback, drag)</td><td>281</td></tr>
+    <tr><td><code>src/components/DetachedSoundboard.css</code></td><td>Styles de la fenêtre flottante</td><td>96</td></tr>
+    <tr><td><code>src/components/layout/RightPanel.tsx</code></td><td>Soundboard intégrée au panneau latéral</td><td>~60 (section)</td></tr>
+    <tr><td><code>src/components/EditingModal.tsx</code></td><td>Modal d'édition des boutons sonores</td><td>~200</td></tr>
+    <tr><td><code>src/pages/SoundboardRemote.tsx</code></td><td>Télécommande mobile (5 onglets)</td><td>669</td></tr>
+    <tr><td><code>src/pages/SoundboardJoin.tsx</code></td><td>Page de connexion à la télécommande</td><td>87</td></tr>
+    <tr><td><code>src/lib/realtime-host.ts</code></td><td>Sync Realtime : écoute <code>soundboard_action</code>, broadcast état</td><td>~30</td></tr>
+    <tr><td><code>src/lib/timer-sound.ts</code></td><td>Utilitaire de beep audio</td><td>34</td></tr>
+</table>
+
+<h2>1.3 Flux de données</h2>
+<pre>
+┌──────────────┐       ┌──────────────────┐       ┌───────────────────┐
+│  RightPanel  │──────▶│   Zustand Store  │──────▶│ DetachedSoundboard│
+│  (édition)   │       │  (persisted)     │       │  (playback audio) │
+└──────────────┘       └────────┬─────────┘       └───────────────────┘
+                                │
+                     ┌──────────▼─────────┐
+                     │  Supabase Realtime  │
+                     │  broadcast channel  │
+                     └──────────┬─────────┘
+                                │
+                     ┌──────────▼─────────┐
+                     │  SoundboardRemote  │
+                     │  (télécommande)    │
+                     └────────────────────┘
+</pre>
+
+<h2>1.4 Modèle de données</h2>
+<pre>
+SoundButton {
+  index: number;          // Position dans la grille (0..N)
+  name: string;           // Nom affiché
+  audioUrl: string;       // Données audio en base64
+  isOneShot: boolean;     // false = boucle
+  icon?: string;          // Nom d'icône lucide-react
+  color?: string;         // Couleur du bouton
+  imageUrl?: string;      // Image de fond
+  volume?: number;        // Volume (0.0 - 1.0)
+}
+
+SoundboardState {
+  cols, rows: number;     // Dimensions de la grille
+  isDetached: boolean;    // Fenêtre flottante ?
+  x, y: number;           // Position de la fenêtre
+  buttons: SoundButton[];
+  remoteEnabled: boolean;
+  remotePasscode: string;
+  remoteShowSounds, remoteShowTasks, ... : boolean;
+  remotePlayTrigger: { index, timestamp } | null;
+}
+</pre>
+
+
+<!-- ==================== 2. POINTS FORTS ==================== -->
+<div style="page-break-before: always;"></div>
+<h1 id="points-forts">2. Points forts</h1>
+
+<div class="improvement-card" style="border-left-color: #22c55e;">
+<h3>✅ Architecture Realtime bien pensée</h3>
+<p>La séparation hôte ↔ télécommande via Supabase Broadcast est élégante. Le passcode protège l'accès, et chaque onglet peut être masqué individuellement. L'optimistic update côté remote donne une sensation d'instantanéité.</p>
+</div>
+
+<div class="improvement-card" style="border-left-color: #22c55e;">
+<h3>✅ Interface fluide et moderne</h3>
+<p>Le drag &amp; drop de la fenêtre via Pointer Events, les animations de glow pendant la lecture, et la progress bar en bas de chaque bouton sont des détails soignés. La télécommande mobile est complète (5 onglets) avec une navigation en bas très professionnelle.</p>
+</div>
+
+<div class="improvement-card" style="border-left-color: #22c55e;">
+<h3>✅ Gestion du cycle de vie audio</h3>
+<p>Le nettoyage des AudioElements au démontage du composant et la synchronisation des volumes via useEffect sont bien vus. Le support des boucles (looping) avec indicateur visuel est fonctionnel.</p>
+</div>
+
+<div class="improvement-card" style="border-left-color: #22c55e;">
+<h3>✅ Expérience mobile complète</h3>
+<p>La télécommande ne se limite pas aux sons : checklist, actions, handouts, joueurs — tout est accessible. Le design responsive avec dégradé et thème sombre est de qualité.</p>
+</div>
+
+
+<!-- ==================== 3. PROBLÈMES IDENTIFIÉS ==================== -->
+<div style="page-break-before: always;"></div>
+<h1 id="problemes">3. Problèmes identifiés</h1>
+
+<h2>3.1 Tableau récapitulatif</h2>
+<table>
+    <tr><th>#</th><th>Problème</th><th>Fichier</th><th>Criticité</th></tr>
+    <tr>
+        <td>1</td>
+        <td><strong>Stockage base64 dans Zustand persisté</strong> — Les fichiers audio encodés en base64 sont stockés dans localStorage via le middleware persist. Un son de 3 Mo = ~4 Mo en base64. Avec 12 boutons, le localStorage peut dépasser 50 Mo, causant des lenteurs voire des erreurs de quota.</td>
+        <td><code>store/index.ts</code></td>
+        <td><span class="severity-critical">CRITIQUE</span></td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td><strong>Pas de nettoyage audio à la suppression</strong> — Quand un bouton est supprimé via <code>removeSoundButton</code>, l'<code>HTMLAudioElement</code> dans <code>audioRefs</code> n'est pas mis en pause/libéré, créant une fuite mémoire.</td>
+        <td><code>DetachedSoundboard.tsx</code></td>
+        <td><span class="severity-high">HAUTE</span></td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td><strong>Rerenders excessifs via le state audio</strong> — L'événement <code>timeupdate</code> (toutes les ~250ms) appelle <code>setAudioStates</code> qui reconstruit un nouvel objet, entraînant un re-render de tout le composant. Avec 12 boutons jouant simultanément, cela devient coûteux.</td>
+        <td><code>DetachedSoundboard.tsx:81-84</code></td>
+        <td><span class="severity-high">HAUTE</span></td>
+    </tr>
+    <tr>
+        <td>4</td>
+        <td><strong>Broadcast d'erreurs silencieux</strong> — <code>.catch(() => {})</code> ignore toutes les erreurs de broadcast, rendant le debugging impossible en production.</td>
+        <td><code>DetachedSoundboard.tsx:52</code></td>
+        <td><span class="severity-medium">MOYENNE</span></td>
+    </tr>
+    <tr>
+        <td>5</td>
+        <td><strong>CSS avec valeurs dures (hardcoded)</strong> — Les couleurs de fond (#ffffff, #f8f9fa) et les couleurs de texte (#495057) dans le CSS ignorent le thème sombre de l'application. En mode sombre, la fenêtre détachée reste blanche.</td>
+        <td><code>DetachedSoundboard.css</code></td>
+        <td><span class="severity-medium">MOYENNE</span></td>
+    </tr>
+    <tr>
+        <td>6</td>
+        <td><strong>Index comme identifiant fragile</strong> — Les boutons sont identifiés par leur index dans la grille. Si l'utilisateur change cols/rows, les index des boutons ne correspondent plus à leur position visuelle.</td>
+        <td><code>types/index.ts</code></td>
+        <td><span class="severity-medium">MOYENNE</span></td>
+    </tr>
+    <tr>
+        <td>7</td>
+        <td><strong>Pas de retour d'erreur audio</strong> — Si un fichier audio est corrompu ou impossible à charger, rien n'est affiché à l'utilisateur (pas de message d'erreur, pas d'état visuel).</td>
+        <td><code>DetachedSoundboard.tsx</code></td>
+        <td><span class="severity-medium">MOYENNE</span></td>
+    </tr>
+    <tr>
+        <td>8</td>
+        <td><strong>Absence de contrôle du volume dans la vue détachée</strong> — Le volume est configurable uniquement dans le modal d'édition. Pas de slider rapide dans la fenêtre flottante.</td>
+        <td><code>DetachedSoundboard.tsx</code></td>
+        <td><span class="severity-low">BASSE</span></td>
+    </tr>
+    <tr>
+        <td>9</td>
+        <td><strong>Latence télécommande pour les boucles</strong> — Les sons en boucle ne sont pas synchronisés entre l'hôte et la télécommande. Un joueur peut entendre un son en boucle indéfini car il n'y a pas de mécanisme d'arrêt à distance.</td>
+        <td><code>SoundboardRemote.tsx</code></td>
+        <td><span class="severity-medium">MOYENNE</span></td>
+    </tr>
+    <tr>
+        <td>10</td>
+        <td><strong>Pas de limite de lecture simultanée</strong> — Un clic rapide sur plusieurs boutons peut lancer 12+ pistes audio simultanément, avec des risques de distorsion et de crash navigateur.</td>
+        <td><code>DetachedSoundboard.tsx</code></td>
+        <td><span class="severity-low">BASSE</span></td>
+    </tr>
+    <tr>
+        <td>11</td>
+        <td><strong>Pas d'accessibilité (a11y)</strong> — Les boutons n'ont pas d'<code>aria-label</code>, la navigation au clavier (Tab, Enter, Escape) n'est pas optimisée, et l'état de lecture n'est pas annoncé aux lecteurs d'écran.</td>
+        <td><code>DetachedSoundboard.tsx</code></td>
+        <td><span class="severity-low">BASSE</span></td>
+    </tr>
+    <tr>
+        <td>12</td>
+        <td><strong>Propagation d'événements non maîtrisée</strong> — <code>e.stopPropagation()</code> est utilisé sur le bouton de fermeture mais pas sur les clics de bouton, ce qui peut interférer avec le drag.</td>
+        <td><code>DetachedSoundboard.tsx:209</code></td>
+        <td><span class="severity-low">BASSE</span></td>
+    </tr>
+</table>
+
+<h2>3.2 Détail des problèmes critiques</h2>
+
+<h3>🔴 Problème #1 : Stockage base64 dans localStorage</h3>
+<p><strong>Où :</strong> <code>src/store/index.ts</code> — Le middleware <code>persist</code> de Zustand sérialise tout l'état dans localStorage.</p>
+<p><strong>Impact :</strong></p>
+<ul>
+    <li>Quota localStorage limité à ~5-10 Mo par domaine</li>
+    <li>Un fichier audio de 3 minutes en MP3 = ~2-3 Mo → ~3-4 Mo en base64</li>
+    <li>Avec 12 boutons remplis, localStorage peut saturer</li>
+    <li>La sérialisation/désérialisation du store devient lente</li>
+</ul>
+<p><strong>Solution recommandée :</strong> Stocker les fichiers audio séparément (blob IndexedDB), ne garder dans Zustand que les métadonnées + un ID de référence. Convertir base64 → Blob URL au chargement pour un playback performant.</p>
+
+<h3>🔴 Problème #2 : Fuite mémoire sur suppression</h3>
+<p><strong>Où :</strong> <code>src/store/index.ts:597-599</code> et <code>DetachedSoundboard.tsx</code></p>
+<p><strong>Impact :</strong> <code>removeSoundButton(index)</code> retire le bouton du tableau, mais l'<code>HTMLAudioElement</code> correspondant dans <code>audioRefs.current</code> n'est ni mis en pause ni libéré. L'audio continue de jouer en mémoire.</p>
+<p><strong>Solution :</strong> Créer un <code>useEffect</code> qui surveille <code>soundboard.buttons</code> et nettoie les références audio orphelines.</p>
+
+
+<!-- ==================== 4. CORRECTIFS URGENTS ==================== -->
+<div style="page-break-before: always;"></div>
+<h1 id="urgent">4. Correctifs urgents (Quick Wins)</h1>
+
+<div class="improvement-card" style="border-left-color: #ef4444;">
+<h3>🔥 Correctif #1 : Nettoyage audio à la suppression de bouton</h3>
+<p><span class="effort effort-low">Effort : Faible</span></p>
+<p>Ajouter un useEffect qui compare les index des boutons actuels avec les clés d'audioRefs, et nettoie les orphelins :</p>
+<pre>
+useEffect(() => {
+  const activeIndices = new Set(soundboard.buttons.map(b => b.index));
+  Object.keys(audioRefs.current).forEach(key => {
+    const idx = parseInt(key);
+    if (!activeIndices.has(idx)) {
+      const audio = audioRefs.current[idx];
+      audio.pause();
+      audio.src = '';
+      delete audioRefs.current[idx];
+    }
+  });
+}, [soundboard.buttons]);
+</pre>
+</div>
+
+<div class="improvement-card" style="border-left-color: #ef4444;">
+<h3>🔥 Correctif #2 : Optimisation des rerenders (timeupdate)</h3>
+<p><span class="effort effort-med">Effort : Moyen</span></p>
+<p>Remplacer le state React pour les progress bars par des refs DOM directes, évitant les rerenders :</p>
+<pre>
+// Au lieu de setAudioStates, utiliser directement progressRefs
+newAudio.addEventListener('timeupdate', () => {
+  if (newAudio.duration) {
+    const pct = (newAudio.currentTime / newAudio.duration) * 100;
+    const bar = progressRefs.current.get(index);
+    const btn = soundboard.buttons.find(b => b.index === index);
+    if (bar) {
+      bar.style.width = `${pct}%`;
+      bar.style.backgroundColor = btn?.color || '#fff';
+    }
+  }
+});
+</pre>
+</div>
+
+<div class="improvement-card" style="border-left-color: #ef4444;">
+<h3>🔥 Correctif #3 : Migration base64 → Blob URLs</h3>
+<p><span class="effort effort-high">Effort : Élevé</span></p>
+<p>Solution en 3 phases :</p>
+<ol>
+    <li><strong>Conversion au chargement</strong> : transformer toutes les chaînes base64 en Blob URLs au démarrage de l'app</li>
+    <li><strong>Stockage séparé</strong> : utiliser IndexedDB via une lib comme <code>idb-keyval</code> pour stocker les fichiers audio bruts</li>
+    <li><strong>Migration</strong> : script de conversion one-shot pour les utilisateurs existants</li>
+</ol>
+</div>
+
+<div class="improvement-card" style="border-left-color: #f59e0b;">
+<h3>⚡ Correctif #4 : CSS Theme-aware</h3>
+<p><span class="effort effort-low">Effort : Faible</span></p>
+<p>Remplacer les couleurs hardcodées par des variables CSS du thème :</p>
+<pre>
+.detached-soundboard {
+  background-color: hsl(var(--background));
+  border-color: hsl(var(--border));
+}
+.drag-handle {
+  background-color: hsl(var(--muted)) !important;
+  border-bottom-color: hsl(var(--border)) !important;
+}
+</pre>
+</div>
+
+
+<!-- ==================== 5. AMÉLIORATIONS PROPOSÉES ==================== -->
+<div style="page-break-before: always;"></div>
+<h1 id="ameliorations">5. Améliorations proposées</h1>
+
+<h2>5.1 Améliorations fonctionnelles</h2>
+
+<div class="improvement-card">
+<h3>🎯 A1 — Catégories et dossiers</h3>
+<p><span class="effort effort-high">Effort : Élevé</span> <span class="badge badge-blue">Fonctionnel</span></p>
+<p>Permettre d'organiser les sons en catégories (Ambiance, Combat, Exploration, Personnages...). Chaque catégorie serait un dossier dépliable dans la grille, avec un onglet dédié sur la télécommande.</p>
+</div>
+
+<div class="improvement-card">
+<h3>🎯 A2 — Drag &amp; drop pour réordonner les boutons</h3>
+<p><span class="effort effort-med">Effort : Moyen</span> <span class="badge badge-blue">Fonctionnel</span></p>
+<p>Permettre de réorganiser les boutons par glisser-déposer dans la grille. Actuellement, les boutons sont figés par index. Nouveau modèle : utiliser un ID unique (UUID) et un champ <code>position</code> ou un tableau ordonné.</p>
+</div>
+
+<div class="improvement-card">
+<h3>🎯 A3 — Mixer audio embarqué</h3>
+<p><span class="effort effort-med">Effort : Moyen</span> <span class="badge badge-blue">UX</span></p>
+<p>Ajouter un panneau "Mixer" dans la fenêtre détachée avec :</p>
+<ul>
+    <li>Slider de volume par piste active</li>
+    <li>Bouton mute/solo par piste</li>
+    <li>Indicateur VU-mètre (niveau audio en temps réel via AnalyserNode)</li>
+</ul>
+</div>
+
+<div class="improvement-card">
+<h3>🎯 A4 — Mode Ambiance (lecture croisée)</h3>
+<p><span class="effort effort-high">Effort : Élevé</span> <span class="badge badge-blue">Fonctionnel</span></p>
+<p>Mode spécial qui permet de :</p>
+<ul>
+    <li>Marquer des sons comme "ambiance" (lecture continue)</li>
+    <li>Crossfade entre deux ambiances lors du changement</li>
+    <li>Contrôle du volume global de l'ambiance</li>
+    <li>État persisté : l'ambiance reprend là où elle s'était arrêtée</li>
+</ul>
+</div>
+
+<div class="improvement-card">
+<h3>🎯 A5 — Enregistrement vocal direct</h3>
+<p><span class="effort effort-med">Effort : Moyen</span> <span class="badge badge-blue">Fonctionnel</span></p>
+<p>Ajouter un bouton "Enregistrer" dans le modal d'édition qui utilise <code>MediaRecorder</code> + <code>getUserMedia</code> pour capturer le micro et l'affecter directement au bouton. Idéal pour les MJ qui veulent créer des voix de PNJ à la volée.</p>
+</div>
+
+<div class="improvement-card">
+<h3>🎯 A6 — Raccourcis clavier</h3>
+<p><span class="effort effort-low">Effort : Faible</span> <span class="badge badge-blue">UX</span></p>
+<p>Permettre d'assigner une touche clavier à chaque bouton (ex: 1-9, A-Z) pour un déclenchement rapide pendant la partie sans quitter le focus de la carte.</p>
+</div>
+
+<div class="improvement-card">
+<h3>🎯 A7 — Import/Export de packs de sons</h3>
+<p><span class="effort effort-med">Effort : Moyen</span> <span class="badge badge-blue">Fonctionnel</span></p>
+<p>Exporter la configuration complète de la soundboard (fichier JSON + sons) pour la partager ou la sauvegarder. Idéal pour des "soundpacks" thématiques partagés entre MJ.</p>
+</div>
+
+<h2>5.2 Améliorations techniques</h2>
+
+<div class="improvement-card">
+<h3>🛠️ T1 — Web Audio API (AudioContext)</h3>
+<p><span class="effort effort-high">Effort : Élevé</span> <span class="badge badge-green">Technique</span></p>
+<p>Remplacer HTMLAudioElement par l'API Web Audio (AudioContext, BufferSource) :</p>
+<ul>
+    <li>Meilleur contrôle du gain (volume par piste + master)</li>
+    <li>Analyse en temps réel (AnalyserNode pour VU-mètre)</li>
+    <li>Effets audio (filtre passe-bas, réverb, égaliseur)</li>
+    <li>Crossfading natif (GainNode avec ramp)</li>
+    <li>Latence réduite</li>
+</ul>
+</div>
+
+<div class="improvement-card">
+<h3>🛠️ T2 — Limite de lecture simultanée</h3>
+<p><span class="effort effort-low">Effort : Faible</span> <span class="badge badge-green">Technique</span></p>
+<p>Implémenter un pool de 4 voix maximum. Si une 5e piste est lancée, couper la plus ancienne ou la moins récente :</p>
+<pre>
+const MAX_VOICES = 4;
+const playAudio = (index: number) => {
+  const keys = Object.keys(audioRefs.current).map(Number);
+  if (keys.length >= MAX_VOICES) {
+    const oldest = keys[0]; // ou LRU
+    audioRefs.current[oldest].pause();
+    delete audioRefs.current[oldest];
+  }
+  // ... lancer la nouvelle piste
+};
+</pre>
+</div>
+
+<div class="improvement-card">
+<h3>🛠️ T3 — Synchronisation temps réel améliorée</h3>
+<p><span class="effort effort-med">Effort : Moyen</span> <span class="badge badge-green">Technique</span></p>
+<p>Pour la télécommande :</p>
+<ul>
+    <li>Diffuser l'état de lecture complet (index + currentTime) périodiquement</li>
+    <li>Permettre l'arrêt à distance des boucles</li>
+    <li>Afficher la progression sur la télécommande</li>
+    <li>Indicateur "Son en cours chez le MJ" avec durée restante</li>
+</ul>
+</div>
+
+<div class="improvement-card">
+<h3>🛠️ T4 — Mode hors-ligne (Service Worker)</h3>
+<p><span class="effort effort-high">Effort : Élevé</span> <span class="badge badge-green">Technique</span></p>
+<p>Mettre en cache les fichiers audio via Service Worker pour que la soundboard fonctionne même sans connexion après le premier chargement. Critique pour les sessions en déplacement avec connexion instable.</p>
+</div>
+
+<div class="improvement-card">
+<h3>🛠️ T5 — Tests automatisés</h3>
+<p><span class="effort effort-med">Effort : Moyen</span> <span class="badge badge-green">Technique</span></p>
+<p>Ajouter des tests pour :</p>
+<ul>
+    <li>Lecture/pause des sons</li>
+    <li>Nettoyage des ressources audio</li>
+    <li>Communication Realtime (mock Supabase)</li>
+    <li>Comportement du drag &amp; drop</li>
+    <li>Déconnexion/reconnexion de la télécommande</li>
+</ul>
+</div>
+
+<div class="improvement-card">
+<h3>🛠️ T6 — Accessibilité (a11y)</h3>
+<p><span class="effort effort-med">Effort : Moyen</span> <span class="badge badge-green">Technique</span></p>
+<ul>
+    <li><code>aria-label</code> sur chaque bouton avec le nom du son</li>
+    <li><code>aria-pressed</code> pour l'état de lecture</li>
+    <li><code>role="region"</code> et <code>aria-roledescription</code> pour la soundboard</li>
+    <li>Navigation au clavier complète (Tab, Enter, Escape, flèches)</li>
+    <li>Annonce des changements d'état via <code>aria-live</code></li>
+</ul>
+</div>
+
+
+<!-- ==================== 6. FEUILLE DE ROUTE ==================== -->
+<div style="page-break-before: always;"></div>
+<h1 id="feuille-route">6. Feuille de route priorisée</h1>
+
+<h2>Phase 1 — Stabilisation (Semaine 1)</h2>
+<table>
+    <tr><th>#</th><th>Tâche</th><th>Impact</th></tr>
+    <tr><td>1</td><td>Nettoyage audio orphelin à la suppression de bouton</td><td>🟢 Critique / Faible effort</td></tr>
+    <tr><td>2</td><td>Migration base64 → Blob URLs + IndexedDB</td><td>🟢 Critique / Effort élevé</td></tr>
+    <tr><td>3</td><td>Optimisation des rerenders (timeupdate via refs)</td><td>🟡 Haute priorité</td></tr>
+    <tr><td>4</td><td>CSS theme-aware (suppression des couleurs hardcodées)</td><td>🟡 Haute priorité</td></tr>
+</table>
+
+<h2>Phase 2 — Fonctionnalités clés (Semaine 2-3)</h2>
+<table>
+    <tr><th>#</th><th>Tâche</th><th>Priorité</th></tr>
+    <tr><td>5</td><td>Raccourcis clavier</td><td>🟢 Faible effort, fort impact</td></tr>
+    <tr><td>6</td><td>Limite de lecture simultanée (pool 4 voix)</td><td>🟡 Protection anti-crash</td></tr>
+    <tr><td>7</td><td>Drag &amp; drop pour réordonner les boutons</td><td>🔵 Forte demande utilisateur</td></tr>
+    <tr><td>8</td><td>Mixer audio embarqué (volume par piste + master)</td><td>🔵 Forte valeur ajoutée</td></tr>
+</table>
+
+<h2>Phase 3 — Avancé (Semaine 4-6)</h2>
+<table>
+    <tr><th>#</th><th>Tâche</th><th>Priorité</th></tr>
+    <tr><td>9</td><td>Catégories et dossiers</td><td>🔵 Organisation</td></tr>
+    <tr><td>10</td><td>Mode Ambiance (crossfade continu)</td><td>🔵 Pour les puristes</td></tr>
+    <tr><td>11</td><td>Enregistrement vocal direct</td><td>🔵 Créativité</td></tr>
+    <tr><td>12</td><td>Import/Export de packs</td><td>🟡 Partage</td></tr>
+</table>
+
+<h2>Phase 4 — Excellence (Semaine 7-8)</h2>
+<table>
+    <tr><th>#</th><th>Tâche</th><th>Priorité</th></tr>
+    <tr><td>13</td><td>Migration vers Web Audio API (AudioContext)</td><td>🟣 Foundation technique</td></tr>
+    <tr><td>14</td><td>Synchronisation temps réel améliorée</td><td>🟣 Qualité remote</td></tr>
+    <tr><td>15</td><td>Tests automatisés</td><td>🟣 Qualité logicielle</td></tr>
+    <tr><td>16</td><td>Accessibilité (a11y)</td><td>🟣 Inclusion</td></tr>
+    <tr><td>17</td><td>Mode hors-ligne (Service Worker)</td><td>🟣 Robustesse</td></tr>
+</table>
+
+<h2>Estimation des charges</h2>
+<p>Estimation globale pour l'ensemble des améliorations :</p>
+<ul>
+    <li><strong>Phase 1 (Stabilisation) :</strong> ~3-4 jours</li>
+    <li><strong>Phase 2 (Fonctionnalités clés) :</strong> ~5-7 jours</li>
+    <li><strong>Phase 3 (Avancé) :</strong> ~8-10 jours</li>
+    <li><strong>Phase 4 (Excellence) :</strong> ~10-14 jours</li>
+    <li><strong>Total :</strong> ~26-35 jours ouvrés</li>
+</ul>
+
+<hr style="margin-top: 60px; border: none; border-top: 1px solid #e5e7eb;">
+<p style="text-align: center; color: #9ca3af; font-size: 12px;">
+    Analyse générée automatiquement — VTTApp Soundboard — Mai 2026
+</p>
+
+</body>
+</html>

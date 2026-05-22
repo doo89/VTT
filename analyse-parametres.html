@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analyse Complète - Fenêtre Paramètres (VTTApp)</title>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --bg-section: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #475569;
+      --accent-purple: #a855f7;
+      --accent-amber: #f59e0b;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+      --accent-teal: #14b8a6;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 3rem 0 2rem;
+      border-bottom: 3px solid var(--primary);
+      margin-bottom: 2.5rem;
+    }
+    .header h1 {
+      font-size: 2.2rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    .header .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+    .header .meta {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .header .meta span { background: var(--bg-card); padding: 0.3rem 0.8rem; border-radius: 6px; }
+
+    /* Sections */
+    .section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .section h2 {
+      font-size: 1.4rem;
+      color: var(--primary);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .section h3 {
+      font-size: 1.1rem;
+      color: var(--accent-amber);
+      margin: 1.2rem 0 0.6rem;
+    }
+    .section h4 {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin: 0.8rem 0 0.4rem;
+    }
+    .section p, .section li {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .section ul { padding-left: 1.5rem; }
+    .section li { margin-bottom: 0.3rem; }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.85rem;
+    }
+    th {
+      background: var(--bg-section);
+      color: var(--primary);
+      text-align: left;
+      padding: 0.7rem 1rem;
+      border: 1px solid var(--border);
+      font-weight: 600;
+    }
+    td {
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+    /* Code */
+    code {
+      background: var(--bg-section);
+      color: var(--accent-green);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+    pre {
+      background: var(--bg-section);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: var(--text);
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-blue { background: rgba(59,130,246,0.2); color: #60a5fa; }
+    .badge-purple { background: rgba(168,85,247,0.2); color: #c084fc; }
+    .badge-amber { background: rgba(245,158,11,0.2); color: #fbbf24; }
+    .badge-green { background: rgba(34,197,94,0.2); color: #4ade80; }
+    .badge-red { background: rgba(239,68,68,0.2); color: #f87171; }
+    .badge-teal { background: rgba(20,184,166,0.2); color: #2dd4bf; }
+
+    /* Grid */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+    /* Cards */
+    .card {
+      background: var(--bg-section);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .card h4 { margin-top: 0; color: var(--primary); }
+
+    /* Metrics */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .metric {
+      text-align: center;
+      background: var(--bg-section);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .metric .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .metric .label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Print */
+    @media print {
+      body { background: #fff; color: #1a1a1a; padding: 1rem; }
+      .section { background: #fff; border-color: #ddd; break-inside: avoid; }
+      .section h2 { color: #2563eb; border-color: #ddd; }
+      .section h3 { color: #d97706; }
+      .section p, .section li { color: #444; }
+      th { background: #f0f0f0; color: #2563eb; }
+      td { border-color: #ddd; color: #444; }
+      code { background: #f0f0f0; color: #16a34a; }
+      pre { background: #f8f8f8; border-color: #ddd; }
+      pre code { color: #1a1a1a; }
+      .badge-blue { background: #dbeafe; color: #1d4ed8; }
+      .badge-purple { background: #f3e8ff; color: #7c3aed; }
+      .badge-amber { background: #fef3c7; color: #b45309; }
+      .badge-green { background: #dcfce7; color: #15803d; }
+      .badge-red { background: #fee2e2; color: #b91c1c; }
+      .badge-teal { background: #ccfbf1; color: #0f766e; }
+      .metric { background: #f8f8f8; border-color: #ddd; }
+      .metric .value { color: #2563eb; }
+      .metric .label { color: #666; }
+      .card { background: #f8f8f8; border-color: #ddd; }
+      .card h4 { color: #2563eb; }
+      .header h1 { color: #2563eb; }
+      .header .meta span { background: #f0f0f0; }
+    }
+
+    @page { size: A4; margin: 1.5cm; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+      <h1>Analyse Complète — Fenêtre "Paramètres"</h1>
+      <div class="subtitle">VTTApp — SettingsModal.tsx</div>
+      <div class="meta">
+        <span>Fichier : <code>src/components/layout/SettingsModal.tsx</code></span>
+        <span>1 888 lignes</span>
+        <span>Date : 20/05/2026</span>
+      </div>
+    </div>
+
+    <!-- VUE D'ENSEMBLE -->
+    <div class="section">
+      <h2>1. Vue d'ensemble</h2>
+      <p>Le composant <code>SettingsModal</code> est une modale React de configuration principale de l'application VTTApp. Il utilise <strong>Zustand</strong> pour la gestion d'état global et propose un système de <strong>6 onglets</strong> de navigation horizontale dans une interface responsive avec backdrop blur.</p>
+
+      <div class="metrics">
+        <div class="metric"><div class="value">6</div><div class="label">Onglets</div></div>
+        <div class="metric"><div class="value">~15</div><div class="label">Sections</div></div>
+        <div class="metric"><div class="value">60+</div><div class="label">Checkboxes</div></div>
+        <div class="metric"><div class="value">12</div><div class="label">Selects</div></div>
+      </div>
+
+      <h3>Composants enfants importés</h3>
+      <ul>
+        <li><code>ColorPicker</code> — ../ColorPicker</li>
+        <li><code>ThemeToggle</code> — ../ThemeToggle</li>
+        <li><code>BadgePreview</code> — Composant interne (l.32-58)</li>
+      </ul>
+
+      <h3>Icons utilisés (lucide-react)</h3>
+      <p><code>X</code>, <code>PaintBucket</code>, <code>Users</code>, <code>Smartphone</code>, <code>Settings</code>, <code>Image</code>, <code>Trash2</code>, <code>ArrowUpRight</code>, <code>Grid3X3</code>, <code>Sun</code>, <code>UserCircle2</code>, <code>Tag</code>, <code>ChevronDown</code>, <code>ChevronRight</code>, <code>Moon</code>, <code>GripVertical</code>, <code>Play</code>, <code>Music</code> + imports dynamiques via <code>* as icons</code>.</p>
+    </div>
+
+    <!-- ÉTAT -->
+    <div class="section">
+      <h2>2. État du composant</h2>
+
+      <h3>2.1 État global (Zustand — <code>useVttStore</code>)</h3>
+      <pre><code>room, setRoom
+grid, setGrid
+cycleMode, setCycleMode
+displaySettings, updateDisplaySettings
+soundboard, setSoundboard
+scoreboard, setScoreboard
+actions</code></pre>
+
+      <h3>2.2 État local (useState)</h3>
+      <pre><code>activeTab: 'salle' | 'joueurs' | 'tags' | 'smartphone' | 'remote' | 'outils'
+expandedOutils: Record&lt;string, boolean&gt;
+expandedSmartphone: Record&lt;string, boolean&gt;
+draggedTool: string | null</code></pre>
+
+      <h3>2.3 Refs</h3>
+      <pre><code>imageInputRef: useRef&lt;HTMLInputElement&gt;
+bgImageRef: useRef&lt;HTMLDivElement&gt;
+timerSoundInputRef: useRef&lt;HTMLInputElement&gt;</code></pre>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="section">
+      <h2>3. Navigation — Onglets</h2>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Onglet</th><th>Icône</th><th>Clé</th><th>Lignes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Salle & Autres</td><td>PaintBucket</td><td><code>salle</code></td><td>206–442</td></tr>
+          <tr><td>2</td><td>Joueurs</td><td>Users</td><td><code>joueurs</code></td><td>445–793</td></tr>
+          <tr><td>3</td><td>Tags</td><td>Tag</td><td><code>tags</code></td><td>796–1000</td></tr>
+          <tr><td>4</td><td>Smartphone</td><td>Smartphone</td><td><code>smartphone</code></td><td>1003–1407</td></tr>
+          <tr><td>5</td><td>Télécommande</td><td>Smartphone</td><td><code>remote</code></td><td>1410–1522</td></tr>
+          <tr><td>6</td><td>Outils</td><td>Settings</td><td><code>outils</code></td><td>1525–1880</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ONGLET SALLE -->
+    <div class="section">
+      <h2>4. Onglet "Salle & Autres" <span class="badge badge-blue">l.206–442</span></h2>
+
+      <h3>4.1 Options Globales <span class="badge badge-amber">l.209–265</span></h3>
+      <table>
+        <thead><tr><th>Élément</th><th>Type</th><th>Valeurs</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>Type de cycle</td><td>Select</td><td><code>dayNight</code>, <code>turns</code>, <code>none</code></td><td><code>cycleMode</code></td></tr>
+          <tr><td>Priorité 1er plan</td><td>Select</td><td><code>players</code>, <code>markers</code></td><td><code>displaySettings.foregroundElement</code></td></tr>
+          <tr><td>Réticule du centre</td><td>Checkbox</td><td>—</td><td><code>displaySettings.showCenter</code></td></tr>
+          <tr><td>Icône Cycle</td><td>Checkbox</td><td>Conditionnel (si cycle ≠ 'none')</td><td><code>displaySettings.showCycleIcon</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.2 Grille Magnétique <span class="badge badge-amber">l.268–307</span></h3>
+      <table>
+        <thead><tr><th>Élément</th><th>Type</th><th>Détails</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>Activer l'aimantage</td><td>Checkbox</td><td>—</td><td><code>grid.enabled</code></td></tr>
+          <tr><td>Taille de grille</td><td>Number</td><td>Min 10px, appliqué à X et Y (carré)</td><td><code>grid.sizeX</code>, <code>grid.sizeY</code></td></tr>
+          <tr><td>Afficher la grille</td><td>Checkbox</td><td>—</td><td><code>grid.show</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.3 Dimensions & Fond de la salle <span class="badge badge-amber">l.310–427</span></h3>
+      <table>
+        <thead><tr><th>Élément</th><th>Type</th><th>Détails</th><th>State</th></tr></thead>
+        <tbody>
+          <tr><td>Largeur</td><td>Number</td><td>Min 100px, défaut 2000</td><td><code>room.width</code></td></tr>
+          <tr><td>Hauteur</td><td>Number</td><td>Min 100px, défaut 1500</td><td><code>room.height</code></td></tr>
+          <tr><td>Couleur de fond</td><td>ColorPicker</td><td>—</td><td><code>room.backgroundColor</code></td></tr>
+          <tr><td>Image de fond</td><td>Text + File</td><td>URL ou upload (FileReader → base64)</td><td><code>room.backgroundImage</code></td></tr>
+          <tr><td>Style d'image</td><td>Select</td><td><code>mosaic</code>, <code>center</code>, <code>stretch</code></td><td><code>room.backgroundStyle</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.4 Apparence / Thème <span class="badge badge-amber">l.430–440</span></h3>
+      <p>Utilise le composant <code>ThemeToggle</code> importé pour basculer entre thème clair et sombre.</p>
+    </div>
+
+    <!-- ONGLET JOUEURS -->
+    <div class="section">
+      <h2>5. Onglet "Joueurs" <span class="badge badge-purple">l.445–793</span></h2>
+
+      <h3>5.1 Affichage des Joueurs <span class="badge badge-amber">l.449–566</span></h3>
+      <p>Checkbox principale <code>displaySettings.showPlayers</code> conditionne l'affichage de toutes les sous-options.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Checkboxes d'affichage</h4>
+          <ul>
+            <li><code>showPlayerImage</code> — Image du joueur</li>
+            <li><code>showOfflineStatus</code> — Indicateur hors ligne</li>
+            <li><code>showRoleImage</code> — Image du rôle</li>
+            <li><code>showRoleColor</code> — Couleur du rôle</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>Sélecteurs</h4>
+          <ul>
+            <li><code>imagePriority</code> : <code>player</code> | <code>role</code></li>
+            <li><code>playerNamePosition</code> : <code>none</code> | <code>bottom</code> | <code>top</code> | <code>inside</code></li>
+            <li><code>defaultPlayerSize</code> : 5–500px (défaut 40)</li>
+            <li><code>defaultPlayerShape</code> : 9 formes (circle, square, oval, triangle, trapezoid, octagon, star, pentagon, hexagon)</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>5.2 Info-Bulle <span class="badge badge-amber">l.568–615</span></h3>
+      <p>Conditionnée par <code>displaySettings.showTooltip</code>. Contenu configurable :</p>
+      <ul>
+        <li><code>showPlayerName</code> (défaut true)</li>
+        <li><code>showRole</code></li>
+        <li><code>showTeam</code></li>
+        <li><code>showTags</code></li>
+      </ul>
+
+      <h3>5.3 Pastilles personnalisables (Badges) <span class="badge badge-amber">l.618–786</span></h3>
+      <p>Système de <strong>4 coins</strong> configurables indépendamment avec preview interactive centrale.</p>
+
+      <h4>Coins disponibles</h4>
+      <p><code>topLeft</code> · <code>topRight</code> · <code>bottomLeft</code> · <code>bottomRight</code></p>
+
+      <h4>Types de badges (11)</h4>
+      <div class="grid-3">
+        <div class="card"><h4>Basiques</h4><ul><li><code>none</code> — Vide</li><li><code>team</code> — Équipe</li><li><code>connection</code> — Status</li></ul></div>
+        <div class="card"><h4>Numériques</h4><ul><li><code>lives</code> — Vie</li><li><code>votes</code> — Voix</li><li><code>points</code> — Pts</li><li><code>uses</code> — Uses</li><li><code>creationOrder</code> — Classement</li></ul></div>
+        <div class="card"><h4>Spéciaux</h4><ul><li><code>callOrderDay</code> — Appel J</li><li><code>callOrderNight</code> — Appel N</li><li><code>sleeping</code> — Éveillé/Dort</li></ul></div>
+      </div>
+
+      <h4>Badge "sleeping" — Configuration avancée</h4>
+      <div class="grid-2">
+        <div class="card">
+          <h4>État Réveillé</h4>
+          <ul>
+            <li>Couleurs : <code>awakeBgColor</code> (défaut #fbbf24), <code>awakeTextColor</code></li>
+            <li>Icônes : Sun, Eye, Bell, User</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h4>État Dort</h4>
+          <ul>
+            <li>Couleurs : <code>sleepingBgColor</code> (défaut #4f46e5), <code>sleepingTextColor</code></li>
+            <li>Icônes : Moon, EyeOff, MoonStar, BellOff</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONGLET TAGS -->
+    <div class="section">
+      <h2>6. Onglet "Tags" <span class="badge badge-green">l.796–1000</span></h2>
+
+      <h3>6.1 Gestion Globale des Tags <span class="badge badge-amber">l.799–998</span></h3>
+      <table>
+        <thead><tr><th>Option</th><th>Type</th><th>State</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Fusion auto</td><td>Checkbox</td><td><code>autoMergeTags</code></td><td>Fusionne tag → joueur sans confirmation</td></tr>
+          <tr><td>Nom des tags</td><td>Checkbox</td><td><code>showTagName</code></td><td>Affiche le nom en permanence</td></tr>
+          <tr><td>Rôle vu comme</td><td>Checkbox</td><td><code>showTagNameSeenAsRole</code></td><td>Sous-option de showTagName</td></tr>
+          <tr><td>Équipe vue comme</td><td>Checkbox</td><td><code>showTagNameSeenInTeam</code></td><td>Sous-option de showTagName</td></tr>
+          <tr><td>Info-bulle tags</td><td>Checkbox</td><td><code>showTagTooltip</code></td><td>Détails au survol</td></tr>
+          <tr><td>Action smartphone</td><td>Checkbox</td><td><code>showTagSmartphoneIcon</code></td><td>Pastille téléphone sur tags avec action</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Sous-options de l'info-bulle (11 éléments)</h4>
+      <div class="grid-3">
+        <div class="card"><ul>
+          <li><code>showTagNameInTooltip</code> — Nom</li>
+          <li><code>showTagCallOrderDay</code> — Appel jour</li>
+          <li><code>showTagCallOrderNight</code> — Appel nuit</li>
+        </ul></div>
+        <div class="card"><ul>
+          <li><code>showTagLives</code> — Vie</li>
+          <li><code>showTagVotes</code> — Votes</li>
+          <li><code>showTagPoints</code> — Points</li>
+        </ul></div>
+        <div class="card"><ul>
+          <li><code>showTagUses</code> — Utilisations</li>
+          <li><code>showTagAutoDelete</code> — Suppression auto</li>
+          <li><code>showTagSeenAsRole</code> — Rôle vu</li>
+        </ul></div>
+      </div>
+      <div class="card" style="margin-top:0.5rem"><ul>
+        <li><code>showTagSeenInTeam</code> — Équipe vue</li>
+        <li><code>showTagDescription</code> — Texte libre</li>
+      </ul></div>
+    </div>
+
+    <!-- ONGLET SMARTPHONE -->
+    <div class="section">
+      <h2>7. Onglet "Smartphone" <span class="badge badge-teal">l.1003–1407</span></h2>
+      <p>Configure les <strong>6 onglets</strong> visibles sur l'interface smartphone des joueurs, chacun avec des sous-options expansibles.</p>
+
+      <h3>7.1 Onglet "Jeu" <span class="badge badge-amber">l.1013–1087</span></h3>
+      <ul>
+        <li><code>showTimerOnSmartphone</code> — Afficher le chronomètre</li>
+        <li><code>smartphoneImageStyle</code> : <code>circle</code> | <code>square</code> | <code>original</code> | <code>background</code> | <code>none</code></li>
+        <li>Mode <code>background</code> : <code>smartphoneImageBlur</code> (0–100%), <code>smartphoneImageMinHeight</code> (0–1000px)</li>
+      </ul>
+
+      <h3>7.2 Onglet "Joueurs" <span class="badge badge-amber">l.1088–1161</span></h3>
+      <div class="grid-2">
+        <div class="card"><h4>Options</h4><ul>
+          <li><code>allowPrivateNotes</code> — Notes privées</li>
+          <li><code>allowNotesForDeadPlayers</code> — Notes aux morts</li>
+          <li><code>showNotePreview</code> — Preview sous le nom</li>
+        </ul></div>
+        <div class="card"><h4>Visibilité</h4><ul>
+          <li><code>showDeadPlayers</code> — Afficher les morts</li>
+          <li><code>includeSelf</code> — Inclure le joueur du smartphone</li>
+        </ul></div>
+      </div>
+
+      <h3>7.3 Onglet "Salle" <span class="badge badge-amber">l.1163–1277</span></h3>
+      <ul>
+        <li><code>roomMiniaturePlayerIconUrl</code> — Icône joueur personnalisable (URL)</li>
+        <li><code>roomMiniatureSelfAnimation</code> — Animation du joueur "Moi"</li>
+        <li><code>roomMiniatureAnimation</code> — Animation des autres joueurs</li>
+        <li><code>roomMiniatureDeadIconUrl</code> — Icône joueur mort (overlay)</li>
+        <li><code>room.minimapImageUrl</code> — Miniature de la salle (URL + preview)</li>
+      </ul>
+
+      <h3>7.4 Onglet "Wiki" <span class="badge badge-amber">l.1278–1374</span></h3>
+      <ul>
+        <li><code>showWikiNotes</code> — Afficher les notes</li>
+        <li><code>wikiTitle</code> — Titre personnalisable (défaut "Régles du jeu")</li>
+        <li><code>wikiLightMode</code> — Fond clair</li>
+        <li><code>showWikiRoles</code> — Afficher les rôles</li>
+        <li><code>wikiOnlySelectedRoles</code> — Rôles sélectionnés uniquement</li>
+        <li><code>wikiOnlyInPlayRoles</code> — Rôles en jeu uniquement</li>
+        <li><code>showWikiTags</code> — Afficher les tags</li>
+        <li><code>showWikiTeams</code> — Afficher les équipes</li>
+      </ul>
+
+      <h3>7.5 Onglets "Documents" et "Journal" <span class="badge badge-amber">l.1377–1399</span></h3>
+      <ul>
+        <li><code>smartphoneTabs.handouts</code> — Documents (images partagées)</li>
+        <li><code>smartphoneTabs.logs</code> — Journal (historique)</li>
+      </ul>
+    </div>
+
+    <!-- ONGLET TELECOMMANDE -->
+    <div class="section">
+      <h2>8. Onglet "Télécommande" <span class="badge badge-red">l.1410–1522</span></h2>
+
+      <h3>8.1 Activation <span class="badge badge-amber">l.1414–1445</span></h3>
+      <ul>
+        <li><code>soundboard.remoteEnabled</code> — Activer le portail /remote</li>
+        <li><code>soundboard.remotePasscode</code> — Code d'accès (conditionnel, affiché si remoteEnabled)</li>
+      </ul>
+
+      <h3>8.2 Affichage sur la Télécommande <span class="badge badge-amber">l.1448–1520</span></h3>
+      <table>
+        <thead><tr><th>Élément</th><th>State</th><th>Défaut</th><th>Sous-options</th></tr></thead>
+        <tbody>
+          <tr><td>Sons</td><td><code>remoteShowSounds</code></td><td>true</td><td>—</td></tr>
+          <tr><td>Tâches</td><td><code>remoteShowTasks</code></td><td>true</td><td>—</td></tr>
+          <tr><td>Aides</td><td><code>remoteShowHandouts</code></td><td>true</td><td>—</td></tr>
+          <tr><td>Actions</td><td><code>remoteShowActions</code></td><td>true</td><td>—</td></tr>
+          <tr><td>Joueurs</td><td><code>remoteShowPlayers</code></td><td>false</td><td><code>remoteShowDeadPlayers</code>, <code>remoteAllowPrivateNotes</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ONGLET OUTILS -->
+    <div class="section">
+      <h2>9. Onglet "Outils" <span class="badge badge-purple">l.1525–1880</span></h2>
+      <p>Configure les <strong>12 modules</strong> du panneau latéral droit avec <strong>drag-and-drop</strong> pour le réordonnancement et des <strong>sections expansibles</strong> pour les sous-options.</p>
+
+      <h3>9.1 Liste des outils</h3>
+      <table>
+        <thead><tr><th>#</th><th>Outil</th><th>Clé</th><th>Sous-options</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Distribution des Rôles</td><td><code>distribution</code></td><td>9 actions reset + sélection action</td></tr>
+          <tr><td>2</td><td>Chronomètre</td><td><code>chrono</code></td><td>Min/sec défaut, son fin, affichage smartphone</td></tr>
+          <tr><td>3</td><td>Boîte à Sons</td><td><code>soundboard</code></td><td>—</td></tr>
+          <tr><td>4</td><td>Tableau des Scores</td><td><code>scoreboard</code></td><td>4 colonnes (rôle, points, votes, statut)</td></tr>
+          <tr><td>5</td><td>Log / Historique</td><td><code>logs</code></td><td>Enregistrement activé/désactivé</td></tr>
+          <tr><td>6</td><td>Distributeur de Tags</td><td><code>tagDistributor</code></td><td>—</td></tr>
+          <tr><td>7</td><td>Wiki / Notes GM</td><td><code>wiki</code></td><td>Notes, rôles, tags, équipes</td></tr>
+          <tr><td>8</td><td>Créateur de Popup</td><td><code>popupCreator</code></td><td>—</td></tr>
+          <tr><td>9</td><td>Créateur d'Actions</td><td><code>actionCreator</code></td><td>—</td></tr>
+          <tr><td>10</td><td>Checklist MJ</td><td><code>checklist</code></td><td>—</td></tr>
+          <tr><td>11</td><td>Points aimantés</td><td><code>magneticPoints</code></td><td>Couleur, mode d'aimantage (3 modes)</td></tr>
+          <tr><td>12</td><td>Système & Connexion</td><td><code>system</code></td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>9.2 Drag & Drop <span class="badge badge-amber">l.87–114</span></h3>
+      <p>Implémenté via l'API HTML5 Drag & Drop. Les fonctions <code>handleToolDragStart</code>, <code>handleToolDragOver</code>, et <code>handleToolDragEnd</code> gèrent le réordonnancement en temps réel dans <code>displaySettings.panels.panelsOrder</code>.</p>
+
+      <h3>9.3 Détail des sous-options</h3>
+
+      <h4>Distribution des Rôles</h4>
+      <div class="grid-2">
+        <div class="card"><h4>Actions de reset</h4><ul>
+          <li><code>distributionResurrectAll</code></li>
+          <li><code>distributionDeleteTags</code></li>
+          <li><code>distributionRemovePastilles</code></li>
+          <li><code>distributionResetPhase</code></li>
+          <li><code>distributionResetLives</code></li>
+          <li><code>distributionResetPoints</code></li>
+          <li><code>distributionResetVotes</code></li>
+          <li><code>distributionDeletePrivateNotes</code></li>
+          <li><code>distributionDeletePublicNotes</code></li>
+        </ul></div>
+        <div class="card"><h4>Action personnalisée</h4><ul>
+          <li>Select → <code>distributionActionId</code></li>
+          <li>Peuplé depuis <code>actions</code> du store</li>
+        </ul></div>
+      </div>
+
+      <h4>Chronomètre</h4>
+      <ul>
+        <li><code>timerDefaultMinutes</code> (défaut 5)</li>
+        <li><code>timerDefaultSeconds</code> (défaut 0)</li>
+        <li><code>timerEndSoundUrl</code> — URL ou upload fichier audio</li>
+        <li><code>showTimerOnSmartphone</code></li>
+      </ul>
+
+      <h4>Tableau des Scores</h4>
+      <ul>
+        <li><code>scoreboard.showRoles</code></li>
+        <li><code>scoreboard.showPoints</code></li>
+        <li><code>scoreboard.showVotes</code> (active aussi <code>showLives</code>)</li>
+        <li><code>scoreboard.showStatus</code></li>
+      </ul>
+
+      <h4>Points aimantés</h4>
+      <ul>
+        <li><code>magneticPointsColor</code> — ColorPicker (défaut #3b82f6)</li>
+        <li><code>magneticPointsSnapMode</code> : <code>nearest</code> | <code>order</code></li>
+        <li><code>magneticPointsFreeSnap</code> — Aimant libre</li>
+      </ul>
+
+      <h4>Wiki (outil)</h4>
+      <ul>
+        <li><code>showWikiNotes</code>, <code>wikiTitle</code>, <code>wikiLightMode</code></li>
+        <li><code>showWikiRoles</code>, <code>wikiOnlySelectedRoles</code>, <code>wikiOnlyInPlayRoles</code></li>
+        <li><code>showWikiTags</code>, <code>showWikiTeams</code></li>
+      </ul>
+    </div>
+
+    <!-- POINTS TECHNIQUES -->
+    <div class="section">
+      <h2>10. Points techniques notables</h2>
+
+      <div class="grid-2">
+        <div class="card">
+          <h4>Upload de fichiers</h4>
+          <p><code>FileReader.readAsDataURL()</code> convertit les images et sons en base64 data URL. Deux handlers : <code>handleImageUpload</code> (l.127) et <code>handleTimerSoundUpload</code> (l.116).</p>
+        </div>
+        <div class="card">
+          <h4>Drag & Drop</h4>
+          <p>API HTML5 native avec <code>draggable</code>, <code>onDragStart</code>, <code>onDragOver</code>, <code>onDragEnd</code>. Réordonnancement via <code>Array.splice()</code>.</p>
+        </div>
+        <div class="card">
+          <h4>Preview live</h4>
+          <p>Composant <code>BadgePreview</code> avec <code>useRef</code> + <code>useEffect</code> pour mise à jour DOM directe des couleurs des badges sur le pion simulé.</p>
+        </div>
+        <div class="card">
+          <h4>Accessibilité</h4>
+          <p>Labels <code>htmlFor</code> liés aux inputs, <code>aria-label</code> sur les boutons d'action, <code>title</code> pour les tooltips natifs.</p>
+        </div>
+      </div>
+
+      <h3>Architecture CSS</h3>
+      <ul>
+        <li>Modal : <code>fixed inset-0 bg-black/60 z-[100] backdrop-blur-sm</code></li>
+        <li>Conteneur : <code>max-w-4xl max-h-[90vh] border border-border</code></li>
+        <li>Scroll : <code>custom-scrollbar</code> (classe CSS externe)</li>
+        <li>Responsive : <code>md:grid-cols-2</code>, <code>md:grid-cols-3</code>, <code>sm:gap-x-48</code></li>
+      </ul>
+
+      <h3>Ordre par défaut des panneaux</h3>
+      <pre><code>['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 
+ 'tagDistributor', 'wiki', 'popupCreator', 'actionCreator', 
+ 'checklist', 'magneticPoints', 'system']</code></pre>
+    </div>
+
+    <!-- METRIQUES FINALES -->
+    <div class="section">
+      <h2>11. Métriques finales</h2>
+      <div class="metrics">
+        <div class="metric"><div class="value">1 888</div><div class="label">Lignes totales</div></div>
+        <div class="metric"><div class="value">6</div><div class="label">Onglets</div></div>
+        <div class="metric"><div class="value">~15</div><div class="label">Sections</div></div>
+        <div class="metric"><div class="value">60+</div><div class="label">Checkboxes</div></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="value">12</div><div class="label">Selects</div></div>
+        <div class="metric"><div class="value">8</div><div class="label">Inputs number</div></div>
+        <div class="metric"><div class="value">6</div><div class="label">Inputs text/url</div></div>
+        <div class="metric"><div class="value">8+</div><div class="label">ColorPickers</div></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="value">10</div><div class="label">Sous-options expansibles</div></div>
+        <div class="metric"><div class="value">11</div><div class="label">Types de badges</div></div>
+        <div class="metric"><div class="value">12</div><div class="label">Outils configurables</div></div>
+        <div class="metric"><div class="value">9</div><div class="label">Formes de pion</div></div>
+      </div>
+    </div>
+
+    <div style="text-align:center; padding:2rem 0; color:var(--text-muted); font-size:0.8rem; border-top:1px solid var(--border);">
+      Analyse générée le 20/05/2026 — VTTApp SettingsModal.tsx
+    </div>
+
+  </div>
+</body>
+</html>

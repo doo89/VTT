@@ -8,6 +8,11 @@ function getPlayerIds(context: EffectContext): string[] {
   return context.$Joueur._isMultiple ? (context.$Joueur._ids || []) : [context.$Joueur.id];
 }
 
+function getCibleIds(context: EffectContext): string[] {
+  if (!context.$Cible) return [];
+  return context.$Cible._isMultiple ? (context.$Cible._ids || []) : [context.$Cible.id];
+}
+
 /**
  * Kill player effect
  */
@@ -150,6 +155,36 @@ export const handleMovePlayerToGraveyard: EffectHandler = (effect, context, stat
   const count = ids.length;
   const playerName = context.$Joueur?.name || 'Joueur';
   storeApi.addLog(`${count > 1 ? `${count} joueurs` : playerName} envoyé(e)${count > 1 ? 's' : ''} au cimetière`, 'action');
+};
+
+/**
+ * Isolate Cible / Send to graveyard effect (targets $Cible instead of $Joueur)
+ */
+export const handleMoveCibleToGraveyard: EffectHandler = (effect, context, state, storeApi) => {
+  const ids = getCibleIds(context);
+  if (ids.length === 0) return;
+  
+  const targetX = effect.targetX !== undefined ? effect.targetX : 0;
+  const targetY = effect.targetY !== undefined ? effect.targetY : 0;
+  
+  state.players = state.players.map(p => {
+    if (ids.includes(p.id)) {
+      const index = ids.indexOf(p.id);
+      const jitterX = ids.length > 1 ? (index % 5) * 20 - 40 : 0;
+      const jitterY = ids.length > 1 ? Math.floor(index / 5) * 20 : 0;
+      return {
+        ...p,
+        x: targetX + jitterX,
+        y: targetY + jitterY,
+        isDead: effect.killOnGraveyard ? true : p.isDead
+      };
+    }
+    return p;
+  });
+  
+  const count = ids.length;
+  const cibleName = context.$Cible?.name || 'Cible';
+  storeApi.addLog(`${count > 1 ? `${count} cibles` : cibleName} envoyé(e)${count > 1 ? 's' : ''} au cimetière`, 'action');
 };
 
 /**

@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useCallback, useRef } from 'react';
+import { useVttStore } from '../store';
 
 export interface Shortcut {
   key: string;
@@ -18,6 +19,7 @@ export interface Shortcut {
   callback: (e: KeyboardEvent) => void;
   description?: string;
   preventDefault?: boolean;
+  actionKey?: string;
 }
 
 /**
@@ -45,8 +47,11 @@ export function useKeyboardShortcuts(shortcuts: Shortcut[], enabled: boolean = t
       if (modifiers.alt && !e.altKey) continue;
       if (modifiers.meta && !e.metaKey) continue;
 
-      // Check key (case insensitive)
-      if (e.key.toLowerCase() !== key.toLowerCase()) continue;
+      // Check key (case insensitive for letters, exact for special keys)
+      const matchKey = key.length === 1
+        ? e.key.toLowerCase() === key.toLowerCase()
+        : e.key === key;
+      if (!matchKey) continue;
 
       // Match found
       if (preventDefault) {
@@ -88,94 +93,103 @@ export function useGMShortcuts(actions: {
   saveGame?: () => void;
   exportGame?: () => void;
 }) {
+  const customShortcuts = useVttStore(state => state.displaySettings.customShortcuts || {});
+
+  const applyCustom = (actionKey: string, defaultKey: string, defaultModifiers: Shortcut['modifiers']) => {
+    const custom = customShortcuts[actionKey];
+    return custom ? { key: custom.key, modifiers: custom.modifiers } : { key: defaultKey, modifiers: defaultModifiers };
+  };
+
   const shortcuts: Shortcut[] = [
     {
-      key: '[',
-      modifiers: { ctrl: true },
+      ...applyCustom('toggleLeftPanel', '[', { ctrl: true }),
       callback: () => actions.toggleLeftPanel?.(),
       description: 'Toggle left panel',
+      actionKey: 'toggleLeftPanel',
     },
     {
-      key: ']',
-      modifiers: { ctrl: true },
+      ...applyCustom('toggleRightPanel', ']', { ctrl: true }),
       callback: () => actions.toggleRightPanel?.(),
       description: 'Toggle right panel',
+      actionKey: 'toggleRightPanel',
     },
     {
-      key: 'n',
-      modifiers: { ctrl: true },
+      ...applyCustom('nextCycle', 'n', { ctrl: true }),
       callback: () => actions.nextCycle?.(),
       description: 'Next cycle',
+      actionKey: 'nextCycle',
     },
     {
-      key: 'd',
-      modifiers: { ctrl: true, shift: true },
+      ...applyCustom('toggleNight', 'd', { ctrl: true, shift: true }),
       callback: () => actions.toggleNight?.(),
       description: 'Toggle day/night',
+      actionKey: 'toggleNight',
     },
     {
-      key: ' ',
+      ...applyCustom('startTimer', ' ', undefined),
       callback: () => actions.startTimer?.(),
       description: 'Start/pause timer',
+      actionKey: 'startTimer',
     },
     {
-      key: 'r',
-      modifiers: { ctrl: true },
+      ...applyCustom('resetTimer', 'r', { ctrl: true }),
       callback: () => actions.resetTimer?.(),
       description: 'Reset timer',
+      actionKey: 'resetTimer',
     },
     {
-      key: 'a',
-      modifiers: { ctrl: true },
+      ...applyCustom('selectAllPlayers', 'a', { ctrl: true }),
       callback: () => actions.selectAllPlayers?.(),
       description: 'Select all players',
+      actionKey: 'selectAllPlayers',
     },
     {
       key: 'Escape',
       callback: () => actions.clearSelection?.(),
       description: 'Clear selection',
+      actionKey: 'clearSelection',
     },
     {
-      key: 'g',
-      modifiers: { ctrl: true },
+      ...applyCustom('toggleGrid', 'g', { ctrl: true }),
       callback: () => actions.toggleGrid?.(),
       description: 'Toggle grid',
+      actionKey: 'toggleGrid',
     },
     {
-      key: '0',
-      modifiers: { ctrl: true },
+      ...applyCustom('resetView', '0', { ctrl: true }),
       callback: () => actions.resetView?.(),
       description: 'Reset view',
+      actionKey: 'resetView',
     },
     {
-      key: ',',
-      modifiers: { ctrl: true },
+      ...applyCustom('openSettings', ',', { ctrl: true }),
       callback: () => actions.openSettings?.(),
       description: 'Open settings',
+      actionKey: 'openSettings',
     },
     {
-      key: 'z',
-      modifiers: { ctrl: true },
+      ...applyCustom('undo', 'z', { ctrl: true }),
       callback: () => actions.undo?.(),
       description: 'Undo',
+      actionKey: 'undo',
     },
     {
-      key: 'z',
-      modifiers: { ctrl: true, shift: true },
+      ...applyCustom('redo', 'z', { ctrl: true, shift: true }),
       callback: () => actions.redo?.(),
       description: 'Redo',
+      actionKey: 'redo',
     },
     {
-      key: 's',
-      modifiers: { ctrl: true },
+      ...applyCustom('saveGame', 's', { ctrl: true }),
       callback: () => actions.saveGame?.(),
       description: 'Save game',
+      actionKey: 'saveGame',
     },
     {
-      key: 'e',
-      modifiers: { ctrl: true, shift: true },
+      ...applyCustom('exportGame', 'e', { ctrl: true, shift: true }),
       callback: () => actions.exportGame?.(),
       description: 'Export game',
+      actionKey: 'exportGame',
     },
   ];
 

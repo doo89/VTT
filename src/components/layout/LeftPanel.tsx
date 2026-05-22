@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Play, Tags, UserCircle2, Users, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Tags, UserCircle2, Users, FileText, GripVertical, Maximize2, Minimize2 } from 'lucide-react';
 import React from 'react';
 import { cn } from '../../lib/utils';
 import { useVttStore } from '../../store';
@@ -9,7 +9,7 @@ import { TagsTab } from './tabs/TagsTab';
 import { HandoutsTab } from './tabs/HandoutsTab';
 
 export const LeftPanel: React.FC = () => {
-  const { isLeftPanelOpen, activeLeftTab, setActiveLeftTab, toggleLeftPanel } = useVttStore();
+  const { isLeftPanelOpen, isLeftPanelExpanded, activeLeftTab, setActiveLeftTab, toggleLeftPanel, toggleLeftPanelExpanded, handouts } = useVttStore();
 
   if (!isLeftPanelOpen) {
     return (
@@ -24,16 +24,21 @@ export const LeftPanel: React.FC = () => {
     );
   }
 
+  const openHandoutsCount = handouts.filter(h => h.isOpen).length;
+
   const tabs = [
     { id: 'players', icon: Users, label: 'Joueurs' },
     { id: 'roles', icon: UserCircle2, label: 'Rôles' },
     { id: 'tags', icon: Tags, label: 'Tags' },
-    { id: 'handouts', icon: FileText, label: 'Aides' },
+    { id: 'handouts', icon: FileText, label: 'Aides', badge: openHandoutsCount > 0 ? openHandoutsCount : undefined },
     { id: 'game', icon: Play, label: 'Jeu' },
   ] as const;
 
   return (
-    <div className="w-[384px] h-full bg-card border-r border-border flex flex-col relative z-40 shrink-0">
+    <div className={cn(
+      "h-full bg-card border-r border-border flex flex-col relative z-40 shrink-0 transition-all duration-300 ease-in-out",
+      isLeftPanelExpanded ? "w-[576px]" : "w-[384px]"
+    )}>
       <div className="flex border-b border-border p-2 gap-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -43,12 +48,17 @@ export const LeftPanel: React.FC = () => {
               key={tab.id}
               onClick={() => setActiveLeftTab(tab.id as any)}
               className={cn(
-                "flex-1 flex flex-col items-center justify-center p-2 rounded-md transition-colors",
+                "flex-1 flex flex-col items-center justify-center p-2 rounded-md transition-colors relative",
                 isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent text-muted-foreground hover:text-foreground"
               )}
             >
               <Icon size={20} />
               <span className="text-[10px] mt-1">{tab.label}</span>
+              {'badge' in tab && tab.badge && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[8px] font-bold flex items-center justify-center">
+                  {tab.badge}
+                </span>
+              )}
             </button>
           );
         })}
@@ -62,12 +72,21 @@ export const LeftPanel: React.FC = () => {
         {activeLeftTab === 'game' && <GameTab />}
       </div>
 
-      <button
-        onClick={toggleLeftPanel}
-        className="absolute -right-8 top-1/2 transform -translate-y-1/2 bg-card border border-l-0 border-border rounded-r-md p-2 shadow-md hover:bg-accent"
-      >
-        <ChevronLeft size={20} />
-      </button>
+      <div className="absolute -right-8 top-1/2 transform -translate-y-1/2 flex flex-col gap-2">
+        <button
+          onClick={toggleLeftPanelExpanded}
+          className="bg-card border border-border rounded-r-md p-2 shadow-md hover:bg-accent flex items-center justify-center"
+          title={isLeftPanelExpanded ? "Réduire le panneau" : "Agrandir le panneau (+50%)"}
+        >
+          {isLeftPanelExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+        </button>
+        <button
+          onClick={toggleLeftPanel}
+          className="bg-card border border-border rounded-r-md p-2 shadow-md hover:bg-accent"
+        >
+          <ChevronLeft size={20} />
+        </button>
+      </div>
     </div>
   );
 };

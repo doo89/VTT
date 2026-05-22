@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as icons from 'lucide-react';
-import { Music, AlertCircle, LogOut, CheckSquare, Check } from 'lucide-react';
+import { Music, AlertCircle, LogOut, CheckSquare, Check, Square } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -111,6 +111,18 @@ export const SoundboardRemote: React.FC = () => {
     channel.send({
       type: 'broadcast',
       event: 'soundboard_action',
+      payload: { index, passcode }
+    }).catch(console.error);
+  };
+
+  const handleStopSound = (index: number) => {
+    if (!channel || !passcode) return;
+    
+    setPlayingIndices(prev => prev.filter(i => i !== index));
+    
+    channel.send({
+      type: 'broadcast',
+      event: 'soundboard_stop',
       payload: { index, passcode }
     }).catch(console.error);
   };
@@ -310,7 +322,18 @@ export const SoundboardRemote: React.FC = () => {
 
                   {hasSound && (
                     <div className="relative z-10 flex flex-col items-center justify-center w-full h-full text-zinc-100">
-                      <IconComponent size={26} className="mb-2 drop-shadow-md" style={{ color: btn.color || 'currentColor' }} />
+                      <div className="relative">
+                        <IconComponent size={26} className="mb-2 drop-shadow-md" style={{ color: btn.color || 'currentColor' }} />
+                        {isPlaying && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleStopSound(i); }}
+                            className="absolute -top-1 -right-1 p-1 bg-zinc-900/90 rounded-full border border-zinc-600 shadow-lg hover:bg-red-600 transition-colors active:scale-90"
+                            title="Arrêter"
+                          >
+                            <Square size={10} className="fill-white text-white" />
+                          </button>
+                        )}
+                      </div>
                       <span 
                         className="text-[11px] font-bold leading-tight break-words w-full px-1 drop-shadow-sm"
                         style={{ color: btn.imageUrl ? '#fff' : (btn.color || 'inherit') }}

@@ -140,6 +140,37 @@ export const selectRolesByTeam = (teamId: string | null) => (state: VttStore): R
 export const selectTagsByCategory = (categoryId: string | null) => (state: VttStore): TagModel[] => 
   state.tags.filter(t => t.categoryId === categoryId);
 
+export const selectTagsGroupedByCategory = (state: VttStore): Record<string, TagModel[]> => {
+  const grouped: Record<string, TagModel[]> = { 'no-category': [] };
+  state.tagCategories.forEach(c => grouped[c.id] = []);
+  state.tags.forEach(tag => {
+    if (tag.categoryId && grouped[tag.categoryId]) {
+      grouped[tag.categoryId].push(tag);
+    } else {
+      grouped['no-category'].push(tag);
+    }
+  });
+  return grouped;
+};
+
+export const selectTagUsageCount = (tagId: string) => (state: VttStore): number => {
+  let count = 0;
+  state.players.forEach(p => { if (p.tags?.some(t => t.id === tagId)) count++; });
+  state.markers.forEach(m => { if (m.tag.id === tagId) count++; });
+  return count;
+};
+
+export const selectAllTagUsageCounts = (state: VttStore): Record<string, number> => {
+  const counts: Record<string, number> = {};
+  state.tags.forEach(tag => {
+    let count = 0;
+    state.players.forEach(p => { if (p.tags?.some(t => t.id === tag.id)) count++; });
+    state.markers.forEach(m => { if (m.tag.id === tag.id) count++; });
+    counts[tag.id] = count;
+  });
+  return counts;
+};
+
 // ============================================================================
 // Display Settings Selectors
 // ============================================================================

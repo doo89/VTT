@@ -14,6 +14,7 @@ import {
   handleSelectPlayer,
   handlePingPlayer,
   handleMovePlayerToGraveyard,
+  handleMoveCibleToGraveyard,
   handleGatherPlayers,
   handleChangePlayerShape,
   handleClearPlayer,
@@ -97,7 +98,21 @@ import {
   handleSendPollToSmartphone,
   handleSendGroupVoteToSmartphone,
   handleSelectCallOrderPlayer,
+  handleIncrementCallOrder,
+  handleDecrementCallOrder,
+  handleResetCallOrder,
 } from './ui-misc-effects';
+
+// Werewolf-specific effects
+import {
+  handleCreateCouple,
+  handleKillPartner,
+  handleRandomSelect,
+  handleCheckRole,
+  handleRevealRoleToGM,
+  handleInfectPlayer,
+  handleCurePlayer,
+} from './werewolf-effects';
 
 /**
  * Registry mapping effect types to their handlers
@@ -115,6 +130,7 @@ export const effectRegistry: Record<string, EffectHandler> = {
   selectPlayer: handleSelectPlayer,
   pingPlayer: handlePingPlayer,
   movePlayerToGraveyard: handleMovePlayerToGraveyard,
+  moveCibleToGraveyard: handleMoveCibleToGraveyard,
   gatherPlayers: handleGatherPlayers,
   changePlayerShape: handleChangePlayerShape,
   clearPlayer: handleClearPlayer,
@@ -140,6 +156,9 @@ export const effectRegistry: Record<string, EffectHandler> = {
   hideRoleColor: handleHideRoleColor,
   showTimerOnSmartphone: handleShowTimerOnSmartphone,
   hideTimerOnSmartphone: handleHideTimerOnSmartphone,
+  incrementCallOrder: handleIncrementCallOrder,
+  decrementCallOrder: handleDecrementCallOrder,
+  resetCallOrder: handleResetCallOrder,
 
   // Tag effects
   assignTag: handleAssignTag,
@@ -194,6 +213,15 @@ export const effectRegistry: Record<string, EffectHandler> = {
   sendPollToSmartphone: handleSendPollToSmartphone,
   sendGroupVoteToSmartphone: handleSendGroupVoteToSmartphone,
   selectCallOrderPlayer: handleSelectCallOrderPlayer,
+
+  // Werewolf-specific effects
+  createCouple: handleCreateCouple,
+  killPartner: handleKillPartner,
+  randomSelect: handleRandomSelect,
+  checkRole: handleCheckRole,
+  revealRoleToGM: handleRevealRoleToGM,
+  infectPlayer: handleInfectPlayer,
+  curePlayer: handleCurePlayer,
 };
 
 /**

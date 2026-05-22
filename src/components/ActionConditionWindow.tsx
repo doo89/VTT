@@ -3,7 +3,7 @@ import { useVttStore } from '../store';
 import * as icons from 'lucide-react';
 import { X, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import type { ActionConditionType, ActionOperator } from '../types';
-import { TAG_ICONS } from './EditingModal';
+import { TAG_ICONS } from '../lib/icons';
 import './ActionConditionWindow.css';
 
 export const ActionConditionWindow: React.FC = () => {
@@ -45,6 +45,8 @@ export const ActionConditionWindow: React.FC = () => {
   const [teamId, setTeamId] = useState<string | null>(null);
   const [distanceTargetStatus, setDistanceTargetStatus] = useState<'alive' | 'dead' | null>('alive');
   const [distanceUnit, setDistanceUnit] = useState<'logical' | 'physical'>('logical');
+  const [chancePercent, setChancePercent] = useState(50);
+  const [targetPlayerId, setTargetPlayerId] = useState<string | null>('$Joueur');
 
   const [isDistanceExpanded, setIsDistanceExpanded] = useState(true);
   const [isIdentityExpanded, setIsIdentityExpanded] = useState(true);
@@ -78,6 +80,8 @@ export const ActionConditionWindow: React.FC = () => {
         setTeamId(condition.teamId || (teams[0]?.id || null));
         setDistanceTargetStatus(condition.distanceTargetStatus || 'alive');
         setDistanceUnit(condition.distanceUnit || 'logical');
+        setChancePercent(condition.chancePercent ?? 50);
+        setTargetPlayerId(condition.targetPlayerId || '$Joueur');
       }
     } else {
       setType('day');
@@ -99,6 +103,8 @@ export const ActionConditionWindow: React.FC = () => {
       setTeamId(teams[0]?.id || null);
       setDistanceTargetStatus('alive');
       setDistanceUnit('logical');
+      setChancePercent(50);
+      setTargetPlayerId('$Joueur');
     }
   }, [isEditing, actionConditionCreatorState.editingConditionId, pendingActionConditions, roles, tags, allIcons]);
 
@@ -164,7 +170,9 @@ export const ActionConditionWindow: React.FC = () => {
       distanceUnit: isDist ? distanceUnit : null,
       cycleCheckType: type === 'cycleCheck' ? cycleCheckType : null,
       selectionTeamId: (type === 'playerSelectionTeam' || type === 'playerSelectionRoleAndTeam') ? selectionTeamId : null,
-      teamId: type === 'roleTeamCheck' ? teamId : null
+      teamId: type === 'roleTeamCheck' ? teamId : null,
+      chancePercent: type === 'randomChance' ? chancePercent : undefined,
+      targetPlayerId: ['hasTag', 'randomChance'].includes(type) ? targetPlayerId : null
     };
 
     if (isEditing && actionConditionCreatorState.editingConditionId) {

@@ -17,13 +17,13 @@ import { RoleSelectorWindow } from '../components/RoleSelectorWindow';
 import { useVttStore, selectPlayers, selectSelectedEntityIds } from '../store';
 import { setupHostRealtimeSubscription, cleanupHostRealtime } from '../lib/realtime-host';
 import { X, MessageSquareWarning, Keyboard } from 'lucide-react';
-import { useKeyboardShortcuts, KeyboardShortcutsHelp } from '../hooks/useKeyboardShortcuts.tsx';
+import { useKeyboardShortcuts, KeyboardShortcutsHelp, useGMShortcuts } from '../hooks/useKeyboardShortcuts.tsx';
 import type { Shortcut } from '../hooks/useKeyboardShortcuts.tsx';
 import { useToast } from '../components/Toast';
 import { exportGame, triggerImport, exportLogs, exportPlayersCSV } from '../lib/game-export';
 
 export const GmView: React.FC = () => {
-  const { isNight, editingEntity, handouts, smartphoneActionMessage, setSmartphoneActionMessage, toggleLeftPanel, toggleRightPanel, nextCycle, setNight, setSelectedEntityIds, clearSelection, setGrid, setPan, setZoom, grid, canvas, deletePlayer } = useVttStore();
+  const { isNight, editingEntity, handouts, smartphoneActionMessage, setSmartphoneActionMessage, toggleLeftPanel, toggleRightPanel, nextCycle, setNight, setSelectedEntityIds, clearSelection, setGrid, setPan, setZoom, grid, canvas, deletePlayer, displaySettings, updateDisplaySettings, setTimer } = useVttStore();
   const players = useVttStore(selectPlayers);
   const selectedEntityIds = useVttStore(selectSelectedEntityIds);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
@@ -55,10 +55,11 @@ export const GmView: React.FC = () => {
       toast.info(isNight ? 'Mode jour activé' : 'Mode nuit activé');
     },
     startTimer: () => {
-      useVttStore.setState(s => ({ timer: { ...s.timer, isRunning: !s.timer.isRunning } }));
+      setTimer({ isRunning: !useVttStore.getState().timer.isRunning });
     },
     resetTimer: () => {
-      useVttStore.setState(s => ({ timer: { ...s.timer, isRunning: false, minutes: s.displaySettings.timerDefaultMinutes || 5, seconds: s.displaySettings.timerDefaultSeconds || 0 } }));
+      const defaults = useVttStore.getState().displaySettings;
+      setTimer({ isRunning: false, minutes: defaults.timerDefaultMinutes ?? 5, seconds: defaults.timerDefaultSeconds ?? 0 });
       toast.info('Timer réinitialisé');
     },
     selectAllPlayers: () => {
@@ -114,114 +115,226 @@ export const GmView: React.FC = () => {
         toast.success(`${selectedEntityIds.length} joueur(s) supprimé(s)`);
       }
     },
+    focusMode: () => (window as any).__gameTabFocusControls?.toggleFocus?.(),
+    focusPrev: () => (window as any).__gameTabFocusControls?.focusPrev?.(),
+    focusNext: () => (window as any).__gameTabFocusControls?.focusNext?.(),
+    exitFocus: () => (window as any).__gameTabFocusControls?.exitFocus?.(),
   }), [isNight, players, grid, toggleLeftPanel, toggleRightPanel, nextCycle, setNight, setSelectedEntityIds, clearSelection, setGrid, setPan, setZoom, toast, selectedEntityIds, deletePlayer]);
 
   // Define shortcuts - Using Alt+ combinations to avoid browser conflicts
   // Browser-reserved shortcuts to avoid: Ctrl+N, Ctrl+R, Ctrl+S, Ctrl+A, Ctrl+G, Ctrl+[, Ctrl+,
+  const customShortcuts = displaySettings.customShortcuts || {};
+
+  const applyCustom = (actionKey: string, defaultKey: string, defaultModifiers: Shortcut['modifiers']) => {
+    const custom = customShortcuts[actionKey];
+    return custom ? { key: custom.key, modifiers: custom.modifiers } : { key: defaultKey, modifiers: defaultModifiers };
+  };
+
   const shortcuts: Shortcut[] = useMemo(() => [
     {
-      key: '1',
-      modifiers: { alt: true },
+      ...applyCustom('toggleLeftPanel', '1', { alt: true }),
       callback: actions.toggleLeftPanel,
       description: 'Masquer/Afficher panneau gauche',
+      actionKey: 'toggleLeftPanel',
     },
     {
-      key: '2',
-      modifiers: { alt: true },
+      ...applyCustom('toggleRightPanel', '2', { alt: true }),
       callback: actions.toggleRightPanel,
       description: 'Masquer/Afficher panneau droit',
+      actionKey: 'toggleRightPanel',
     },
     {
-      key: 'n',
-      modifiers: { alt: true },
+      ...applyCustom('nextCycle', 'n', { alt: true }),
       callback: actions.nextCycle,
       description: 'Cycle suivant',
+      actionKey: 'nextCycle',
     },
     {
-      key: 'd',
-      modifiers: { alt: true },
+      ...applyCustom('toggleNight', 'd', { alt: true }),
       callback: actions.toggleNight,
       description: 'Basculer jour/nuit',
+      actionKey: 'toggleNight',
     },
     {
-      key: ' ',
+      ...applyCustom('startTimer', ' ', {}),
       callback: actions.startTimer,
       description: 'Démarrer/Pause timer',
+      actionKey: 'startTimer',
     },
     {
-      key: 'r',
-      modifiers: { alt: true },
+      ...applyCustom('resetTimer', 'r', { alt: true }),
       callback: actions.resetTimer,
       description: 'Réinitialiser timer',
+      actionKey: 'resetTimer',
     },
     {
-      key: 'a',
-      modifiers: { alt: true },
+      ...applyCustom('selectAllPlayers', 'a', { alt: true }),
       callback: actions.selectAllPlayers,
       description: 'Sélectionner tous les joueurs',
+      actionKey: 'selectAllPlayers',
     },
     {
       key: 'Escape',
       callback: actions.clearSelection,
       description: 'Désélectionner',
+      actionKey: 'clearSelection',
     },
     {
-      key: 'g',
-      modifiers: { alt: true },
+      ...applyCustom('toggleGrid', 'g', { alt: true }),
       callback: actions.toggleGrid,
       description: 'Masquer/Afficher grille',
+      actionKey: 'toggleGrid',
     },
     {
-      key: '0',
-      modifiers: { alt: true },
+      ...applyCustom('resetView', '0', { alt: true }),
       callback: actions.resetView,
       description: 'Réinitialiser la vue',
+      actionKey: 'resetView',
     },
     {
-      key: '/',
-      modifiers: { alt: true },
+      ...applyCustom('openSettings', '/', { alt: true }),
       callback: actions.openSettings,
       description: 'Aide raccourcis clavier',
+      actionKey: 'openSettings',
     },
     {
-      key: 's',
-      modifiers: { alt: true },
+      ...applyCustom('saveGame', 's', { alt: true }),
       callback: actions.saveGame,
       description: 'Sauvegarder la partie',
+      actionKey: 'saveGame',
     },
     {
-      key: 'e',
-      modifiers: { alt: true },
+      ...applyCustom('exportGame', 'e', { alt: true }),
       callback: actions.exportGame,
       description: 'Exporter la partie (JSON)',
+      actionKey: 'exportGame',
     },
     {
-      key: 'i',
-      modifiers: { alt: true },
+      ...applyCustom('importGame', 'i', { alt: true }),
       callback: actions.importGame,
       description: 'Importer une partie (JSON)',
+      actionKey: 'importGame',
     },
     {
-      key: 'l',
-      modifiers: { alt: true },
+      ...applyCustom('exportLogs', 'l', { alt: true }),
       callback: actions.exportLogs,
       description: 'Exporter les logs',
+      actionKey: 'exportLogs',
     },
     {
-      key: 'p',
-      modifiers: { alt: true },
+      ...applyCustom('exportPlayersCSV', 'p', { alt: true }),
       callback: actions.exportPlayersCSV,
       description: 'Exporter les joueurs (CSV)',
+      actionKey: 'exportPlayersCSV',
     },
     {
       key: 'Delete',
       callback: actions.deleteSelectedPlayers,
       description: 'Supprimer la sélection',
+      actionKey: 'deleteSelectedPlayers',
     },
-  ], [actions]);
+    {
+      ...applyCustom('focusMode', 'f', { alt: true }),
+      callback: actions.focusMode,
+      description: 'Mode Focus (onglet Jeu)',
+      actionKey: 'focusMode',
+    },
+    {
+      ...applyCustom('focusPrev', 'ArrowLeft', { alt: true }),
+      callback: actions.focusPrev,
+      description: 'Joueur précédent (Focus)',
+      actionKey: 'focusPrev',
+    },
+    {
+      ...applyCustom('focusNext', 'ArrowRight', { alt: true }),
+      callback: actions.focusNext,
+      description: 'Joueur suivant (Focus)',
+      actionKey: 'focusNext',
+    },
+    {
+      ...applyCustom('exitFocus', 'Escape', { shift: true }),
+      callback: actions.exitFocus,
+      description: 'Quitter le mode Focus',
+      actionKey: 'exitFocus',
+    },
+  ], [actions, customShortcuts]);
 
   // Register shortcuts
   useKeyboardShortcuts(shortcuts);
+
+  // Apply accessibility, performance & theme settings globally
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const fs = displaySettings.fontSize ?? 1;
+    root.style.fontSize = `${fs * 100}%`;
+
+    if (displaySettings.highContrast) {
+      root.classList.add('high-contrast');
+    } else {
+      root.classList.remove('high-contrast');
+    }
+
+    if (displaySettings.reduceMotion) {
+      root.classList.add('reduce-motion');
+    } else {
+      root.classList.remove('reduce-motion');
+    }
+
+    // Performance: Low quality mode
+    if (displaySettings.lowQualityMode) {
+      root.classList.add('low-quality-mode');
+    } else {
+      root.classList.remove('low-quality-mode');
+    }
+
+    // Performance: Image rendering
+    root.classList.remove('image-rendering-auto', 'image-rendering-pixelated', 'image-rendering-crisp');
+    const rendering = displaySettings.imageRendering || 'auto';
+    root.classList.add(`image-rendering-${rendering === 'crisp-edges' ? 'crisp' : rendering}`);
+
+    // Custom Theme: Apply CSS variables
+    const theme = displaySettings.customTheme || {};
+    const themeVars: Record<string, string> = {};
+    if (theme.primary) themeVars['--primary'] = theme.primary;
+    if (theme.background) themeVars['--background'] = theme.background;
+    if (theme.card) themeVars['--card'] = theme.card;
+    if (theme.muted) themeVars['--muted'] = theme.muted;
+    if (theme.border) themeVars['--border'] = theme.border;
+    if (theme.accent) themeVars['--accent'] = theme.accent;
+    if (theme.destructive) themeVars['--destructive'] = theme.destructive;
+    if (theme.ring) themeVars['--ring'] = theme.ring;
+    Object.entries(themeVars).forEach(([key, value]) => {
+      root.style.setProperty(key, value);
+    });
+
+    return () => {
+      root.style.fontSize = '';
+      root.classList.remove('high-contrast', 'reduce-motion', 'low-quality-mode', 'image-rendering-auto', 'image-rendering-pixelated', 'image-rendering-crisp');
+      Object.keys(themeVars).forEach(key => root.style.removeProperty(key));
+    };
+  }, [displaySettings.fontSize, displaySettings.highContrast, displaySettings.reduceMotion, displaySettings.lowQualityMode, displaySettings.imageRendering, displaySettings.customTheme]);
+
+  // Custom CSS injection
+  React.useEffect(() => {
+    let styleEl = document.getElementById('vtt-custom-css') as HTMLStyleElement | null;
+    if (displaySettings.customCSS) {
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'vtt-custom-css';
+        document.head.appendChild(styleEl);
+      }
+      styleEl.textContent = displaySettings.customCSS;
+    } else if (styleEl) {
+      styleEl.remove();
+    }
+    return () => {
+      if (styleEl && !displaySettings.customCSS) styleEl.remove();
+    };
+  }, [displaySettings.customCSS]);
+
+  const colorblindFilter = displaySettings.colorblindMode && displaySettings.colorblindMode !== 'none'
+    ? `url(#cb-${displaySettings.colorblindMode})`
+    : undefined;
 
   return (
     <div className={`h-screen w-screen flex overflow-hidden bg-background text-foreground transition-colors duration-300 ${isNight ? 'dark' : ''}`}>
@@ -294,6 +407,33 @@ export const GmView: React.FC = () => {
         isOpen={showShortcutsHelp}
         onClose={() => setShowShortcutsHelp(false)}
       />
+
+      {/* SVG Colorblind Filters */}
+      <svg className="absolute w-0 h-0 overflow-hidden" aria-hidden="true">
+        <defs>
+          <filter id="cb-protanopia">
+            <feColorMatrix type="matrix" values="
+              0.567, 0.433, 0,     0, 0
+              0.558, 0.442, 0,     0, 0
+              0,     0.242, 0.758, 0, 0
+              0,     0,     0,     1, 0" />
+          </filter>
+          <filter id="cb-deuteranopia">
+            <feColorMatrix type="matrix" values="
+              0.625, 0.375, 0,   0, 0
+              0.7,   0.3,   0,   0, 0
+              0,     0.3,   0.7, 0, 0
+              0,     0,     0,   1, 0" />
+          </filter>
+          <filter id="cb-tritanopia">
+            <feColorMatrix type="matrix" values="
+              0.95, 0.05,  0,     0, 0
+              0,    0.433, 0.567, 0, 0
+              0,    0.475, 0.525, 0, 0
+              0,    0,     0,     1, 0" />
+          </filter>
+        </defs>
+      </svg>
     </div>
   );
 };

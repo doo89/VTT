@@ -8,8 +8,14 @@ import { getEffectiveStats } from '../../lib/utils';
 import type { Role, Player } from '../../types';
 import { SettingsModal } from './SettingsModal';
 import { ChecklistContent } from '../ChecklistContent';
+import { useTimerCountdown } from '../../hooks/useTimerCountdown';
+import { TimerDisplay, TimerControls, TimerPresets } from '../timer';
+import { distributeRoles } from '../../lib/distribute-roles';
+import { useToast } from '../Toast';
 
 export const RightPanel: React.FC = () => {
+  const toast = useToast();
+
   const {
     isRightPanelOpen, toggleRightPanel,
     displaySettings, updateDisplaySettings,
@@ -22,13 +28,14 @@ export const RightPanel: React.FC = () => {
     customPopups, addCustomPopup, updateCustomPopup, deleteCustomPopup, triggerCustomPopup, setPreviewPopup,
     checklist,
     checklistState, setChecklistState,
+    roleSelectorState, setRoleSelectorState,
     tagDistributorState, setTagDistributorState,
     actionCreatorState: _, setActionCreatorState,
     actions, deleteAction, executeAction, setPendingConditions, setPendingEffects,
     resetCycle,
     editingEntity, setEditingEntity,
     magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints,
-    roleSelectorState, setRoleSelectorState
+
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
@@ -88,6 +95,12 @@ export const RightPanel: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const handleOpenSettings = () => setIsSettingsOpen(true);
+    window.addEventListener('open-settings', handleOpenSettings);
+    return () => window.removeEventListener('open-settings', handleOpenSettings);
+  }, []);
+
   const handleToggleEnvExample = (checked: boolean) => {
     setUseEnvExample(checked);
     localStorage.setItem('VTT_USE_ENV_EXAMPLE', String(checked));
@@ -130,168 +143,54 @@ export const RightPanel: React.FC = () => {
   const handleDistributeRoles = () => {
     if (!canDistribute) return;
 
-    const requiredGroups: Role[][] = [];
-    const optionalPool: Role[] = [];
+    const result = distributeRoles(roles, players, displaySettings);
 
-    selectedRolesForDistribution.forEach(role => {
-      if (role.isUnique) {
-        requiredGroups.push([role]);
-      } else if (role.isMinMandatory) {
-        const min = role.minCount || 0;
-        const mandatoryInstances: Role[] = [];
-        for (let i = 0; i < min; i++) {
-          mandatoryInstances.push(role);
-        }
-        requiredGroups.push(mandatoryInstances);
-        
-        const extra = (role.distributionQuantity || 1) - min;
-        for (let i = 0; i < extra; i++) {
-          optionalPool.push(role);
-        }
-      } else {
-        const qty = role.distributionQuantity || 1;
-        for (let i = 0; i < qty; i++) {
-          optionalPool.push(role);
-        }
+    if (result.assignments.length === 0) return;
+
+    const updates = result.assignments.map(a => ({ id: a.playerId, updates: a.updates }));
+    updatePlayers(updates);
+    forceBroadcastState();
+
+    if (displaySettings.distributionResetPhase !== false) {
+      resetCycle();
+      addLog(`Réinitialisation : Jour 1`, 'system');
+    }
+
+    result.assignments.forEach(a => {
+      const player = players.find(p => p.id === a.playerId);
+      const role = roles.find(r => r.id === a.roleId);
+      if (player && role) {
+        addLog(`Distribution : ${player.name} reçoit ${role.name}`, 'role');
       }
     });
 
-    // Shuffle required groups to be fair if we need to prune
-    for (let i = requiredGroups.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [requiredGroups[i], requiredGroups[j]] = [requiredGroups[j], requiredGroups[i]];
+    if (result.unassigned > 0) {
+      addLog(`Attention : ${result.unassigned} joueur(s) n'ont pas reçu de rôle (pas assez de rôles sélectionnés)`, 'system');
     }
 
-    const rolesPool: Role[] = [];
-    
-    // Add required roles that fit
-    requiredGroups.forEach(group => {
-      if (rolesPool.length + group.length <= totalPlayersInRoom) {
-        rolesPool.push(...group);
-      }
-    });
-
-    // Shuffle optional roles
-    for (let i = optionalPool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [optionalPool[i], optionalPool[j]] = [optionalPool[j], optionalPool[i]];
+    if (result.fillerCount > 0) {
+      addLog(`Rôle "${result.fillerName}" utilisé ${result.fillerCount} fois en complément`, 'system');
     }
 
-    // Fill with optional roles
-    optionalPool.forEach(role => {
-      if (rolesPool.length < totalPlayersInRoom) {
-        rolesPool.push(role);
-      }
-    });
+    const recapParts = [`${result.assignments.length} rôles distribués`];
+    if (result.fillerCount > 0) recapParts.push(`${result.fillerName} x${result.fillerCount}`);
+    if (result.unassigned > 0) recapParts.push(`${result.unassigned} sans rôle`);
+    toast.success(recapParts.join(' — '));
 
-    // Fill remaining with fillerRole
-    if (rolesPool.length < totalPlayersInRoom && fillerRole) {
-      const diff = totalPlayersInRoom - rolesPool.length;
-      for (let i = 0; i < diff; i++) {
-        rolesPool.push(fillerRole);
-      }
-    }
-
-    // FINAL SHUFFLE (Fisher-Yates) before assignment
-    for (let i = rolesPool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [rolesPool[i], rolesPool[j]] = [rolesPool[j], rolesPool[i]];
-    }
-
-    // Assign to players
-    const updates = players.map((player, index) => {
-      const assignedRole = rolesPool[index];
-      if (assignedRole) {
-        return {
-          id: player.id,
-          updates: {
-            roleId: assignedRole.id,
-            teamId: assignedRole.teamId,
-            ...(displaySettings.distributionResurrectAll !== false ? { isDead: false } : {}),
-            ...(displaySettings.distributionDeleteTags !== false ? { tags: [] } : {}),
-            ...(displaySettings.distributionRemovePastilles !== false ? { selectionPastilles: [] } : {}),
-            ...(displaySettings.distributionResetLives !== false ? { lives: assignedRole.lives } : {}),
-            ...(displaySettings.distributionResetPoints !== false ? { points: 0 } : {}),
-            ...(displaySettings.distributionResetVotes !== false ? { votes: 0 } : {}),
-            ...(displaySettings.distributionDeletePrivateNotes !== false ? { privateNotes: '' } : {}),
-            ...(displaySettings.distributionDeletePublicNotes !== false ? { publicNotes: '' } : {})
-          }
-        };
-      }
-      return null;
-    }).filter(Boolean) as { id: string; updates: Partial<Player> }[];
-
-    if (updates.length > 0) {
-      updatePlayers(updates);
-      if (displaySettings.distributionResetPhase !== false) {
-        resetCycle();
-        addLog(`Réinitialisation : Jour 1`, 'system');
-      }
-      updates.forEach((update) => {
-        const player = players.find(p => p.id === update.id);
-        const role = roles.find(r => r.id === update.updates.roleId);
-        if (player && role) {
-          addLog(`Distribution : ${player.name} reçoit ${role.name}`, 'role');
-        }
-      });
-
-      if (displaySettings.distributionActionId) {
-        console.log(`[DISTRIBUTION] Exécution de l'action post-distribution: ${displaySettings.distributionActionId}`);
-        setTimeout(() => {
-          executeAction(displaySettings.distributionActionId!);
-        }, 100);
-      }
+    if (displaySettings.distributionActionId) {
+      executeAction(displaySettings.distributionActionId);
     }
   };
 
   // Timer Logic
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (timer.isRunning) {
-      interval = setInterval(() => {
-        let newS = timer.seconds - 1;
-        let newM = timer.minutes;
+  const timerState = useTimerCountdown();
 
-        if (newS < 0) {
-          if (newM === 0) {
-            clearInterval(interval);
-            setTimer({ isRunning: false, seconds: 0 });
-            if (timer.playSoundAtZero) {
-              if (displaySettings.timerEndSoundUrl) {
-                const audio = new Audio(displaySettings.timerEndSoundUrl);
-                audio.play().catch(e => console.error("Failed to play timer sound:", e));
-              } else {
-                // Beep sound
-                const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gainNode = ctx.createGain();
-                osc.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, ctx.currentTime);
-                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.5);
-              }
-            }
-            return;
-          }
-          newM -= 1;
-          newS = 59;
-        }
-
-        setTimer({ minutes: newM, seconds: newS });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timer.isRunning, timer.minutes, timer.seconds, timer.playSoundAtZero, setTimer, displaySettings]);
-
-  const handleTimerToggle = () => setTimer({ isRunning: !timer.isRunning });
+  const handleTimerToggle = () => setTimer({ isRunning: !timerState.isRunning });
   const handleTimerReset = () => {
-    setTimer({ 
-      isRunning: false, 
-      minutes: displaySettings.timerDefaultMinutes ?? 5, 
-      seconds: displaySettings.timerDefaultSeconds ?? 0 
+    setTimer({
+      isRunning: false,
+      minutes: displaySettings.timerDefaultMinutes ?? 5,
+      seconds: displaySettings.timerDefaultSeconds ?? 0
     });
   };
 
@@ -397,7 +296,7 @@ export const RightPanel: React.FC = () => {
               {activeSection === 'distribution' && (
                 <div className="flex flex-col gap-3 p-3 border-t border-border">
                   <button
-                    onClick={() => setRoleSelectorState({ isOpen: !roleSelectorState.isOpen })}
+                    onClick={() => setRoleSelectorState({ isOpen: !roleSelectorState.isOpen, x: Math.max(200, (window.innerWidth - 350) / 2), y: Math.max(100, (window.innerHeight - 400) / 2) })}
                     className="flex items-center justify-center gap-2 w-full py-1.5 bg-muted hover:bg-accent border border-border rounded text-xs font-bold transition-colors mb-1"
                   >
                     <icons.Plus size={14} className="text-purple-400" />
@@ -480,13 +379,23 @@ export const RightPanel: React.FC = () => {
                 className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
               >
                 <div className={`flex items-center gap-2 ${activeSection === 'chrono' ? 'text-amber-500' : ''}`}>
-                  <Clock size={16} /> Chronomètre
+                  <Clock size={16} />
+                  {timerState.isRunning && activeSection !== 'chrono' ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      <span className="font-mono font-bold">
+                        {String(timerState.minutes).padStart(2, '0')}:{String(timerState.seconds).padStart(2, '0')}
+                      </span>
+                    </span>
+                  ) : (
+                    'Chronomètre'
+                  )}
                 </div>
                 {activeSection === 'chrono' ? <ChevronDown size={16} className="text-amber-500" /> : <ChevronRight size={16} />}
               </button>
               {activeSection === 'chrono' && (
                 <div className="flex flex-col items-center gap-3 p-3 border-t border-border">
-                  {timer.isDetached ? (
+                  {timerState.isDetached ? (
                     <div className="flex flex-col items-center gap-2 w-full text-center py-2">
                       <span className="text-sm text-muted-foreground italic">Le chronomètre est détaché.</span>
                       <button
@@ -498,64 +407,26 @@ export const RightPanel: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-1 text-3xl font-mono font-bold bg-input px-3 py-2 rounded-md border border-border">
-                        <input
-                          type="number"
-                          min="0"
-                          max="99"
-                          value={String(timer.minutes).padStart(2, '0')}
-                          onChange={(e) => {
-                            if (!timer.isRunning) {
-                              setTimer({ minutes: Math.min(99, Math.max(0, parseInt(e.target.value) || 0)) });
-                            }
-                          }}
-                          disabled={timer.isRunning}
-                          className="w-16 bg-transparent text-center focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
-                          aria-label="Minutes"
-                          title="Minutes"
-                        />
-                        <span className="text-muted-foreground pb-1">:</span>
-                        <input
-                          type="number"
-                          min="0"
-                          max="59"
-                          value={String(timer.seconds).padStart(2, '0')}
-                          onChange={(e) => {
-                            if (!timer.isRunning) {
-                              setTimer({ seconds: Math.min(59, Math.max(0, parseInt(e.target.value) || 0)) });
-                            }
-                          }}
-                          disabled={timer.isRunning}
-                          className="w-16 bg-transparent text-center focus:outline-none focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
-                          aria-label="Secondes"
-                          title="Secondes"
-                        />
-                      </div>
-
-                      <label className="flex items-center gap-2 text-xs text-muted-foreground w-full cursor-pointer mt-1 mb-1">
-                        <input
-                          type="checkbox"
-                          checked={timer.playSoundAtZero}
-                          onChange={(e) => setTimer({ playSoundAtZero: e.target.checked })}
-                          className="rounded border-border w-3.5 h-3.5"
-                        />
-                        Jouer un son à la fin
-                      </label>
-
-                      <div className="flex gap-2 w-full">
-                        <button
-                          onClick={handleTimerToggle}
-                          className={`flex-[2] py-2 rounded text-sm font-medium text-white ${timer.isRunning ? 'bg-orange-500 hover:bg-orange-600' : 'bg-green-500 hover:bg-green-600'}`}
-                        >
-                          {timer.isRunning ? 'Pause' : 'Démarrer'}
-                        </button>
-                        <button
-                          onClick={handleTimerReset}
-                          className="flex-1 bg-destructive text-destructive-foreground py-2 rounded text-sm hover:bg-destructive/90"
-                        >
-                          Reset
-                        </button>
-                      </div>
+                      <TimerDisplay
+                        minutes={timerState.minutes}
+                        seconds={timerState.seconds}
+                        isRunning={timerState.isRunning}
+                        onMinutesChange={(m) => setTimer({ minutes: m })}
+                        onSecondsChange={(s) => setTimer({ seconds: s })}
+                      />
+                      <TimerControls
+                        isRunning={timerState.isRunning}
+                        playSoundAtZero={timerState.playSoundAtZero}
+                        onToggle={handleTimerToggle}
+                        onReset={handleTimerReset}
+                        onSoundChange={(v) => setTimer({ playSoundAtZero: v })}
+                      />
+                      <TimerPresets
+                        minutes={timerState.minutes}
+                        seconds={timerState.seconds}
+                        isRunning={timerState.isRunning}
+                        onSet={(m, s) => setTimer({ minutes: m, seconds: s })}
+                      />
                       <div className="w-full mt-1 border-t border-border pt-2">
                         <button
                           onClick={() => setTimer({ isDetached: true })}

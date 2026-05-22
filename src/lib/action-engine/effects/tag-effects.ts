@@ -165,7 +165,9 @@ export const handleSwapPlayerTags: EffectHandler = (effect, context, state) => {
   if (initiatorIds.length === 0) return;
   
   let targetIds: string[] = [];
-  if (effect.swapTargetMode === 'role' && effect.roleId) {
+  if (effect.swapTargetMode === 'cible' && context.$Cible) {
+    targetIds = context.$Cible._isMultiple ? (context.$Cible._ids || []) : [context.$Cible.id];
+  } else if (effect.swapTargetMode === 'role' && effect.roleId) {
     targetIds = state.players.filter(p => p.roleId === effect.roleId).map(p => p.id);
   } else if (effect.swapTargetMode === 'tag' && effect.tagId) {
     targetIds = state.players.filter(p => p.tags?.some((t: any) => t.id === effect.tagId)).map(p => p.id);

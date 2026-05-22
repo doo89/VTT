@@ -1,5 +1,5 @@
-import { Plus, Trash2, Edit2, Users, icons, ChevronDown, ChevronRight, X, GripVertical } from 'lucide-react';
-import React, { useState } from 'react';
+import { Plus, Trash2, Edit2, Users, icons, ChevronDown, ChevronRight, X, GripVertical, AlertTriangle, Search, ArrowUpDown, ArrowDownAZ, Download, Upload, Eye, BarChart3, Filter, Package, LayoutGrid, List, Save, ClipboardPaste } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useVttStore } from '../../../store';
 import { ColorPicker } from '../../ColorPicker';
 import { DynamicColor } from '../../DynamicColor';
@@ -7,6 +7,9 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import './PlayersTab.css';
+import { PREDEFINED_PLAYER_TEMPLATES } from '../../../lib/player-templates';
+import { useMassImport, type MassImportMode, type MassImportConfig } from '../../../hooks/useMassImport';
+import { generateNames, type NameTheme, THEMES } from '../../../lib/name-generator';
 
 const TEAM_ICONS = [
   'Users', 'Shield', 'Sword', 'Heart', 'Star', 'Flag', 'Skull', 'Ghost',
@@ -65,21 +68,42 @@ function SortableSection({ id, children, isOpen, title, onToggle, onDragStart }:
 }
 
 export const PlayersTab: React.FC = () => {
-  const { playerTemplates, teams, setEditingEntity, addPlayerTemplate, deletePlayerTemplate, addTeam, deleteTeam, room, addPlayer, clearPlayers } = useVttStore();
+  const { playerTemplates, teams, roles, players, setEditingEntity, addPlayerTemplate, deletePlayerTemplate, addTeam, deleteTeam, room, addPlayer, clearPlayers } = useVttStore();
+  const { executeMassImport, calculatePreviewPositions: calcPreview } = useMassImport();
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerColor, setNewPlayerColor] = useState('#ef4444');
+  const [newPlayerTeamId, setNewPlayerTeamId] = useState<string | null>(null);
+  const [newPlayerRoleId, setNewPlayerRoleId] = useState<string | null>(null);
+  const [nameError, setNameError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [sortBy, setSortBy] = useState<'name' | 'date'>('name');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewPositions, setPreviewPositions] = useState<{ x: number; y: number; name: string }[]>([]);
+  const [showDashboard, setShowDashboard] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterTeam, setFilterTeam] = useState<string>('all');
+  const [filterRole, setFilterRole] = useState<string>('all');
+  const [filterInstance, setFilterInstance] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [selectedTemplates, setSelectedTemplates] = useState<Set<number>>(new Set());
+  const [showNameImport, setShowNameImport] = useState(false);
+  const [nameImportText, setNameImportText] = useState('');
+  const [savedImportConfigs, setSavedImportConfigs] = useState<Array<{ name: string; mode: MassImportMode; count: number; cols: number; rows: number; radius: number; spiralTurns: number; zigzagAmp: number }>>(() => {
+    try { const saved = localStorage.getItem('importConfigs'); return saved ? JSON.parse(saved) : []; } catch { return []; }
+  });
+  const [newConfigName, setNewConfigName] = useState('');
 
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamColor, setNewTeamColor] = useState('#3b82f6');
   const [newTeamIcon, setNewTeamIcon] = useState('Users');
 
   // Section order state
-  const [sectionOrder, setSectionOrder] = useState([
-    'createPlayer',
-    'playersList',
-    'massImport',
-    'createTeam',
-  ]);
+  const [sectionOrder, setSectionOrder] = useState(() => {
+    try { const saved = localStorage.getItem('playersTabSectionOrder'); return saved ? JSON.parse(saved) : ['createPlayer', 'playersList', 'massImport', 'createTeam']; } catch { return ['createPlayer', 'playersList', 'massImport', 'createTeam']; }
+  });
 
   // Collapse states
   const [openSections, setOpenSections] = useState({
@@ -93,8 +117,10 @@ export const PlayersTab: React.FC = () => {
     setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  useEffect(() => { try { localStorage.setItem('playersTabSectionOrder', JSON.stringify(sectionOrder)); } catch {} }, [sectionOrder]);
+  useEffect(() => { try { localStorage.setItem('importConfigs', JSON.stringify(savedImportConfigs)); } catch {} }, [savedImportConfigs]);
+
   // Mass Import states
-  type MassImportMode = 'circle' | 'grid' | 'semicircle' | 'ellipse' | 'random' | 'teams' | 'cross' | 'spiral' | 'doubleCircle' | 'zigzag';
   const [massImportCount, setMassImportCount] = useState(10);
   const [massImportMode, setMassImportMode] = useState<MassImportMode>('circle');
   const [massImportCols, setMassImportCols] = useState(5);
@@ -104,6 +130,9 @@ export const PlayersTab: React.FC = () => {
   const [massImportRadius, setMassImportRadius] = useState(0.35);
   const [massImportSpiralTurns, setMassImportSpiralTurns] = useState(2);
   const [massImportZigzagAmp, setMassImportZigzagAmp] = useState(50);
+  const [showNameGenerator, setShowNameGenerator] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<NameTheme>('fantasy');
+  const [generatedNames, setGeneratedNames] = useState<string[]>([]);
 
   // Dnd-kit sensors
   const sensors = useSensors(
@@ -121,7 +150,7 @@ export const PlayersTab: React.FC = () => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setSectionOrder((items) => {
+      setSectionOrder((items: string[]) => {
         const oldIndex = items.indexOf(active.id as string);
         const newIndex = items.indexOf(over.id as string);
         return arrayMove(items, oldIndex, newIndex);
@@ -129,18 +158,145 @@ export const PlayersTab: React.FC = () => {
     }
   };
 
+  const filteredPlayers = useMemo(() => {
+    let result = playerTemplates;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(query));
+    }
+    if (filterTeam !== 'all') result = result.filter(p => (p.teamId || 'none') === filterTeam);
+    if (filterRole !== 'all') result = result.filter(p => (p.roleId || 'none') === filterRole);
+    if (filterInstance !== 'all') {
+      result = result.filter(p => {
+        const count = players.filter(pl => pl.name === p.name && pl.color === p.color).length;
+        return filterInstance === 'used' ? count > 0 : count === 0;
+      });
+    }
+    return [...result].sort((a, b) => sortBy === 'name' ? a.name.localeCompare(b.name, 'fr') : 0);
+  }, [playerTemplates, searchQuery, sortBy, filterTeam, filterRole, filterInstance, players]);
+
   const handleAddPlayer = () => {
     if (!newPlayerName.trim()) return;
 
+    const duplicate = playerTemplates.find(p => p.name.toLowerCase() === newPlayerName.trim().toLowerCase());
+    if (duplicate) { setNameError(`Un joueur nommé "${duplicate.name}" existe déjà.`); return; }
+    setNameError('');
+
     addPlayerTemplate({
-      name: newPlayerName,
+      name: newPlayerName.trim(),
       color: newPlayerColor,
-      roleId: null,
-      teamId: null,
+      roleId: newPlayerRoleId,
+      teamId: newPlayerTeamId,
       size: 40,
     });
     setNewPlayerName('');
+    setNewPlayerRoleId(null);
+    setNewPlayerTeamId(null);
   };
+
+  const handleExportPlayers = useCallback(() => {
+    const data = { version: '1.0', playerTemplates, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `joueurs-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+    URL.revokeObjectURL(url);
+  }, [playerTemplates]);
+
+  const handleImportPlayers = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (!data.playerTemplates || !Array.isArray(data.playerTemplates)) return;
+      data.playerTemplates.forEach((p: any) => { const { id, ...pData } = p; addPlayerTemplate(pData); });
+    } catch {}
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [addPlayerTemplate]);
+
+  const handleShowPreview = useCallback(() => {
+    const N = massImportMode === 'grid' ? massImportCols * massImportRows : Math.max(1, massImportCount);
+    const positions = calcPreview(N, { mode: massImportMode, count: N, cols: massImportCols, rows: massImportRows, radius: massImportRadius, spiralTurns: massImportSpiralTurns, zigzagAmp: massImportZigzagAmp });
+    setPreviewPositions(positions);
+    setShowPreview(true);
+  }, [massImportMode, massImportCount, massImportCols, massImportRows, massImportRadius, massImportSpiralTurns, massImportZigzagAmp, calcPreview]);
+
+  const handleSaveImportConfig = () => {
+    if (!newConfigName.trim()) return;
+    setSavedImportConfigs(prev => [...prev, { name: newConfigName.trim(), mode: massImportMode, count: massImportCount, cols: massImportCols, rows: massImportRows, radius: massImportRadius, spiralTurns: massImportSpiralTurns, zigzagAmp: massImportZigzagAmp }]);
+    setNewConfigName('');
+  };
+
+  const handleLoadImportConfig = (config: typeof savedImportConfigs[0]) => {
+    setMassImportMode(config.mode);
+    setMassImportCount(config.count);
+    setMassImportCols(config.cols);
+    setMassImportRows(config.rows);
+    setMassImportRadius(config.radius);
+    setMassImportSpiralTurns(config.spiralTurns);
+    setMassImportZigzagAmp(config.zigzagAmp);
+  };
+
+  const handleDeleteImportConfig = (index: number) => {
+    setSavedImportConfigs(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleNameImport = () => {
+    const names = nameImportText.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+    if (names.length === 0) return;
+    setMassImportNames(names);
+    setMassImportCount(names.length);
+    setShowNameImport(false);
+    setNameImportText('');
+  };
+
+  const handleGenerateNames = () => {
+    const names = generateNames(massImportCount, selectedTheme);
+    setGeneratedNames(names);
+  };
+
+  const handleUseGeneratedNames = () => {
+    setMassImportNames(generatedNames);
+    setMassImportCount(generatedNames.length);
+    setShowNameGenerator(false);
+    setGeneratedNames([]);
+  };
+
+  const handleImportTemplates = useCallback(() => {
+    if (selectedTemplates.size === 0) return;
+    const templatesToImport = Array.from(selectedTemplates).map(i => PREDEFINED_PLAYER_TEMPLATES[i]);
+    templatesToImport.forEach(template => {
+      let newName = template.name;
+      let counter = 1;
+      while (playerTemplates.some(p => p.name === newName)) {
+        newName = `${template.name} (${counter})`;
+        counter++;
+      }
+      addPlayerTemplate({ ...template, name: newName });
+    });
+    setSelectedTemplates(new Set());
+    setShowTemplates(false);
+  }, [selectedTemplates, playerTemplates, addPlayerTemplate]);
+
+  const toggleTemplateSelection = (index: number) => {
+    setSelectedTemplates(prev => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index); else next.add(index);
+      return next;
+    });
+  };
+
+  const selectAllTemplates = () => {
+    const allIndices = PREDEFINED_PLAYER_TEMPLATES.map((_, i) => i).filter(i => !playerTemplates.some(p => p.name === PREDEFINED_PLAYER_TEMPLATES[i].name));
+    setSelectedTemplates(new Set(allIndices));
+  };
+
+  const handleRequestDelete = useCallback((id: string, name: string) => setDeleteConfirm({ id, name }), []);
+  const handleConfirmDelete = useCallback(() => {
+    if (!deleteConfirm) return;
+    deletePlayerTemplate(deleteConfirm.id);
+    setDeleteConfirm(null);
+  }, [deleteConfirm, deletePlayerTemplate]);
 
   const openMassImportModal = () => {
     let count: number;
@@ -155,188 +311,42 @@ export const PlayersTab: React.FC = () => {
     setShowMassImportModal(true);
   };
 
-  const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  };
-
   const handleValidateMassImport = () => {
-    const N = massImportNames.length;
-    const cx = 0;
-    const cy = 0;
-    const minDim = Math.min(room.width, room.height);
-    const maxDim = Math.max(room.width, room.height);
-
-    const createPlayer = (name: string, index: number, x: number, y: number, teamId?: string | null) => {
-      const finalName = name.trim() || `Joueur ${index + 1}`;
-      const team = teamId ? teams.find(t => t.id === teamId) : null;
-      const color = team?.color ?? getRandomColor();
-      addPlayerTemplate({ name: finalName, color, roleId: null, teamId: teamId ?? null, size: 40 });
-      addPlayer({ name: finalName, color, roleId: null, teamId: teamId ?? null, size: 40, x, y, isDead: false, tags: [] });
-    };
-
-    const getPositions = (mode: MassImportMode): { x: number; y: number; teamId?: string | null }[] => {
-      const positions: { x: number; y: number; teamId?: string | null }[] = [];
-      const R = minDim * massImportRadius;
-
-      switch (mode) {
-        case 'circle':
-          for (let i = 0; i < N; i++) {
-            const angle = (i * 2 * Math.PI) / N;
-            positions.push({ x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle) });
-          }
-          break;
-
-        case 'grid': {
-          const spacing = 100;
-          const totalWidth = (massImportCols - 1) * spacing;
-          const totalHeight = (massImportRows - 1) * spacing;
-          const startX = cx - totalWidth / 2;
-          const startY = cy - totalHeight / 2;
-          for (let i = 0; i < N; i++) {
-            const col = i % massImportCols;
-            const row = Math.floor(i / massImportCols);
-            positions.push({ x: startX + col * spacing, y: startY + row * spacing });
-          }
-          break;
-        }
-
-        case 'semicircle':
-          for (let i = 0; i < N; i++) {
-            const angle = (i * Math.PI) / (N - 1 || 1);
-            positions.push({ x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle) * 0.6 });
-          }
-          break;
-
-        case 'ellipse': {
-          const Rx = maxDim * massImportRadius * 0.5;
-          const Ry = minDim * massImportRadius * 0.5;
-          for (let i = 0; i < N; i++) {
-            const angle = (i * 2 * Math.PI) / N;
-            positions.push({ x: cx + Rx * Math.cos(angle), y: cy + Ry * Math.sin(angle) });
-          }
-          break;
-        }
-
-        case 'random': {
-          const margin = 80;
-          for (let i = 0; i < N; i++) {
-            positions.push({
-              x: cx + (Math.random() - 0.5) * (room.width - margin * 2),
-              y: cy + (Math.random() - 0.5) * (room.height - margin * 2),
-            });
-          }
-          break;
-        }
-
-        case 'teams': {
-          let idx = 0;
-          const teamSpacing = 200;
-          const playerSpacing = 80;
-          teams.forEach((team, ti) => {
-            const teamCount = Math.max(1, Math.floor(N / teams.length));
-            const teamCx = cx + (ti - (teams.length - 1) / 2) * teamSpacing;
-            const teamCy = cy;
-            for (let i = 0; i < teamCount && idx < N; i++, idx++) {
-              const angle = (i * 2 * Math.PI) / teamCount;
-              positions.push({
-                x: teamCx + playerSpacing * Math.cos(angle),
-                y: teamCy + playerSpacing * Math.sin(angle),
-                teamId: team.id,
-              } as { x: number; y: number; teamId?: string });
-            }
-          });
-          while (idx < N) {
-            positions.push({ x: cx + (Math.random() - 0.5) * 200, y: cy + (Math.random() - 0.5) * 200 });
-            idx++;
-          }
-          break;
-        }
-
-        case 'cross': {
-          const armLength = R;
-          const perArm = Math.ceil(N / 4);
-          const armSpacing = armLength / (perArm || 1);
-          const angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
-          let idx = 0;
-          angles.forEach((angle) => {
-            for (let i = 1; i <= perArm && idx < N; i++, idx++) {
-              positions.push({
-                x: cx + armSpacing * i * Math.cos(angle),
-                y: cy + armSpacing * i * Math.sin(angle),
-              });
-            }
-          });
-          break;
-        }
-
-        case 'spiral': {
-          const totalAngle = massImportSpiralTurns * 2 * Math.PI;
-          for (let i = 0; i < N; i++) {
-            const t = N > 1 ? i / (N - 1) : 0;
-            const angle = t * totalAngle;
-            const radius = R * t;
-            positions.push({ x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) });
-          }
-          break;
-        }
-
-        case 'doubleCircle': {
-          const innerCount = Math.floor(N / 2);
-          const outerCount = N - innerCount;
-          const innerR = R * 0.5;
-          const outerR = R;
-          for (let i = 0; i < innerCount; i++) {
-            const angle = (i * 2 * Math.PI) / innerCount;
-            positions.push({ x: cx + innerR * Math.cos(angle), y: cy + innerR * Math.sin(angle) });
-          }
-          for (let i = 0; i < outerCount; i++) {
-            const angle = (i * 2 * Math.PI) / outerCount;
-            positions.push({ x: cx + outerR * Math.cos(angle), y: cy + outerR * Math.sin(angle) });
-          }
-          break;
-        }
-
-        case 'zigzag': {
-          const spacing = 100;
-          const cols = Math.ceil(Math.sqrt(N * 2));
-          const startX = cx - ((cols - 1) * spacing) / 2;
-          for (let i = 0; i < N; i++) {
-            const col = i % cols;
-            const row = Math.floor(i / cols);
-            const yOffset = row % 2 === 0 ? massImportZigzagAmp : -massImportZigzagAmp;
-            positions.push({ x: startX + col * spacing, y: cy + row * spacing * 0.8 + yOffset });
-          }
-          break;
-        }
-      }
-
-      return positions;
-    };
-
-    const positions = getPositions(massImportMode);
-    massImportNames.forEach((name, i) => {
-      const pos = positions[i];
-      createPlayer(name, i, pos?.x ?? cx, pos?.y ?? cy, pos?.teamId);
+    executeMassImport(massImportNames, {
+      mode: massImportMode,
+      count: massImportNames.length,
+      cols: massImportCols,
+      rows: massImportRows,
+      radius: massImportRadius,
+      spiralTurns: massImportSpiralTurns,
+      zigzagAmp: massImportZigzagAmp,
     });
-
     setShowMassImportModal(false);
   };
 
   // Section content renderers
   const renderCreatePlayer = () => (
     <div className="flex flex-col gap-2 px-1">
-      <input
-        type="text"
-        placeholder="Nom du joueur"
-        value={newPlayerName}
-        onChange={(e) => setNewPlayerName(e.target.value)}
-        className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-      />
+      <div>
+        <input
+          type="text"
+          placeholder="Nom du joueur"
+          value={newPlayerName}
+          onChange={(e) => { setNewPlayerName(e.target.value); setNameError(''); }}
+          className={`w-full bg-input border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 ${nameError ? 'border-destructive focus:ring-destructive' : 'border-border focus:ring-ring'}`}
+        />
+        {nameError && <p className="text-[10px] text-destructive mt-1">{nameError}</p>}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <select value={newPlayerTeamId || ''} onChange={(e) => setNewPlayerTeamId(e.target.value || null)} className="w-full bg-input border border-border rounded-md px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring">
+          <option value="">Sans équipe</option>
+          {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+        <select value={newPlayerRoleId || ''} onChange={(e) => setNewPlayerRoleId(e.target.value || null)} className="w-full bg-input border border-border rounded-md px-2 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring">
+          <option value="">Sans rôle</option>
+          {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+        </select>
+      </div>
       <div className="flex items-center gap-2">
         <ColorPicker
           color={newPlayerColor}
@@ -345,7 +355,8 @@ export const PlayersTab: React.FC = () => {
         />
         <button
           onClick={handleAddPlayer}
-          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-2"
+          disabled={!newPlayerName.trim()}
+          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus size={16} /> Ajouter
         </button>
@@ -353,79 +364,162 @@ export const PlayersTab: React.FC = () => {
     </div>
   );
 
-  const renderPlayersList = () => (
+  const renderPlayersList = () => {
+    const hasSearch = searchQuery.trim() !== '';
+    const hasActiveFilters = filterTeam !== 'all' || filterRole !== 'all' || filterInstance !== 'all';
+    return (
     <div className="flex flex-col gap-2">
       {playerTemplates.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-4">Aucun joueur créé.</p>
       ) : (
         <>
-          <div className="flex justify-end mb-1">
+          <div className="flex items-center gap-2 mb-1">
+            <button onClick={() => setSortBy(sortBy === 'name' ? 'date' : 'name')} className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Trier">
+              {sortBy === 'name' ? <><ArrowDownAZ size={10} /> A-Z</> : <><ArrowUpDown size={10} /> Date</>}
+            </button>
+            <button onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')} className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Vue">
+              {viewMode === 'list' ? <><LayoutGrid size={10} /> Grille</> : <><List size={10} /> Liste</>}
+            </button>
+            <button onClick={() => setShowFilters(!showFilters)} className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium transition-colors ${showFilters || hasActiveFilters ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground hover:text-foreground'}`} title="Filtres"><Filter size={10} /> Filtres{hasActiveFilters ? ` (${[filterTeam !== 'all', filterRole !== 'all', filterInstance !== 'all'].filter(Boolean).length})` : ''}</button>
+            <button onClick={() => setShowDashboard(true)} className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Statistiques"><BarChart3 size={10} /></button>
+            <div className="flex-1" />
+            <button onClick={handleExportPlayers} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" title="Exporter" aria-label="Exporter"><Download size={12} /></button>
+            <button onClick={() => fileInputRef.current?.click()} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" title="Importer JSON" aria-label="Importer"><Upload size={12} /></button>
+            <button onClick={() => setShowTemplates(true)} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" title="Modèles prédéfinis" aria-label="Modèles"><Package size={12} /></button>
+            <button onClick={() => setShowNameImport(true)} className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" title="Importer depuis liste" aria-label="Importer liste"><ClipboardPaste size={12} /></button>
+            <input ref={fileInputRef} type="file" accept=".json" onChange={handleImportPlayers} className="hidden" aria-label="Importer des joueurs" />
             <button
               onClick={() => {
                 if (window.confirm(`Supprimer les ${playerTemplates.length} modèles de joueurs ?`)) {
                   [...playerTemplates].forEach(p => deletePlayerTemplate(p.id));
                 }
               }}
-              className="text-xs text-destructive hover:text-destructive/80 hover:bg-destructive/10 px-2 py-1 rounded transition-colors flex items-center gap-1"
+              className="text-xs text-destructive hover:text-destructive/80 hover:bg-destructive/10 px-2 py-1 rounded transition-colors flex items-center gap-1 shrink-0"
               title="Supprimer tous les joueurs"
             >
               <Trash2 size={12} /> Tout supprimer
             </button>
           </div>
-          {playerTemplates.map((player) => {
-          const team = teams.find(t => t.id === player.teamId);
-          return (
-          <div
-            key={player.id}
-            className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group"
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData('application/json', JSON.stringify({ type: 'new_player', data: player }));
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <DynamicColor 
-                  color={player.color} 
-                  isBackground 
-                  className={`player-avatar-preview shape-${player.shape ?? 'circle'}`}
-                />
-                {player.imageUrl && (
-                  <span className="player-image-indicator" title="Contient une image">i</span>
-                )}
-                {team && (
-                  <DynamicColor
-                    color={team.color}
-                    isBackground
-                    className="player-team-pastille"
-                  />
-                )}
+
+          {showFilters && (
+            <div className="flex flex-wrap items-center gap-2 p-2 bg-muted/30 rounded-md border border-border">
+              <span className="text-xs font-medium text-muted-foreground">Filtres:</span>
+              <select value={filterTeam} onChange={(e) => setFilterTeam(e.target.value)} className="text-xs bg-background border border-border rounded px-2 py-1">
+                <option value="all">Toutes les équipes</option>
+                <option value="none">Sans équipe</option>
+                {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+              <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)} className="text-xs bg-background border border-border rounded px-2 py-1">
+                <option value="all">Tous les rôles</option>
+                <option value="none">Sans rôle</option>
+                {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+              <select value={filterInstance} onChange={(e) => setFilterInstance(e.target.value)} className="text-xs bg-background border border-border rounded px-2 py-1">
+                <option value="all">Utilisation</option>
+                <option value="used">Placés</option>
+                <option value="unused">Non placés</option>
+              </select>
+              <button onClick={() => { setFilterTeam('all'); setFilterRole('all'); setFilterInstance('all'); }} className="text-xs px-2 py-1 rounded bg-muted hover:bg-accent transition-colors">Réinitialiser</button>
+            </div>
+          )}
+
+          {filteredPlayers.length === 0 && (hasSearch || hasActiveFilters) ? (
+            <p className="text-xs text-muted-foreground italic text-center py-2">Aucun résultat</p>
+          ) : (
+            viewMode === 'grid' ? (
+              <div className="grid grid-cols-3 gap-2">
+                {filteredPlayers.map((player) => {
+                  const team = teams.find(t => t.id === player.teamId);
+                  const role = roles.find(r => r.id === player.roleId);
+                  const instanceCount = players.filter(p => p.name === player.name && p.color === player.color).length;
+                  return (
+                    <div key={player.id} className="flex flex-col items-center p-3 rounded-md border border-border bg-card hover:bg-accent/50 group text-center" draggable onDragStart={(e) => { e.dataTransfer.setData('application/json', JSON.stringify({ type: 'new_player', data: player })); }}>
+                      <div className="relative mb-2">
+                        <DynamicColor color={player.color} isBackground className={`player-avatar-preview shape-${player.shape ?? 'circle'} w-10 h-10`} />
+                        {player.imageUrl && <span className="player-image-indicator" title="Contient une image">i</span>}
+                        {team && <DynamicColor color={team.color} isBackground className="player-team-pastille" />}
+                      </div>
+                      <span className="text-xs font-medium truncate w-full">{player.name}</span>
+                      <div className="flex items-center gap-1 text-[9px] text-muted-foreground mt-0.5">
+                        {role && <span className="truncate" style={{ color: role.color }}>{role.name}</span>}
+                        {instanceCount > 0 && <span>×{instanceCount}</span>}
+                      </div>
+                      <div className="flex gap-0.5 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => setEditingEntity({ type: 'playerTemplate', id: player.id })} className="p-0.5 text-muted-foreground hover:text-foreground" aria-label="Modifier"><Edit2 size={10} /></button>
+                        <button onClick={() => handleRequestDelete(player.id, player.name)} className="p-0.5 text-muted-foreground hover:text-destructive" aria-label="Supprimer"><Trash2 size={10} /></button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <span className="text-sm font-medium">{player.name}</span>
-            </div>
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button
-                onClick={() => setEditingEntity({ type: 'playerTemplate', id: player.id })}
-                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
-                title="Modifier"
+            ) : (
+              <div className="flex flex-col gap-2">
+                {filteredPlayers.map((player) => {
+              const team = teams.find(t => t.id === player.teamId);
+              const role = roles.find(r => r.id === player.roleId);
+              const instanceCount = players.filter(p => p.name === player.name && p.color === player.color).length;
+              return (
+              <div
+                key={player.id}
+                className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('application/json', JSON.stringify({ type: 'new_player', data: player }));
+                }}
               >
-                <Edit2 size={14} />
-              </button>
-              <button
-                onClick={() => deletePlayerTemplate(player.id)}
-                className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md"
-                title="Supprimer"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          </div>
-        );
-      })}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="relative shrink-0">
+                    <DynamicColor 
+                      color={player.color} 
+                      isBackground 
+                      className={`player-avatar-preview shape-${player.shape ?? 'circle'}`}
+                    />
+                    {player.imageUrl && (
+                      <span className="player-image-indicator" title="Contient une image">i</span>
+                    )}
+                    {team && (
+                      <DynamicColor
+                        color={team.color}
+                        isBackground
+                        className="player-team-pastille"
+                      />
+                    )}
+                  </div>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-sm font-medium truncate">{player.name}</span>
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      {role && <span className="truncate" style={{ color: role.color }}>{role.name}</span>}
+                      {team && <span className="truncate" style={{ color: team.color }}>{team.name}</span>}
+                      {instanceCount > 0 && <span>×{instanceCount}</span>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                  <button
+                    onClick={() => setEditingEntity({ type: 'playerTemplate', id: player.id })}
+                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md"
+                    title="Modifier"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleRequestDelete(player.id, player.name)}
+                    className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md"
+                    title="Supprimer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+              </div>
+            ))}
         </>
       )}
     </div>
   );
+  };
 
   const massImportModes: { value: MassImportMode; label: string; desc: string }[] = [
     { value: 'circle', label: 'Cercle', desc: 'Table ronde' },
@@ -572,12 +666,48 @@ export const PlayersTab: React.FC = () => {
         </p>
       )}
 
-      <button
-        onClick={openMassImportModal}
-        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-2 rounded-md font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all"
-      >
-        <Plus size={18} /> Configurer l'import
-      </button>
+      {savedImportConfigs.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Configurations sauvegardées</span>
+          <div className="space-y-1 max-h-32 overflow-y-auto">
+            {savedImportConfigs.map((config, index) => (
+              <div key={index} className="flex items-center gap-2 p-2 bg-muted/30 rounded border border-border/50 text-xs">
+                <button onClick={() => handleLoadImportConfig(config)} className="flex-1 text-left hover:text-foreground transition-colors truncate" title={config.name}>
+                  <span className="font-medium">{config.name}</span>
+                  <span className="text-muted-foreground ml-1">({config.mode}, {config.count})</span>
+                </button>
+                <button onClick={() => handleDeleteImportConfig(index)} className="p-0.5 text-muted-foreground hover:text-destructive" aria-label="Supprimer"><Trash2 size={10} /></button>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input type="text" value={newConfigName} onChange={(e) => setNewConfigName(e.target.value)} placeholder="Nom de la config..." className="flex-1 bg-background border border-border rounded px-2 py-1 text-xs" />
+            <button onClick={handleSaveImportConfig} disabled={!newConfigName.trim()} className="px-2 py-1 rounded bg-muted hover:bg-accent text-xs disabled:opacity-50 flex items-center gap-1"><Save size={10} /> Sauvegarder</button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <button
+          onClick={handleShowPreview}
+          className="flex-1 bg-muted text-foreground hover:bg-accent py-2 rounded-md font-medium text-sm flex items-center justify-center gap-2 transition-all"
+        >
+          <Eye size={16} /> Aperçu
+        </button>
+        <button
+          onClick={() => setShowNameGenerator(true)}
+          className="bg-accent/50 text-foreground hover:bg-accent py-2 px-3 rounded-md font-medium text-sm flex items-center justify-center gap-2 transition-all"
+          title="Générer des noms automatiquement"
+        >
+          <Package size={16} />
+        </button>
+        <button
+          onClick={openMassImportModal}
+          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 py-2 rounded-md font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all"
+        >
+          <Plus size={18} /> Configurer l'import
+        </button>
+      </div>
     </div>
   );
 
@@ -690,7 +820,7 @@ export const PlayersTab: React.FC = () => {
         strategy={verticalListSortingStrategy}
       >
         <div className="flex flex-col gap-6 relative">
-          {sectionOrder.map((sectionId) => {
+          {sectionOrder.map((sectionId: string) => {
             const section = sectionContent[sectionId];
             if (!section) return null;
             
@@ -765,6 +895,267 @@ export const PlayersTab: React.FC = () => {
                 className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-500 rounded font-bold shadow-sm flex items-center gap-2"
               >
                 <Plus size={16} /> Valider l'import
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-card border border-border rounded-lg p-6 max-w-sm mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-3"><div className="p-2 rounded-full bg-destructive/10"><AlertTriangle size={20} className="text-destructive" /></div><h4 className="font-semibold text-sm">Supprimer ce joueur ?</h4></div>
+            <p className="text-xs text-muted-foreground mb-1"><strong>"{deleteConfirm.name}"</strong> sera supprimé définitivement.</p>
+            <p className="text-[10px] text-muted-foreground italic mb-3">Ce modèle sera retiré de la liste.</p>
+            <div className="flex gap-2 justify-end mt-4">
+              <button onClick={() => setDeleteConfirm(null)} className="px-3 py-1.5 rounded-md text-sm bg-muted hover:bg-accent transition-colors">Annuler</button>
+              <button onClick={handleConfirmDelete} className="px-3 py-1.5 rounded-md text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors">Supprimer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPreview && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" onClick={() => setShowPreview(false)}>
+          <div className="bg-card border border-border rounded-lg p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-base flex items-center gap-2"><Eye size={18} /> Aperçu de la disposition ({previewPositions.length} joueurs)</h4>
+              <button onClick={() => setShowPreview(false)} className="p-1 rounded hover:bg-accent"><X size={16} /></button>
+            </div>
+            <div className="flex-1 overflow-hidden relative bg-muted/30 rounded-md border border-border" style={{ minHeight: '300px' }}>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-4 h-4 rounded-full bg-primary/30" />
+              </div>
+              {previewPositions.map((pos, i) => {
+                const scale = 280 / Math.max(room.width, room.height);
+                const x = 140 + pos.x * scale;
+                const y = 150 + pos.y * scale;
+                return (
+                  <div key={i} className="absolute flex flex-col items-center" style={{ left: `${x}px`, top: `${y}px`, transform: 'translate(-50%, -50%)' }}>
+                    <div className="w-8 h-8 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-[8px] font-bold text-white" style={{ backgroundColor: `hsl(${(i * 360) / previewPositions.length}, 70%, 50%)` }}>
+                      {i + 1}
+                    </div>
+                    <span className="text-[8px] text-muted-foreground mt-0.5 truncate max-w-[60px]">{pos.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex justify-end mt-4 pt-3 border-t border-border">
+              <button onClick={() => setShowPreview(false)} className="px-3 py-1.5 rounded-md text-sm bg-muted hover:bg-accent transition-colors">Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL - Dashboard Statistics */}
+      {showDashboard && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" onClick={() => setShowDashboard(false)}>
+          <div className="bg-card border border-border rounded-lg p-6 max-w-lg w-full mx-4 shadow-2xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-base flex items-center gap-2"><BarChart3 size={18} /> Statistiques des Joueurs</h4>
+              <button onClick={() => setShowDashboard(false)} className="p-1 rounded hover:bg-accent"><X size={16} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-muted/30 rounded-md p-3 text-center">
+                  <div className="text-2xl font-bold">{playerTemplates.length}</div>
+                  <div className="text-xs text-muted-foreground">Modèles</div>
+                </div>
+                <div className="bg-muted/30 rounded-md p-3 text-center">
+                  <div className="text-2xl font-bold">{players.length}</div>
+                  <div className="text-xs text-muted-foreground">Instances</div>
+                </div>
+                <div className="bg-muted/30 rounded-md p-3 text-center">
+                  <div className="text-2xl font-bold">{playerTemplates.filter(p => players.some(pl => pl.name === p.name && pl.color === p.color)).length}</div>
+                  <div className="text-xs text-muted-foreground">Utilisés</div>
+                </div>
+                <div className="bg-muted/30 rounded-md p-3 text-center">
+                  <div className="text-2xl font-bold">{playerTemplates.filter(p => !players.some(pl => pl.name === p.name && pl.color === p.color)).length}</div>
+                  <div className="text-xs text-muted-foreground">Disponibles</div>
+                </div>
+              </div>
+              <div>
+                <h5 className="text-sm font-medium mb-2">Par Équipe</h5>
+                <div className="space-y-1">
+                  {teams.map(team => {
+                    const count = playerTemplates.filter(p => p.teamId === team.id).length;
+                    return (
+                      <div key={team.id} className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-1"><DynamicColor color={team.color} isBackground className="w-3 h-3 rounded-full" /> {team.name}</span>
+                        <span className="font-medium">{count}</span>
+                      </div>
+                    );
+                  })}
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Sans équipe</span>
+                    <span className="font-medium">{playerTemplates.filter(p => !p.teamId).length}</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h5 className="text-sm font-medium mb-2">Par Rôle</h5>
+                <div className="space-y-1">
+                  {roles.map(role => {
+                    const count = playerTemplates.filter(p => p.roleId === role.id).length;
+                    return (
+                      <div key={role.id} className="flex items-center justify-between text-xs">
+                        <span style={{ color: role.color }}>{role.name}</span>
+                        <span className="font-medium">{count}</span>
+                      </div>
+                    );
+                  })}
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Sans rôle</span>
+                    <span className="font-medium">{playerTemplates.filter(p => !p.roleId).length}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end mt-4 pt-3 border-t border-border">
+              <button onClick={() => setShowDashboard(false)} className="px-3 py-1.5 rounded-md text-sm bg-muted hover:bg-accent transition-colors">Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL - Predefined Templates */}
+      {showTemplates && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" onClick={() => setShowTemplates(false)}>
+          <div className="bg-card border border-border rounded-lg p-6 max-w-lg w-full mx-4 shadow-2xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-base flex items-center gap-2"><Package size={18} /> Modèles Prédéfinis</h4>
+              <button onClick={() => setShowTemplates(false)} className="p-1 rounded hover:bg-accent"><X size={16} /></button>
+            </div>
+            <div className="flex gap-2 mb-3">
+              <button onClick={selectAllTemplates} className="text-xs px-2 py-1 rounded bg-muted hover:bg-accent transition-colors">Tout sélectionner</button>
+              <button onClick={() => setSelectedTemplates(new Set())} className="text-xs px-2 py-1 rounded bg-muted hover:bg-accent transition-colors">Aucun</button>
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-1">
+              {PREDEFINED_PLAYER_TEMPLATES.map((template, index) => {
+                const alreadyExists = playerTemplates.some(p => p.name === template.name);
+                const isSelected = selectedTemplates.has(index);
+                return (
+                  <label key={index} className={`flex items-center gap-2 p-2 rounded cursor-pointer text-xs transition-colors ${alreadyExists ? 'opacity-50 cursor-not-allowed' : isSelected ? 'bg-primary/10' : 'hover:bg-accent/50'}`}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => !alreadyExists && toggleTemplateSelection(index)}
+                      disabled={alreadyExists}
+                      className="rounded"
+                    />
+                    <DynamicColor color={template.color} isBackground className="w-4 h-4 rounded-full shrink-0" />
+                    <span className="flex-1 truncate">{template.name}</span>
+                    {alreadyExists && <span className="text-[9px] text-muted-foreground">Existant</span>}
+                  </label>
+                );
+              })}
+            </div>
+            <div className="flex justify-between mt-4 pt-3 border-t border-border">
+              <span className="text-xs text-muted-foreground">{selectedTemplates.size} sélectionné(s)</span>
+              <div className="flex gap-2">
+                <button onClick={() => setShowTemplates(false)} className="px-3 py-1.5 rounded-md text-sm bg-muted hover:bg-accent transition-colors">Annuler</button>
+                <button onClick={handleImportTemplates} disabled={selectedTemplates.size === 0} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Importer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL - Import from Name List */}
+      {showNameImport && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" onClick={() => setShowNameImport(false)}>
+          <div className="bg-card border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-base flex items-center gap-2"><ClipboardPaste size={18} /> Importer depuis une Liste</h4>
+              <button onClick={() => setShowNameImport(false)} className="p-1 rounded hover:bg-accent"><X size={16} /></button>
+            </div>
+            <p className="text-xs text-muted-foreground mb-2">Collez une liste de noms (un par ligne) :</p>
+            <textarea
+              value={nameImportText}
+              onChange={(e) => setNameImportText(e.target.value)}
+              placeholder="Joueur 1&#10;Joueur 2&#10;Joueur 3"
+              className="w-full h-40 bg-background border border-border rounded-md p-3 text-sm font-mono resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <div className="flex justify-between mt-4 pt-3 border-t border-border">
+              <span className="text-xs text-muted-foreground">{nameImportText.split('\n').filter(n => n.trim()).length} nom(s)</span>
+              <div className="flex gap-2">
+                <button onClick={() => setShowNameImport(false)} className="px-3 py-1.5 rounded-md text-sm bg-muted hover:bg-accent transition-colors">Annuler</button>
+                <button onClick={handleNameImport} disabled={nameImportText.trim().length === 0} className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Continuer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL - Name Generator */}
+      {showNameGenerator && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" onClick={() => setShowNameGenerator(false)}>
+          <div className="bg-card border border-border rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-base flex items-center gap-2"><Package size={18} /> Générateur de Noms</h4>
+              <button onClick={() => setShowNameGenerator(false)} className="p-1 rounded hover:bg-accent"><X size={16} /></button>
+            </div>
+
+            <div className="flex flex-col gap-3 mb-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Thème</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {THEMES.map(theme => (
+                    <button
+                      key={theme.key}
+                      onClick={() => setSelectedTheme(theme.key)}
+                      className={`px-2 py-1.5 rounded text-xs font-medium transition-all border ${
+                        selectedTheme === theme.key
+                          ? 'bg-primary/10 border-primary text-foreground'
+                          : 'bg-background/50 border-border/50 hover:bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {theme.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label htmlFor="gen-count" className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Nombre de noms</label>
+                <input
+                  id="gen-count"
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={massImportCount}
+                  onChange={(e) => setMassImportCount(parseInt(e.target.value) || 10)}
+                  className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+
+              <button
+                onClick={handleGenerateNames}
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-2 rounded-md font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all"
+              >
+                <Package size={16} /> Générer
+              </button>
+            </div>
+
+            {generatedNames.length > 0 && (
+              <div className="flex-1 overflow-y-auto space-y-1 mb-4 max-h-48">
+                {generatedNames.map((name, i) => (
+                  <div key={i} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-xs">
+                    <span className="w-6 text-muted-foreground text-right">{i + 1}.</span>
+                    <span className="flex-1">{name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-between pt-3 border-t border-border">
+              <button onClick={() => setShowNameGenerator(false)} className="px-3 py-1.5 rounded-md text-sm bg-muted hover:bg-accent transition-colors">Annuler</button>
+              <button
+                onClick={handleUseGeneratedNames}
+                disabled={generatedNames.length === 0}
+                className="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Utiliser ({generatedNames.length})
               </button>
             </div>
           </div>

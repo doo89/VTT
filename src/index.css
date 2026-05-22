@@ -82,6 +82,107 @@
 }
 
 /* Wiki Content Styles */
+
+/* Accessibility: Reduce Motion */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Accessibility: High Contrast */
+.high-contrast {
+  --background: #000000 !important;
+  --foreground: #ffffff !important;
+  --card: #0a0a0a !important;
+  --card-foreground: #ffffff !important;
+  --popover: #0a0a0a !important;
+  --popover-foreground: #ffffff !important;
+  --primary: #ffffff !important;
+  --primary-foreground: #000000 !important;
+  --secondary: #1a1a1a !important;
+  --secondary-foreground: #ffffff !important;
+  --muted: #111111 !important;
+  --muted-foreground: #d4d4d4 !important;
+  --accent: #1a1a1a !important;
+  --accent-foreground: #ffffff !important;
+  --destructive: #dc2626 !important;
+  --destructive-foreground: #ffffff !important;
+  --border: #555555 !important;
+  --input: #333333 !important;
+  --ring: #ffffff !important;
+}
+
+.high-contrast .bg-background {
+  background-color: #000000 !important;
+}
+
+.high-contrast .bg-card,
+.high-contrast .bg-popover {
+  background-color: #0a0a0a !important;
+}
+
+.high-contrast .text-foreground {
+  color: #ffffff !important;
+}
+
+.high-contrast .text-muted-foreground {
+  color: #d4d4d4 !important;
+}
+
+.high-contrast .border-border {
+  border-color: #555555 !important;
+}
+
+.high-contrast .bg-muted {
+  background-color: #111111 !important;
+}
+
+.high-contrast .bg-muted\/50,
+.high-contrast .bg-muted\/20,
+.high-contrast .bg-muted\/10 {
+  background-color: #111111 !important;
+}
+
+.high-contrast .text-primary {
+  color: #ffffff !important;
+}
+
+.high-contrast button,
+.high-contrast [role="button"] {
+  border-width: 2px !important;
+}
+
+/* Performance: Low Quality Mode */
+.low-quality-mode * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.low-quality-mode .backdrop-blur-sm,
+.low-quality-mode [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+}
+
+.low-quality-mode img {
+  image-rendering: pixelated !important;
+}
+
+/* Performance: Image Rendering */
+.image-rendering-auto img {
+  image-rendering: auto !important;
+}
+
+.image-rendering-pixelated img {
+  image-rendering: pixelated !important;
+}
+
+.image-rendering-crisp img {
+  image-rendering: crisp-edges !important;
+}
 .wiki-content ul {
   list-style-type: disc !important;
   padding-left: 1.5rem !important;

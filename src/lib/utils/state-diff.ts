@@ -126,10 +126,10 @@ export function createOptimizedBroadcastPayload(
         imageUrl: stripImage(t.imageUrl),
       }));
     } else if (field === 'handouts') {
-      optimizedPayload.handouts = value.map((h: any) => ({
+      optimizedPayload.handouts = value.map((h: { imageUrl: string; referenceImageUrl?: string }) => ({
         ...h,
         imageUrl: stripImage(h.imageUrl),
-        referenceImageUrl: stripImage(h.referenceImageUrl),
+        referenceImageUrl: h.referenceImageUrl ? stripImage(h.referenceImageUrl) : undefined,
       }));
     } else if (field === 'room') {
       optimizedPayload.room = {

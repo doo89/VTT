@@ -198,32 +198,6 @@ export const ActionCard = React.memo(function ActionCard({
 });
 
 /**
- * Memoized Handout Card Component
- */
-export const HandoutCard = React.memo(function HandoutCard({
-  handout,
-  isOpen,
-  onClick,
-  onEdit,
-  children,
-}: {
-  handout: { id: string; name: string; imageUrl: string; type: string };
-  isOpen: boolean;
-  onClick: () => void;
-  onEdit?: () => void;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div
-      className={`handout-card ${isOpen ? 'open' : ''}`}
-      onClick={onClick}
-    >
-      {children}
-    </div>
-  );
-});
-
-/**
  * Memoized Checklist Item Component
  */
 export const ChecklistItemCard = React.memo(function ChecklistItemCard({

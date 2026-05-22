@@ -78,6 +78,7 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'removePlayerRole', label: 'Retirer le rôle de $Joueur', category: 'players' },
   { value: 'swapPlayerRole', label: 'Échanger le rôle de $Joueur avec $Cible', category: 'players' },
   { value: 'movePlayerToGraveyard', label: 'Isoler $Joueur / Envoyer au cimetière', category: 'players' },
+  { value: 'moveCibleToGraveyard', label: 'Isoler $Cible / Envoyer au cimetière', category: 'players' },
   { value: 'gatherPlayers', label: 'Rassembler les joueurs (Cercle)', category: 'players' },
   { value: 'changePlayerShape', label: 'Changer la forme du pion de $Joueur', category: 'players' },
   { value: 'deleteSelectionPastilles', label: 'Supprimer les pastilles tags', category: 'attributes' },
@@ -161,7 +162,7 @@ export const ActionEffectWindow: React.FC = () => {
   const [pastilleIcon, setPastilleIcon] = useState<string>('Shield');
   const [pastilleColor, setPastilleColor] = useState<string>('#eab308');
   const [pastilleMode, setPastilleMode] = useState<'add' | 'remove' | 'toggle'>('toggle');
-  const [swapTargetMode, setSwapTargetMode] = useState<'role' | 'tag' | 'random'>('tag');
+  const [swapTargetMode, setSwapTargetMode] = useState<'role' | 'tag' | 'random' | 'cible'>('tag');
   const [targetX, setTargetX] = useState<number>(0);
   const [targetY, setTargetY] = useState<number>(0);
   const [gatherRadius, setGatherRadius] = useState<number>(150);
@@ -304,11 +305,11 @@ export const ActionEffectWindow: React.FC = () => {
       setDiceSides(20);
       setDiceCount(1);
       setActionEnabledMode('enable');
-      setParticleType('confetti');
-      setParticleDuration(3000);
-      setKillOnGraveyard(false);
-    }
-  }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams]);
+    setParticleType('confetti');
+    setParticleDuration(3000);
+    setKillOnGraveyard(false);
+  }
+  }, [isEditing, actionEffectCreatorState.editingEffectId, pendingActionEffects, actions, tags, roles, teams, soundboard, handouts]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -375,8 +376,8 @@ export const ActionEffectWindow: React.FC = () => {
       pastilleColor: type === 'togglePlayerPastille' ? pastilleColor : undefined,
       pastilleMode: type === 'togglePlayerPastille' ? pastilleMode : undefined,
       swapTargetMode: (type === 'swapPlayerRole' || type === 'swapPlayerTags' || type === 'joinTargetTeam' || type === 'stealRoleAndKill') ? swapTargetMode : undefined,
-      targetX: (type === 'movePlayerToGraveyard' || type === 'gatherPlayers') ? targetX : undefined,
-      targetY: (type === 'movePlayerToGraveyard' || type === 'gatherPlayers') ? targetY : undefined,
+      targetX: (type === 'movePlayerToGraveyard' || type === 'moveCibleToGraveyard' || type === 'gatherPlayers') ? targetX : undefined,
+      targetY: (type === 'movePlayerToGraveyard' || type === 'moveCibleToGraveyard' || type === 'gatherPlayers') ? targetY : undefined,
       gatherRadius: type === 'gatherPlayers' ? gatherRadius : undefined,
       targetShape: type === 'changePlayerShape' ? (targetShape as any) : undefined,
       tagIncrement: type === 'incrementTagValue' ? tagIncrement : undefined,
@@ -399,7 +400,7 @@ export const ActionEffectWindow: React.FC = () => {
       actionEnabledMode: type === 'toggleActionEnabled' ? actionEnabledMode : undefined,
       particleType: type === 'playParticleEffect' ? particleType : undefined,
       particleDuration: type === 'playParticleEffect' ? particleDuration : undefined,
-      killOnGraveyard: type === 'movePlayerToGraveyard' ? killOnGraveyard : undefined
+      killOnGraveyard: (type === 'movePlayerToGraveyard' || type === 'moveCibleToGraveyard') ? killOnGraveyard : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -1166,6 +1167,7 @@ export const ActionEffectWindow: React.FC = () => {
                   onChange={(e) => setSwapTargetMode(e.target.value as any)}
                   className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none focus:border-fuchsia-500/50"
                 >
+                  <option value="cible">La variable $Cible (sélection smartphone / action)</option>
                   <option value="tag">Le joueur qui possède un Tag spécifique</option>
                   <option value="role">Le joueur qui possède un Rôle spécifique</option>
                   <option value="random">Un joueur au hasard (parmi les vivants)</option>
@@ -1258,6 +1260,56 @@ export const ActionEffectWindow: React.FC = () => {
             </div>
           )}
 
+          {type === 'moveCibleToGraveyard' && (
+            <div className="flex flex-col gap-3 animate-in slide-in-from-top-2 p-3 bg-fuchsia-500/5 border border-fuchsia-500/20 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-fuchsia-400">Position X</label>
+                  <input
+                    title="Position X cible"
+                    type="number"
+                    value={targetX}
+                    onChange={(e) => setTargetX(Number(e.target.value))}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1 text-fuchsia-400">Position Y</label>
+                  <input
+                    title="Position Y cible"
+                    type="number"
+                    value={targetY}
+                    onChange={(e) => setTargetY(Number(e.target.value))}
+                    className="w-full bg-input border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-fuchsia-500/50"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5 pt-4">
+                   <button
+                     title="Choisir sur la carte"
+                     onClick={() => setCoordinatePicker({ isActive: true, onPick: (x: number, y: number) => { setTargetX(Math.round(x)); setTargetY(Math.round(y)); } })}
+                     className="p-2 bg-fuchsia-500/10 text-fuchsia-400 hover:bg-fuchsia-500/20 rounded-lg border border-fuchsia-500/30 transition-all"
+                   >
+                     <Pipette size={16} />
+                   </button>
+                </div>
+              </div>
+              <p className="text-[10px] text-zinc-500 italic px-1">Le centre du plateau est en X: 0, Y: 0. Envoie la $Cible au cimetière.</p>
+              
+              <div className="flex items-center gap-3 px-1 mt-1 border-t border-fuchsia-500/10 pt-2">
+                <input
+                  id="kill-on-graveyard-cible"
+                  type="checkbox"
+                  checked={killOnGraveyard}
+                  onChange={(e) => setKillOnGraveyard(e.target.checked)}
+                  className="w-4 h-4 rounded border-fuchsia-500/30 text-fuchsia-600 focus:ring-fuchsia-500 transition-all cursor-pointer"
+                />
+                <label htmlFor="kill-on-graveyard-cible" className="text-xs font-medium text-fuchsia-400/80 cursor-pointer select-none">
+                  Tuer également la $Cible envoyée au cimetière
+                </label>
+              </div>
+            </div>
+          )}
+
           {type === 'gatherPlayers' && (
             <div className="flex flex-col gap-3 animate-in slide-in-from-top-2 p-3 bg-red-500/5 border border-red-500/20 rounded-lg">
               <div className="flex flex-col gap-1.5">
@@ -1330,6 +1382,11 @@ export const ActionEffectWindow: React.FC = () => {
                   <option value="star">Étoile</option>
                   <option value="oval">Ovale</option>
                   <option value="trapezoid">Trapèze</option>
+                  <option value="diamond">Diamant</option>
+                  <option value="shield">Bouclier</option>
+                  <option value="cross">Croix</option>
+                  <option value="heart">Cœur</option>
+                  <option value="crescent">Croissant</option>
                 </select>
               </div>
             </div>

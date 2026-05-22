@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analyse Complète - Bandeau Gauche & Onglet Jeu (VTTApp)</title>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --bg-section: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #475569;
+      --accent-purple: #a855f7;
+      --accent-amber: #f59e0b;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+      --accent-teal: #14b8a6;
+      --accent-orange: #f97316;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 3rem 0 2rem;
+      border-bottom: 3px solid var(--primary);
+      margin-bottom: 2.5rem;
+    }
+    .header h1 {
+      font-size: 2.2rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    .header .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+    .header .meta {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Sections */
+    .section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .section h2 {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .section h3 {
+      font-size: 1.15rem;
+      color: var(--accent-teal);
+      margin: 1.5rem 0 1rem;
+    }
+    .section h4 {
+      font-size: 1rem;
+      color: var(--accent-amber);
+      margin: 1.25rem 0 0.75rem;
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    li strong {
+      color: var(--text);
+    }
+
+    /* Code */
+    code {
+      background: var(--bg-section);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+      color: var(--accent-purple);
+    }
+    pre {
+      background: var(--bg-section);
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: var(--text);
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    th {
+      background: var(--bg-section);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    td {
+      color: var(--text-muted);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-p0 { background: var(--accent-red); color: white; }
+    .badge-p1 { background: var(--accent-orange); color: white; }
+    .badge-p2 { background: var(--accent-amber); color: black; }
+    .badge-p3 { background: var(--accent-teal); color: black; }
+    .badge-positive { background: var(--accent-green); color: black; }
+    .badge-negative { background: var(--accent-red); color: white; }
+
+    /* Cards */
+    .card {
+      background: var(--bg-section);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin: 1rem 0;
+    }
+    .card h4 {
+      margin-top: 0;
+      color: var(--text);
+    }
+
+    /* File tree */
+    .file-tree {
+      background: var(--bg-section);
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+    .file-tree .folder { color: var(--accent-amber); }
+    .file-tree .file { color: var(--text-muted); }
+    .file-tree .tsx { color: var(--accent-teal); }
+    .file-tree .css { color: var(--accent-purple); }
+
+    /* Priority table */
+    .priority-table th:first-child,
+    .priority-table td:first-child {
+      width: 80px;
+      text-align: center;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: white;
+        color: black;
+        padding: 1rem;
+      }
+      .section {
+        background: white;
+        border: 1px solid #ddd;
+        break-inside: avoid;
+      }
+      .section h2 { color: #2563eb; border-bottom-color: #ddd; }
+      .section h3 { color: #0d9488; }
+      .section h4 { color: #d97706; }
+      th { background: #f1f5f9; color: #2563eb; }
+      td { color: #475569; }
+      code { background: #f1f5f9; color: #7c3aed; }
+      pre { background: #f1f5f9; }
+      pre code { color: #1e293b; }
+      .badge-p0 { background: #ef4444; }
+      .badge-p1 { background: #f97316; }
+      .badge-p2 { background: #f59e0b; }
+      .badge-p3 { background: #14b8a6; }
+      .badge-positive { background: #22c55e; }
+      .badge-negative { background: #ef4444; }
+      .card { background: #f8fafc; border-color: #e2e8f0; }
+      .file-tree { background: #f8fafc; }
+      .file-tree .folder { color: #d97706; }
+      .file-tree .file { color: #64748b; }
+      .file-tree .tsx { color: #0d9488; }
+      .file-tree .css { color: #7c3aed; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Analyse Complète — Bandeau Gauche & Onglet "Jeu"</h1>
+      <div class="subtitle">VTTApp — Application de gestion de jeux de rôle en ligne</div>
+      <div class="meta">Date : 21 Mai 2026 | Fichiers analysés : LeftPanel.tsx, GameTab.tsx, PlayersTab.tsx, RolesTab.tsx, TagsTab.tsx, HandoutsTab.tsx</div>
+    </div>
+
+    <!-- 1. Architecture du bandeau gauche -->
+    <div class="section">
+      <h2>1. Architecture du Bandeau Gauche</h2>
+
+      <h3>1.1 Structure des fichiers</h3>
+      <div class="file-tree">
+        <span class="folder">src/components/layout/</span><br>
+        &nbsp;&nbsp;<span class="tsx">LeftPanel.tsx</span> — Panneau principal (73 lignes)<br>
+        &nbsp;&nbsp;<span class="folder">tabs/</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="tsx">GameTab.tsx</span> — Onglet Jeu (390 lignes)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="tsx">PlayersTab.tsx</span> — Onglet Joueurs (775 lignes)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="tsx">RolesTab.tsx</span> — Onglet Rôles (354 lignes)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="tsx">TagsTab.tsx</span> — Onglet Tags (480 lignes)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="tsx">HandoutsTab.tsx</span> — Onglet Aides (114 lignes)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="css">*.css</span> — Styles spécifiques par onglet
+      </div>
+
+      <h3>1.2 Configuration actuelle</h3>
+      <table>
+        <tr><th>Propriété</th><th>Valeur</th></tr>
+        <tr><td>Largeur</td><td><code>384px</code> (fixe)</td></tr>
+        <tr><td>Onglets</td><td>5 : Joueurs, Rôles, Tags, Aides, Jeu</td></tr>
+        <tr><td>Navigation</td><td>Icônes + labels, onglet actif avec <code>bg-primary</code></td></tr>
+        <tr><td>Toggle</td><td>Bouton chevron gauche/droite</td></tr>
+        <tr><td>State management</td><td>Zustand (<code>useVttStore</code>)</td></tr>
+      </table>
+
+      <h3>1.2 Onglets — Comparaison des patterns</h3>
+      <table>
+        <tr><th>Pattern</th><th>Joueurs</th><th>Rôles</th><th>Tags</th><th>Aides</th><th>Jeu</th></tr>
+        <tr><td>Sections pliables</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+        <tr><td>Drag & Drop (dnd-kit)</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+        <tr><td>SortableSection</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+        <tr><td>Collapse/Expand</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+        <tr><td>Lignes de code</td><td>775</td><td>354</td><td>480</td><td>114</td><td>390</td></tr>
+      </table>
+    </div>
+
+    <!-- 2. Analyse détaillée de l'onglet Jeu -->
+    <div class="section">
+      <h2>2. Analyse Détaillée de l'Onglet "Jeu"</h2>
+
+      <h3>2.1 Architecture du composant</h3>
+      <div class="card">
+        <h4>GameTab.tsx — 390 lignes</h4>
+        <ul>
+          <li><strong>3 sections</strong> : Phase Actuelle, Ordre d'Appel, Autres entités</li>
+          <li><strong>Logique métier</strong> mêlée au rendu (useMemo, handlers inline)</li>
+          <li><strong>2 states locaux</strong> : <code>expandedCalledTags</code>, <code>expandedOtherTags</code></li>
+          <li><strong>2 handlers principaux</strong> : <code>handleModifyTagField</code>, <code>handleModifyMarkerTagField</code></li>
+          <li><strong>1 useMemo complexe</strong> : calcul de <code>calledEntities</code> et <code>otherEntities</code></li>
+        </ul>
+      </div>
+
+      <h3>2.2 Points positifs <span class="badge badge-positive">+</span></h3>
+      <ul>
+        <li><code>useMemo</code> pour <code>calledEntities</code> / <code>otherEntities</code> — bon pour les performances</li>
+        <li>Distinction jour/nuit avec icônes adaptées (Moon/Sun/FastForward)</li>
+        <li>Compteurs +/- pour uses, lives, votes, points fonctionnels</li>
+        <li>Auto-delete quand uses = 0 géré avec cascade sur les enfants</li>
+        <li>Gestion séparée Players vs Markers</li>
+        <li>Filtrage via <code>showInGameTab</code></li>
+      </ul>
+
+      <h3>2.3 Problèmes identifiés <span class="badge badge-negative">−</span></h3>
+
+      <h4>P1. Code dupliqué massif (lignes 206-294 et 338-377)</h4>
+      <div class="card">
+        <p>Les compteurs +/- pour Player et Marker sont <strong>copiés-collés 2 fois</strong> avec des tailles différentes :</p>
+        <ul>
+          <li>Player : <code>text-[10px]</code>, <code>w-4 h-4</code>, <code>w-4</code> pour le span</li>
+          <li>Marker : <code>text-[9px]</code>, <code>w-3.5 h-3.5</code>, <code>w-3</code> pour le span</li>
+        </ul>
+        <p><strong>Impact</strong> : ~80 lignes dupliquées, maintenance difficile, risque de divergence</p>
+        <p><strong>Solution</strong> : Composant réutilisable <code>TagFieldControls</code></p>
+      </div>
+
+      <h4>P2. Pas de sections pliables</h4>
+      <div class="card">
+        <p>Contrairement aux autres onglets (PlayersTab, RolesTab, TagsTab) qui utilisent <code>SortableSection</code> avec collapse/expand, le GameTab affiche tout en permanence.</p>
+        <p><strong>Impact</strong> : Avec 10+ joueurs, le panneau devient illisible et nécessite beaucoup de scroll</p>
+        <p><strong>Solution</strong> : Implémenter le pattern <code>SortableSection</code> existant</p>
+      </div>
+
+      <h4>P3. Pas de recherche/filtrage</h4>
+      <div class="card">
+        <p>Aucun moyen de filtrer un joueur spécifique dans l'ordre d'appel ou les autres entités.</p>
+        <p><strong>Impact</strong> : Perte de temps pour trouver un joueur spécifique</p>
+      </div>
+
+      <h4>P4. Boutons +/- trop petits</h4>
+      <div class="card">
+        <p><code>w-4 h-4</code> (16px) avec <code>text-[10px]</code> : difficilement cliquables, surtout sur écran tactile.</p>
+        <p><strong>Recommandation</strong> : Minimum <code>w-6 h-6</code> (24px) pour l'accessibilité</p>
+      </div>
+
+      <h4>P5. Manque de feedback visuel</h4>
+      <ul>
+        <li>Pas d'indicateur quand un compteur atteint 0</li>
+        <li>Pas de confirmation avant suppression auto</li>
+        <li>Pas de toast/notification sur les changements</li>
+        <li>Pas de barre de progression pour uses/lives</li>
+      </ul>
+
+      <h4>P6. Ordre d'appel statique</h4>
+      <div class="card">
+        <p>Pas de drag-and-drop pour réorganiser l'ordre d'appel manuellement.</p>
+        <p><strong>Impact</strong> : Le MJ ne peut pas ajuster l'ordre en temps réel</p>
+      </div>
+
+      <h4>P7. Section "Autres entités" limitée</h4>
+      <div class="card">
+        <p><code>max-h-40</code> (160px) : trop petit si beaucoup de joueurs non-appelés.</p>
+        <p><strong>Recommandation</strong> : <code>max-h-60</code> ou scrollable avec hauteur dynamique</p>
+      </div>
+
+      <h4>P8. Pas de mode "Focus"</h4>
+      <div class="card">
+        <p>Pendant une partie, le MJ voudrait ne voir que le joueur actuellement appelé, pas toute la liste.</p>
+        <p><strong>Solution</strong> : Bouton "Focus" pour isoler le joueur en cours</p>
+      </div>
+
+      <h4>P9. Incohérences de design avec les autres onglets</h4>
+      <table>
+        <tr><th>Aspect</th><th>Autres onglets</th><th>GameTab</th></tr>
+        <tr><td>Sections pliables</td><td>✅ SortableSection</td><td>❌</td></tr>
+        <tr><td>Drag & drop</td><td>✅ dnd-kit</td><td>❌</td></tr>
+        <tr><td>Icônes de rôle/tag</td><td>✅</td><td>❌</td></tr>
+        <tr><td>Badges visuels</td><td>✅</td><td>❌</td></tr>
+        <tr><td>Couleurs des équipes</td><td>✅</td><td>❌</td></tr>
+        <tr><td>Checkbox distribution</td><td>✅</td><td>❌</td></tr>
+      </table>
+
+      <h4>P10. Accessibilité</h4>
+      <ul>
+        <li>Pas de <code>aria-label</code> sur les boutons +/-</li>
+        <li>Pas de <code>role</code> ou <code>aria-live</code> pour l'ordre d'appel</li>
+        <li>Navigation clavier impossible entre les compteurs</li>
+        <li>Pas de focus visible sur les éléments interactifs</li>
+      </ul>
+    </div>
+
+    <!-- 3. Suggestions d'amélioration -->
+    <div class="section">
+      <h2>3. Suggestions d'Amélioration</h2>
+
+      <h3>3.1 Design</h3>
+      <ol>
+        <li><strong>Header avec résumé</strong> : afficher un compteur global (ex: "3 appelés / 8 joueurs")</li>
+        <li><strong>Cartes joueur avec couleur d'équipe/rôle</strong> : bordure colorée comme dans PlayersTab</li>
+        <li><strong>Icônes visuelles</strong> pour chaque tag (comme TagsTab avec <code>icon</code>)</li>
+        <li><strong>Mode "Focus phase"</strong> : bouton pour isoler le joueur en cours d'appel</li>
+        <li><strong>Barre de progression</strong> pour les uses/lives (ex: 2/5 avec une barre)</li>
+        <li><strong>Pastilles de statut</strong> : mort, dort, aveuglé visibles directement</li>
+      </ol>
+
+      <h3>3.2 UX</h3>
+      <ol>
+        <li><strong>Sections pliables</strong> : aligner avec le pattern <code>SortableSection</code> des autres onglets</li>
+        <li><strong>Recherche rapide</strong> : input pour filtrer par nom de joueur</li>
+        <li><strong>Compteurs cliquables</strong> : augmenter la taille à <code>w-6 h-6</code> minimum</li>
+        <li><strong>Raccourcis clavier</strong> : Space = phase suivante, R = reset</li>
+        <li><strong>Mode "appel en cours"</strong> : highlight du joueur actif avec animation subtile</li>
+        <li><strong>Historique des phases</strong> : voir les phases précédentes</li>
+      </ol>
+
+      <h3>3.3 Architecture</h3>
+      <ol>
+        <li><strong>Extraire <code>TagFieldControls</code></strong> : composant réutilisable pour les compteurs</li>
+        <li><strong>Extraire <code>CallOrderCard</code></strong> : carte pour chaque entité appelée</li>
+        <li><strong>Extraire <code>PhaseControl</code></strong> : section phase actuelle</li>
+        <li><strong>Hook personnalisé <code>useCallOrder()</code></strong> pour la logique de tri</li>
+        <li><strong>Virtualisation</strong> si > 20 joueurs (déjà présent : <code>VirtualList.tsx</code>)</li>
+      </ol>
+
+      <h3>3.4 Fonctionnalités manquantes</h3>
+      <ol>
+        <li><strong>Export de l'ordre d'appel</strong> (copier dans le presse-papier)</li>
+        <li><strong>Timer par phase</strong> intégré (le timer existe mais pas lié au GameTab)</li>
+        <li><strong>Notes rapides</strong> par joueur pendant la phase</li>
+        <li><strong>Marquer un joueur comme "traité"</strong> dans l'ordre d'appel</li>
+        <li><strong>Vue chronologique</strong> : historique des appels passés</li>
+      </ol>
+    </div>
+
+    <!-- 4. Plan de priorités -->
+    <div class="section">
+      <h2>4. Plan de Priorités</h2>
+
+      <table class="priority-table">
+        <tr>
+          <th>Priorité</th>
+          <th>Action</th>
+          <th>Impact</th>
+          <th>Effort</th>
+        </tr>
+        <tr>
+          <td><span class="badge badge-p0">P0</span></td>
+          <td>Extraire composant <code>TagFieldControls</code></td>
+          <td>-80 lignes, maintenabilité</td>
+          <td>~1h</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-p0">P0</span></td>
+          <td>Ajouter sections pliables (SortableSection)</td>
+          <td>Lisibilité avec +5 joueurs</td>
+          <td>~2h</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-p1">P1</span></td>
+          <td>Augmenter taille boutons +/-</td>
+          <td>Accessibilité</td>
+          <td>~15min</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-p1">P1</span></td>
+          <td>Ajouter couleurs rôle/équipe aux cartes</td>
+          <td>Cohérence design</td>
+          <td>~1h</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-p2">P2</span></td>
+          <td>Mode "Focus phase"</td>
+          <td>UX pendant partie</td>
+          <td>~2h</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-p2">P2</span></td>
+          <td>Raccourcis clavier</td>
+          <td>Rapidité d'utilisation</td>
+          <td>~1h</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-p3">P3</span></td>
+          <td>Barre de progression uses/lives</td>
+          <td>Feedback visuel</td>
+          <td>~1h</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-p3">P3</span></td>
+          <td>Recherche/filtrage</td>
+          <td>Navigation rapide</td>
+          <td>~1h</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- 5. Détails techniques P0 -->
+    <div class="section">
+      <h2>5. Détails Techniques — Implémentation P0</h2>
+
+      <h3>5.1 Composant <code>TagFieldControls</code></h3>
+      <div class="card">
+        <h4>Props attendues</h4>
+        <pre><code>interface TagFieldControlsProps {
+  tag: TagInstance | Marker['tag'];
+  entity: Player | Marker;
+  entityType: 'player' | 'marker';
+  size?: 'sm' | 'md';
+}</code></pre>
+        <h4>Responsabilités</h4>
+        <ul>
+          <li>Afficher les 4 champs conditionnels (uses, lives, votes, points)</li>
+          <li>Gérer les boutons +/- avec les bonnes tailles</li>
+          <li>Afficher "Illimité" pour votes = -1</li>
+          <li>Cacher les boutons si votes = -1</li>
+        </ul>
+      </div>
+
+      <h3>5.2 Sections pliables avec <code>SortableSection</code></h3>
+      <div class="card">
+        <h4>Structure proposée</h4>
+        <ul>
+          <li><strong>Section 1</strong> : "Phase Actuelle" — contrôles jour/nuit/tour</li>
+          <li><strong>Section 2</strong> : "Ordre d'Appel" — entités appelées avec compteurs</li>
+          <li><strong>Section 3</strong> : "Autres Entités" — joueurs/marqueurs non appelés</li>
+        </ul>
+        <h4>Pattern à réutiliser</h4>
+        <p>Le composant <code>SortableSection</code> existe déjà dans PlayersTab, RolesTab et TagsTab. Il faut :</p>
+        <ol>
+          <li>Extraire <code>SortableSection</code> dans un fichier partagé ou le dupliquer dans GameTab</li>
+          <li>Ajouter les states <code>openSections</code> et <code>sectionOrder</code></li>
+          <li>Envelopper dans <code>DndContext</code> + <code>SortableContext</code></li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="section" style="text-align: center; border: none; background: none;">
+      <p style="color: var(--text-muted); font-size: 0.85rem;">
+        Analyse générée le 21 Mai 2026 — VTTApp v1.0<br>
+        Fichiers de référence : <code>src/components/layout/LeftPanel.tsx</code>, <code>src/components/layout/tabs/GameTab.tsx</code>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

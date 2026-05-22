@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useVttStore } from '../store';
 import * as icons from 'lucide-react';
 import { X, ChevronDown, ChevronRight, Copy, Edit2, Trash2, ChevronsUpDown, ChevronsDownUp } from 'lucide-react';
@@ -10,14 +10,11 @@ export const RoleSelectorWindow: React.FC = () => {
   } = useVttStore();
 
   const [expandedTeams, setExpandedTeams] = useState<Record<string, boolean>>({});
+  const dragRef = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
 
   const rolesByTeam = useMemo(() => {
-    const grouped: Record<string, typeof roles> = {
-      'no-team': []
-    };
-
+    const grouped: Record<string, typeof roles> = { 'no-team': [] };
     teams.forEach(t => grouped[t.id] = []);
-
     roles.forEach(role => {
       if (role.teamId && grouped[role.teamId]) {
         grouped[role.teamId].push(role);
@@ -25,7 +22,6 @@ export const RoleSelectorWindow: React.FC = () => {
         grouped['no-team'].push(role);
       }
     });
-
     return grouped;
   }, [roles, teams]);
 
@@ -40,10 +36,14 @@ export const RoleSelectorWindow: React.FC = () => {
   const toggleAll = () => {
     const newState: Record<string, boolean> = {};
     const expand = isAnyCollapsed;
-    Object.keys(rolesByTeam).forEach(id => {
-      newState[id] = expand;
-    });
+    Object.keys(rolesByTeam).forEach(id => { newState[id] = expand; });
     setExpandedTeams(newState);
+  };
+
+  const selectableCount = useMemo(() => roles.filter(r => r.isSelectableForDistribution).length, [roles]);
+
+  const setAllSelected = (selected: boolean) => {
+    roles.forEach(r => updateRole(r.id, { isSelectableForDistribution: selected }));
   };
 
   const handleDuplicateRole = (role: typeof roles[0]) => {
@@ -53,6 +53,26 @@ export const RoleSelectorWindow: React.FC = () => {
       name: `${role.name} (Copie)`,
       isSelectableForDistribution: false,
     });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const startX = e.clientX - roleSelectorState.x;
+    const startY = e.clientY - roleSelectorState.y;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      setRoleSelectorState({
+        x: moveEvent.clientX - startX,
+        y: moveEvent.clientY - startY
+      });
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   if (!roleSelectorState.isOpen) return null;
@@ -70,35 +90,18 @@ export const RoleSelectorWindow: React.FC = () => {
       {/* Header / Drag Handle */}
       <div 
         className="px-4 py-3 bg-muted/50 border-b border-border flex items-center justify-between cursor-move"
-        onMouseDown={(e) => {
-          const startX = e.clientX - roleSelectorState.x;
-          const startY = e.clientY - roleSelectorState.y;
-
-          const handleMouseMove = (moveEvent: MouseEvent) => {
-            setRoleSelectorState({
-              x: moveEvent.clientX - startX,
-              y: moveEvent.clientY - startY
-            });
-          };
-
-          const handleMouseUp = () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-          };
-
-          document.addEventListener('mousemove', handleMouseMove);
-          document.addEventListener('mouseup', handleMouseUp);
-        }}
+        onMouseDown={handleMouseDown}
       >
         <div className="flex items-center gap-2">
           <icons.Shuffle size={18} className="text-purple-400" />
           <h3 className="font-bold text-sm">Choisir les Rôles</h3>
+          <span className="text-[10px] text-muted-foreground ml-1">({selectableCount}/{roles.length})</span>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={toggleAll}
             className="p-1 hover:bg-muted rounded transition-colors text-muted-foreground"
-            title={isAnyCollapsed ? "Tout déplier" : "Tout replier"}
+            title={isAnyCollapsed ? 'Tout déplier' : 'Tout replier'}
           >
             {isAnyCollapsed ? <ChevronsUpDown size={14} /> : <ChevronsDownUp size={14} />}
           </button>
@@ -109,6 +112,22 @@ export const RoleSelectorWindow: React.FC = () => {
             <X size={18} />
           </button>
         </div>
+      </div>
+
+      {/* Select All / Deselect All */}
+      <div className="flex gap-2 px-4 py-2 border-b border-border/30 bg-muted/20">
+        <button
+          onClick={() => setAllSelected(true)}
+          className="flex-1 text-[10px] font-bold uppercase tracking-wider py-1 px-2 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+        >
+          Tout sélectionner
+        </button>
+        <button
+          onClick={() => setAllSelected(false)}
+          className="flex-1 text-[10px] font-bold uppercase tracking-wider py-1 px-2 rounded bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+        >
+          Tout désélectionner
+        </button>
       </div>
 
       {/* Content */}
@@ -122,7 +141,7 @@ export const RoleSelectorWindow: React.FC = () => {
                 if (teamRoles.length === 0) return null;
 
                 const team = teamId === 'no-team' ? null : teams.find(t => t.id === teamId);
-                const isExpanded = expandedTeams[teamId] !== false; // Default to true
+                const isExpanded = expandedTeams[teamId] !== false;
                 const TeamIcon = team && team.icon ? (icons as any)[team.icon] : null;
 
                 return (
@@ -145,7 +164,9 @@ export const RoleSelectorWindow: React.FC = () => {
                         ) : (
                           <span className="text-muted-foreground">Sans Équipe</span>
                         )}
-                        <span className="text-xs text-muted-foreground ml-1">({teamRoles.filter(r => r.isSelectableForDistribution).length}/{teamRoles.length})</span>
+                        <span className="text-xs text-muted-foreground ml-1">
+                          ({teamRoles.filter(r => r.isSelectableForDistribution).length}/{teamRoles.length})
+                        </span>
                       </div>
                     </button>
 
@@ -165,13 +186,13 @@ export const RoleSelectorWindow: React.FC = () => {
                                 title="Sélectionner pour la distribution aléatoire"
                               />
                               <div
-                                className="w-4 h-4 rounded-sm border border-border"
+                                className="w-4 h-4 rounded-sm border border-border shrink-0"
                                 style={{ backgroundColor: role.color }}
                               />
                               <div className="flex flex-col">
                                 <span className="text-sm font-medium leading-none">{role.name}</span>
                                 <span className="text-[10px] text-muted-foreground mt-1">
-                                  {role.lives} PV • {role.isUnique ? 'Unique' : 'Multiple'}
+                                  {role.lives} PV • {role.isUnique ? 'Unique' : `${role.distributionQuantity ?? 1} ex.`}
                                 </span>
                               </div>
                             </div>
