@@ -1,3 +1,4 @@
 ```
 # Documentation files are source content - no need to ignore
 ```
+(docs/API.md) is just a documentation file, no need to add to .gitignore
