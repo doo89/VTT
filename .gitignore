@@ -1,6 +1,3 @@
-# Documentation
-docs/ARCHITECTURE.md
-docs/CONTRIBUTING.md
-docs/DATABASE.md
-
-README.md
+```
+# Documentation files are source content - no need to ignore
+```
