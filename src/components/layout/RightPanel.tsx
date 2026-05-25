@@ -1,6 +1,8 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play, Magnet, Eye, EyeOff } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play, Magnet, Eye, EyeOff, Maximize2, Minimize2, Copy } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 import * as icons from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { cn } from '../../lib/utils';
 import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
 import { uploadFileToStorage, deleteFileFromStorage } from '../../lib/supabase';
@@ -11,27 +13,30 @@ import { ChecklistContent } from '../ChecklistContent';
 import { useTimerCountdown } from '../../hooks/useTimerCountdown';
 import { TimerDisplay, TimerControls, TimerPresets } from '../timer';
 import { distributeRoles } from '../../lib/distribute-roles';
+import { LifeProgressBar } from '../LifeProgressBar';
 import { useToast } from '../Toast';
 
 export const RightPanel: React.FC = () => {
   const toast = useToast();
 
   const {
-    isRightPanelOpen, toggleRightPanel,
+    isRightPanelOpen, toggleRightPanel, isRightPanelExpanded, toggleRightPanelExpanded,
     displaySettings, updateDisplaySettings,
     timer, setTimer,
     soundboard, setSoundboard,
     roles, updateRole, players, updatePlayers,
-    logs, clearLogs, addLog,
+    tags, updateTagModel,
+    logs, logsSettings, setLogsSettings, logsFilter, clearLogs, addLog,
     scoreboard, setScoreboard,
     wiki: storeWiki, setWiki,
     customPopups, addCustomPopup, updateCustomPopup, deleteCustomPopup, triggerCustomPopup, setPreviewPopup,
+    teams,
     checklist,
     checklistState, setChecklistState,
     roleSelectorState, setRoleSelectorState,
     tagDistributorState, setTagDistributorState,
     actionCreatorState: _, setActionCreatorState,
-    actions, deleteAction, executeAction, setPendingConditions, setPendingEffects,
+    actions, addAction, deleteAction, duplicateAction, executeAction, setPendingConditions, setPendingEffects,
     resetCycle,
     editingEntity, setEditingEntity,
     magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints,
@@ -45,7 +50,7 @@ export const RightPanel: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showPopupCreator, setShowPopupCreator] = useState(false);
   const [editingPopupId, setEditingPopupId] = useState<string | null>(null);
-  const [newPopupData, setNewPopupData] = useState({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, showToGM: true, showToSmartphone: true });
+  const [newPopupData, setNewPopupData] = useState<{ title: string; imageUrl: string; soundUrl: string; content: string; showCloseButton: boolean; autoCloseTimer: boolean; autoCloseDuration: number; showToGM: boolean; showToSmartphone: boolean; targetRoleIds: string[]; targetTeamIds: string[]; targetPlayerIds: string[]; scheduledDelay: number }>({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, autoCloseDuration: 10, showToGM: true, showToSmartphone: true, targetRoleIds: [], targetTeamIds: [], targetPlayerIds: [], scheduledDelay: 0 });
   const urlRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef<HTMLInputElement>(null);
   const popupImageInputRef = useRef<HTMLInputElement>(null);
@@ -263,7 +268,10 @@ export const RightPanel: React.FC = () => {
   }
 
   return (
-    <div className="w-[350px] h-full bg-card border-l border-border flex flex-col relative z-40 shrink-0">
+    <div className={cn(
+      "h-full bg-card border-l border-border flex flex-col relative z-40 shrink-0",
+      isRightPanelExpanded ? "w-[576px]" : "w-[350px]"
+    )}>
       <div className="p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Settings size={20} />
@@ -546,7 +554,7 @@ export const RightPanel: React.FC = () => {
                     <Trophy size={14} /> {scoreboard.isOpen ? 'Masquer le tableau' : 'Afficher le tableau'}
                   </button>
 
-                  {scoreboard.isOpen && !scoreboard.isDetached && (
+                  {scoreboard.isOpen && !scoreboard.isDetached && scoreboard.showTable !== false && (
                     <div className="mt-2 border border-border rounded-lg overflow-hidden bg-muted/10">
                       <table className="w-full text-left text-[10px]">
                         <thead className="bg-muted">
@@ -572,6 +580,14 @@ export const RightPanel: React.FC = () => {
                                 <td className="p-1.5">
                                   <div className="font-bold truncate max-w-[80px]">{player.name}</div>
                                   {scoreboard.showRoles && <div className="text-[8px] text-muted-foreground uppercase truncate max-w-[80px]">{role?.name || 'Sans Rôle'}</div>}
+                                  {scoreboard.showLifeBar !== false && scoreboard.showLives && effective.maxLives > 0 && (
+                                    <div className="mt-1 flex items-center gap-1">
+                                      <div className="flex-1">
+                                        <LifeProgressBar current={effective.lives ?? 0} max={effective.maxLives} size="sm" />
+                                      </div>
+                                      <span className="text-[8px] font-bold text-red-400 tabular-nums">{effective.lives ?? 0}/{effective.maxLives}</span>
+                                    </div>
+                                  )}
                                 </td>
                                 {scoreboard.showPoints && <td className="p-1.5 text-center font-bold text-blue-400">{effective.points}</td>}
                                 {scoreboard.showLives && (
@@ -616,22 +632,57 @@ export const RightPanel: React.FC = () => {
               </button>
               {activeSection === 'logs' && (
                 <div className="flex flex-col p-0 border-t border-border">
-                  <div className="flex justify-between items-center p-2 border-b border-border bg-muted/20">
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{logs.length} Événements</span>
-                    <button
-                      onClick={clearLogs}
-                      className="text-xs flex items-center gap-1 text-destructive hover:text-white hover:bg-destructive px-2 py-1 rounded transition-colors"
-                      title="Effacer l'historique"
-                    >
-                      <Trash2 size={12} /> Vider
-                    </button>
+                  <div className="flex flex-col gap-2 p-2 border-b border-border bg-muted/20">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{logs.length} Événements</span>
+                      <button
+                        onClick={clearLogs}
+                        className="text-xs flex items-center gap-1 text-destructive hover:text-white hover:bg-destructive px-2 py-1 rounded transition-colors"
+                        title="Effacer l'historique"
+                      >
+                        <Trash2 size={12} /> Vider
+                      </button>
+                    </div>
+                    {/* Search input */}
+                    <input
+                      type="text"
+                      placeholder="Rechercher..."
+                      value={logsFilter}
+                      onChange={(e) => useVttStore.getState().setLogsFilter(e.target.value)}
+                      className="w-full text-xs px-2 py-1.5 bg-background border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                    {/* Filter checkboxes */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {Object.entries(logsSettings.showTypes).map(([type, enabled]) => {
+                        const colors: Record<string, string> = {
+                          info: 'bg-primary',
+                          action: 'bg-amber-500',
+                          system: 'bg-blue-500',
+                          death: 'bg-destructive',
+                          note: 'bg-purple-500',
+                          role: 'bg-emerald-500',
+                        };
+                        return (
+                          <label key={type} className="flex items-center gap-1 text-[10px] cursor-pointer px-1.5 py-0.5 rounded bg-muted/50 hover:bg-muted transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={enabled}
+                              onChange={(e) => setLogsSettings({ showTypes: { ...logsSettings.showTypes, [type]: e.target.checked } })}
+                              className="w-3 h-3 rounded border-border"
+                            />
+                            <div className={`w-1.5 h-1.5 rounded-full ${colors[type]}`} />
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div className="flex flex-col max-h-[300px] overflow-y-auto custom-scrollbar p-2 gap-2">
-                    {logs.length === 0 ? (
-                      <p className="text-xs text-muted-foreground italic text-center py-4">Aucune action enregistrée pour le moment.</p>
+                    {logs.filter(log => logsSettings.showTypes[log.type] && (!logsFilter || log.message.toLowerCase().includes(logsFilter.toLowerCase()))).length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic text-center py-4">Aucun événement correspondant.</p>
                     ) : (
                       <>
-                      {logs.map((log) => {
+                      {logs.filter(log => logsSettings.showTypes[log.type] && (!logsFilter || log.message.toLowerCase().includes(logsFilter.toLowerCase()))).map((log) => {
                         let dotColor = "bg-primary";
                         if (log.type === 'death') dotColor = "bg-destructive";
                         else if (log.type === 'action') dotColor = "bg-amber-500";
@@ -639,26 +690,102 @@ export const RightPanel: React.FC = () => {
                         else if (log.type === 'note') dotColor = "bg-purple-500";
                         else if (log.type === 'role') dotColor = "bg-emerald-500";
 
+                        const player = log.metadata?.playerId ? players.find(p => p.id === log.metadata?.playerId) : null;
+                        const role = log.metadata?.roleId ? roles.find(r => r.id === log.metadata?.roleId) : null;
+
                         return (
                           <div key={log.id} className="flex gap-2 items-start text-sm">
                             <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
-                            <div className="flex flex-col min-w-0">
+                            <div className="flex flex-col min-w-0 flex-1">
                               <span className="text-foreground leading-snug">{log.message}</span>
-                              <span className="text-[10px] text-muted-foreground">
+                              {(player || role) && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  {player && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium truncate max-w-[150px]">
+                                      👤 {player.name}
+                                    </span>
+                                  )}
+                                  {role && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-medium truncate max-w-[150px]">
+                                      🎭 {role.name}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              <span className="text-[10px] text-muted-foreground mt-1">
                                 {new Date(log.timestamp).toLocaleTimeString()}
                               </span>
                             </div>
                           </div>
                         );
                       })}
-                      <div className="pt-2 border-t border-border mt-1">
-                        <button
-                          onClick={initialState.downloadLogs}
-                          className="w-full flex items-center justify-center gap-2 py-1.5 px-2 bg-accent hover:bg-accent/80 text-xs font-medium rounded transition-colors"
-                        >
-                          <Download size={14} /> Enregistrer JSON
-                        </button>
+                  <div className="pt-2 border-t border-border mt-1 flex flex-col gap-2">
+                    {/* Résumé statistique */}
+                    <div className="flex flex-col gap-1.5 p-2 bg-muted/10 rounded-lg">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Résumé de session</span>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(() => {
+                          const stats = {
+                            deaths: logs.filter(l => l.type === 'death').length,
+                            roles: logs.filter(l => l.type === 'role').length,
+                            actions: logs.filter(l => l.type === 'action').length,
+                            notes: logs.filter(l => l.type === 'note').length,
+                            system: logs.filter(l => l.type === 'system').length,
+                          };
+                          return (
+                            <>
+                              <div className="flex flex-col items-center p-1.5 bg-destructive/10 rounded">
+                                <span className="text-lg font-black text-destructive">{stats.deaths}</span>
+                                <span className="text-[9px] text-muted-foreground uppercase">Morts</span>
+                              </div>
+                              <div className="flex flex-col items-center p-1.5 bg-emerald-500/10 rounded">
+                                <span className="text-lg font-black text-emerald-500">{stats.roles}</span>
+                                <span className="text-[9px] text-muted-foreground uppercase">Rôles</span>
+                              </div>
+                              <div className="flex flex-col items-center p-1.5 bg-amber-500/10 rounded">
+                                <span className="text-lg font-black text-amber-500">{stats.actions}</span>
+                                <span className="text-[9px] text-muted-foreground uppercase">Actions</span>
+                              </div>
+                              <div className="flex flex-col items-center p-1.5 bg-purple-500/10 rounded">
+                                <span className="text-lg font-black text-purple-500">{stats.notes}</span>
+                                <span className="text-[9px] text-muted-foreground uppercase">Notes</span>
+                              </div>
+                              <div className="flex flex-col items-center p-1.5 bg-blue-500/10 rounded">
+                                <span className="text-lg font-black text-blue-500">{stats.system}</span>
+                                <span className="text-[9px] text-muted-foreground uppercase">Système</span>
+                              </div>
+                              <div className="flex flex-col items-center p-1.5 bg-primary/10 rounded">
+                                <span className="text-lg font-black text-primary">{logs.length}</span>
+                                <span className="text-[9px] text-muted-foreground uppercase">Total</span>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
+                    </div>
+                    
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Exporter :</span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => initialState.downloadLogs('json')}
+                        className="flex-1 flex items-center justify-center gap-1 py-1 px-2 bg-accent hover:bg-accent/80 text-[10px] font-medium rounded transition-colors"
+                      >
+                        <Download size={12} /> JSON
+                      </button>
+                      <button
+                        onClick={() => initialState.downloadLogs('csv')}
+                        className="flex-1 flex items-center justify-center gap-1 py-1 px-2 bg-accent hover:bg-accent/80 text-[10px] font-medium rounded transition-colors"
+                      >
+                        <Download size={12} /> CSV
+                      </button>
+                      <button
+                        onClick={() => initialState.downloadLogs('txt')}
+                        className="flex-1 flex items-center justify-center gap-1 py-1 px-2 bg-accent hover:bg-accent/80 text-[10px] font-medium rounded transition-colors"
+                      >
+                        <Download size={12} /> TXT
+                      </button>
+                    </div>
+                  </div>
                       </>
                     )}
                   </div>
@@ -817,7 +944,7 @@ export const RightPanel: React.FC = () => {
                    <button
                       onClick={() => {
                         setEditingPopupId(null);
-                        setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, showToGM: true, showToSmartphone: true });
+                        setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, autoCloseDuration: 10, showToGM: true, showToSmartphone: true, targetRoleIds: [], targetTeamIds: [], targetPlayerIds: [], scheduledDelay: 0 });
                         setShowPopupCreator(true);
                       }}
                       className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
@@ -840,8 +967,13 @@ export const RightPanel: React.FC = () => {
                                   content: popup.content,
                                   showCloseButton: popup.showCloseButton,
                                   autoCloseTimer: popup.autoCloseTimer,
+                                  autoCloseDuration: popup.autoCloseDuration || 10,
                                   showToGM: popup.showToGM ?? true,
-                                  showToSmartphone: popup.showToSmartphone ?? true
+                                  showToSmartphone: popup.showToSmartphone ?? true,
+                                  targetRoleIds: popup.targetRoleIds || [],
+                                  targetTeamIds: popup.targetTeamIds || [],
+                                  targetPlayerIds: popup.targetPlayerIds || [],
+                                  scheduledDelay: popup.scheduledDelay || 0
                                 });
                                 setShowPopupCreator(true);
                               }} className="text-muted-foreground hover:text-primary transition-colors p-1" title="Modifier">
@@ -885,12 +1017,57 @@ export const RightPanel: React.FC = () => {
               </button>
               {activeSection === 'actions' && (
                 <div className="p-3 flex flex-col gap-3 border-t border-border">
-                   <button
+                  <div className="flex gap-2">
+                    <button
                       onClick={() => setActionCreatorState({ isOpen: true, isDetached: true })}
-                      className="w-full bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                      className="flex-1 bg-primary text-primary-foreground text-xs py-2 rounded font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
                     >
                       <Plus size={14} /> Ajouter Action
                     </button>
+                    <button
+                      onClick={() => {
+                        const dataStr = JSON.stringify(actions, null, 2);
+                        const blob = new Blob([dataStr], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `actions-${new Date().toISOString().slice(0, 10)}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded border border-blue-500/30 transition-colors"
+                      title="Exporter les actions en JSON"
+                    >
+                      <Download size={14} />
+                    </button>
+                    <label className="p-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded border border-green-500/30 transition-colors cursor-pointer" title="Importer des actions depuis JSON">
+                      <Upload size={14} />
+                      <input
+                        type="file"
+                        accept=".json"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            try {
+                              const imported = JSON.parse(event.target?.result as string);
+                              if (Array.isArray(imported)) {
+                                imported.forEach(action => {
+                                  addAction({ ...action, id: uuidv4() });
+                                });
+                              }
+                            } catch (err) {
+                              console.error('Failed to import actions:', err);
+                            }
+                          };
+                          reader.readAsText(file);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  </div>
     
                     <div className="flex flex-col gap-2 mt-2">
                       {actions.map(action => (
@@ -923,6 +1100,13 @@ export const RightPanel: React.FC = () => {
                               title="Modifier"
                             >
                               <Edit2 size={12} />
+                            </button>
+                            <button 
+                              onClick={() => duplicateAction(action.id)} 
+                              className="p-1.5 bg-muted/50 hover:bg-blue-500/20 text-muted-foreground hover:text-blue-400 rounded-md transition-colors border border-border/50" 
+                              title="Dupliquer"
+                            >
+                              <Copy size={12} />
                             </button>
                             <button 
                               onClick={() => deleteAction(action.id)} 
@@ -990,30 +1174,129 @@ export const RightPanel: React.FC = () => {
           );
 
           if (key === 'tagDistributor') return (displaySettings.panels?.tagDistributor ?? true) && (
-            <section key="tagDistributor" className="flex flex-col border border-border rounded-md bg-background overflow-hidden p-2">
-              <div className="flex items-center justify-between font-semibold text-sm transition-colors group">
-                <div className="flex items-center gap-2 flex-1 text-left">
-                  <Tag size={16} /> Distributeur de Tags
+            <section key="tagDistributor" className="flex flex-col border border-border rounded-md bg-background">
+              <button
+                onClick={() => toggleSection('tagDistributor')}
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+              >
+                <div className={`flex items-center gap-2 ${activeSection === 'tagDistributor' ? 'text-blue-400' : ''}`}>
+                  <Tag size={16} /> Distributeur de Tags ({tags.filter(t => t.isInDistributor).length})
                 </div>
                 <div className="flex items-center gap-2">
+                  {activeSection === 'tagDistributor' ? <ChevronDown size={16} className="text-blue-400" /> : <ChevronRight size={16} />}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setTagDistributorState({ isDetached: true, isOpen: true });
                     }}
-                    disabled={tagDistributorState.isDetached}
-                    className={`p-1 transition-colors flex items-center justify-center ${tagDistributorState.isDetached ? 'opacity-30 cursor-not-allowed' : 'text-primary hover:bg-primary/20 bg-primary/10 rounded-md'}`}
+                    disabled={tagDistributorState.isDetached || tags.filter(t => t.isInDistributor).length === 0}
+                    className={`p-1 transition-colors flex items-center justify-center rounded ${
+                      tagDistributorState.isDetached || tags.filter(t => t.isInDistributor).length === 0
+                        ? 'opacity-30 cursor-not-allowed' 
+                        : 'text-primary hover:bg-primary/20 bg-primary/10'
+                    }`}
                     title="Détacher le distributeur"
                   >
                     <ArrowUpRight size={14} />
                   </button>
                 </div>
-              </div>
-              {tagDistributorState.isDetached && (
-                <p className="text-[10px] text-muted-foreground mt-1 px-1">Géré dans une fenêtre flottante.</p>
+              </button>
+              {activeSection === 'tagDistributor' && (
+                <div className="flex flex-col p-3 border-t border-border">
+                  {tags.filter(t => t.isInDistributor).length === 0 ? (
+                    <p className="text-[10px] text-muted-foreground italic text-center py-2">
+                      Aucun tag dans le distributeur. Cochez "Ajouter au Distributeur" dans l'onglet Tags.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                        {tags.filter(t => t.isInDistributor).map(tag => {
+                          const IconComponent = icons[tag.icon as keyof typeof icons] || Tag;
+                          return (
+                            <div
+                              key={tag.id}
+                              className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group"
+                            >
+                              <div className="flex items-center gap-2 overflow-hidden flex-1">
+                                <div 
+                                  className="w-6 h-6 rounded flex items-center justify-center shrink-0 shadow-sm" 
+                                  style={{ backgroundColor: tag.color, color: '#fff' }}
+                                >
+                                  {React.createElement(IconComponent as any, { size: 14 })}
+                                </div>
+                                <div className="flex flex-col min-w-0 flex-1">
+                                  <span className="text-xs font-semibold truncate">{tag.name}</span>
+                                  {(tag.lives !== null || tag.points !== null) && (
+                                    <span className="text-[9px] text-muted-foreground">
+                                      {[tag.lives !== null ? `♥${tag.lives}` : null, tag.points !== null ? `★${tag.points}` : null].filter(Boolean).join(' | ')}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  onClick={() => updateTagModel(tag.id, { isInDistributor: false })}
+                                  className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+                                  title="Retirer du distributeur"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      <div className="flex gap-2 mt-3 pt-3 border-t border-border">
+                        <button
+                          onClick={() => setTagDistributorState({ isDetached: true, isOpen: true })}
+                          disabled={tagDistributorState.isDetached}
+                          className="flex-1 flex items-center justify-center gap-2 py-1.5 bg-primary text-primary-foreground text-xs rounded font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <ArrowUpRight size={12} /> Détacher
+                        </button>
+                        <button
+                          onClick={() => {
+                            tags.filter(t => t.isInDistributor).forEach(tag => {
+                              updateTagModel(tag.id, { isInDistributor: false });
+                            });
+                          }}
+                          className="flex-1 flex items-center justify-center gap-2 py-1.5 bg-muted text-muted-foreground text-xs rounded font-medium hover:bg-accent transition-colors"
+                        >
+                          <X size={12} /> Tout retirer
+                        </button>
+                      </div>
+                      
+                      {tagDistributorState.isDetached && (
+                        <p className="text-[10px] text-muted-foreground mt-2 text-center italic">
+                          Le distributeur est ouvert dans une fenêtre flottante.
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
-              {!tagDistributorState.isDetached && (
-                <p className="text-[10px] text-muted-foreground mt-1 px-1">Cliquez sur l'icône pour détacher la liste de distribution rapide.</p>
+              {!activeSection && !tagDistributorState.isDetached && tags.filter(t => t.isInDistributor).length > 0 && (
+                <div className="flex flex-wrap gap-1 p-2 pt-0 border-t border-border mt-1">
+                  {tags.filter(t => t.isInDistributor).slice(0, 8).map(tag => (
+                    <div
+                      key={tag.id}
+                      className="w-5 h-5 rounded flex items-center justify-center text-[8px] shadow-sm"
+                      style={{ backgroundColor: tag.color, color: '#fff' }}
+                      title={tag.name}
+                    >
+                      {(() => {
+                        const IconComponent = icons[tag.icon as keyof typeof icons] || Tag;
+                        return React.createElement(IconComponent as any, { size: 10 });
+                      })()}
+                    </div>
+                  ))}
+                  {tags.filter(t => t.isInDistributor).length > 8 && (
+                    <div className="w-5 h-5 rounded flex items-center justify-center bg-muted text-[8px] font-bold">
+                      +{tags.filter(t => t.isInDistributor).length - 8}
+                    </div>
+                  )}
+                </div>
               )}
             </section>
           );
@@ -1313,50 +1596,181 @@ export const RightPanel: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border/50 pt-4 mt-2">
-                <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={newPopupData.showCloseButton}
-                    onChange={e => setNewPopupData({...newPopupData, showCloseButton: e.target.checked})}
-                    className="rounded border-border text-primary focus:ring-primary w-4 h-4"
-                  />
-                  Afficher un bouton de fermeture
-                </label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={newPopupData.autoCloseTimer}
-                    onChange={e => setNewPopupData({...newPopupData, autoCloseTimer: e.target.checked})}
-                    className="rounded border-border text-primary focus:ring-primary w-4 h-4"
-                  />
-                  Fermeture automatique (10s)
-                </label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={newPopupData.showToGM ?? true}
-                    onChange={e => setNewPopupData({...newPopupData, showToGM: e.target.checked})}
-                    className="rounded border-border text-primary focus:ring-primary w-4 h-4"
-                  />
-                  Vue par le MJ
-                </label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={newPopupData.showToSmartphone ?? true}
-                    onChange={e => setNewPopupData({...newPopupData, showToSmartphone: e.target.checked})}
-                    className="rounded border-border text-primary focus:ring-primary w-4 h-4"
-                  />
-                  Vue sur smartphone
-                </label>
-              </div>
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border/50 pt-4 mt-2">
+                 <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
+                   <input
+                     type="checkbox"
+                     checked={newPopupData.showCloseButton}
+                     onChange={e => setNewPopupData({...newPopupData, showCloseButton: e.target.checked})}
+                     className="rounded border-border text-primary focus:ring-primary w-4 h-4"
+                   />
+                   Afficher un bouton de fermeture
+                 </label>
+                 <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
+                   <input
+                     type="checkbox"
+                     checked={newPopupData.autoCloseTimer}
+                     onChange={e => setNewPopupData({...newPopupData, autoCloseTimer: e.target.checked})}
+                     className="rounded border-border text-primary focus:ring-primary w-4 h-4"
+                   />
+                   Fermeture automatique
+                 </label>
+                 {newPopupData.autoCloseTimer && (
+                   <div className="col-span-2 flex items-center gap-3 border border-border/50 p-2 rounded bg-muted/20">
+                     <span className="text-xs font-medium">Durée :</span>
+                     <input
+                       type="range"
+                       min="5"
+                       max="60"
+                       step="5"
+                       value={newPopupData.autoCloseDuration || 10}
+                       onChange={e => setNewPopupData({...newPopupData, autoCloseDuration: parseInt(e.target.value)})}
+                       className="flex-1 accent-primary"
+                     />
+                     <span className="text-sm font-bold text-primary w-12 text-center">{newPopupData.autoCloseDuration}s</span>
+                   </div>
+                 )}
+                 <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
+                   <input
+                     type="checkbox"
+                     checked={newPopupData.showToGM ?? true}
+                     onChange={e => setNewPopupData({...newPopupData, showToGM: e.target.checked})}
+                     className="rounded border-border text-primary focus:ring-primary w-4 h-4"
+                   />
+                   Vue par le MJ
+                 </label>
+                 <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
+                   <input
+                     type="checkbox"
+                     checked={newPopupData.showToSmartphone ?? true}
+                     onChange={e => setNewPopupData({...newPopupData, showToSmartphone: e.target.checked})}
+                     className="rounded border-border text-primary focus:ring-primary w-4 h-4"
+                   />
+                   Vue sur smartphone
+                 </label>
+               </div>
+
+               {/* Ciblage avancé */}
+               <div className="border-t border-border/50 pt-4 mt-2">
+                 <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Ciblage avancé</h3>
+                 <p className="text-[10px] text-muted-foreground italic mb-3">Laisser vide pour afficher à tous</p>
+                 
+                 {/* Target Roles */}
+                 <div className="space-y-2 mb-4">
+                   <label className="text-xs font-semibold">Rôles cibles</label>
+                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto custom-scrollbar p-2 bg-muted/20 rounded border border-border/50">
+                     {roles.map(role => (
+                       <label key={role.id} className="flex items-center gap-1.5 text-[10px] cursor-pointer px-2 py-1 rounded bg-background border border-border/50 hover:bg-muted/50">
+                         <input
+                           type="checkbox"
+                           checked={newPopupData.targetRoleIds?.includes(role.id)}
+                           onChange={e => {
+                             if (e.target.checked) {
+                               setNewPopupData({...newPopupData, targetRoleIds: [...(newPopupData.targetRoleIds || []), role.id]});
+                             } else {
+                               setNewPopupData({...newPopupData, targetRoleIds: (newPopupData.targetRoleIds || []).filter(id => id !== role.id)});
+                             }
+                           }}
+                           className="rounded border-border text-primary focus:ring-primary w-3 h-3"
+                         />
+                         <span className="truncate max-w-[120px]">{role.name}</span>
+                       </label>
+                     ))}
+                     {roles.length === 0 && <span className="text-[10px] text-muted-foreground italic">Aucun rôle</span>}
+                   </div>
+                 </div>
+
+                 {/* Target Teams */}
+                 <div className="space-y-2 mb-4">
+                   <label className="text-xs font-semibold">Équipes cibles</label>
+                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto custom-scrollbar p-2 bg-muted/20 rounded border border-border/50">
+                     {teams.map(team => (
+                       <label key={team.id} className="flex items-center gap-1.5 text-[10px] cursor-pointer px-2 py-1 rounded bg-background border border-border/50 hover:bg-muted/50">
+                         <input
+                           type="checkbox"
+                           checked={newPopupData.targetTeamIds?.includes(team.id)}
+                           onChange={e => {
+                             if (e.target.checked) {
+                               setNewPopupData({...newPopupData, targetTeamIds: [...(newPopupData.targetTeamIds || []), team.id]});
+                             } else {
+                               setNewPopupData({...newPopupData, targetTeamIds: (newPopupData.targetTeamIds || []).filter(id => id !== team.id)});
+                             }
+                           }}
+                           className="rounded border-border text-primary focus:ring-primary w-3 h-3"
+                           style={{ accentColor: team.color }}
+                         />
+                         <span className="truncate max-w-[120px]">{team.name}</span>
+                       </label>
+                     ))}
+                     {teams.length === 0 && <span className="text-[10px] text-muted-foreground italic">Aucune équipe</span>}
+                   </div>
+                 </div>
+
+                 {/* Target Players */}
+                 <div className="space-y-2 mb-4">
+                   <label className="text-xs font-semibold">Joueurs cibles</label>
+                   <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto custom-scrollbar p-2 bg-muted/20 rounded border border-border/50">
+                     {players.map(player => (
+                       <label key={player.id} className="flex items-center gap-1.5 text-[10px] cursor-pointer px-2 py-1 rounded bg-background border border-border/50 hover:bg-muted/50">
+                         <input
+                           type="checkbox"
+                           checked={newPopupData.targetPlayerIds?.includes(player.id)}
+                           onChange={e => {
+                             if (e.target.checked) {
+                               setNewPopupData({...newPopupData, targetPlayerIds: [...(newPopupData.targetPlayerIds || []), player.id]});
+                             } else {
+                               setNewPopupData({...newPopupData, targetPlayerIds: (newPopupData.targetPlayerIds || []).filter(id => id !== player.id)});
+                             }
+                           }}
+                           className="rounded border-border text-primary focus:ring-primary w-3 h-3"
+                         />
+                         <div className="flex items-center gap-1">
+                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: player.color }} />
+                           <span className="truncate max-w-[100px]">{player.name}</span>
+                         </div>
+                       </label>
+                     ))}
+                     {players.length === 0 && <span className="text-[10px] text-muted-foreground italic">Aucun joueur</span>}
+                   </div>
+                 </div>
+               </div>
+
+                {/* Scheduling */}
+                <div className="border-t border-border/50 pt-4 mt-2">
+                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Programmation</h3>
+                  
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer border border-border/50 p-2 rounded hover:bg-muted/30 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={newPopupData.scheduledDelay ? true : false}
+                        onChange={e => setNewPopupData({...newPopupData, scheduledDelay: e.target.checked ? 10 : 0})}
+                        className="rounded border-border text-primary focus:ring-primary w-4 h-4"
+                      />
+                      Déclencher après un délai
+                    </label>
+                    {newPopupData.scheduledDelay ? (
+                      <div className="flex items-center gap-3 ml-6 p-2 bg-muted/20 rounded border border-border/50">
+                        <span className="text-xs font-medium">Délai :</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={newPopupData.scheduledDelay}
+                          onChange={e => setNewPopupData({...newPopupData, scheduledDelay: parseInt(e.target.value) || 0})}
+                          className="w-20 bg-background border border-border rounded p-1 text-sm"
+                        />
+                        <span className="text-xs font-medium">secondes</span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
             </div>
 
             <div className="p-4 bg-muted/50 border-t border-border flex justify-between items-center shrink-0">
               <button 
                 onClick={() => {
-                  setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, showToGM: true, showToSmartphone: true });
+                    setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, autoCloseDuration: 10, showToGM: true, showToSmartphone: true, targetRoleIds: [], targetTeamIds: [], targetPlayerIds: [], scheduledDelay: 0 });
                   setShowPopupCreator(false);
                   setEditingPopupId(null);
                 }} 
@@ -1384,7 +1798,7 @@ export const RightPanel: React.FC = () => {
                     } else {
                       addCustomPopup(newPopupData);
                     }
-                    setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, showToGM: true, showToSmartphone: true });
+                  setNewPopupData({ title: '', imageUrl: '', soundUrl: '', content: '', showCloseButton: true, autoCloseTimer: false, autoCloseDuration: 10, showToGM: true, showToSmartphone: true, targetRoleIds: [], targetTeamIds: [], targetPlayerIds: [], scheduledDelay: 0 });
                     setShowPopupCreator(false);
                     setEditingPopupId(null);
                   }
@@ -1423,14 +1837,23 @@ export const RightPanel: React.FC = () => {
         />
       )}
 
-      <button
-        onClick={toggleRightPanel}
-        className="absolute -left-8 top-1/2 transform -translate-y-1/2 bg-card border border-r-0 border-border rounded-l-md p-2 shadow-md hover:bg-accent"
-        aria-label="Fermer le panneau latéral"
-        title="Fermer le panneau latéral"
-      >
-        <ChevronRight size={20} />
-      </button>
+      <div className="absolute -left-8 top-1/2 transform -translate-y-1/2 flex flex-col gap-2">
+        <button
+          onClick={toggleRightPanelExpanded}
+          className="bg-card border border-border rounded-l-md p-2 shadow-md hover:bg-accent flex items-center justify-center"
+          title={isRightPanelExpanded ? "Réduire le panneau" : "Agrandir le panneau (+50%)"}
+        >
+          {isRightPanelExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+        </button>
+        <button
+          onClick={toggleRightPanel}
+          className="bg-card border border-border rounded-l-md p-2 shadow-md hover:bg-accent"
+          aria-label="Fermer le panneau latéral"
+          title="Fermer le panneau latéral"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
     </div>
   );
 };

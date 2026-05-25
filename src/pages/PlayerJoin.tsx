@@ -13,11 +13,11 @@ export const PlayerJoin: React.FC = () => {
   }
   const persistedCode = sessionStorage.getItem('VTT_JOIN_ROOM_CODE') || '';
 
-  const [roomCode] = useState(persistedCode);
+  const [roomCode, setRoomCode] = useState(persistedCode);
   const [playerName, setPlayerName] = useState('');
   const playerNameRef = useRef<HTMLInputElement>(null);
 
-  const hasCodeInUrl = roomCode.length > 0;
+  const hasCodeInUrl = urlCode.length > 0;
 
   // Auto-focus player name when code is pre-filled
   useEffect(() => {
@@ -68,7 +68,9 @@ export const PlayerJoin: React.FC = () => {
                 type="text"
                 value={roomCode}
                 onChange={(e) => {
-                  sessionStorage.setItem('VTT_JOIN_ROOM_CODE', e.target.value.toUpperCase());
+                  const val = e.target.value.toUpperCase();
+                  setRoomCode(val);
+                  sessionStorage.setItem('VTT_JOIN_ROOM_CODE', val);
                 }}
                 placeholder="ABCD"
                 maxLength={6}

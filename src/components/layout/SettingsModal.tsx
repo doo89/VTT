@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Sun, UserCircle2, Tag, ChevronDown, ChevronRight, Moon, Keyboard, Download, Upload, RotateCcw, FileJson, AlertTriangle, Check, Copy, KeyRound, ZoomIn, ZoomOut, Terminal, Bug, Eye, Filter, Code, Accessibility, Type, Contrast, EyeOff, Palette, Zap, Globe, Gamepad2, Map, Book, MessageSquare, FileText, Radio, Monitor, Music, CheckSquare, Info, Play, SlidersHorizontal } from 'lucide-react';
+import { X, PaintBucket, Users, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Trash2, ArrowUpRight, Grid3X3, Sun, UserCircle2, Tag, ChevronDown, ChevronRight, Moon, Keyboard, Download, Upload, RotateCcw, FileJson, AlertTriangle, Check, Copy, KeyRound, ZoomIn, ZoomOut, Terminal, Bug, Eye, Filter, Code, Accessibility, Type, Contrast, EyeOff, Palette, Zap, Globe, Gamepad2, Map, Book, MessageSquare, FileText, Radio, Monitor, Music, CheckSquare, Info, Play, SlidersHorizontal, Trophy, Heart, Table } from 'lucide-react';
 import * as icons from 'lucide-react';
 import { useVttStore, setUndoLimit } from '../../store';
 import { ColorPicker } from '../ColorPicker';
@@ -60,7 +60,7 @@ const BadgePreview: React.FC<{ corner: string; config: any; children: React.Reac
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState<'salle' | 'joueurs' | 'tags' | 'smartphone' | 'outils' | 'remote' | 'raccourcis' | 'sauvegarde' | 'debug' | 'accessibilite'>('salle');
-  const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ distribution: true, chrono: true, wiki: true, soundboard: true, scoreboard: true, logs: true, magneticPoints: true });
+  const [expandedOutils, setExpandedOutils] = useState<Record<string, boolean>>({ distribution: true, chrono: true, wiki: true, soundboard: true, scoreboard: true, logs: true, tagDistributor: true, magneticPoints: true });
   const [expandedSmartphone, setExpandedSmartphone] = useState<Record<string, boolean>>({ game: true, players: true, room: true, wiki: true, handouts: true, logs: true });
 
   const {
@@ -70,6 +70,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     displaySettings, updateDisplaySettings,
     soundboard, setSoundboard,
     scoreboard, setScoreboard,
+    logsSettings, setLogsSettings,
     actions,
     logs,
     clearLogs,
@@ -2276,7 +2277,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             />
                             <span className="font-semibold text-sm">{label}</span>
                           </label>
-                          {['distribution', 'chrono', 'wiki', 'soundboard', 'scoreboard', 'logs', 'magneticPoints'].includes(key) && ((displaySettings.panels || {}) as any)[key] !== false && (
+                          {['distribution', 'chrono', 'wiki', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'magneticPoints'].includes(key) && ((displaySettings.panels || {}) as any)[key] !== false && (
                             <button
                               onClick={(e) => {
                                 e.preventDefault();
@@ -2483,11 +2484,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
                         {/* Scoreboard sub-options */}
                         {key === 'scoreboard' && (displaySettings.panels?.scoreboard ?? true) && expandedOutils.scoreboard && (
-                          <div className="mt-3 pt-3 border-t border-border/30">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                          <div className="mt-3 pt-3 border-t border-border/30 flex flex-col gap-3">
+                            <div className="flex items-center gap-4 flex-wrap pb-2 border-b border-border/30">
+                              <label className="flex items-center gap-2 text-xs cursor-pointer font-semibold">
+                                <input
+                                  type="checkbox"
+                                  checked={scoreboard.showTable ?? true}
+                                  onChange={(e) => setScoreboard({ showTable: e.target.checked })}
+                                  className="rounded border-border"
+                                />
+                                <Table size={12} /> Afficher le tableau
+                              </label>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                               {[
                                 { key: 'showRoles', label: 'Rôle' },
                                 { key: 'showPoints', label: 'Points' },
+                                { key: 'showLives', label: 'Vie' },
                                 { key: 'showVotes', label: 'Votes' },
                                 { key: 'showStatus', label: 'Statut' },
                               ].map(col => (
@@ -2495,24 +2508,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                   <input
                                     type="checkbox"
                                     checked={(scoreboard as any)[col.key] ?? true}
-                                    onChange={(e) => {
-                                      const updates: any = {};
-                                      updates[col.key] = e.target.checked;
-                                      if (col.key === 'showVotes') updates.showLives = e.target.checked;
-                                      setScoreboard(updates);
-                                    }}
+                                    onChange={(e) => setScoreboard({ [col.key]: e.target.checked })}
                                     className="rounded border-border"
                                   />
                                   {col.label}
                                 </label>
                               ))}
                             </div>
+                            <div className="flex items-center gap-4 flex-wrap">
+                              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={scoreboard.showPodium ?? true}
+                                  onChange={(e) => setScoreboard({ showPodium: e.target.checked })}
+                                  className="rounded border-border"
+                                />
+                                <Trophy size={12} className="text-yellow-500" /> Podium Top 3
+                              </label>
+                              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={scoreboard.showLifeBar ?? true}
+                                  onChange={(e) => setScoreboard({ showLifeBar: e.target.checked })}
+                                  className="rounded border-border"
+                                />
+                                <Heart size={12} className="text-red-500" fill="currentColor" /> Barre de vie
+                              </label>
+                            </div>
                           </div>
                         )}
 
                         {/* Logs sub-options */}
                         {key === 'logs' && (displaySettings.panels?.logs ?? true) && expandedOutils.logs && (
-                          <div className="mt-3 pt-3 border-t border-border/30">
+                          <div className="mt-3 pt-3 border-t border-border/30 flex flex-col gap-3">
                             <label className="flex items-center gap-2 text-sm cursor-pointer p-2 bg-muted/10 rounded-lg hover:bg-muted/20 transition-colors">
                               <input
                                 type="checkbox"
@@ -2522,6 +2550,104 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                               />
                               {displaySettings.recordLogs ?? true ? 'Écoute activée' : 'Écoute désactivée'}
                             </label>
+                            <label className="flex items-center gap-2 text-sm cursor-pointer p-2 bg-muted/10 rounded-lg hover:bg-muted/20 transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={displaySettings.persistLogs ?? true}
+                                onChange={(e) => updateDisplaySettings({ persistLogs: e.target.checked })}
+                                className="rounded border-border w-4 h-4"
+                              />
+                              Persistance localStorage (sauvegarde auto)
+                            </label>
+                            <div className="flex flex-col gap-2 p-2 bg-muted/10 rounded-lg">
+                              <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                Max logs: {logsSettings.maxLogs}
+                              </label>
+                              <input
+                                type="range"
+                                min="50"
+                                max="500"
+                                step="50"
+                                value={logsSettings.maxLogs}
+                                onChange={(e) => setLogsSettings({ maxLogs: parseInt(e.target.value) })}
+                                className="w-full accent-primary"
+                              />
+                              <div className="flex justify-between text-[10px] text-muted-foreground">
+                                <span>50</span>
+                                <span>500</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Tag Distributor sub-options */}
+                        {key === 'tagDistributor' && (displaySettings.panels?.tagDistributor ?? true) && expandedOutils.tagDistributor && (
+                          <div className="mt-3 pt-3 border-t border-border/30 flex flex-col gap-3">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                                  <Grid3X3 size={10} /> Colonnes (défaut)
+                                </label>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="6"
+                                  value={displaySettings.tagDistributorDefaultCols ?? 2}
+                                  onChange={(e) => updateDisplaySettings({ tagDistributorDefaultCols: Math.max(1, Math.min(6, parseInt(e.target.value) || 2)) })}
+                                  className="w-20 bg-background border border-border rounded-lg px-2 py-1.5 text-sm text-center font-bold outline-none focus:ring-1 focus:ring-primary"
+                                />
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Mode d'affichage</label>
+                                <select
+                                  value={displaySettings.tagDistributorDefaultMode || 'detailed'}
+                                  onChange={(e) => updateDisplaySettings({ tagDistributorDefaultMode: e.target.value as 'detailed' | 'compact' })}
+                                  className="bg-background border border-border rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                                >
+                                  <option value="detailed">Détaillé</option>
+                                  <option value="compact">Compact</option>
+                                </select>
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tri par défaut</label>
+                                <select
+                                  value={displaySettings.tagDistributorDefaultSort || 'order'}
+                                  onChange={(e) => updateDisplaySettings({ tagDistributorDefaultSort: e.target.value as 'order' | 'alpha' })}
+                                  className="bg-background border border-border rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary"
+                                >
+                                  <option value="order">Ordre personnalisé</option>
+                                  <option value="alpha">Alphabétique</option>
+                                </select>
+                              </div>
+                            </div>
+                            
+                            <div className="flex flex-wrap gap-3 pt-2 border-t border-border/30">
+                              <label className="flex items-center gap-2 text-xs cursor-pointer p-2 bg-muted/5 rounded-lg hover:bg-muted/20 transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={displaySettings.tagDistributorShowCount ?? true}
+                                  onChange={(e) => updateDisplaySettings({ tagDistributorShowCount: e.target.checked })}
+                                  className="rounded border-border"
+                                />
+                                Afficher le compteur de tags
+                              </label>
+                              <label className="flex items-center gap-2 text-xs cursor-pointer p-2 bg-muted/5 rounded-lg hover:bg-muted/20 transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={displaySettings.tagDistributorAutoDetach ?? false}
+                                  onChange={(e) => updateDisplaySettings({ tagDistributorAutoDetach: e.target.checked })}
+                                  className="rounded border-border"
+                                />
+                                Détachement auto à l'ouverture
+                              </label>
+                            </div>
+
+                            <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                              <p className="text-[10px] text-blue-200 flex items-start gap-2">
+                                <Info size={12} className="shrink-0 mt-0.5" />
+                                Ces paramètres s'appliquent à la fenêtre flottante du Distributeur de Tags. Vous pouvez aussi modifier le nombre de colonnes directement dans la fenêtre.
+                              </p>
+                            </div>
                           </div>
                         )}
 

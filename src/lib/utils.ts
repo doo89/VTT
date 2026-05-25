@@ -21,6 +21,7 @@ export function calculateTagEffect(currentValue: number, tagValue: string | numb
 }
 
 export function getEffectiveStats(player: any, role: any) {
+  const maxLives = role?.lives ?? 0;
   let lives = player.lives ?? role?.lives ?? 0;
   let points = player.points ?? 0;
   let votes = player.votes ?? 0;
@@ -61,5 +62,5 @@ export function getEffectiveStats(player: any, role: any) {
     }
   });
   
-  return { lives, points, votes, uses };
+  return { lives, maxLives, points, votes, uses };
 }

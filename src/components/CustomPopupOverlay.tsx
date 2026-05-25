@@ -20,12 +20,13 @@ export const CustomPopupOverlay: React.FC = () => {
 
   useEffect(() => {
     if (activePopup?.autoCloseTimer) {
+      const duration = (activePopup.autoCloseDuration || 10) * 1000;
       const timer = setTimeout(() => {
         handleClose();
-      }, 10000); // 10 seconds
+      }, duration);
       return () => clearTimeout(timer);
     }
-  }, [activeCustomPopupId, activePopup?.autoCloseTimer, previewPopup, triggerCustomPopup, setPreviewPopup]);
+  }, [activeCustomPopupId, activePopup?.autoCloseTimer, activePopup?.autoCloseDuration, previewPopup, triggerCustomPopup, setPreviewPopup]);
 
   useEffect(() => {
     if (activePopup?.soundUrl && activeCustomPopupId !== lastPlayedId.current) {
@@ -50,14 +51,92 @@ export const CustomPopupOverlay: React.FC = () => {
   const isGM = location.pathname === '/';
   const isSmartphone = location.pathname.startsWith('/player/') || location.pathname.startsWith('/remote/');
   
-  const shouldShow = isGM ? (activePopup.showToGM !== false) : (isSmartphone ? (activePopup.showToSmartphone !== false) : false);
+  // Récupération des infos du joueur si on est sur la vue Smartphone
+  // L'URL est de la forme /player/:roomId/:playerName
+  const match = location.pathname.match(/^\/player\/[^\/]+\/([^\/]+)/);
+  const playerNameFromUrl = match ? decodeURIComponent(match[1]) : null;
+  
+  // Trouver le joueur par son nom (comme dans PlayerView)
+  const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const localPlayer = playerNameFromUrl 
+    ? players.find(p => normalize(p.name) === normalize(playerNameFromUrl))
+    : null;
+  const playerId = localPlayer?.id || null;
+  
+  console.log('[Popup Debug] pathname:', location.pathname, 'playerNameFromUrl:', playerNameFromUrl, 'Found:', localPlayer, 'playerId:', playerId);
+  console.log('[Popup Debug] Players array:', players.map(p => ({ id: p.id, name: p.name, roleId: p.roleId, teamId: p.teamId })));
+  
+  // Check targeting
+  const isTargeted = () => {
+    // If no targeting specified, show to all
+    if (!activePopup.targetRoleIds?.length && !activePopup.targetTeamIds?.length && !activePopup.targetPlayerIds?.length) {
+      return true;
+    }
+    
+    console.log('[Popup Targeting] Checking targeting for player:', {
+      playerId,
+      localPlayer,
+      localPlayerRoleId: localPlayer?.roleId,
+      localPlayerTeamId: localPlayer?.teamId,
+      targetPlayerIds: activePopup.targetPlayerIds,
+      targetRoleIds: activePopup.targetRoleIds,
+      targetTeamIds: activePopup.targetTeamIds,
+      totalPlayers: players.length,
+      totalRoles: roles.length
+    });
+    
+    // Check player targeting
+    if (activePopup.targetPlayerIds?.length && playerId) {
+      console.log('[Popup Targeting] Checking player targeting:', playerId, 'in', activePopup.targetPlayerIds);
+      if (activePopup.targetPlayerIds.includes(playerId)) {
+        console.log('[Popup Targeting] ✓ Player matched!');
+        return true;
+      }
+    }
+    
+    // Check role targeting
+    if (activePopup.targetRoleIds?.length && localPlayer?.roleId) {
+      console.log('[Popup Targeting] Checking role targeting:', localPlayer.roleId, 'in', activePopup.targetRoleIds);
+      if (activePopup.targetRoleIds.includes(localPlayer.roleId)) {
+        console.log('[Popup Targeting] ✓ Role matched!');
+        return true;
+      }
+    }
+    
+    // Check team targeting (via role teamId)
+    if (activePopup.targetTeamIds?.length && localPlayer?.roleId) {
+      const playerRole = roles.find(r => r.id === localPlayer.roleId);
+      console.log('[Popup Targeting] Checking team targeting via role:', {
+        roleId: localPlayer.roleId,
+        playerRole,
+        playerRoleTeamId: playerRole?.teamId,
+        targetTeamIds: activePopup.targetTeamIds
+      });
+      if (playerRole?.teamId && activePopup.targetTeamIds.includes(playerRole.teamId)) {
+        console.log('[Popup Targeting] ✓ Team matched via role!');
+        return true;
+      }
+    }
+    
+    // Also check team targeting via player's direct teamId
+    if (activePopup.targetTeamIds?.length && localPlayer?.teamId) {
+      console.log('[Popup Targeting] Checking team targeting via player teamId:', {
+        playerTeamId: localPlayer.teamId,
+        targetTeamIds: activePopup.targetTeamIds
+      });
+      if (activePopup.targetTeamIds.includes(localPlayer.teamId)) {
+        console.log('[Popup Targeting] ✓ Team matched via player!');
+        return true;
+      }
+    }
+    
+    console.log('[Popup Targeting] ✗ No match found');
+    return false;
+  };
+
+  const shouldShow = isGM ? (activePopup.showToGM !== false) : (isSmartphone ? (activePopup.showToSmartphone !== false && isTargeted()) : false);
 
   if (!shouldShow) return null;
-
-  // Récupération des infos du joueur si on est sur la vue Smartphone
-  const match = location.pathname.match(/^\/player\/([^\/]+)/);
-  const playerId = match ? match[1] : null;
-  const localPlayer = playerId ? players.find(p => p.id === playerId) : null;
   
   const parseVariables = (text: string) => {
     if (!text || !localPlayer) return text;
@@ -113,12 +192,18 @@ export const CustomPopupOverlay: React.FC = () => {
         {/* Footer / Timer indicator */}
         {activePopup.autoCloseTimer && (
           <div className="h-1.5 w-full bg-muted/50 overflow-hidden shrink-0">
-            <div className="h-full bg-primary animate-[shrink_10s_linear_forwards]" style={{ width: '100%' }} />
+            <div 
+              className="h-full bg-primary animate-[shrink_custom_linear_forwards]" 
+              style={{ 
+                width: '100%',
+                animationDuration: `${activePopup.autoCloseDuration || 10}s`
+              }} 
+            />
           </div>
         )}
       </div>
       <style>{`
-        @keyframes shrink {
+        @keyframes shrink_custom {
           from { width: 100%; }
           to { width: 0%; }
         }

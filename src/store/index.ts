@@ -21,6 +21,8 @@ export interface VttStore extends GameState {
   removeSoundButton: (index: number) => void;
   swapSoundButtons: (indexA: number, indexB: number) => void;
   setScoreboard: (scoreboardUpdate: Partial<GameState['scoreboard']>) => void;
+  setLogsSettings: (logsUpdate: Partial<GameState['logsSettings']>) => void;
+  setLogsFilter: (filter: string) => void;
   setWiki: (wikiUpdate: Partial<GameState['wiki']>) => void;
   setChecklistState: (checklistUpdate: Partial<GameState['checklistState']>) => void;
   setTagDistributorState: (distributorUpdate: Partial<GameState['tagDistributorState']>) => void;
@@ -51,9 +53,11 @@ export interface VttStore extends GameState {
   toggleLeftPanel: () => void;
   toggleRightPanel: () => void;
   toggleLeftPanelExpanded: () => void;
+  toggleRightPanelExpanded: () => void;
   isLeftPanelOpen: boolean;
   isRightPanelOpen: boolean;
   isLeftPanelExpanded: boolean;
+  isRightPanelExpanded: boolean;
 
   // Tools
   setGrid: (grid: GameState['grid']) => void;
@@ -87,6 +91,7 @@ export interface VttStore extends GameState {
   addTagModel: (tagData: Omit<TagModel, 'id'>) => void;
   updateTagModel: (id: EntityId, updates: Partial<TagModel>) => void;
   deleteTagModel: (id: EntityId) => void;
+  reorderDistributorTags: (orderedTagIds: EntityId[]) => void;
 
   // Tag Categories
   tagCategories: TagCategory[];
@@ -116,6 +121,7 @@ export interface VttStore extends GameState {
   addAction: (action: Omit<Action, 'id'>) => void;
   updateAction: (id: string, updates: Partial<Action>) => void;
   deleteAction: (id: string) => void;
+  duplicateAction: (id: string) => void;
   executeAction: (id: string, initialContext?: Record<string, any>, depth?: number) => void;
   pendingElseActionId: string | null;
   setPendingElseActionId: (id: string | null) => void;
@@ -170,7 +176,7 @@ export interface VttStore extends GameState {
   updateGroupVote: (voterId: string, targetId: string) => void;
 
   // Logs
-  addLog: (message: string, type: LogEvent['type']) => void;
+  addLog: (message: string, type: LogEvent['type'], metadata?: LogEvent['metadata']) => void;
   clearLogs: () => void;
 
   // Checklist
@@ -213,7 +219,19 @@ export const initialState = {
   tagCategories: [],
   handouts: [],
   handoutCategories: [],
+  logsSettings: {
+    showTypes: {
+      info: true,
+      action: true,
+      system: true,
+      death: true,
+      note: true,
+      role: true,
+    },
+    maxLogs: 100,
+  },
   logs: [],
+  logsFilter: '',
   recentColors: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#ffffff', '#000000', '#6b7280'], // default colors
   customPopups: [],
   activeCustomPopupId: null,
@@ -265,6 +283,9 @@ export const initialState = {
     showVotes: true,
     showLives: true,
     showStatus: true,
+    showPodium: true,
+    showLifeBar: true,
+    showTable: true,
   },
   wiki: {
     isOpen: false,
@@ -323,6 +344,7 @@ export const initialState = {
   isLeftPanelOpen: true,
   isRightPanelOpen: true,
   isLeftPanelExpanded: false,
+  isRightPanelExpanded: false,
   gameTabState: {
     treatedEntities: [] as string[],
     playerNotes: {} as Record<string, string>,
@@ -399,6 +421,7 @@ export const initialState = {
     },
     includeRoomCodeInLinks: false,
     recordLogs: false,
+    persistLogs: true,
     smartphoneTabs: {
       game: true,
       players: false,
@@ -497,15 +520,33 @@ export const initialState = {
     showToolbarSettings: true,
     showToolbarFullscreen: true,
   },
-  downloadLogs: () => {
+  downloadLogs: (format: 'json' | 'csv' | 'txt' = 'json') => {
     const logs = useVttStore.getState().logs;
     if (logs.length === 0) return;
-    const dataStr = JSON.stringify(logs, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
+    
+    let content = '';
+    let mimeType = 'text/plain';
+    let extension = format;
+    
+    if (format === 'json') {
+      content = JSON.stringify(logs, null, 2);
+      mimeType = 'application/json';
+    } else if (format === 'csv') {
+      content = 'Timestamp,Type,Message\n' + logs.map(log => 
+        `"${new Date(log.timestamp).toISOString()}","${log.type}","${log.message.replace(/"/g, '""')}"`
+      ).join('\n');
+      mimeType = 'text/csv';
+    } else if (format === 'txt') {
+      content = logs.map(log => 
+        `[${new Date(log.timestamp).toLocaleString()}] ${log.type.toUpperCase()}: ${log.message}`
+      ).join('\n');
+    }
+    
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `vtt-logs-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `vtt-logs-${new Date().toISOString().split('T')[0]}.${extension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -554,6 +595,7 @@ export const useVttStore = create<VttStore>()(
   setEditingEntity: (entity) => set({ editingEntity: entity }),
   toggleLeftPanel: () => set((state) => ({ isLeftPanelOpen: !state.isLeftPanelOpen })),
   toggleLeftPanelExpanded: () => set((state) => ({ isLeftPanelExpanded: !state.isLeftPanelExpanded })),
+  toggleRightPanelExpanded: () => set((state) => ({ isRightPanelExpanded: !state.isRightPanelExpanded })),
   toggleRightPanel: () => set((state) => {
     const newState = { isRightPanelOpen: !state.isRightPanelOpen };
     if (state.isRightPanelOpen && state.editingEntity?.type === 'soundButton') {
@@ -574,6 +616,8 @@ export const useVttStore = create<VttStore>()(
     return newState;
   }),
   setScoreboard: (update) => set((state) => ({ scoreboard: { ...state.scoreboard, ...update } })),
+  setLogsSettings: (update) => set((state) => ({ logsSettings: { ...state.logsSettings, ...update } })),
+  setLogsFilter: (filter) => set({ logsFilter: filter }),
   setWiki: (update) => set((state) => ({ wiki: { ...state.wiki, ...update } })),
   setChecklistState: (update) => set((state) => ({ checklistState: { ...state.checklistState, ...update } })),
   setTagDistributorState: (update) => set((state) => ({ tagDistributorState: { ...state.tagDistributorState, ...update } })),
@@ -727,6 +771,15 @@ export const useVttStore = create<VttStore>()(
     })),
     markers: state.markers.filter(m => m.tag.id !== id)
   })),
+  reorderDistributorTags: (orderedTagIds) => set((state) => ({
+    tags: state.tags.map(t => {
+      const index = orderedTagIds.indexOf(t.id);
+      if (t.isInDistributor && index !== -1) {
+        return { ...t, distributorOrder: index };
+      }
+      return t;
+    })
+  })),
 
   // Tag Categories
   addTagCategory: (categoryData) => set((state) => ({
@@ -852,7 +905,57 @@ export const useVttStore = create<VttStore>()(
           customPopups: state.customPopups.filter(p => p.id !== id),
           activeCustomPopupId: state.activeCustomPopupId === id ? null : state.activeCustomPopupId
         })),
-        triggerCustomPopup: (id) => set({ activeCustomPopupId: id }),
+        triggerCustomPopup: (id) => {
+          const state = get();
+          if (!id) {
+            set({ activeCustomPopupId: id });
+            return;
+          }
+          const popup = state.customPopups.find(p => p.id === id);
+          if (!popup) {
+            console.log('[Popup Trigger] Popup not found:', id);
+            set({ activeCustomPopupId: null });
+            return;
+          }
+          
+          console.log('[Popup Trigger] Triggering popup:', {
+            id,
+            title: popup.title,
+            targetPlayerIds: popup.targetPlayerIds,
+            targetRoleIds: popup.targetRoleIds,
+            targetTeamIds: popup.targetTeamIds,
+            scheduledDelay: popup.scheduledDelay,
+            scheduledAt: popup.scheduledAt
+          });
+          
+          // Check for scheduled delay
+          if (popup.scheduledDelay && popup.scheduledDelay > 0) {
+            console.log('[Popup Trigger] Scheduling with delay:', popup.scheduledDelay, 'seconds');
+            setTimeout(() => {
+              console.log('[Popup Trigger] Delay elapsed, showing popup');
+              set({ activeCustomPopupId: id });
+            }, popup.scheduledDelay * 1000);
+            return;
+          }
+          
+          // Check for scheduled date/time
+          if (popup.scheduledAt) {
+            const scheduledTime = new Date(popup.scheduledAt).getTime();
+            const now = Date.now();
+            if (scheduledTime > now) {
+              console.log('[Popup Trigger] Scheduling for:', new Date(popup.scheduledAt), 'in', (scheduledTime - now) / 1000, 'seconds');
+              setTimeout(() => {
+                console.log('[Popup Trigger] Scheduled time reached, showing popup');
+                set({ activeCustomPopupId: id });
+              }, scheduledTime - now);
+              return;
+            }
+          }
+          
+          // Show immediately
+          console.log('[Popup Trigger] Showing immediately');
+          set({ activeCustomPopupId: id });
+        },
         setPreviewPopup: (popup) => set({ previewPopup: popup }),
 
         // Smartphone action message
@@ -860,13 +963,23 @@ export const useVttStore = create<VttStore>()(
         setSmartphoneCountdown: (countdown) => set({ smartphoneCountdown: countdown }),
 
         // Logs
-        addLog: (message, type) => set((state) => {
+        addLog: (message, type, metadata) => set((state) => {
           if (state.displaySettings.recordLogs === false) return {};
-          return {
-            logs: [{ id: uuidv4(), timestamp: Date.now(), message, type }, ...state.logs].slice(0, 100) // Keep last 100 logs
-          };
+          const newLog = { id: uuidv4(), timestamp: Date.now(), message, type, metadata };
+          const maxLogs = state.logsSettings.maxLogs ?? 100;
+          const newLogs = [newLog, ...state.logs].slice(0, maxLogs);
+          // Auto-save to localStorage
+          if (typeof window !== 'undefined' && state.displaySettings.persistLogs !== false) {
+            localStorage.setItem('vttapp-logs', JSON.stringify(newLogs));
+          }
+          return { logs: newLogs };
         }),
-        clearLogs: () => set({ logs: [] }),
+        clearLogs: () => set((state) => {
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('vttapp-logs');
+          }
+          return { logs: [] };
+        }),
 
         // Checklist
         setChecklist: (checklistPayload) => set((state) => ({
@@ -884,6 +997,16 @@ export const useVttStore = create<VttStore>()(
         deleteAction: (id) => set((state) => ({
           actions: state.actions.filter(a => a.id !== id)
         })),
+        duplicateAction: (id) => set((state) => {
+          const actionToDuplicate = state.actions.find(a => a.id === id);
+          if (!actionToDuplicate) return state;
+          const newAction = {
+            ...actionToDuplicate,
+            id: uuidv4(),
+            name: `${actionToDuplicate.name} (Copie)`
+          };
+          return { actions: [...state.actions, newAction] };
+        }),
         setPendingActionEnabled: (enabled: boolean) => set({ pendingActionEnabled: enabled }),
         setPendingElseActionId: (id: string | null) => set({ pendingElseActionId: id }),
         executeAction: (id, initialContext, depth = 0) => {
@@ -1177,6 +1300,17 @@ export const useVttStore = create<VttStore>()(
           state.actionEffectCreatorState = { ...state.actionEffectCreatorState, isOpen: false, editingEffectId: null };
           state.pendingActionConditions = [];
           state.pendingActionEffects = [];
+          // Restore logs from localStorage
+          if (typeof window !== 'undefined') {
+            const savedLogs = localStorage.getItem('vttapp-logs');
+            if (savedLogs) {
+              try {
+                state.logs = JSON.parse(savedLogs);
+              } catch (e) {
+                console.error('Failed to restore logs from localStorage:', e);
+              }
+            }
+          }
 
           // Migration: move base64 audio from localStorage to IndexedDB
           const buttons = state.soundboard?.buttons;

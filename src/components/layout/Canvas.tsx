@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+﻿import React, { useRef, useState, useEffect } from 'react';
 import { useStore } from 'zustand';
 import { useVttStore } from '../../store';
 import * as icons from 'lucide-react';
@@ -817,13 +817,15 @@ export const Canvas: React.FC = () => {
                 </div>
               )}
 
-              <button
-                onClick={() => setShowConnectionPopup(true)}
-                className="p-1.5 text-muted-foreground hover:text-primary hover:bg-accent rounded-md transition-colors"
-                title="Afficher les QR Codes de connexion"
-              >
-                <QrCode size={18} />
-              </button>
+              {roomCode && (
+                <button
+                  onClick={() => setShowConnectionPopup(true)}
+                  className="p-1.5 text-muted-foreground hover:text-primary hover:bg-accent rounded-md transition-colors"
+                  title="Afficher les QR Codes de connexion"
+                >
+                  <QrCode size={18} />
+                </button>
+              )}
             </>
           )}
         </div>

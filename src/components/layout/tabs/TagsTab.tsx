@@ -1,4 +1,4 @@
-import { Plus, Trash2, Edit2, Tag, icons, ChevronDown, ChevronRight, Copy, GripVertical, AlertTriangle, Search, X, ArrowUpDown, ArrowDownAZ, List, LayoutList, Download, Upload, Package, BarChart3 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Tag, icons, ChevronDown, ChevronRight, Copy, GripVertical, AlertTriangle, Search, X, ArrowUpDown, ArrowDownAZ, List, LayoutList, Download, Upload, Package, BarChart3, ArrowUpRight, Check, Star } from 'lucide-react';
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useVttStore } from '../../../store';
 import { ColorPicker } from '../../ColorPicker';
@@ -50,12 +50,17 @@ interface TagListItemProps {
 
 const TagListItem = React.memo(function TagListItem({ tag, usageCount, viewMode, onDuplicate, onEdit, onDelete, onUpdate, onDragStart }: TagListItemProps) {
   const IconComponent = icons[tag.icon as keyof typeof icons] || Tag;
+  const isInDistributor = tag.isInDistributor;
+  
   if (viewMode === 'compact') {
     return (
-      <div className="flex items-center justify-between px-2 py-1 rounded hover:bg-accent/50 group cursor-grab active:cursor-grabbing" style={{ '--tag-color': tag.color } as React.CSSProperties}
+      <div className={`flex items-center justify-between px-2 py-1 rounded group cursor-grab active:cursor-grabbing relative ${isInDistributor ? 'bg-blue-500/10 hover:bg-blue-500/20' : 'hover:bg-accent/50'}`} style={{ '--tag-color': tag.color } as React.CSSProperties}
         onMouseDown={() => onDragStart(tag.id)}>
-        <div className="flex items-center gap-1.5 overflow-hidden flex-1">
-          <div className="w-4 h-4 rounded flex items-center justify-center shrink-0"><IconComponent size={10} /></div>
+        {isInDistributor && (
+          <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-blue-400" title="Dans le distributeur" />
+        )}
+        <div className="flex items-center gap-1.5 overflow-hidden flex-1 pl-1">
+          <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 ${isInDistributor ? 'ring-1 ring-blue-400' : ''}`}><IconComponent size={10} /></div>
           <span className="text-xs font-medium truncate">{tag.name}</span>
           {usageCount > 0 && <span className="text-[8px] text-muted-foreground shrink-0">×{usageCount}</span>}
         </div>
@@ -68,11 +73,16 @@ const TagListItem = React.memo(function TagListItem({ tag, usageCount, viewMode,
     );
   }
   return (
-    <div className="flex items-center justify-between p-2 rounded-md border border-border bg-card hover:bg-accent/50 group cursor-grab active:cursor-grabbing" style={{ '--tag-color': tag.color } as React.CSSProperties}
+    <div className={`flex items-center justify-between p-2 rounded-md border group cursor-grab active:cursor-grabbing relative ${isInDistributor ? 'border-blue-500/50 bg-blue-500/5 hover:bg-blue-500/10' : 'border-border bg-card hover:bg-accent/50'}`} style={{ '--tag-color': tag.color } as React.CSSProperties}
       onMouseDown={() => onDragStart(tag.id)}>
-      <div className="flex items-center gap-2 overflow-hidden flex-1">
+      {isInDistributor && (
+        <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center" title="Dans le distributeur">
+          <ArrowUpRight size={10} />
+        </div>
+      )}
+      <div className="flex items-center gap-2 overflow-hidden flex-1 pr-6">
         <input type="checkbox" checked={tag.isInDistributor || false} onChange={(e) => onUpdate(tag.id, { isInDistributor: e.target.checked })} className="rounded border-border text-primary focus:ring-primary h-4 w-4 shrink-0 cursor-pointer" title="Ajouter au Distributeur" aria-label="Ajouter au Distributeur" />
-        <div className="w-6 h-6 rounded flex items-center justify-center shrink-0 tag-model-icon-wrapper"><IconComponent size={12} /></div>
+        <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 tag-model-icon-wrapper ${isInDistributor ? 'ring-2 ring-blue-400 shadow-md shadow-blue-500/20' : ''}`}><IconComponent size={12} /></div>
         <div className="flex flex-col min-w-0 flex-1">
           <span className="text-sm font-medium truncate">{tag.name}</span>
           {tag.description && <span className="text-[10px] text-muted-foreground truncate italic">{tag.description}</span>}
@@ -114,6 +124,7 @@ export const TagsTab: React.FC = () => {
   const [sortBy, setSortBy] = useState<'name' | 'date'>('name');
   const [viewMode, setViewMode] = useState<'detailed' | 'compact'>('detailed');
   const [draggedTagId, setDraggedTagId] = useState<string | null>(null);
+  const [showOnlyInDistributor, setShowOnlyInDistributor] = useState(false);
 
   const [sectionOrder, setSectionOrder] = useState(() => {
     try { const saved = localStorage.getItem('tagsTabSectionOrder'); return saved ? JSON.parse(saved) : ['createCategory', 'createTag', 'tagList']; } catch { return ['createCategory', 'createTag', 'tagList']; }
@@ -151,15 +162,25 @@ export const TagsTab: React.FC = () => {
   }, [tagsByCategory, sortBy]);
 
   const filteredTagsByCategory = useMemo(() => {
-    if (!searchQuery.trim()) return sortedTagsByCategory;
-    const query = searchQuery.toLowerCase();
+    const base = !searchQuery.trim() ? sortedTagsByCategory : (() => {
+      const query = searchQuery.toLowerCase();
+      const filtered: Record<string, typeof tags> = {};
+      Object.entries(sortedTagsByCategory).forEach(([catId, catTags]) => {
+        const matching = catTags.filter(t => t.name.toLowerCase().includes(query));
+        if (matching.length > 0 || catId === 'no-category') filtered[catId] = matching;
+      });
+      return filtered;
+    })();
+    
+    if (!showOnlyInDistributor) return base;
+    
     const filtered: Record<string, typeof tags> = {};
-    Object.entries(sortedTagsByCategory).forEach(([catId, catTags]) => {
-      const matching = catTags.filter(t => t.name.toLowerCase().includes(query));
-      if (matching.length > 0 || catId === 'no-category') filtered[catId] = matching;
+    Object.entries(base).forEach(([catId, catTags]) => {
+      const inDistributor = catTags.filter(t => t.isInDistributor);
+      if (inDistributor.length > 0 || catId === 'no-category') filtered[catId] = inDistributor;
     });
     return filtered;
-  }, [sortedTagsByCategory, searchQuery]);
+  }, [sortedTagsByCategory, searchQuery, showOnlyInDistributor]);
 
   const toggleCategory = (catId: string) => setExpandedCategories(prev => ({ ...prev, [catId]: !prev[catId] }));
 
@@ -184,6 +205,24 @@ export const TagsTab: React.FC = () => {
     while (tags.some(t => t.name === newName)) { newName = `${tag.name} (Copie ${counter})`; counter++; }
     addTagModel({ ...tagData, name: newName, isInDistributor: false });
   }, [addTagModel, tags]);
+
+  const handleAddAllToDistributor = useCallback((categoryId?: string) => {
+    const tagsToUpdate = categoryId 
+      ? tags.filter(t => t.categoryId === categoryId || (categoryId === 'none' && !t.categoryId))
+      : tags;
+    tagsToUpdate.forEach(tag => {
+      if (!tag.isInDistributor) updateTagModel(tag.id, { isInDistributor: true });
+    });
+  }, [tags, updateTagModel]);
+
+  const handleRemoveAllFromDistributor = useCallback((categoryId?: string) => {
+    const tagsToUpdate = categoryId
+      ? tags.filter(t => (t.categoryId === categoryId || (categoryId === 'none' && !t.categoryId)) && t.isInDistributor)
+      : tags.filter(t => t.isInDistributor);
+    tagsToUpdate.forEach(tag => {
+      updateTagModel(tag.id, { isInDistributor: false });
+    });
+  }, [tags, updateTagModel]);
 
   const handleRequestDelete = useCallback((type: 'tag' | 'category', id: string, name: string) => setDeleteConfirm({ type, id, name }), []);
   const handleConfirmDelete = useCallback(() => {
@@ -292,9 +331,45 @@ export const TagsTab: React.FC = () => {
 
   const renderTagList = () => {
     const hasSearch = searchQuery.trim() !== '';
+    const distributorCount = tags.filter(t => t.isInDistributor).length;
+    
     return (
     <div className="flex flex-col gap-2 mt-2 px-1">
-      <div className="flex items-center gap-2 mb-1">
+      <div className="flex items-center gap-2 mb-1 flex-wrap">
+        <div className="flex items-center gap-1 flex-1 min-w-[200px]">
+          <div className="relative flex-1">
+            <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-input border border-border rounded pl-7 pr-6 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 hover:bg-accent rounded"
+              >
+                <X size={10} />
+              </button>
+            )}
+          </div>
+        </div>
+        
+        <button
+          onClick={() => setShowOnlyInDistributor(!showOnlyInDistributor)}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium transition-colors border ${
+            showOnlyInDistributor
+              ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+              : 'bg-muted text-muted-foreground border-border hover:text-foreground'
+          }`}
+          title="Afficher uniquement les tags du distributeur"
+        >
+          {showOnlyInDistributor ? <Check size={10} /> : <ArrowUpRight size={10} />}
+          Distributeur ({distributorCount})
+        </button>
+        
         <button onClick={() => setSortBy(sortBy === 'name' ? 'date' : 'name')} className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Trier">
           {sortBy === 'name' ? <><ArrowDownAZ size={10} /> A-Z</> : <><ArrowUpDown size={10} /> Date</>}
         </button>
@@ -314,6 +389,9 @@ export const TagsTab: React.FC = () => {
         if (hasSearch && catTags.length === 0) return null;
         const CatIcon = icons[cat.icon as keyof typeof icons] || icons.Folder;
         const displayTags = hasSearch ? catTags : (sortedTagsByCategory[cat.id] || []);
+        const inDistributorCount = displayTags.filter(t => t.isInDistributor).length;
+        const allInDistributor = displayTags.length > 0 && inDistributorCount === displayTags.length;
+        
         return (
           <div key={cat.id} className="flex flex-col mb-2 bg-card border border-border rounded-md overflow-hidden" style={{ '--cat-color': cat.color } as React.CSSProperties}
             onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); handleTagDragEnd(cat.id); }}>
@@ -321,10 +399,32 @@ export const TagsTab: React.FC = () => {
               <button onClick={() => toggleCategory(cat.id)} className="flex items-center gap-2 flex-1 text-left">
                 <div className="p-1 rounded bg-background shadow-sm tag-category-icon-wrapper"><CatIcon size={14} /></div>
                 <span className="font-semibold text-sm flex-1 tag-category-name">{cat.name}</span>
-                <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">{displayTags.length}</span>
+                <div className="flex items-center gap-1">
+                  {inDistributorCount > 0 && (
+                    <span className="text-[9px] px-1 rounded bg-blue-500/20 text-blue-400" title="Tags dans le distributeur">
+                      <ArrowUpRight size={8} className="inline" />{inDistributorCount}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">{displayTags.length}</span>
+                </div>
                 {expandedCategories[cat.id] ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronRight size={14} className="text-muted-foreground" />}
               </button>
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (allInDistributor) handleRemoveAllFromDistributor(cat.id);
+                    else handleAddAllToDistributor(cat.id);
+                  }}
+                  className={`p-1.5 rounded-md transition-colors ${
+                    allInDistributor
+                      ? 'text-blue-400 hover:bg-blue-500/20'
+                      : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                  }`}
+                  title={allInDistributor ? "Retirer tous du distributeur" : "Ajouter tous au distributeur"}
+                >
+                  {allInDistributor ? <X size={14} /> : <ArrowUpRight size={14} />}
+                </button>
                 <button onClick={(e) => { e.stopPropagation(); setEditingEntity({ type: 'tagCategory', id: cat.id }); }} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md" title="Modifier catégorie" aria-label="Modifier catégorie"><Edit2 size={14} /></button>
                 <button onClick={(e) => { e.stopPropagation(); handleRequestDelete('category', cat.id, cat.name); }} className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md" title="Supprimer catégorie" aria-label="Supprimer catégorie"><Trash2 size={14} /></button>
               </div>
@@ -340,22 +440,56 @@ export const TagsTab: React.FC = () => {
         );
       })}
 
-      {(filteredTagsByCategory['no-category']?.length > 0 || sortedTagsByCategory['no-category']?.length > 0) && (
-        <div className="flex flex-col mb-2 bg-card border border-border rounded-md overflow-hidden"
-          onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); handleTagDragEnd(''); }}>
-           <button onClick={() => toggleCategory('no-category')} className="flex items-center gap-2 w-full text-left bg-muted/50 hover:bg-muted p-2 transition-colors">
-              <div className="p-1 rounded bg-background shadow-sm text-muted-foreground"><icons.Folder size={14} /></div>
-              <span className="font-semibold text-sm flex-1 text-muted-foreground italic">Sans catégorie</span>
-              <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">{(hasSearch ? filteredTagsByCategory['no-category'] : sortedTagsByCategory['no-category'])?.length || 0}</span>
-              {expandedCategories['no-category'] ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronRight size={14} className="text-muted-foreground" />}
-            </button>
-            {expandedCategories['no-category'] && (
-              <div className={`flex flex-col ${viewMode === 'compact' ? 'gap-0.5 p-1' : 'gap-1 p-2'} bg-background/50 border-t border-border`}>
-                {(hasSearch ? filteredTagsByCategory['no-category'] : sortedTagsByCategory['no-category'])?.map(tag => (<TagListItem key={tag.id} tag={tag} usageCount={tagUsageCounts[tag.id] || 0} viewMode={viewMode} onDuplicate={handleDuplicateTag} onEdit={(id) => setEditingEntity({ type: 'tagModel', id })} onDelete={(id, name) => handleRequestDelete('tag', id, name)} onUpdate={updateTagModel} onDragStart={setDraggedTagId} />))}
+      {(() => {
+        if (!(filteredTagsByCategory['no-category']?.length > 0 || sortedTagsByCategory['no-category']?.length > 0)) return null;
+        const noCatTags = hasSearch ? filteredTagsByCategory['no-category'] : sortedTagsByCategory['no-category'];
+        const noCatDisplayTags = noCatTags || [];
+        const noCatInDistributor = noCatDisplayTags.filter(t => t.isInDistributor).length;
+        const allNoCatInDistributor = noCatDisplayTags.length > 0 && noCatInDistributor === noCatDisplayTags.length;
+        
+        return (
+          <div className="flex flex-col mb-2 bg-card border border-border rounded-md overflow-hidden"
+            onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); handleTagDragEnd(''); }}>
+             <div className="flex items-center justify-between bg-muted/50 hover:bg-muted p-2 transition-colors group">
+               <button onClick={() => toggleCategory('no-category')} className="flex items-center gap-2 flex-1 text-left">
+                  <div className="p-1 rounded bg-background shadow-sm text-muted-foreground"><icons.Folder size={14} /></div>
+                  <span className="font-semibold text-sm flex-1 text-muted-foreground italic">Sans catégorie</span>
+                  <div className="flex items-center gap-1">
+                    {noCatInDistributor > 0 && (
+                      <span className="text-[9px] px-1 rounded bg-blue-500/20 text-blue-400" title="Tags dans le distributeur">
+                        <ArrowUpRight size={8} className="inline" />{noCatInDistributor}
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground bg-background px-1.5 rounded-full border border-border">{noCatDisplayTags.length}</span>
+                  </div>
+                  {expandedCategories['no-category'] ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronRight size={14} className="text-muted-foreground" />}
+                </button>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (allNoCatInDistributor) handleRemoveAllFromDistributor('none');
+                      else handleAddAllToDistributor('none');
+                    }}
+                    className={`p-1.5 rounded-md transition-colors ${
+                      allNoCatInDistributor
+                        ? 'text-blue-400 hover:bg-blue-500/20'
+                        : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                    }`}
+                    title={allNoCatInDistributor ? "Retirer tous du distributeur" : "Ajouter tous au distributeur"}
+                  >
+                    {allNoCatInDistributor ? <X size={14} /> : <ArrowUpRight size={14} />}
+                  </button>
+                </div>
               </div>
-            )}
-        </div>
-      )}
+              {expandedCategories['no-category'] && (
+                <div className={`flex flex-col ${viewMode === 'compact' ? 'gap-0.5 p-1' : 'gap-1 p-2'} bg-background/50 border-t border-border`}>
+                  {noCatDisplayTags.map(tag => (<TagListItem key={tag.id} tag={tag} usageCount={tagUsageCounts[tag.id] || 0} viewMode={viewMode} onDuplicate={handleDuplicateTag} onEdit={(id) => setEditingEntity({ type: 'tagModel', id })} onDelete={(id, name) => handleRequestDelete('tag', id, name)} onUpdate={updateTagModel} onDragStart={setDraggedTagId} />))}
+                </div>
+              )}
+          </div>
+        );
+      })()}
       {tags.length === 0 && (<p className="text-sm text-muted-foreground text-center py-2 italic">Aucun modèle de tag.</p>)}
     </div>
   );

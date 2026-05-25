@@ -28,7 +28,7 @@ const POSITION_THROTTLE_MS = 500; // Max 2 position broadcasts per second
 const buildFullStatePayload = () => {
   const state = useVttStore.getState();
   const stripImage = (url: string | null | undefined) =>
-    url && (url.startsWith('data:') || url.length > 2000) ? null : url;
+    url && (url.startsWith('data:') || url.length > 500) ? null : url;
 
   return {
     players: state.players.map(p => ({
@@ -45,7 +45,7 @@ const buildFullStatePayload = () => {
       imageUrl: (t as any).imageUrl ? stripImage((t as any).imageUrl) : undefined
     })),
     handouts: state.handouts.map(h => ({
-      ...h,
+      id: h.id, name: h.name, type: h.type, isOpen: h.isOpen,
       imageUrl: stripImage(h.imageUrl),
       referenceImageUrl: h.referenceImageUrl ? stripImage(h.referenceImageUrl) : undefined,
     })),
@@ -61,13 +61,9 @@ const buildFullStatePayload = () => {
       cols: state.soundboard?.cols || 4,
       rows: state.soundboard?.rows || 3,
       buttons: state.soundboard.buttons.map(b => ({
-        index: b.index,
-        name: b.name,
-        icon: b.icon,
-        color: b.color,
-        hasAudio: !!b.audioUrl,
-        isOneShot: b.isOneShot,
-        imageUrl: stripImage(b.imageUrl)
+        index: b.index, name: b.name, icon: b.icon,
+        color: b.color, hasAudio: !!b.audioUrl,
+        isOneShot: b.isOneShot, imageUrl: stripImage(b.imageUrl)
       }))
     },
     isNight: state.isNight,
@@ -89,7 +85,7 @@ const buildFullStatePayload = () => {
     smartphoneCountdown: state.smartphoneCountdown,
     timer: state.timer,
     actions: state.actions.map(a => ({ id: a.id, name: a.name, enabled: a.enabled })),
-    logs: state.logs,
+    logs: (state.logs || []).slice(-100),
   };
 };
 
@@ -98,13 +94,15 @@ const buildFullStatePayload = () => {
  * Broadcasts 3 times: immediately, at 500ms, and at 1200ms
  */
 export const sendFullStateWithRetry = () => {
-  if (!currentChannel || !isHostSubscribed) {
-    console.warn('[VTT] Cannot broadcast: channel not ready', { hasChannel: !!currentChannel, isSubscribed: isHostSubscribed });
+  if (!currentChannel) {
+    console.warn('[VTT] Cannot broadcast: no channel');
     return;
   }
 
   const payload = buildFullStatePayload();
+  const playerCount = payload.players?.length || 0;
   const payloadSize = JSON.stringify(payload).length;
+  console.log(`[VTT] Sending sync_state: ${playerCount} players, ${Math.round(payloadSize / 1024)}KB, channel: ${currentChannel.topic}`);
   if (payloadSize > 200_000) {
     console.warn(`[VTT] Broadcast payload is large: ${Math.round(payloadSize / 1024)}KB. Some images may have been stripped.`);
   }
@@ -115,9 +113,9 @@ export const sendFullStateWithRetry = () => {
       event: 'sync_state',
       payload: payload,
     }).then(() => {
-      console.log(`[VTT] sync_state broadcast sent (attempt ${attempt + 1})`);
+      console.log(`[VTT] sync_state broadcast sent OK (attempt ${attempt + 1})`);
     }).catch(err => {
-      console.error(`[VTT] Broadcast failed (attempt ${attempt + 1})`, err);
+      console.error(`[VTT] Broadcast failed (attempt ${attempt + 1}):`, err);
     });
   };
 
@@ -127,6 +125,8 @@ export const sendFullStateWithRetry = () => {
   setTimeout(() => doSend(1), 500);
   // Retry at 1200ms
   setTimeout(() => doSend(2), 1200);
+  // Additional retry at 3s for safety
+  setTimeout(() => doSend(3), 3000);
 
   // Update last broadcasted state for future diff computation
   lastBroadcastedState = { ...useVttStore.getState() } as Record<string, any>;
@@ -201,7 +201,7 @@ export const initHostRealtime = (roomCode: string) => {
   }
 
   currentChannel = supabase.channel(`room:${roomCode}`, {
-    config: { broadcast: { self: false, ack: false }, presence: { key: 'host' } },
+    config: { broadcast: { self: true, ack: false }, presence: { key: 'host' } },
   });
 
   currentChannel
@@ -690,6 +690,7 @@ export const initHostRealtime = (roomCode: string) => {
         console.log(`Host connected to room:${roomCode}`);
         await currentChannel?.track({ isHost: true });
         forceBroadcastState();
+        sendFullStateWithRetry();
       }
     });
 };

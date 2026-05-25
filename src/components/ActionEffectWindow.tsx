@@ -136,6 +136,7 @@ export const ActionEffectWindow: React.FC = () => {
   
   const [type, setType] = useState<ActionEffectType>('deleteAllTags');
   const [category, setCategory] = useState<string>('attributes');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [enabled, setEnabled] = useState(true);
   const [variable, setVariable] = useState('$Ordre');
   const [operator, setOperator] = useState('=');
@@ -488,6 +489,19 @@ export const ActionEffectWindow: React.FC = () => {
             </select>
           </div>
 
+          {/* Recherche */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="effect-search" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Rechercher une action</label>
+            <input
+              id="effect-search"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Taper pour filtrer les actions..."
+              className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-sm focus:border-indigo-500/50"
+            />
+          </div>
+
           {/* Type second */}
           <div className="flex flex-col gap-1.5">
             <label htmlFor="effect-type-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Type d'action</label>
@@ -504,10 +518,18 @@ export const ActionEffectWindow: React.FC = () => {
               }}
               className="w-full bg-input border border-border rounded-lg px-3 py-2 text-sm outline-none transition-all shadow-sm focus:border-indigo-500/50"
             >
-              {ACTION_OPTIONS.filter(o => category === 'all' || o.category === category).map(o => (
+              {ACTION_OPTIONS
+                .filter(o => category === 'all' || o.category === category)
+                .filter(o => searchQuery === '' || o.label.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
+            {searchQuery && (
+              <p className="text-[9px] text-muted-foreground pl-1">
+                {ACTION_OPTIONS.filter(o => category === 'all' || o.category === category).filter(o => o.label.toLowerCase().includes(searchQuery.toLowerCase())).length} action(s) trouvée(s)
+              </p>
+            )}
           </div>
 
           {(type === 'setDayNumber' || type === 'setNightNumber' || type === 'setPhaseDuration') && (

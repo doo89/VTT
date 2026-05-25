@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useVttStore } from '../store';
-import { X, Zap, Save, Plus, Edit2, Trash2, Check, Timer } from 'lucide-react';
+import { X, Zap, Save, Plus, Edit2, Trash2, Check, Timer, Book } from 'lucide-react';
 
 export const ActionCreatorWindow: React.FC = () => {
   const { 
@@ -210,6 +210,118 @@ export const ActionCreatorWindow: React.FC = () => {
               if (e.key === 'Escape') handleClose();
             }}
           />
+        </div>
+
+        {/* Templates / Presets */}
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Templates rapides</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => {
+                setActionName('Tuer un joueur');
+                setPendingEffects([{ id: 'preset-1', type: 'killPlayer', enabled: true }]);
+                setPendingConditions([]);
+              }}
+              className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-xs font-bold text-red-400 transition-colors"
+            >
+              💀 Tuer joueur
+            </button>
+            <button
+              onClick={() => {
+                setActionName('Ressusciter un joueur');
+                setPendingEffects([{ id: 'preset-2', type: 'resurrectPlayer', enabled: true }]);
+                setPendingConditions([]);
+              }}
+              className="p-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-lg text-xs font-bold text-green-400 transition-colors"
+            >
+              ✨ Ressusciter
+            </button>
+            <button
+              onClick={() => {
+                setActionName('Distribution des rôles');
+                setPendingEffects([{ id: 'preset-3', type: 'distributeRoles', enabled: true }]);
+                setPendingConditions([]);
+              }}
+              className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg text-xs font-bold text-blue-400 transition-colors"
+            >
+              🎭 Distribuer rôles
+            </button>
+            <button
+              onClick={() => {
+                setActionName('Passer au Jour suivant');
+                setPendingEffects([
+                  { id: 'preset-4a', type: 'modifyVariable', enabled: true, variable: '$CycleJour', operator: '+', value: 1 },
+                  { id: 'preset-4b', type: 'setCycleDayNight', enabled: true }
+                ]);
+                setPendingConditions([]);
+              }}
+              className="p-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg text-xs font-bold text-amber-400 transition-colors"
+            >
+              🌅 Jour suivant
+            </button>
+            <button
+              onClick={() => {
+                setActionName('Sélection aléatoire');
+                setPendingEffects([{ id: 'preset-5', type: 'selectPlayer', enabled: true }]);
+                setPendingConditions([]);
+              }}
+              className="p-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 rounded-lg text-xs font-bold text-purple-400 transition-colors"
+            >
+              🎲 Sélection aléa.
+            </button>
+            <button
+              onClick={() => {
+                setActionName('Afficher image du rôle');
+                setPendingEffects([{ id: 'preset-6', type: 'showRoleImage', enabled: true }]);
+                setPendingConditions([]);
+              }}
+              className="p-2 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/30 rounded-lg text-xs font-bold text-pink-400 transition-colors"
+            >
+              🖼️ Image rôle
+            </button>
+          </div>
+        </div>
+
+        {/* Variables Info */}
+        <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Book size={14} className="text-blue-400" />
+            <span className="text-xs font-bold text-blue-400 uppercase">Variables disponibles</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-[9px]">
+            <div className="flex items-center gap-1.5">
+              <code className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">$Joueur</code>
+              <span className="text-muted-foreground">Joueur ciblé/sélectionné</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <code className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">$Cible</code>
+              <span className="text-muted-foreground">Seconde cible</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <code className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">$Ordre</code>
+              <span className="text-muted-foreground">Ordre d'appel (1, 2, 3...)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <code className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">$Cycle</code>
+              <span className="text-muted-foreground">Numéro du cycle</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <code className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">$Jour</code>
+              <span className="text-muted-foreground">Numéro du jour</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <code className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">$Nuit</code>
+              <span className="text-muted-foreground">Numéro de la nuit</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <code className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">$Tour</code>
+              <span className="text-muted-foreground">Numéro du tour</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <code className="bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">$Sélection</code>
+              <span className="text-muted-foreground">Joueurs sélectionnés</span>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-between bg-zinc-800/10 p-2.5 rounded-lg border border-border/20">

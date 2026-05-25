@@ -36,6 +36,7 @@ export const PlayerView: React.FC = () => {
   const [isWikiRolesOpen, setIsWikiRolesOpen] = useState(false);
   const [isWikiTagsOpen, setIsWikiTagsOpen] = useState(false);
   const [isWikiTeamsOpen, setIsWikiTeamsOpen] = useState(false);
+  const [wikiSearchTerm, setWikiSearchTerm] = useState('');
   const [allTags, setAllTags] = useState<TagModel[]>([]);
   const [expandedPlayerNotesId, setExpandedPlayerNotesId] = useState<string | null>(null);
   const [playerNotes, setPlayerNotes] = useState<Record<string, string>>(() => {
@@ -250,100 +251,104 @@ export const PlayerView: React.FC = () => {
         }
       })
       .on('broadcast', { event: 'sync_state' }, async ({ payload }) => {
-        const data = payload as SyncStatePayload;
-        setLastSyncTime(Date.now());
-        setIsNight(data.isNight || false);
-        setCycleMode(data.cycleMode || 'dayNight');
-        setDisplaySettings(data.displaySettings || null);
-        setWiki(data.wiki || null);
-        setSmartphoneCountdown((data as any).smartphoneCountdown || null);
-        setTimer((data as any).timer || { minutes: 5, seconds: 0, isRunning: false });
-        
-        // Initial light mode from GM settings if not already toggled by user
-        if (data.displaySettings?.wikiLightMode !== undefined) {
-           setWikiLightMode(prev => prev || data.displaySettings.wikiLightMode);
-        }
+        try {
+          const data = payload as SyncStatePayload;
+          setLastSyncTime(Date.now());
+          setIsNight(data.isNight || false);
+          setCycleMode(data.cycleMode || 'dayNight');
+          setDisplaySettings(data.displaySettings || null);
+          setWiki(data.wiki || null);
+          setSmartphoneCountdown((data as any).smartphoneCountdown || null);
+          setTimer((data as any).timer || { minutes: 5, seconds: 0, isRunning: false });
 
-        setRoomData(data.room || null);
-        setRoomLogs(data.logs || []);
-        
-        // Push custom popups to the global store so that CustomPopupOverlay can render them
-        useVttStore.setState({
-          customPopups: (data as any).customPopups || [],
-          activeCustomPopupId: (data as any).activeCustomPopupId || null,
-          activeGroupVote: (data as any).activeGroupVote || null
-        });
-
-        // Normalize strings for comparison (remove accents & lowercase)
-        const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-
-        // Find player by previously matched ID, OR by name
-        let found = null;
-        if (matchedPlayerIdRef.current) {
-          found = data.players.find(p => p.id === matchedPlayerIdRef.current);
-        }
-        if (!found) {
-          const rawName = decodeURIComponent(playerName);
-          const normalizedRaw = normalize(rawName);
-          found = data.players.find(p => normalize(p.name) === normalizedRaw);
-          if (found) {
-            matchedPlayerIdRef.current = found.id;
-            // Track presence now that we know our ID (do not await to avoid blocking UI update)
-            channel.track({ playerId: found.id, name: found.name }).catch(console.error);
+          // Initial light mode from GM settings if not already toggled by user
+          if (data.displaySettings?.wikiLightMode !== undefined) {
+            setWikiLightMode(prev => prev || data.displaySettings.wikiLightMode);
           }
-        }
 
-        // Store all players for the selector
-        setRoomPlayers(data.players || []);
-        
-        // Store all roles for the Wiki
-        setAllRoles(data.roles || []);
+          setRoomData(data.room || null);
+          setRoomLogs(data.logs || []);
 
-        // Store all teams for the Wiki
-        setAllTeams(data.teams || []);
+          // Push custom popups to the global store so that CustomPopupOverlay can render them
+          useVttStore.setState({
+            customPopups: (data as any).customPopups || [],
+            activeCustomPopupId: (data as any).activeCustomPopupId || null,
+            activeGroupVote: (data as any).activeGroupVote || null,
+            players: (data as any).players || [], // Sync players for CustomPopupOverlay targeting
+            roles: (data as any).roles || [] // Sync roles for CustomPopupOverlay targeting
+          });
 
-        // Store all tags for the Wiki
-        setAllTags(data.tags || []);
+          // Store all players for the selector BEFORE trying to find ourselves
+          setRoomPlayers(data.players || []);
 
-        // Update notice board players
-        const noticeBoard = data.players.filter(p => p.publicNotes && p.publicNotesNoticeBoard);
-        setNoticeBoardPlayers(noticeBoard);
+          // Store all roles for the Wiki
+          setAllRoles(data.roles || []);
 
-        if (found) {
-          setLocalPlayer(found);
-          const role = data.roles.find(r => r.id === found.roleId);
-          setLocalRole(role || null);
+          // Store all teams for the Wiki
+          setAllTeams(data.teams || []);
 
-          const effectiveTeamId = role?.seenInTeamId || role?.teamId || found.teamId;
-          const team = data.teams.find(t => t.id === effectiveTeamId);
-          setLocalTeam(team || null);
+          // Store all tags for the Wiki
+          setAllTags(data.tags || []);
 
-          // Extract handout images from tags
-          const newHandouts: { id: string; url: string; name: string }[] = [];
-          if (data.handouts) {
-            found.tags.forEach((tag: any) => {
-              if (tag.handoutId) {
-                const handout = data.handouts.find((h: any) => h.id === tag.handoutId);
-                if (handout && handout.imageUrl) {
-                  // Avoid duplicates
-                  if (!newHandouts.find(h => h.id === handout.id)) {
-                    newHandouts.push({ id: handout.id, url: handout.imageUrl, name: handout.name });
+          // Update notice board players
+          const noticeBoard = data.players?.filter(p => p.publicNotes && p.publicNotesNoticeBoard) || [];
+          setNoticeBoardPlayers(noticeBoard);
+
+          // Normalize strings for comparison (remove accents & lowercase)
+          const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+
+          // Find player by previously matched ID, OR by name
+          let found = null;
+          if (matchedPlayerIdRef.current && data.players) {
+            found = data.players.find((p: any) => p.id === matchedPlayerIdRef.current);
+          }
+          if (!found && data.players) {
+            const rawName = decodeURIComponent(playerName);
+            const normalizedRaw = normalize(rawName);
+            found = data.players.find((p: any) => normalize(p.name) === normalizedRaw);
+            if (found) {
+              matchedPlayerIdRef.current = found.id;
+              // Track presence now that we know our ID (do not await to avoid blocking UI update)
+              channel.track({ playerId: found.id, name: found.name }).catch(console.error);
+            }
+          }
+
+          if (found) {
+            setLocalPlayer(found);
+            const role = data.roles?.find((r: any) => r.id === found.roleId);
+            setLocalRole(role || null);
+
+            const effectiveTeamId = role?.seenInTeamId || role?.teamId || found.teamId;
+            const team = data.teams?.find((t: any) => t.id === effectiveTeamId);
+            setLocalTeam(team || null);
+
+            // Extract handout images from tags
+            const newHandouts: { id: string; url: string; name: string }[] = [];
+            if (data.handouts) {
+              found.tags.forEach((tag: any) => {
+                if (tag.handoutId) {
+                  const handout = data.handouts.find((h: any) => h.id === tag.handoutId);
+                  if (handout && handout.imageUrl) {
+                    if (!newHandouts.find(h => h.id === handout.id)) {
+                      newHandouts.push({ id: handout.id, url: handout.imageUrl, name: handout.name });
+                    }
                   }
                 }
-              }
-            });
+              });
+            }
+            setHandoutImages(newHandouts);
+          } else {
+            setLocalPlayer(null);
+            setLocalRole(null);
+            setLocalTeam(null);
+            setHandoutImages([]);
+            if (matchedPlayerIdRef.current) {
+              matchedPlayerIdRef.current = null;
+              channel.untrack();
+            }
           }
-          setHandoutImages(newHandouts);
-        } else {
-          setLocalPlayer(null);
-          setLocalRole(null);
-          setLocalTeam(null);
-          setHandoutImages([]);
-          // If we lost our ID (e.g. player deleted), reset it
-          if (matchedPlayerIdRef.current) {
-            matchedPlayerIdRef.current = null;
-            channel.untrack();
-          }
+        } catch (e) {
+          console.error('[VTT] Error processing sync_state:', e);
         }
       })
       .on('presence', { event: 'sync' }, () => {
@@ -377,7 +382,7 @@ export const PlayerView: React.FC = () => {
             event: 'get_state',
           }).catch(console.error);
 
-          // Retry every 4 seconds until we are matched by the host
+          // Retry every 2 seconds until we are matched by the host
           // This handles the case where the host was not ready when we first joined
           const retryInterval = setInterval(() => {
             if (matchedPlayerIdRef.current) {
@@ -393,10 +398,24 @@ export const PlayerView: React.FC = () => {
               type: 'broadcast',
               event: 'get_state',
             }).catch(console.error);
-          }, 4000);
+          }, 2000);
+
+          // Detect if sync_state never arrived: if after 6s lastSyncTime is still null, force re-request
+          const syncTimeout = setTimeout(() => {
+            if (!matchedPlayerIdRef.current) {
+              console.warn('[VTT] No sync_state received after 6s, forcing re-request');
+              channel.send({
+                type: 'broadcast',
+                event: 'get_state',
+              }).catch(console.error);
+            }
+          }, 6000);
 
           // Store interval ID for cleanup on unmount
-          return () => clearInterval(retryInterval);
+          return () => {
+            clearInterval(retryInterval);
+            clearTimeout(syncTimeout);
+          };
 
         } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
           setIsConnected(false);
@@ -1217,6 +1236,20 @@ export const PlayerView: React.FC = () => {
 
           {(activeTab === 'wiki' && showWiki) && (
             <div className="flex-1 flex flex-col gap-6 py-2 pb-10">
+              {/* Search bar */}
+              <div className="sticky top-0 z-10 bg-zinc-950/80 backdrop-blur-sm py-2 border-b border-zinc-800">
+                <div className="relative">
+                  <icons.Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher dans le wiki..."
+                    value={wikiSearchTerm}
+                    onChange={(e) => setWikiSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 text-sm bg-zinc-900/50 border border-zinc-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-zinc-100 placeholder:text-zinc-600"
+                  />
+                </div>
+              </div>
+
               {/* Part 1: MJ Wiki Content */}
               {(displaySettings?.showWikiNotes !== false) && (
               <section className="flex flex-col gap-3">
@@ -1467,21 +1500,49 @@ export const PlayerView: React.FC = () => {
               </div>
               <div className="flex-1 bg-zinc-900/40 rounded-3xl border border-zinc-800/60 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-3">
                 {roomLogs && roomLogs.length > 0 ? (
-                  roomLogs.slice().reverse().map((log: any) => (
-                    <div key={log.id} className="flex flex-col gap-1 animate-in fade-in slide-in-from-left-2 duration-300">
-                      <div className="flex items-center justify-between">
-                        <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${log.type === 'system' ? 'bg-zinc-800 text-zinc-500' : 'bg-blue-500/10 text-blue-400'}`}>
-                          {log.type === 'system' ? 'Système' : 'Action'}
-                        </span>
-                        <span className="text-[8px] font-medium text-zinc-700">
-                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                  roomLogs.slice().reverse().map((log: any) => {
+                    let badgeClass = 'bg-zinc-800 text-zinc-500';
+                    let dotColor = 'bg-zinc-500';
+                    
+                    if (log.type === 'system') {
+                      badgeClass = 'bg-zinc-800 text-zinc-500';
+                      dotColor = 'bg-blue-500';
+                    } else if (log.type === 'death') {
+                      badgeClass = 'bg-red-500/20 text-red-400';
+                      dotColor = 'bg-red-500';
+                    } else if (log.type === 'action') {
+                      badgeClass = 'bg-amber-500/20 text-amber-400';
+                      dotColor = 'bg-amber-500';
+                    } else if (log.type === 'role') {
+                      badgeClass = 'bg-emerald-500/20 text-emerald-400';
+                      dotColor = 'bg-emerald-500';
+                    } else if (log.type === 'note') {
+                      badgeClass = 'bg-purple-500/20 text-purple-400';
+                      dotColor = 'bg-purple-500';
+                    } else if (log.type === 'info') {
+                      badgeClass = 'bg-blue-500/20 text-blue-400';
+                      dotColor = 'bg-blue-500';
+                    }
+                    
+                    return (
+                      <div key={log.id} className="flex gap-2 items-start animate-in fade-in slide-in-from-left-2 duration-300">
+                        <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${dotColor}`} />
+                        <div className="flex flex-col gap-1 flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${badgeClass}`}>
+                              {log.type}
+                            </span>
+                            <span className="text-[8px] font-medium text-zinc-700">
+                              {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-zinc-300 leading-relaxed pl-1 border-l-2 border-zinc-800">
+                            {log.message}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-sm text-zinc-300 leading-relaxed pl-1 border-l-2 border-zinc-800">
-                        {log.message}
-                      </p>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-zinc-700 italic gap-3 opacity-30">
                     <icons.MessageSquare size={48} strokeWidth={1} />

@@ -150,6 +150,7 @@ export interface TagModel extends MarkerParameter {
   childTagIds?: EntityId[]; // List of other tag model IDs to apply when this container is applied
   handoutId?: EntityId | null; // Reference to a handout image
   isInDistributor?: boolean;
+  distributorOrder?: number; // Order in the distributor (lower = first)
 }
 
 // Local Tag Instance (attached to a player or marker)
@@ -233,6 +234,13 @@ export interface LogEvent {
   timestamp: number;
   message: string;
   type: 'info' | 'action' | 'system' | 'death' | 'note' | 'role';
+  metadata?: {
+    playerId?: string;
+    roleId?: string;
+    tagId?: string;
+    targetId?: string;
+    actionId?: string;
+  };
 }
 
 export interface SoundboardState {
@@ -262,9 +270,15 @@ export interface CustomPopup {
   content: string;
   showCloseButton: boolean;
   autoCloseTimer: boolean;
+  autoCloseDuration?: number; // seconds (5-60)
   soundUrl?: string | null;
   showToGM?: boolean;
   showToSmartphone?: boolean;
+  targetRoleIds?: string[];
+  targetTeamIds?: string[];
+  targetPlayerIds?: string[];
+  scheduledAt?: string; // ISO date string
+  scheduledDelay?: number; // seconds from trigger
 }
 
 export type ChecklistItemType = 'text' | 'checkbox' | 'image';
@@ -598,6 +612,18 @@ export interface GameState {
   handouts: Handout[];
   handoutCategories: HandoutCategory[];
   logs: LogEvent[];
+  logsSettings: {
+    showTypes: {
+      info: boolean;
+      action: boolean;
+      system: boolean;
+      death: boolean;
+      note: boolean;
+      role: boolean;
+    };
+    maxLogs: number;
+  };
+  logsFilter: string;
   recentColors: string[];
   customPopups: CustomPopup[];
   activeCustomPopupId: string | null;
@@ -651,8 +677,15 @@ export interface GameState {
     showVotes: boolean;
     showLives: boolean;
     showStatus: boolean;
+    showPodium: boolean;
+    showLifeBar: boolean;
+    showTable: boolean;
   };
   activeLeftTab: 'players' | 'roles' | 'tags' | 'game' | 'handouts';
+  isLeftPanelOpen: boolean;
+  isRightPanelOpen: boolean;
+  isLeftPanelExpanded: boolean;
+  isRightPanelExpanded: boolean;
   gameTabState: {
     treatedEntities: string[];
     playerNotes: Record<string, string>;
@@ -729,6 +762,7 @@ export interface GameState {
     };
     includeRoomCodeInLinks: boolean;
     recordLogs: boolean;
+    persistLogs: boolean;
     smartphoneTabs: {
       game: boolean;
       players: boolean;
@@ -835,5 +869,10 @@ export interface GameState {
     showToolbarGrimoire?: boolean;
     showToolbarSettings?: boolean;
     showToolbarFullscreen?: boolean;
+    tagDistributorDefaultCols?: number;
+    tagDistributorDefaultMode?: 'detailed' | 'compact';
+    tagDistributorDefaultSort?: 'order' | 'alpha';
+    tagDistributorShowCount?: boolean;
+    tagDistributorAutoDetach?: boolean;
   };
 }
