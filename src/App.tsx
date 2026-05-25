@@ -4,8 +4,30 @@ import { CustomPopupOverlay } from './components/CustomPopupOverlay';
 import { SkeletonGMView, SkeletonPlayerView } from './components/Skeletons';
 
 // Helper to convert named exports to default exports for lazy loading
+// Includes automatic recovery for chunk loading errors (e.g. after a new deployment)
 function lazyWithNamed(importFunc: () => Promise<any>, exportName: string) {
-  return () => importFunc().then(module => ({ default: module[exportName] }));
+  return () =>
+    importFunc()
+      .then(module => ({ default: module[exportName] }))
+      .catch(error => {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const isChunkError =
+          errorMessage.includes('Failed to fetch dynamically imported module') ||
+          errorMessage.includes('error loading dynamically imported module') ||
+          errorMessage.includes('Failed to fetch');
+
+        if (isChunkError) {
+          const lastReload = sessionStorage.getItem('chunk-error-reload');
+          const now = Date.now();
+          // Prevent infinite reload loops by checking if we reloaded in the last 10 seconds
+          if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+            sessionStorage.setItem('chunk-error-reload', now.toString());
+            window.location.reload();
+            return new Promise<any>(() => {}); // Return a pending promise to prevent rendering half-broken state before reload
+          }
+        }
+        throw error;
+      });
 }
 
 // Lazy load pages for code splitting
