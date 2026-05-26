@@ -13,4 +13,21 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
   },
+  build: {
+    // Improve chunk splitting for Vercel deployment
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+          'vendor-lucide': ['lucide-react'],
+        },
+      },
+    },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1500,
+    // Ensure assets are properly hashed for cache busting
+    assetsDir: 'assets',
+  },
 })
