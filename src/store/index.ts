@@ -204,6 +204,14 @@ export interface VttStore extends GameState {
   exportFullState: () => void;
   exportPartialState: (sections: string[]) => void;
   importState: (jsonData: string) => { success: boolean; error?: string };
+  
+  // Connection status
+  setConnectionStatus: (status: 'connected' | 'disconnected' | 'connecting' | 'error') => void;
+  setLastSyncTimestamp: (timestamp: number | null) => void;
+  setSupabaseConfigured: (configured: boolean) => void;
+  testConnection: () => Promise<{ success: boolean; error?: string }>;
+  resetChannel: () => void;
+  resetOnlinePlayers: () => void;
 }
 
 export const initialState = {
@@ -227,6 +235,9 @@ export const initialState = {
   isMagneticEnabled: true,
   magneticSnapToGrid: false,
   magneticGridSize: 50,
+  connectionStatus: 'disconnected' as 'connected' | 'disconnected' | 'connecting' | 'error',
+  lastSyncTimestamp: null as number | null,
+  supabaseConfigured: false,
   tagCategories: [],
   handouts: [],
   handoutCategories: [],
@@ -1212,6 +1223,42 @@ export const useVttStore = create<VttStore>()(
         setIsMagneticEnabled: (enabled) => set({ isMagneticEnabled: enabled }),
         setMagneticSnapToGrid: (enabled) => set({ magneticSnapToGrid: enabled }),
         setMagneticGridSize: (size) => set({ magneticGridSize: size }),
+        setConnectionStatus: (status) => set({ connectionStatus: status }),
+        setLastSyncTimestamp: (timestamp) => set({ lastSyncTimestamp: timestamp }),
+        setSupabaseConfigured: (configured) => set({ supabaseConfigured: configured }),
+        testConnection: async () => {
+          const state = get();
+          if (!state.supabaseConfigured) {
+            return { success: false, error: 'Supabase non configuré' };
+          }
+          try {
+            const { supabase } = await import('../lib/supabase');
+            if (!supabase) {
+              return { success: false, error: 'Supabase non initialisé' };
+            }
+            const { error } = await supabase.from('_ping').select('count');
+            if (error) {
+              set({ connectionStatus: 'error' });
+              return { success: false, error: error.message };
+            }
+            set({ connectionStatus: 'connected' });
+            return { success: true };
+          } catch (e) {
+            set({ connectionStatus: 'error' });
+            return { success: false, error: (e as Error).message };
+          }
+        },
+        resetChannel: () => {
+          const state = get();
+          if (state.roomCode) {
+            const code = state.roomCode;
+            import('../lib/realtime-host').then(({ initHostRealtime }) => {
+              initHostRealtime(code);
+              set({ connectionStatus: 'connecting' });
+            });
+          }
+        },
+        resetOnlinePlayers: () => set({ onlinePlayerIds: [] }),
         updateMagneticPointLabel: (id, label) => set((state) => ({
           magneticPoints: state.magneticPoints.map(p => p.id === id ? { ...p, label } : p)
         })),

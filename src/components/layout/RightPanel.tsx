@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play, Magnet, Eye, EyeOff, Maximize2, Minimize2, Copy, LayoutGrid, GripVertical, Grid2X2 } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play, Magnet, Eye, EyeOff, Maximize2, Minimize2, Copy, LayoutGrid, GripVertical, Grid2X2, Wifi, Users, TriangleAlert } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import * as icons from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -41,6 +41,8 @@ export const RightPanel: React.FC = () => {
     editingEntity, setEditingEntity,
     magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints, deleteMagneticPoint, reorderMagneticPoints, createPointsFromTemplate,
     exportMagneticPoints, importMagneticPoints, setMagneticSnapToGrid, magneticSnapToGrid, updateMagneticPointLabel, updateMagneticPointColor,
+    connectionStatus, setConnectionStatus, lastSyncTimestamp, setLastSyncTimestamp, supabaseConfigured, onlinePlayerIds, roomCode,
+    testConnection, resetChannel, resetOnlinePlayers,
 
   } = useVttStore();
 
@@ -51,6 +53,7 @@ export const RightPanel: React.FC = () => {
   const [showMagneticTemplateModal, setShowMagneticTemplateModal] = useState(false);
   const [magneticDragIndex, setMagneticDragIndex] = useState<number | null>(null);
   const [showMagneticPreview, setShowMagneticPreview] = useState(false);
+  const [showResetMenu, setShowResetMenu] = useState(false);
 
   // Helper to get popup trigger button label based on targeting
   const getPopupTriggerLabel = (popup: CustomPopup) => {
@@ -122,11 +125,11 @@ export const RightPanel: React.FC = () => {
         let url = '';
         let key = '';
         lines.forEach(line => {
-          if (line.startsWith('VITE_SUPABASE_URL=')) {
-            url = line.split('=')[1]?.trim() || '';
-          }
-          if (line.startsWith('VITE_SUPABASE_ANON_KEY=')) {
-            key = line.split('=')[1]?.trim() || '';
+          const trimmed = line.trim();
+          if (trimmed.startsWith('VITE_SUPABASE_URL=')) {
+            url = trimmed.substring('VITE_SUPABASE_URL='.length);
+          } else if (trimmed.startsWith('VITE_SUPABASE_ANON_KEY=')) {
+            key = trimmed.substring('VITE_SUPABASE_ANON_KEY='.length);
           }
         });
         if (urlRef.current) urlRef.current.value = url;
@@ -899,9 +902,63 @@ export const RightPanel: React.FC = () => {
               </div>
               {activeSection === 'systeme' && (
                 <div className="p-4 pt-3 flex flex-col gap-3 border-t border-border">
+                  <div className="flex flex-wrap gap-2 pb-2 border-b border-border/50">
+                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold ${
+                      connectionStatus === 'connected' ? 'bg-green-500/20 text-green-500' :
+                      connectionStatus === 'connecting' ? 'bg-yellow-500/20 text-yellow-500' :
+                      connectionStatus === 'error' ? 'bg-red-500/20 text-red-500' :
+                      'bg-gray-500/20 text-gray-500'
+                    }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${
+                        connectionStatus === 'connected' ? 'bg-green-500 animate-pulse' :
+                        connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+                        connectionStatus === 'error' ? 'bg-red-500' :
+                        'bg-gray-500'
+                      }`} />
+                      {connectionStatus === 'connected' ? 'Connecté' :
+                       connectionStatus === 'connecting' ? 'Connexion...' :
+                       connectionStatus === 'error' ? 'Erreur' : 'Déconnecté'}
+                    </div>
+                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold ${
+                      supabaseConfigured ? 'bg-blue-500/20 text-blue-500' : 'bg-gray-500/20 text-gray-500'
+                    }`}>
+                      <Database size={10} />
+                      Supabase {supabaseConfigured ? 'OK' : 'Non config'}
+                    </div>
+                    {roomCode && (
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-purple-500/20 text-purple-500 text-[10px] font-bold">
+                        <Wifi size={10} />
+                        {roomCode}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-1 text-[10px] text-muted-foreground bg-muted/30 p-2 rounded border border-border/50">
+                    <div className="flex justify-between">
+                      <span>📊 Joueurs connectés :</span>
+                      <span className="font-mono font-bold text-foreground">{onlinePlayerIds.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>🕐 Dernière sync :</span>
+                      <span className="font-mono font-bold text-foreground">
+                        {lastSyncTimestamp ? `il y a ${Math.floor((Date.now() - lastSyncTimestamp) / 1000)}s` : 'Jamais'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>📡 Canal :</span>
+                      <span className="font-mono font-bold text-foreground truncate max-w-[150px]">
+                        {roomCode ? `room:${roomCode}` : 'Aucun'}
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="flex flex-col gap-1.5">
                     <button
-                      onClick={() => forceBroadcastState()}
+                      onClick={() => {
+                        forceBroadcastState();
+                        setLastSyncTimestamp(Date.now());
+                        toast.success('Synchronisation forcée envoyée');
+                      }}
                       className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
                     >
                       <RefreshCw size={14} /> Forcer la Synchronisation
@@ -911,11 +968,80 @@ export const RightPanel: React.FC = () => {
                     </p>
                   </div>
 
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={async () => {
+                        toast.info('Test de connexion en cours...');
+                        const result = await testConnection();
+                        if (result.success) {
+                          toast.success('Connexion Supabase OK');
+                        } else {
+                          toast.error('Échec connexion: ' + result.error);
+                        }
+                      }}
+                      className="flex-1 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-500 border border-green-500/30 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <Wifi size={14} /> Tester
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowResetMenu(!showResetMenu)}
+                        className="h-full py-2 px-3 bg-orange-600/20 hover:bg-orange-600/30 text-orange-500 border border-orange-500/30 rounded-md text-xs font-bold transition-colors"
+                        title="Réinitialisation partielle"
+                      >
+                        <Settings size={14} />
+                      </button>
+                      {showResetMenu && (
+                        <div className="absolute right-0 top-full mt-1 w-48 bg-popover border border-border rounded-lg shadow-xl z-50 overflow-hidden">
+                          <div className="p-2 border-b border-border bg-muted/50">
+                            <p className="text-[10px] font-bold text-muted-foreground">Réinitialiser</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              resetOnlinePlayers();
+                              toast.success('Joueurs reset');
+                              setShowResetMenu(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex items-center gap-2"
+                          >
+                            <Users size={12} /> Joueurs connectés
+                          </button>
+                          <button
+                            onClick={() => {
+                              resetChannel();
+                              toast.info('Canal en cours de reset...');
+                              setShowResetMenu(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs hover:bg-accent transition-colors flex items-center gap-2"
+                          >
+                            <Wifi size={12} /> Canal Supabase
+                          </button>
+                          <button
+                            onClick={() => {
+                              resetOnlinePlayers();
+                              resetChannel();
+                              toast.info('Reset complet...');
+                              setShowResetMenu(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs hover:bg-destructive/20 text-destructive transition-colors flex items-center gap-2 border-t border-border"
+                          >
+                            <TriangleAlert size={12} /> Reset complet
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="flex flex-col gap-1.5 mt-2">
                     <button
                       onClick={() => {
                         const code = useVttStore.getState().roomCode;
-                        if (code) initHostRealtime(code);
+                        if (code) {
+                          initHostRealtime(code);
+                          toast.success('Canal réinitialisé');
+                        } else {
+                          toast.error('Aucun code de salle');
+                        }
                       }}
                       className="w-full py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-bold flex items-center justify-center gap-2 transition-colors border border-border"
                     >

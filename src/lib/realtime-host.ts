@@ -154,6 +154,9 @@ const broadcastStateInternal = (forceFull: boolean = false) => {
 
   // Store state for tracking (even though we always send full state)
   lastBroadcastedState = { ...state } as Record<string, any>;
+  
+  // Update last sync timestamp
+  useVttStore.getState().setLastSyncTimestamp(Date.now());
 };
 
 /**
@@ -687,10 +690,16 @@ export const initHostRealtime = (roomCode: string) => {
     .subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
         isHostSubscribed = true;
+        useVttStore.getState().setConnectionStatus('connected');
+        useVttStore.getState().setSupabaseConfigured(true);
         console.log(`Host connected to room:${roomCode}`);
         await currentChannel?.track({ isHost: true });
         forceBroadcastState();
         sendFullStateWithRetry();
+      } else if (status === 'CHANNEL_ERROR') {
+        useVttStore.getState().setConnectionStatus('error');
+      } else if (status === 'CLOSED') {
+        useVttStore.getState().setConnectionStatus('disconnected');
       }
     });
 };

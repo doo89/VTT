@@ -620,6 +620,9 @@ export interface GameState {
   isMagneticEnabled: boolean;
   magneticSnapToGrid: boolean;
   magneticGridSize: number;
+  connectionStatus: 'connected' | 'disconnected' | 'connecting' | 'error';
+  lastSyncTimestamp: number | null;
+  supabaseConfigured: boolean;
   tags: TagModel[];
   tagCategories: TagCategory[];
   handouts: Handout[];
