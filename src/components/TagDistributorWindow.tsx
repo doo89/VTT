@@ -13,6 +13,7 @@ export const TagDistributorWindow: React.FC = () => {
   const [cols, setCols] = useState(1);
   const [compactMode, setCompactMode] = useState(false);
   const [sortMode, setSortMode] = useState<'order' | 'alpha'>('order');
+  const [dragMode, setDragMode] = useState<'distribute' | 'reorder'>('distribute');
   const distributorRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
   const resizeStartRef = useRef<{ startX: number; startWidth: number } | null>(null);
@@ -74,7 +75,7 @@ export const TagDistributorWindow: React.FC = () => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing || !resizeStartRef.current) return;
       const dx = e.clientX - resizeStartRef.current.startX;
-      const newWidth = Math.max(200, Math.min(600, resizeStartRef.current.startWidth + dx));
+      const newWidth = Math.max(260, Math.min(600, resizeStartRef.current.startWidth + dx));
       if (distributorRef.current) {
         distributorRef.current.style.width = `${newWidth}px`;
         const newCols = Math.floor((newWidth - 24) / 80);
@@ -102,20 +103,31 @@ export const TagDistributorWindow: React.FC = () => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tag.id });
     const IconComponent = icons[tag.icon as keyof typeof icons] || Tag;
     
+    const isReorderMode = dragMode === 'reorder';
+
     const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      opacity: isDragging ? 0.5 : 1,
+      transform: isReorderMode ? CSS.Transform.toString(transform) : undefined,
+      transition: isReorderMode ? transition : undefined,
+      opacity: isReorderMode && isDragging ? 0.5 : 1,
+    };
+
+    const dragHandlers = isReorderMode ? {
+      ...attributes,
+      ...listeners,
+    } : {
+      draggable: true,
+      onDragStart: (e: React.DragEvent) => {
+        e.dataTransfer.setData('application/json', JSON.stringify({ type: 'new_marker', data: tag }));
+      }
     };
 
     return (
       <div
-        ref={setNodeRef}
+        ref={isReorderMode ? setNodeRef : undefined}
         style={style}
-        {...attributes}
-        {...listeners}
+        {...dragHandlers}
         className={`flex flex-col items-center p-2 rounded-md border border-border bg-card hover:bg-accent/50 cursor-grab active:cursor-grabbing transform transition-all active:scale-95 ${compactMode ? 'gap-1' : 'gap-2'}`}
-        title="Glisser vers la salle ou un joueur"
+        title={isReorderMode ? "Glisser pour réorganiser dans la grille" : "Glisser vers la salle ou un joueur"}
       >
         <div 
           className={`${compactMode ? 'w-8 h-8' : 'w-10 h-10'} rounded flex items-center justify-center shrink-0 shadow-sm`} 
@@ -149,6 +161,7 @@ export const TagDistributorWindow: React.FC = () => {
         left: tagDistributorState.x,
         top: tagDistributorState.y,
         width: 300,
+        minWidth: 260,
         maxHeight: '60vh'
       }}
     >
@@ -169,6 +182,13 @@ export const TagDistributorWindow: React.FC = () => {
           Distributeur de Tags ({tagsInDistributor.length})
         </div>
         <div className="flex items-center gap-1">
+          <button
+            onClick={() => setDragMode(dragMode === 'distribute' ? 'reorder' : 'distribute')}
+            className={`p-1 rounded transition-colors ${dragMode === 'reorder' ? 'bg-amber-500/20 text-amber-500' : 'text-muted-foreground hover:text-foreground'}`}
+            title={dragMode === 'reorder' ? "Mode actuel : Réorganisation (Glisser pour trier)" : "Mode actuel : Distribution (Glisser vers la salle/joueur)"}
+          >
+            {dragMode === 'reorder' ? <Move size={14} /> : <Tag size={14} />}
+          </button>
           <button
             onClick={() => setSortMode(sortMode === 'order' ? 'alpha' : 'order')}
             className={`p-1 rounded transition-colors ${sortMode === 'order' ? 'bg-primary/20 text-primary' : 'text-muted-foreground hover:text-foreground'}`}

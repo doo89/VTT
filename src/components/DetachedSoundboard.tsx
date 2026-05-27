@@ -10,8 +10,10 @@ import { audioEngine } from '../lib/audio-engine';
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, rectSwappingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useToast } from '../components/Toast';
 
 export const DetachedSoundboard: React.FC = () => {
+  const toast = useToast();
   const { soundboard, setSoundboard, setEditingEntity } = useVttStore();
   const [isDragging, setIsDragging] = useState(false);
   const windowRef = useRef<HTMLDivElement>(null);
@@ -204,39 +206,54 @@ export const DetachedSoundboard: React.FC = () => {
   };
 
   const handleExportPack = async () => {
-    const pack = {
-      version: 1,
-      exportedAt: Date.now(),
-      buttons: soundboard.buttons.map(b => ({
-        index: b.index,
-        name: b.name,
-        isOneShot: b.isOneShot,
-        icon: b.icon,
-        color: b.color,
-        volume: b.volume,
-        shortcut: b.shortcut,
-        category: b.category,
-        isAmbient: b.isAmbient,
-        audioUrl: b.audioUrl,
-      }))
-    };
-    for (const btn of pack.buttons) {
-      if (btn.audioUrl && isIdbUrl(btn.audioUrl)) {
-        const data = await getAudio(idbUrlToKey(btn.audioUrl));
-        if (data) btn.audioUrl = data;
+    try {
+      const pack = {
+        version: 1,
+        exportedAt: Date.now(),
+        buttons: soundboard.buttons.map(b => ({
+          index: b.index,
+          name: b.name,
+          isOneShot: b.isOneShot,
+          icon: b.icon,
+          color: b.color,
+          volume: b.volume,
+          shortcut: b.shortcut,
+          category: b.category,
+          isAmbient: b.isAmbient,
+          audioUrl: b.audioUrl,
+        }))
+      };
+      for (const btn of pack.buttons) {
+        if (btn.audioUrl && isIdbUrl(btn.audioUrl)) {
+          const data = await getAudio(idbUrlToKey(btn.audioUrl));
+          if (data) btn.audioUrl = data;
+        }
       }
+      const json = JSON.stringify(pack, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `soundboard-pack-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Pack exporté avec succès');
+    } catch (err) {
+      console.error('Export failed', err);
+      toast.error('Erreur lors de l\'export du pack');
     }
-    const json = JSON.stringify(pack, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `soundboard-pack-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    } else {
+      console.error('fileInputRef is null');
+    }
+  };
+  
   const handleImportPack = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -244,6 +261,7 @@ export const DetachedSoundboard: React.FC = () => {
       const text = await file.text();
       const pack = JSON.parse(text);
       if (!pack.buttons || !Array.isArray(pack.buttons)) throw new Error('Format invalide');
+      
       for (const btn of pack.buttons) {
         if (btn.audioUrl && btn.audioUrl.startsWith('data:')) {
           const key = makeIdbKey(btn.index);
@@ -252,8 +270,10 @@ export const DetachedSoundboard: React.FC = () => {
         }
         useVttStore.getState().updateSoundButton(btn.index, btn);
       }
+      toast.success(`Pack importé avec succès (${pack.buttons.length} boutons)`);
     } catch (err) {
       console.error('Import failed', err);
+      toast.error('Erreur lors de l\'import du pack: ' + (err as Error).message);
     }
     e.target.value = '';
   };
@@ -288,14 +308,24 @@ export const DetachedSoundboard: React.FC = () => {
         </div>
         <div className="flex items-center gap-1">
           <button
-            onClick={(e) => { e.stopPropagation(); handleExportPack(); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              console.log('Export clicked');
+              handleExportPack(); 
+            }}
             className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             title="Exporter le pack"
           >
             <Download size={14} />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              console.log('Import clicked', fileInputRef.current);
+              triggerFileInput(); 
+            }}
             className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             title="Importer un pack"
           >
@@ -303,7 +333,12 @@ export const DetachedSoundboard: React.FC = () => {
           </button>
           <input ref={fileInputRef} type="file" accept=".json" onChange={handleImportPack} className="hidden" />
           <button
-            onClick={(e) => { e.stopPropagation(); setShowMixer(v => !v); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              console.log('Mixer clicked, current:', showMixer);
+              setShowMixer(v => !v); 
+            }}
             className={`p-1 rounded transition-colors ${showMixer ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             title="Mixer"
           >
