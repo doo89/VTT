@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useStore } from 'zustand';
 import { useVttStore } from '../../store';
 import * as icons from 'lucide-react';
@@ -28,6 +28,7 @@ const getShapeClipPath = (shape?: PlayerShape) => {
     case 'cross': return 'polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)';
     case 'heart': return 'path("M50 88 C25 65 0 45 0 25 C0 10 15 0 25 0 C35 0 50 15 50 15 C50 15 65 0 75 0 C85 0 100 10 100 25 C100 45 75 65 50 88Z")';
     case 'crescent': return 'path("M60 10 C30 10 10 35 10 60 C10 85 30 100 60 100 C40 90 30 75 30 60 C30 45 40 30 60 10Z")';
+    case 'werewolfCard': return 'polygon(36% 36%, 38% 22%, 44% 10%, 55% 2%, 61% 8%, 63% 18%, 62% 28%, 64% 36%, 78% 38%, 90% 44%, 98% 55%, 92% 61%, 82% 63%, 72% 62%, 64% 64%, 62% 78%, 56% 90%, 45% 98%, 39% 92%, 37% 82%, 38% 72%, 36% 64%, 22% 62%, 10% 56%, 2% 45%, 8% 39%, 18% 37%, 28% 38%)';
     case 'circle':
     default: return 'circle(50% at 50% 50%)';
   }

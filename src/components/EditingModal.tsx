@@ -199,6 +199,7 @@ export const EditingModal: React.FC = () => {
       { value: 'cross', label: 'Croix', svg: <svg viewBox="0 0 40 40"><polygon points="14,4 26,4 26,14 36,14 36,26 26,26 26,36 14,36 14,26 4,26 4,14 14,14" fill="currentColor" /></svg> },
       { value: 'heart', label: 'Cœur', svg: <svg viewBox="0 0 40 40"><path d="M20,36 C12,28 4,22 4,14 C4,8 8,4 14,4 C17,4 19,6 20,8 C21,6 23,4 26,4 C32,4 36,8 36,14 C36,22 28,28 20,36Z" fill="currentColor" /></svg> },
       { value: 'crescent', label: 'Croissant', svg: <svg viewBox="0 0 40 40"><path d="M24,4 C14,4 6,12 6,22 C6,32 14,38 24,38 C18,34 14,28 14,22 C14,16 18,10 24,4Z" fill="currentColor" /></svg> },
+      { value: 'werewolfCard', label: 'Loup-Garou', svg: <svg viewBox="0 0 40 40"><polygon points="14.4 14.4, 15.2 8.8, 17.6 4.0, 22.0 0.8, 24.4 3.2, 25.2 7.2, 24.8 11.2, 25.6 14.4, 31.2 15.2, 36.0 17.6, 39.2 22.0, 36.8 24.4, 32.8 25.2, 28.8 24.8, 25.6 25.6, 24.8 31.2, 22.4 36.0, 18.0 39.2, 15.6 36.8, 14.8 32.8, 15.2 28.8, 14.4 25.6, 8.8 24.8, 4.0 22.4, 0.8 18.0, 3.2 15.6, 7.2 14.8, 11.2 15.2" fill="currentColor" /></svg> },
     ];
 
     entityTitle = `Modifier Modèle: ${template.name}`;
@@ -431,6 +432,7 @@ export const EditingModal: React.FC = () => {
                           selectedShape === 'cross' ? 'polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)' :
                           selectedShape === 'heart' ? 'polygon(50% 15%, 65% 0%, 85% 0%, 100% 15%, 100% 40%, 85% 65%, 50% 100%, 15% 65%, 0% 40%, 0% 15%, 15% 0%, 35% 0%)' :
                           selectedShape === 'crescent' ? 'polygon(60% 0%, 40% 5%, 20% 15%, 10% 30%, 5% 50%, 10% 70%, 20% 85%, 40% 95%, 60% 100%, 45% 85%, 35% 70%, 30% 50%, 35% 30%, 45% 15%)' :
+                          selectedShape === 'werewolfCard' ? 'polygon(36% 36%, 38% 22%, 44% 10%, 55% 2%, 61% 8%, 63% 18%, 62% 28%, 64% 36%, 78% 38%, 90% 44%, 98% 55%, 92% 61%, 82% 63%, 72% 62%, 64% 64%, 62% 78%, 56% 90%, 45% 98%, 39% 92%, 37% 82%, 38% 72%, 36% 64%, 22% 62%, 10% 56%, 2% 45%, 8% 39%, 18% 37%, 28% 38%)' :
                           'circle(50%)',
                       }}
                     >
@@ -596,6 +598,7 @@ export const EditingModal: React.FC = () => {
             <option value="cross">Croix</option>
             <option value="heart">Cœur</option>
             <option value="crescent">Croissant</option>
+            <option value="werewolfCard">Carte Loup-Garou</option>
           </select>
         </div>
         <div className="flex flex-col gap-1">

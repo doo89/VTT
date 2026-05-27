@@ -179,7 +179,7 @@ export interface MagneticPoint {
   targetTeamIds?: string[];
 }
 
-export type PlayerShape = 'circle' | 'square' | 'oval' | 'triangle' | 'trapezoid' | 'octagon' | 'star' | 'pentagon' | 'hexagon' | 'diamond' | 'shield' | 'cross' | 'heart' | 'crescent';
+export type PlayerShape = 'circle' | 'square' | 'oval' | 'triangle' | 'trapezoid' | 'octagon' | 'star' | 'pentagon' | 'hexagon' | 'diamond' | 'shield' | 'cross' | 'heart' | 'crescent' | 'werewolfCard';
 
 export type BadgeType = 'none' | 'team' | 'lives' | 'votes' | 'points' | 'uses' | 'callOrderDay' | 'callOrderNight' | 'connection' | 'creationOrder' | 'sleeping';
 

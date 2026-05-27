@@ -1212,7 +1212,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                            <option value="circle">Rond</option>
                            <option value="square">Carré</option>
                            <option value="oval">Ovale</option>
-                           <option value="triangle">Triangle</option>
+                       <option value="triangle">Triangle</option>
                            <option value="trapezoid">Trapèze</option>
                            <option value="octagon">Octogone</option>
                            <option value="star">Étoile</option>
@@ -1223,6 +1223,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                            <option value="cross">Croix</option>
                            <option value="heart">Cœur</option>
                            <option value="crescent">Croissant</option>
+                           <option value="werewolfCard">Carte Loup-Garou</option>
                          </select>
                        </div>
                      </div>
@@ -1409,13 +1410,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                              displaySettings.defaultPlayerShape === 'cross' ? 'polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)' :
                              displaySettings.defaultPlayerShape === 'heart' ? 'path("M50 88 C25 65 0 45 0 25 C0 10 15 0 25 0 C35 0 50 15 50 15 C50 15 65 0 75 0 C85 0 100 10 100 25 C100 45 75 65 50 88Z")' :
                              displaySettings.defaultPlayerShape === 'crescent' ? 'path("M60 10 C30 10 10 35 10 60 C10 85 30 100 60 100 C40 90 30 75 30 60 C30 45 40 30 60 10Z")' :
+                             displaySettings.defaultPlayerShape === 'werewolfCard' ? 'polygon(36% 36%, 38% 22%, 44% 10%, 55% 2%, 61% 8%, 63% 18%, 62% 28%, 64% 36%, 78% 38%, 90% 44%, 98% 55%, 92% 61%, 82% 63%, 72% 62%, 64% 64%, 62% 78%, 56% 90%, 45% 98%, 39% 92%, 37% 82%, 38% 72%, 36% 64%, 22% 62%, 10% 56%, 2% 45%, 8% 39%, 18% 37%, 28% 38%)' :
                              undefined,
                          }}
                        >
                          <div className="w-full h-full flex items-center justify-center text-zinc-800">
                            {displaySettings.defaultPlayerShape === 'circle' && <UserCircle2 className="w-full h-full p-2" />}
                            {displaySettings.defaultPlayerShape === 'square' && <UserCircle2 className="w-full h-full p-2" />}
-                           {['oval', 'triangle', 'trapezoid', 'octagon', 'star', 'pentagon', 'hexagon', 'diamond', 'shield', 'cross', 'heart', 'crescent'].includes(displaySettings.defaultPlayerShape || 'circle') && (
+                           {['oval', 'triangle', 'trapezoid', 'octagon', 'star', 'pentagon', 'hexagon', 'diamond', 'shield', 'cross', 'heart', 'crescent', 'werewolfCard'].includes(displaySettings.defaultPlayerShape || 'circle') && (
                              <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-zinc-400 opacity-30 uppercase tracking-widest select-none">Aperçu</div>
                            )}
                          </div>
