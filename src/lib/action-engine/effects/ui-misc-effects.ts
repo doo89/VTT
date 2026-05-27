@@ -342,8 +342,37 @@ export const handleToggleActionEnabled: EffectHandler = (effect, context, state)
 export const handleTriggerAction: EffectHandler = (effect, context, state, storeApi) => {
   if (!effect.targetActionId) return;
   
+  // Build custom context if overrides are specified
+  let newContext = { ...context };
+  
+  if (effect.contextOverride) {
+    // Override $Joueur
+    if (effect.contextOverride.targetPlayerId !== undefined) {
+      if (effect.contextOverride.targetPlayerId === null) {
+        delete newContext.$Joueur;
+      } else {
+        const player = state.players.find(p => p.id === effect.contextOverride!.targetPlayerId);
+        if (player) {
+          newContext.$Joueur = player;
+        }
+      }
+    }
+    
+    // Override $Cible
+    if (effect.contextOverride.targetCibleId !== undefined) {
+      if (effect.contextOverride.targetCibleId === null) {
+        delete newContext.$Cible;
+      } else {
+        const player = state.players.find(p => p.id === effect.contextOverride!.targetCibleId);
+        if (player) {
+          newContext.$Cible = player;
+        }
+      }
+    }
+  }
+  
   // This will be handled by the executor with depth limit
-  return { _triggerAction: effect.targetActionId, _actionContext: context };
+  return { _triggerAction: effect.targetActionId, _actionContext: newContext };
 };
 
 /**

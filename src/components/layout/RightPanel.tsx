@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play, Magnet, Eye, EyeOff, Maximize2, Minimize2, Copy } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play, Magnet, Eye, EyeOff, Maximize2, Minimize2, Copy, LayoutGrid, GripVertical, Grid2X2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import * as icons from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -7,7 +7,7 @@ import { useVttStore, initialState } from '../../store';
 import { forceBroadcastState, initHostRealtime } from '../../lib/realtime-host';
 import { uploadFileToStorage, deleteFileFromStorage } from '../../lib/supabase';
 import { getEffectiveStats } from '../../lib/utils';
-import type { Role, Player } from '../../types';
+import type { Role, Player, CustomPopup } from '../../types';
 import { SettingsModal } from './SettingsModal';
 import { ChecklistContent } from '../ChecklistContent';
 import { useTimerCountdown } from '../../hooks/useTimerCountdown';
@@ -39,7 +39,8 @@ export const RightPanel: React.FC = () => {
     actions, addAction, deleteAction, duplicateAction, executeAction, setPendingConditions, setPendingEffects,
     resetCycle,
     editingEntity, setEditingEntity,
-    magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints,
+    magneticPoints, showMagneticPoints, addMagneticPoint, setShowMagneticPoints, snapPlayersToPoints, clearMagneticPoints, deleteMagneticPoint, reorderMagneticPoints, createPointsFromTemplate,
+    exportMagneticPoints, importMagneticPoints, setMagneticSnapToGrid, magneticSnapToGrid, updateMagneticPointLabel, updateMagneticPointColor,
 
   } = useVttStore();
 
@@ -47,6 +48,49 @@ export const RightPanel: React.FC = () => {
 
   const [activeSection, setActiveSection] = useState<string | null>('distribution');
   const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);
+  const [showMagneticTemplateModal, setShowMagneticTemplateModal] = useState(false);
+  const [magneticDragIndex, setMagneticDragIndex] = useState<number | null>(null);
+  const [showMagneticPreview, setShowMagneticPreview] = useState(false);
+
+  // Helper to get popup trigger button label based on targeting
+  const getPopupTriggerLabel = (popup: CustomPopup) => {
+    const targets: string[] = [];
+    
+    // Player targeting
+    if (popup.targetPlayerIds?.length) {
+      const playerNames = popup.targetPlayerIds
+        .map((id: string) => players.find(p => p.id === id)?.name)
+        .filter(Boolean) as string[];
+      if (playerNames.length) {
+        targets.push(playerNames.slice(0, 2).join(', ') + (playerNames.length > 2 ? '...' : ''));
+      }
+    }
+    
+    // Role targeting
+    if (popup.targetRoleIds?.length) {
+      const roleNames = popup.targetRoleIds
+        .map((id: string) => roles.find(r => r.id === id)?.name)
+        .filter(Boolean) as string[];
+      if (roleNames.length) {
+        targets.push(roleNames.slice(0, 2).join(', ') + (roleNames.length > 2 ? '...' : ''));
+      }
+    }
+    
+    // Team targeting
+    if (popup.targetTeamIds?.length) {
+      const teamNames = popup.targetTeamIds
+        .map((id: string) => teams.find(t => t.id === id)?.name)
+        .filter(Boolean) as string[];
+      if (teamNames.length) {
+        targets.push(teamNames.slice(0, 2).join(', ') + (teamNames.length > 2 ? '...' : ''));
+      }
+    }
+    
+    if (targets.length === 0) return 'Afficher à tous';
+    
+    const label = targets.join(' + ');
+    return label.length > 35 ? label.slice(0, 32) + '...' : label;
+  };
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showPopupCreator, setShowPopupCreator] = useState(false);
   const [editingPopupId, setEditingPopupId] = useState<string | null>(null);
@@ -292,15 +336,15 @@ export const RightPanel: React.FC = () => {
         {(displaySettings.panels?.panelsOrder || ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system']).map(key => {
           if (key === 'distribution') return displaySettings.panels?.distribution !== false && (
             <section key="distribution" className="flex flex-col border border-border rounded-md bg-background">
-              <button
+              <div
                 onClick={() => toggleSection('distribution')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer"
               >
                 <div className={`flex items-center gap-2 ${activeSection === 'distribution' ? 'text-purple-400' : ''}`}>
                   <Shuffle size={16} /> Distribution Rôles
                 </div>
                 {activeSection === 'distribution' ? <ChevronDown size={16} className="text-purple-400" /> : <ChevronRight size={16} />}
-              </button>
+              </div>
               {activeSection === 'distribution' && (
                 <div className="flex flex-col gap-3 p-3 border-t border-border">
                   <button
@@ -382,9 +426,9 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'chrono') return displaySettings.panels?.chrono !== false && (
             <section key="chrono" className="flex flex-col border border-border rounded-md bg-background">
-              <button
+              <div
                 onClick={() => toggleSection('chrono')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer"
               >
                 <div className={`flex items-center gap-2 ${activeSection === 'chrono' ? 'text-amber-500' : ''}`}>
                   <Clock size={16} />
@@ -400,7 +444,7 @@ export const RightPanel: React.FC = () => {
                   )}
                 </div>
                 {activeSection === 'chrono' ? <ChevronDown size={16} className="text-amber-500" /> : <ChevronRight size={16} />}
-              </button>
+              </div>
               {activeSection === 'chrono' && (
                 <div className="flex flex-col items-center gap-3 p-3 border-t border-border">
                   {timerState.isDetached ? (
@@ -452,15 +496,12 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'soundboard') return displaySettings.panels?.soundboard !== false && (
             <section key="soundboard" className="flex flex-col border border-border rounded-md bg-background">
-              <button
-                onClick={() => toggleSection('soundboard')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-              >
+              <div onClick={() => toggleSection('soundboard')} className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer">
                 <div className={`flex items-center gap-2 ${activeSection === 'soundboard' ? 'text-pink-400' : ''}`}>
                   <Music size={16} /> Soundboard ({soundboard.buttons.filter(b => b.audioUrl).length}/{soundboard.cols * soundboard.rows})
                 </div>
                 {activeSection === 'soundboard' ? <ChevronDown size={16} className="text-pink-400" /> : <ChevronRight size={16} />}
-              </button>
+              </div>
               {activeSection === 'soundboard' && (
                 <div className="flex flex-col gap-3 p-3 border-t border-border">
                   {soundboard.isDetached ? (
@@ -515,15 +556,12 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'scoreboard') return displaySettings.panels?.scoreboard !== false && (
             <section key="scoreboard" className="flex flex-col border border-border rounded-md bg-background">
-              <button
-                onClick={() => toggleSection('scoreboard')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-              >
+              <div onClick={() => toggleSection('scoreboard')} className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer">
                 <div className={`flex items-center gap-2 ${activeSection === 'scoreboard' ? 'text-yellow-400' : ''}`}>
                   <Trophy size={16} /> Tableau des Scores
                 </div>
                 {activeSection === 'scoreboard' ? <ChevronDown size={16} className="text-yellow-400" /> : <ChevronRight size={16} />}
-              </button>
+              </div>
               {activeSection === 'scoreboard' && (
                 <div className="flex flex-col p-3 border-t border-border gap-3">
                   <div className="flex items-center justify-between">
@@ -621,15 +659,12 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'logs') return displaySettings.panels?.logs !== false && (
             <section key="logs" className="flex flex-col border border-border rounded-md bg-background">
-              <button
-                onClick={() => toggleSection('logs')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-              >
+              <div onClick={() => toggleSection('logs')} className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer">
                 <div className={`flex items-center gap-2 ${activeSection === 'logs' ? 'text-teal-400' : ''}`}>
                   <History size={16} /> Log / Historique ({logs.length})
                 </div>
                 {activeSection === 'logs' ? <ChevronDown size={16} className="text-teal-400" /> : <ChevronRight size={16} />}
-              </button>
+              </div>
               {activeSection === 'logs' && (
                 <div className="flex flex-col p-0 border-t border-border">
                   <div className="flex flex-col gap-2 p-2 border-b border-border bg-muted/20">
@@ -796,15 +831,12 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'wiki') return displaySettings.panels?.wiki !== false && (
             <section key="wiki" className="flex flex-col border border-border rounded-md bg-background">
-              <button
-                onClick={() => toggleSection('wiki')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-              >
+              <div onClick={() => toggleSection('wiki')} className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer">
                 <div className={`flex items-center gap-2 ${activeSection === 'wiki' ? 'text-blue-400' : ''}`}>
                   <Book size={16} /> Wiki
                 </div>
                 {activeSection === 'wiki' ? <ChevronDown size={16} className="text-blue-400" /> : <ChevronRight size={16} />}
-              </button>
+              </div>
               {activeSection === 'wiki' && (
                 <div className="flex flex-col p-3 border-t border-border gap-3">
                   <div className="flex items-center justify-between">
@@ -859,15 +891,12 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'system') return displaySettings.panels?.system !== false && (
             <section key="system" className="flex flex-col border border-border rounded-md bg-background">
-              <button
-                onClick={() => toggleSection('systeme')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-              >
+              <div onClick={() => toggleSection('systeme')} className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer">
                 <div className={`flex items-center gap-2 ${activeSection === 'systeme' ? 'text-amber-500' : ''}`}>
                   <Zap size={16} /> Système & Connexion
                 </div>
                 {activeSection === 'systeme' ? <ChevronDown size={16} className="text-amber-500" /> : <ChevronRight size={16} />}
-              </button>
+              </div>
               {activeSection === 'systeme' && (
                 <div className="p-4 pt-3 flex flex-col gap-3 border-t border-border">
                   <div className="flex flex-col gap-1.5">
@@ -930,15 +959,12 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'popupCreator') return (displaySettings.panels?.popupCreator ?? true) && (
             <section key="popupCreator" className="flex flex-col border border-border rounded-md bg-background">
-              <button
-                onClick={() => toggleSection('popups')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-              >
+              <div onClick={() => toggleSection('popups')} className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer">
                 <div className={`flex items-center gap-2 ${activeSection === 'popups' ? 'text-indigo-400' : ''}`}>
                   <MessageSquare size={16} /> Créateur de Popup ({customPopups.length})
                 </div>
                 {activeSection === 'popups' ? <ChevronDown size={16} className="text-indigo-400" /> : <ChevronRight size={16} />}
-              </button>
+              </div>
               {activeSection === 'popups' && (
                 <div className="p-3 flex flex-col gap-3 border-t border-border">
                    <button
@@ -989,9 +1015,10 @@ export const RightPanel: React.FC = () => {
                           </div>
                           <button
                             onClick={() => triggerCustomPopup(popup.id)}
-                            className="w-full mt-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded text-[10px] uppercase font-bold py-1.5 transition-colors border border-indigo-500/30 flex justify-center items-center gap-1.5"
+                            className="w-full mt-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 rounded text-[10px] uppercase font-bold py-1.5 transition-colors border border-indigo-500/30 flex justify-center items-center gap-1.5 leading-tight"
+                            title={getPopupTriggerLabel(popup)}
                           >
-                             <MonitorUp size={12} /> Afficher à tous
+                             <MonitorUp size={12} /> <span className="truncate block max-w-[180px]">{getPopupTriggerLabel(popup)}</span>
                           </button>
                         </div>
                       ))}
@@ -1006,15 +1033,12 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'actionCreator') return (displaySettings.panels?.actionCreator ?? true) && (
             <section key="actionCreator" className="flex flex-col border border-border rounded-md bg-background">
-              <button
-                onClick={() => toggleSection('actions')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-              >
+              <div onClick={() => toggleSection('actions')} className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer">
                 <div className={`flex items-center gap-2 ${activeSection === 'actions' ? 'text-orange-400' : ''}`}>
                   <Zap size={16} /> Créateur d'Actions ({actions.length})
                 </div>
                 {activeSection === 'actions' ? <ChevronDown size={16} className="text-orange-400" /> : <ChevronRight size={16} />}
-              </button>
+              </div>
               {activeSection === 'actions' && (
                 <div className="p-3 flex flex-col gap-3 border-t border-border">
                   <div className="flex gap-2">
@@ -1129,15 +1153,15 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'checklist') return (displaySettings.panels?.checklist ?? true) && (
             <section key="checklist" className="flex flex-col border border-border rounded-md bg-background">
-              <div className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors group">
-                <button 
+              <div className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors group cursor-pointer">
+                <div 
                   onClick={() => toggleSection('checklist')}
                   className="flex items-center gap-2 flex-1 text-left"
                 >
                   <div className={`flex items-center gap-2 ${activeSection === 'checklist' ? 'text-green-500' : ''}`}>
                     <CheckSquare size={16} /> Checklist pour le MJ ({checklist?.length || 0})
                   </div>
-                </button>
+                </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={(e) => {
@@ -1149,7 +1173,7 @@ export const RightPanel: React.FC = () => {
                   >
                     <ArrowUpRight size={14} />
                   </button>
-                  <button onClick={() => toggleSection('checklist')}>
+                  <button onClick={(e) => { e.stopPropagation(); toggleSection('checklist'); }}>
                     {activeSection === 'checklist' ? <ChevronDown size={16} className="text-green-500" /> : <ChevronRight size={16} />}
                   </button>
                 </div>
@@ -1175,9 +1199,9 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'tagDistributor') return (displaySettings.panels?.tagDistributor ?? true) && (
             <section key="tagDistributor" className="flex flex-col border border-border rounded-md bg-background">
-              <button
+              <div
                 onClick={() => toggleSection('tagDistributor')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
+                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer"
               >
                 <div className={`flex items-center gap-2 ${activeSection === 'tagDistributor' ? 'text-blue-400' : ''}`}>
                   <Tag size={16} /> Distributeur de Tags ({tags.filter(t => t.isInDistributor).length})
@@ -1200,7 +1224,7 @@ export const RightPanel: React.FC = () => {
                     <ArrowUpRight size={14} />
                   </button>
                 </div>
-              </button>
+              </div>
               {activeSection === 'tagDistributor' && (
                 <div className="flex flex-col p-3 border-t border-border">
                   {tags.filter(t => t.isInDistributor).length === 0 ? (
@@ -1303,23 +1327,28 @@ export const RightPanel: React.FC = () => {
 
           if (key === 'magneticPoints') return (displaySettings.panels?.magneticPoints ?? true) && (
             <section key="magneticPoints" className="flex flex-col border border-border rounded-md bg-background">
-              <button
-                onClick={() => toggleSection('magneticPoints')}
-                className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors"
-              >
+              <div onClick={() => toggleSection('magneticPoints')} className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer">
                 <div className={`flex items-center gap-2 ${activeSection === 'magneticPoints' ? 'text-blue-500' : ''}`}>
                   <Magnet size={16} /> Points aimantés
                 </div>
                 {activeSection === 'magneticPoints' ? <ChevronDown size={16} className="text-blue-500" /> : <ChevronRight size={16} />}
-              </button>
+              </div>
               {activeSection === 'magneticPoints' && (
                 <div className="p-3 flex flex-col gap-3 border-t border-border">
-                  <button
-                    onClick={() => addMagneticPoint()}
-                    className="flex items-center gap-2 px-3 py-2 bg-blue-600/10 text-blue-500 border border-blue-500/20 rounded-md text-xs font-bold hover:bg-blue-600/20 transition-colors justify-center"
-                  >
-                    <Plus size={14} /> Ajouter un point
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => addMagneticPoint()}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600/10 text-blue-500 border border-blue-500/20 rounded-md text-xs font-bold hover:bg-blue-600/20 transition-colors"
+                    >
+                      <Plus size={14} /> Ajouter
+                    </button>
+                    <button
+                      onClick={() => setShowMagneticTemplateModal(true)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-purple-600/10 text-purple-500 border border-purple-500/20 rounded-md text-xs font-bold hover:bg-purple-600/20 transition-colors"
+                    >
+                      <LayoutGrid size={14} /> Templates
+                    </button>
+                  </div>
 
                   <div className="flex flex-col gap-1 px-1">
                     <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
@@ -1329,6 +1358,79 @@ export const RightPanel: React.FC = () => {
                       </span>
                     </div>
                   </div>
+
+                  {magneticPoints.length > 0 && (
+                    <div className="flex flex-col gap-1 max-h-48 overflow-y-auto px-1">
+                      {[...magneticPoints].sort((a, b) => a.order - b.order).map((point, index) => (
+                        <div
+                          key={point.id}
+                          draggable
+                          onDragStart={(e) => {
+                            e.stopPropagation();
+                            setMagneticDragIndex(index);
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (magneticDragIndex !== null && magneticDragIndex !== index) {
+                              reorderMagneticPoints(magneticDragIndex, index);
+                            }
+                            setMagneticDragIndex(null);
+                          }}
+                          onDragEnd={() => setMagneticDragIndex(null)}
+                          className="flex flex-col gap-1 px-2 py-1.5 bg-muted/50 rounded-md text-xs group cursor-grab active:cursor-grabbing hover:bg-muted transition-colors"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <GripVertical size={12} className="text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity shrink-0" />
+                              <span className="flex items-center justify-center w-5 h-5 rounded-full shrink-0 font-bold text-[10px]" style={{ backgroundColor: `${point.color || displaySettings.magneticPointsColor || '#3b82f6'}20`, color: point.color || displaySettings.magneticPointsColor || '#3b82f6' }}>
+                                {point.order}
+                              </span>
+                              <span className="text-muted-foreground font-mono text-[9px] shrink-0">
+                                ({Math.round(point.x)}, {Math.round(point.y)})
+                              </span>
+                              {point.label && (
+                                <span className="text-muted-foreground truncate flex-1" title={point.label}>
+                                  • {point.label}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <input
+                                type="color"
+                                value={point.color || displaySettings.magneticPointsColor || '#3b82f6'}
+                                onChange={(e) => updateMagneticPointColor(point.id, e.target.value)}
+                                className="w-4 h-4 rounded border-none cursor-pointer p-0 bg-transparent"
+                                title="Couleur du point"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <button
+                                onClick={() => deleteMagneticPoint(point.id)}
+                                className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                title="Supprimer le point"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 pl-6">
+                            <input
+                              type="text"
+                              value={point.label || ''}
+                              onChange={(e) => updateMagneticPointLabel(point.id, e.target.value)}
+                              placeholder="Label (ex: Loups, Village...)"
+                              className="flex-1 min-w-0 bg-background border border-border rounded px-1.5 py-0.5 text-[10px] font-mono"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between px-1">
                     <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">Afficher</span>
@@ -1341,17 +1443,95 @@ export const RightPanel: React.FC = () => {
                     </button>
                   </div>
 
-                  <button
-                    onClick={() => snapPlayersToPoints()}
-                    disabled={magneticPoints.length === 0}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-md text-xs font-black uppercase tracking-wider transition-all justify-center shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
-                      magneticPoints.length < players.length 
-                        ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20' 
-                        : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
-                    }`}
-                  >
-                    <Magnet size={14} className={magneticPoints.length > 0 ? "animate-pulse" : ""} /> Aimanter
-                  </button>
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight">Snap to grid</span>
+                    <button
+                      onClick={() => setMagneticSnapToGrid(!magneticSnapToGrid)}
+                      className={`p-1.5 rounded-md transition-all ${magneticSnapToGrid ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20' : 'bg-muted text-muted-foreground'}`}
+                      title={magneticSnapToGrid ? 'Désactiver snap to grid' : 'Activer snap to grid'}
+                    >
+                      <Grid2X2 size={14} />
+                    </button>
+                  </div>
+
+                  <div className="flex gap-2 px-1">
+                    <button
+                      onClick={() => exportMagneticPoints()}
+                      disabled={magneticPoints.length === 0}
+                      className="flex-1 flex items-center justify-center gap-2 px-2 py-1.5 bg-green-600/10 text-green-500 border border-green-500/20 rounded-md text-[10px] font-bold hover:bg-green-600/20 transition-colors disabled:opacity-50"
+                    >
+                      <Download size={12} /> Export
+                    </button>
+                    <button
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.json';
+                        input.onchange = (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              const result = importMagneticPoints(ev.target?.result as string);
+                              if (result.success) {
+                                toast.success('Points importés avec succès');
+                              } else {
+                                toast.error(result.error || 'Erreur lors de l\'import');
+                              }
+                            };
+                            reader.readAsText(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-2 py-1.5 bg-orange-600/10 text-orange-500 border border-orange-500/20 rounded-md text-[10px] font-bold hover:bg-orange-600/20 transition-colors"
+                    >
+                      <Upload size={12} /> Import
+                    </button>
+                  </div>
+
+                  <div className="relative group">
+                    <button
+                      onClick={() => snapPlayersToPoints()}
+                      disabled={magneticPoints.length === 0}
+                      onMouseEnter={() => setShowMagneticPreview(true)}
+                      onMouseLeave={() => setShowMagneticPreview(false)}
+                      className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-md text-xs font-black uppercase tracking-wider transition-all justify-center shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
+                        magneticPoints.length < players.length 
+                          ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20' 
+                          : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
+                      }`}
+                    >
+                      <Magnet size={14} className={magneticPoints.length > 0 ? "animate-pulse" : ""} /> Aimanter
+                    </button>
+                    {showMagneticPreview && magneticPoints.length > 0 && (
+                      <div className="absolute bottom-full left-0 right-0 mb-2 p-3 bg-popover border border-border rounded-lg shadow-xl z-50">
+                        <p className="text-xs font-bold mb-2">Aperçu :</p>
+                        <div className="max-h-32 overflow-y-auto space-y-1">
+                          {[...magneticPoints].sort((a, b) => a.order - b.order).slice(0, 5).map((point, idx) => {
+                            const targetPlayer = players.filter(p => !p.isDead)[idx];
+                            return (
+                              <div key={point.id} className="flex items-center gap-2 text-[10px]">
+                                <span className="w-4 h-4 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: `${point.color || displaySettings.magneticPointsColor || '#3b82f6'}20`, color: point.color || displaySettings.magneticPointsColor || '#3b82f6' }}>
+                                  {point.order}
+                                </span>
+                                <span className="text-muted-foreground">→</span>
+                                <span className={targetPlayer ? 'text-foreground' : 'text-muted-foreground italic'}>
+                                  {targetPlayer?.name || 'Aucun joueur'}
+                                </span>
+                                {point.label && (
+                                  <span className="text-muted-foreground ml-auto">({point.label})</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                          {magneticPoints.length > 5 && (
+                            <p className="text-[9px] text-muted-foreground text-center">... et {magneticPoints.length - 5} autres</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <button
                     onClick={() => {
@@ -1373,6 +1553,105 @@ export const RightPanel: React.FC = () => {
         })}
 
       </div>
+
+      {/* Magnetic Points Template Modal */}
+      {showMagneticTemplateModal && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowMagneticTemplateModal(false);
+          }}
+        >
+          <div className="bg-popover text-popover-foreground rounded-lg shadow-2xl w-full max-w-lg overflow-hidden border border-border" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <LayoutGrid size={20} className="text-purple-500" />
+                Templates de points aimantés
+              </h2>
+              <button 
+                onClick={() => setShowMagneticTemplateModal(false)} 
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                title="Fermer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto">
+              <TemplateCard
+                title="Cercle"
+                description="Points disposés en cercle parfait"
+                icon="circle"
+                onClick={() => {
+                  const count = Math.max(3, players.length);
+                  createPointsFromTemplate({ type: 'circle', params: { radius: 250 } }, count);
+                  setShowMagneticTemplateModal(false);
+                }}
+              />
+              <TemplateCard
+                title="Ligne"
+                description="Points alignés horizontalement"
+                icon="line"
+                onClick={() => {
+                  const count = Math.max(2, players.length);
+                  createPointsFromTemplate({ type: 'line', params: { startX: -250, endX: 250 } }, count);
+                  setShowMagneticTemplateModal(false);
+                }}
+              />
+              <TemplateCard
+                title="Grille"
+                description="Points organisés en grille"
+                icon="grid"
+                onClick={() => {
+                  const count = Math.max(4, players.length);
+                  createPointsFromTemplate({ type: 'grid', params: { spacing: 120 } }, count);
+                  setShowMagneticTemplateModal(false);
+                }}
+              />
+              <TemplateCard
+                title="Carré"
+                description="Points en formation carrée"
+                icon="square"
+                onClick={() => {
+                  const count = Math.max(4, players.length);
+                  createPointsFromTemplate({ type: 'square', params: { size: 350 } }, count);
+                  setShowMagneticTemplateModal(false);
+                }}
+              />
+              <TemplateCard
+                title="Arc de cercle"
+                description="Demi-cercle face au MJ"
+                icon="arc"
+                onClick={() => {
+                  const count = Math.max(3, players.length);
+                  createPointsFromTemplate({ type: 'arc', params: { radius: 300, startAngle: 0, endAngle: 180 } }, count);
+                  setShowMagneticTemplateModal(false);
+                }}
+              />
+              <TemplateCard
+                title="Aléatoire"
+                description="Points dispersés aléatoirement"
+                icon="random"
+                onClick={() => {
+                  const count = Math.max(5, players.length);
+                  createPointsFromTemplate({ type: 'random', params: { bounds: { x: -400, y: -300, width: 800, height: 600 } } }, count);
+                  setShowMagneticTemplateModal(false);
+                }}
+              />
+            </div>
+            <div className="p-3 border-t border-border bg-muted/50 flex justify-between items-center">
+              <span className="text-xs text-muted-foreground">
+                {players.length} joueurs • {magneticPoints.length} points actuels
+              </span>
+              <button
+                onClick={() => setShowMagneticTemplateModal(false)}
+                className="px-4 py-1.5 text-xs font-bold rounded-md bg-muted hover:bg-muted/80 transition-colors"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Supabase Settings Modal */}
       {showSupabaseSettings && (
@@ -1857,3 +2136,35 @@ export const RightPanel: React.FC = () => {
     </div>
   );
 };
+
+interface TemplateCardProps {
+  title: string;
+  description: string;
+  icon: string;
+  onClick: () => void;
+}
+
+const TemplateCard: React.FC<TemplateCardProps> = ({ title, description, icon, onClick }) => {
+  const icons: Record<string, React.ReactNode> = {
+    circle: <div className="w-8 h-8 rounded-full border-2 border-purple-500 flex items-center justify-center"><div className="w-1 h-1 rounded-full bg-purple-500" /></div>,
+    line: <div className="w-8 h-8 flex items-center justify-center gap-1"><div className="w-1 h-1 rounded-full bg-purple-500" /><div className="w-1 h-1 rounded-full bg-purple-500" /><div className="w-1 h-1 rounded-full bg-purple-500" /></div>,
+    grid: <div className="w-8 h-8 grid grid-cols-2 gap-1 p-1"><div className="w-1 h-1 rounded-full bg-purple-500" /><div className="w-1 h-1 rounded-full bg-purple-500" /><div className="w-1 h-1 rounded-full bg-purple-500" /><div className="w-1 h-1 rounded-full bg-purple-500" /></div>,
+    square: <div className="w-8 h-8 border-2 border-purple-500 flex items-center justify-center"><div className="w-1 h-1 rounded-full bg-purple-500" /></div>,
+    arc: <div className="w-8 h-8 border-t-2 border-l-2 border-r-2 border-purple-500 rounded-t-full flex items-end justify-center pb-1"><div className="w-1 h-1 rounded-full bg-purple-500" /></div>,
+    random: <div className="w-8 h-8 flex items-center justify-center gap-1"><div className="w-1 h-1 rounded-full bg-purple-500" /><div className="w-1 h-1 rounded-full bg-purple-500" /><div className="w-1 h-1 rounded-full bg-purple-500" /></div>,
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center gap-2 p-3 bg-muted/50 hover:bg-purple-500/10 border border-border hover:border-purple-500/30 rounded-lg transition-all group"
+    >
+      <div className="group-hover:scale-110 transition-transform">
+        {icons[icon] || <LayoutGrid size={32} className="text-purple-500" />}
+      </div>
+      <span className="text-xs font-bold text-center">{title}</span>
+      <span className="text-[10px] text-muted-foreground text-center">{description}</span>
+    </button>
+  );
+};
+

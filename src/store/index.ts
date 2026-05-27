@@ -185,11 +185,20 @@ export interface VttStore extends GameState {
   // Magnetic Points
   addMagneticPoint: (x?: number, y?: number) => void;
   updateMagneticPoint: (id: string, x: number, y: number) => void;
+  updateMagneticPointLabel: (id: string, label: string) => void;
+  updateMagneticPointColor: (id: string, color: string) => void;
+  updateMagneticPointTargeting: (id: string, targetRoleIds?: string[], targetTeamIds?: string[]) => void;
   deleteMagneticPoint: (id: string) => void;
+  reorderMagneticPoints: (fromIndex: number, toIndex: number) => void;
+  createPointsFromTemplate: (template: { type: string; params: Record<string, any> }, count: number) => void;
+  exportMagneticPoints: () => void;
+  importMagneticPoints: (jsonData: string) => { success: boolean; error?: string };
   clearMagneticPoints: () => void;
   setShowMagneticPoints: (show: boolean) => void;
   setIsMagneticEnabled: (enabled: boolean) => void;
-  snapPlayersToPoints: () => void;
+  snapPlayersToPoints: (options?: { targetRoleIds?: string[]; targetTeamIds?: string[] }) => void;
+  setMagneticSnapToGrid: (enabled: boolean) => void;
+  setMagneticGridSize: (size: number) => void;
   resetStore: () => void;
   setCoordinatePicker: (picker: { isActive: boolean; onPick?: (x: number, y: number) => void } | null) => void;
   exportFullState: () => void;
@@ -216,6 +225,8 @@ export const initialState = {
   magneticPoints: [],
   showMagneticPoints: true,
   isMagneticEnabled: true,
+  magneticSnapToGrid: false,
+  magneticGridSize: 50,
   tagCategories: [],
   handouts: [],
   handoutCategories: [],
@@ -1080,47 +1091,228 @@ export const useVttStore = create<VttStore>()(
             .map((p, index) => ({ ...p, order: index + 1 }));
           return { magneticPoints: reordered };
         }),
+        reorderMagneticPoints: (fromIndex: number, toIndex: number) => set((state) => {
+          const points = [...state.magneticPoints].sort((a, b) => a.order - b.order);
+          const [removed] = points.splice(fromIndex, 1);
+          points.splice(toIndex, 0, removed);
+          const reordered = points.map((p, index) => ({ ...p, order: index + 1 }));
+          return { magneticPoints: reordered };
+        }),
+        createPointsFromTemplate: (template: { type: string; params: Record<string, any> }, count: number) => set((state) => {
+          const { panX, panY, zoom } = state.canvas;
+          const containerWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+          const containerHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
+          const centerX = (-panX + containerWidth / 2) / zoom;
+          const centerY = (-panY + containerHeight / 2) / zoom;
+          const maxOrder = state.magneticPoints.reduce((max, p) => Math.max(max, p.order), 0);
+          let newPoints: typeof state.magneticPoints = [];
+          
+          switch (template.type) {
+            case 'circle': {
+              const radius = template.params.radius ?? 150;
+              for (let i = 0; i < count; i++) {
+                const angle = (2 * Math.PI * i) / count;
+                newPoints.push({
+                  id: uuidv4(),
+                  x: centerX + radius * Math.cos(angle),
+                  y: centerY + radius * Math.sin(angle),
+                  order: maxOrder + i + 1
+                });
+              }
+              break;
+            }
+            case 'line': {
+              const startX = template.params.startX ?? centerX - 150;
+              const startY = template.params.startY ?? centerY;
+              const endX = template.params.endX ?? centerX + 150;
+              const endY = template.params.endY ?? centerY;
+              for (let i = 0; i < count; i++) {
+                const t = count === 1 ? 0.5 : i / (count - 1);
+                newPoints.push({
+                  id: uuidv4(),
+                  x: startX + (endX - startX) * t,
+                  y: startY + (endY - startY) * t,
+                  order: maxOrder + i + 1
+                });
+              }
+              break;
+            }
+            case 'grid': {
+              const rows = template.params.rows ?? Math.ceil(Math.sqrt(count));
+              const cols = template.params.cols ?? Math.ceil(count / rows);
+              const spacing = template.params.spacing ?? 80;
+              const startX = centerX - ((cols - 1) * spacing) / 2;
+              const startY = centerY - ((rows - 1) * spacing) / 2;
+              for (let i = 0; i < count; i++) {
+                const row = Math.floor(i / cols);
+                const col = i % cols;
+                newPoints.push({
+                  id: uuidv4(),
+                  x: startX + col * spacing,
+                  y: startY + row * spacing,
+                  order: maxOrder + i + 1
+                });
+              }
+              break;
+            }
+            case 'arc': {
+              const radius = template.params.radius ?? 180;
+              const startAngle = (template.params.startAngle ?? 0) * Math.PI / 180;
+              const endAngle = (template.params.endAngle ?? 180) * Math.PI / 180;
+              for (let i = 0; i < count; i++) {
+                const t = count === 1 ? 0.5 : i / (count - 1);
+                const angle = startAngle + (endAngle - startAngle) * t;
+                newPoints.push({
+                  id: uuidv4(),
+                  x: centerX + radius * Math.cos(angle),
+                  y: centerY + radius * Math.sin(angle),
+                  order: maxOrder + i + 1
+                });
+              }
+              break;
+            }
+            case 'random': {
+              const bounds = template.params.bounds ?? { x: centerX - 200, y: centerY - 150, width: 400, height: 300 };
+              for (let i = 0; i < count; i++) {
+                newPoints.push({
+                  id: uuidv4(),
+                  x: bounds.x + Math.random() * bounds.width,
+                  y: bounds.y + Math.random() * bounds.height,
+                  order: maxOrder + i + 1
+                });
+              }
+              break;
+            }
+            case 'square': {
+              const size = template.params.size ?? 200;
+              const countPerSide = template.params.countPerSide ?? Math.ceil(Math.sqrt(count));
+              const spacing = size / (countPerSide - 1 || 1);
+              const startX = centerX - size / 2;
+              const startY = centerY - size / 2;
+              for (let i = 0; i < count; i++) {
+                const row = Math.floor(i / countPerSide);
+                const col = i % countPerSide;
+                newPoints.push({
+                  id: uuidv4(),
+                  x: startX + col * spacing,
+                  y: startY + row * spacing,
+                  order: maxOrder + i + 1
+                });
+              }
+              break;
+            }
+            default:
+              break;
+          }
+          
+          return { magneticPoints: [...state.magneticPoints, ...newPoints] };
+        }),
         clearMagneticPoints: () => set({ magneticPoints: [] }),
         setShowMagneticPoints: (show) => set({ showMagneticPoints: show }),
         setIsMagneticEnabled: (enabled) => set({ isMagneticEnabled: enabled }),
-        snapPlayersToPoints: () => set((state) => {
-          const alivePlayers = state.players.filter(p => !p.isDead);
-          const points = [...state.magneticPoints].sort((a, b) => a.order - b.order);
+        setMagneticSnapToGrid: (enabled) => set({ magneticSnapToGrid: enabled }),
+        setMagneticGridSize: (size) => set({ magneticGridSize: size }),
+        updateMagneticPointLabel: (id, label) => set((state) => ({
+          magneticPoints: state.magneticPoints.map(p => p.id === id ? { ...p, label } : p)
+        })),
+        updateMagneticPointColor: (id, color) => set((state) => ({
+          magneticPoints: state.magneticPoints.map(p => p.id === id ? { ...p, color } : p)
+        })),
+        updateMagneticPointTargeting: (id, targetRoleIds, targetTeamIds) => set((state) => ({
+          magneticPoints: state.magneticPoints.map(p => p.id === id ? { ...p, targetRoleIds, targetTeamIds } : p)
+        })),
+        exportMagneticPoints: () => {
+          const state = get();
+          const exportData = {
+            version: '1.0',
+            exportedAt: new Date().toISOString(),
+            magneticPoints: state.magneticPoints,
+          };
+          const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `magnetic-points-${new Date().toISOString().split('T')[0]}.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        },
+        importMagneticPoints: (jsonData) => {
+          try {
+            const parsed = JSON.parse(jsonData);
+            if (!parsed.magneticPoints || !Array.isArray(parsed.magneticPoints)) {
+              return { success: false, error: 'Format invalide: champ magneticPoints manquant' };
+            }
+            set((state) => ({
+              magneticPoints: [...state.magneticPoints, ...parsed.magneticPoints.map((p: any) => ({
+                id: p.id || uuidv4(),
+                x: p.x ?? 0,
+                y: p.y ?? 0,
+                order: p.order ?? 0,
+                label: p.label,
+                color: p.color,
+                targetRoleIds: p.targetRoleIds,
+                targetTeamIds: p.targetTeamIds,
+              }))]
+            }));
+            return { success: true };
+          } catch (e) {
+            return { success: false, error: 'JSON invalide' };
+          }
+        },
+        snapPlayersToPoints: (options) => set((state) => {
+          let alivePlayers = state.players.filter(p => !p.isDead);
+          let points = [...state.magneticPoints].sort((a, b) => a.order - b.order);
           
           if (points.length === 0 || alivePlayers.length === 0) return state;
 
+          if (options?.targetRoleIds && options.targetRoleIds.length > 0) {
+            alivePlayers = alivePlayers.filter(p => p.roleId && options.targetRoleIds!.includes(p.roleId));
+          }
+          if (options?.targetTeamIds && options.targetTeamIds.length > 0) {
+            alivePlayers = alivePlayers.filter(p => p.teamId && options.targetTeamIds!.includes(p.teamId));
+          }
+
           const playerUpdates: { id: string, updates: Partial<Player> }[] = [];
           const snapMode = state.displaySettings.magneticPointsSnapMode || 'nearest';
+          const gridSize = state.magneticGridSize || 50;
+          const snapToGrid = state.magneticSnapToGrid ?? false;
+
+          const snapToGridCoord = (coord: number) => Math.round(coord / gridSize) * gridSize;
 
           if (snapMode === 'order') {
             points.forEach((point, idx) => {
               if (alivePlayers[idx]) {
-                playerUpdates.push({ id: alivePlayers[idx].id, updates: { x: point.x, y: point.y } });
+                const finalX = snapToGrid ? snapToGridCoord(point.x) : point.x;
+                const finalY = snapToGrid ? snapToGridCoord(point.y) : point.y;
+                playerUpdates.push({ id: alivePlayers[idx].id, updates: { x: finalX, y: finalY } });
               }
             });
           } else {
             const remainingPlayers = [...alivePlayers];
           
-          // For each point, find the closest available player
-          for (const point of points) {
-            if (remainingPlayers.length === 0) break;
-            
-            let closestPlayerIndex = -1;
-            let minDistance = Infinity;
+            for (const point of points) {
+              if (remainingPlayers.length === 0) break;
+              
+              let closestPlayerIndex = -1;
+              let minDistance = Infinity;
 
-            remainingPlayers.forEach((player, idx) => {
-              const dx = player.x - point.x;
-              const dy = player.y - point.y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              if (dist < minDistance) {
-                minDistance = dist;
-                closestPlayerIndex = idx;
-              }
-            });
+              remainingPlayers.forEach((player, idx) => {
+                const dx = player.x - point.x;
+                const dy = player.y - point.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < minDistance) {
+                  minDistance = dist;
+                  closestPlayerIndex = idx;
+                }
+              });
 
               if (closestPlayerIndex !== -1) {
                 const player = remainingPlayers[closestPlayerIndex];
-                playerUpdates.push({ id: player.id, updates: { x: point.x, y: point.y } });
+                const finalX = snapToGrid ? snapToGridCoord(point.x) : point.x;
+                const finalY = snapToGrid ? snapToGridCoord(point.y) : point.y;
+                playerUpdates.push({ id: player.id, updates: { x: finalX, y: finalY } });
                 remainingPlayers.splice(closestPlayerIndex, 1);
               }
             }

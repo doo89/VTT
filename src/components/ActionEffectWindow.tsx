@@ -125,6 +125,7 @@ export const ActionEffectWindow: React.FC = () => {
     updatePendingEffect,
     pendingActionEffects,
     actions,
+    players,
     roles,
     tags,
     teams,
@@ -191,6 +192,10 @@ export const ActionEffectWindow: React.FC = () => {
   const [killOnGraveyard, setKillOnGraveyard] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number, y: number, startX: number, startY: number } | null>(null);
+  
+  // Context override for triggerAction
+  const [contextOverrideTargetPlayerId, setContextOverrideTargetPlayerId] = useState<string | null>(null);
+  const [contextOverrideTargetCibleId, setContextOverrideTargetCibleId] = useState<string | null>(null);
 
   const isEditing = !!actionEffectCreatorState.editingEffectId;
 
@@ -253,6 +258,8 @@ export const ActionEffectWindow: React.FC = () => {
         setParticleType(effect.particleType || 'confetti');
         setParticleDuration(effect.particleDuration || 3000);
         setKillOnGraveyard(effect.killOnGraveyard || false);
+        setContextOverrideTargetPlayerId(effect.contextOverride?.targetPlayerId ?? null);
+        setContextOverrideTargetCibleId(effect.contextOverride?.targetCibleId ?? null);
       }
     } else {
       setType('deleteAllTags');
@@ -268,6 +275,8 @@ export const ActionEffectWindow: React.FC = () => {
       setRoleTeamId('unchanged');
       setShowCountdown(false);
       setCountdownMessage('');
+      setContextOverrideTargetPlayerId(null);
+      setContextOverrideTargetCibleId(null);
       setSoundName(soundboard.buttons.length > 0 ? soundboard.buttons[0].name : '');
       setHandoutId(handouts.length > 0 ? handouts[0].id : '');
       setPrivateMessage('');
@@ -401,7 +410,11 @@ export const ActionEffectWindow: React.FC = () => {
       actionEnabledMode: type === 'toggleActionEnabled' ? actionEnabledMode : undefined,
       particleType: type === 'playParticleEffect' ? particleType : undefined,
       particleDuration: type === 'playParticleEffect' ? particleDuration : undefined,
-      killOnGraveyard: (type === 'movePlayerToGraveyard' || type === 'moveCibleToGraveyard') ? killOnGraveyard : undefined
+      killOnGraveyard: (type === 'movePlayerToGraveyard' || type === 'moveCibleToGraveyard') ? killOnGraveyard : undefined,
+      contextOverride: type === 'triggerAction' ? {
+        targetPlayerId: contextOverrideTargetPlayerId,
+        targetCibleId: contextOverrideTargetCibleId
+      } : undefined
     };
     if (isEditing && actionEffectCreatorState.editingEffectId) {
       updatePendingEffect(actionEffectCreatorState.editingEffectId, data);
@@ -983,6 +996,47 @@ export const ActionEffectWindow: React.FC = () => {
                   <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
               </select>
+              
+              {/* Context Override Section */}
+              <div className="border-t border-orange-500/20 pt-3 mt-2">
+                <label className="text-[10px] font-bold text-orange-400 uppercase tracking-widest pl-1 mb-2 block">Contexte d'exécution (optionnel)</label>
+                
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="context-joueur" className="text-[9px] text-muted-foreground pl-1">$Joueur →</label>
+                  <select
+                    id="context-joueur"
+                    value={contextOverrideTargetPlayerId ?? ''}
+                    onChange={(e) => setContextOverrideTargetPlayerId(e.target.value || null)}
+                    className="w-full bg-input border border-border rounded-lg px-2 py-1 text-xs outline-none focus:border-orange-500/50"
+                  >
+                    <option value="">Hériter du parent</option>
+                    <option value="null">Aucun (vide)</option>
+                    {players.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex flex-col gap-1.5 mt-2">
+                  <label htmlFor="context-cible" className="text-[9px] text-muted-foreground pl-1">$Cible →</label>
+                  <select
+                    id="context-cible"
+                    value={contextOverrideTargetCibleId ?? ''}
+                    onChange={(e) => setContextOverrideTargetCibleId(e.target.value || null)}
+                    className="w-full bg-input border border-border rounded-lg px-2 py-1 text-xs outline-none focus:border-orange-500/50"
+                  >
+                    <option value="">Hériter du parent</option>
+                    <option value="null">Aucun (vide)</option>
+                    {players.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <p className="text-[9px] text-muted-foreground italic px-1 mt-2">
+                  Permet de changer les variables $Joueur et $Cible pour cette sous-action uniquement.
+                </p>
+              </div>
             </div>
           )}
 

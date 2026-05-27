@@ -51,6 +51,7 @@ export const Canvas: React.FC = () => {
     selectedEntityIds, setSelectedEntityIds, clearSelection,
     interactionMode, setInteractionMode,
     magneticPoints, showMagneticPoints, setShowMagneticPoints, updateMagneticPoint, deleteMagneticPoint,
+    magneticGridSize, magneticSnapToGrid,
     coordinatePicker, setCoordinatePicker, timer, setTimer
   } = useVttStore();
 
@@ -424,7 +425,31 @@ export const Canvas: React.FC = () => {
           }
         });
       } else if (payload.type === 'magnetic_point') {
-        updateMagneticPoint(payload.id, canvasX, canvasY);
+        const gridSize = magneticGridSize || 50;
+        const snapToGrid = magneticSnapToGrid ?? false;
+        const finalX = snapToGrid ? Math.round(canvasX / gridSize) * gridSize : canvasX;
+        const finalY = snapToGrid ? Math.round(canvasY / gridSize) * gridSize : canvasY;
+        
+        if (selectedEntityIds.some(id => id.startsWith('magnetic-')) && selectedEntityIds.length > 1) {
+          const anchorPoint = magneticPoints.find(p => p.id === payload.id);
+          if (anchorPoint) {
+            const dx = finalX - anchorPoint.x;
+            const dy = finalY - anchorPoint.y;
+            selectedEntityIds.forEach(id => {
+              if (id.startsWith('magnetic-')) {
+                const pointId = id.replace('magnetic-', '');
+                const point = magneticPoints.find(p => p.id === pointId);
+                if (point) {
+                  const pointFinalX = snapToGrid ? Math.round((point.x + dx) / gridSize) * gridSize : point.x + dx;
+                  const pointFinalY = snapToGrid ? Math.round((point.y + dy) / gridSize) * gridSize : point.y + dy;
+                  updateMagneticPoint(pointId, pointFinalX, pointFinalY);
+                }
+              }
+            });
+          }
+        } else {
+          updateMagneticPoint(payload.id, finalX, finalY);
+        }
       }
     } catch (err) {
       console.error("Drop error", err);
@@ -1873,10 +1898,13 @@ export const Canvas: React.FC = () => {
           })}
           
           {/* Render Magnetic Points */}
-          {showMagneticPoints && magneticPoints.map((point) => (
+          {showMagneticPoints && magneticPoints.map((point) => {
+            const pointColor = point.color || displaySettings.magneticPointsColor || '#3b82f6';
+            const isSelected = selectedEntityIds.includes(`magnetic-${point.id}`);
+            return (
             <div
               key={point.id}
-              className="absolute canvas-entity z-[15] select-none"
+              className={`absolute canvas-entity z-[15] select-none group ${isSelected ? 'ring-4 ring-blue-500 rounded-full' : ''}`}
               style={{
                 left: point.x,
                 top: point.y,
@@ -1889,7 +1917,18 @@ export const Canvas: React.FC = () => {
                 closeContextMenu();
                 e.dataTransfer.setData('application/json', JSON.stringify({ type: 'magnetic_point', id: point.id }));
               }}
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                if (interactionMode === 'select') {
+                  if (e.shiftKey && isSelected) {
+                    setSelectedEntityIds(selectedEntityIds.filter(id => id !== `magnetic-${point.id}`));
+                  } else if (e.shiftKey && !isSelected) {
+                    setSelectedEntityIds([...selectedEntityIds, `magnetic-${point.id}`]);
+                  } else if (!isSelected) {
+                    setSelectedEntityIds([`magnetic-${point.id}`]);
+                  }
+                }
+              }}
               onContextMenu={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1899,25 +1938,32 @@ export const Canvas: React.FC = () => {
               }}
             >
               <div 
-                className="w-8 h-8 rounded-full flex items-center justify-center shadow-lg backdrop-blur-[2px] group transition-all"
+                className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg backdrop-blur-[2px] transition-all"
                 style={{
-                  backgroundColor: `${displaySettings.magneticPointsColor || '#3b82f6'}1a`,
-                  border: `2px solid ${displaySettings.magneticPointsColor || '#3b82f6'}80`,
+                  backgroundColor: `${pointColor}1a`,
+                  border: `2px solid ${pointColor}80`,
                 }}
               >
-                <span 
-                  className="text-[12px] font-black drop-shadow-sm select-none"
-                  style={{ color: displaySettings.magneticPointsColor || '#3b82f6' }}
-                >
-                  {point.order}
-                </span>
+                <div className="flex flex-col items-center">
+                  <span 
+                    className="text-[11px] font-black drop-shadow-sm select-none"
+                    style={{ color: pointColor }}
+                  >
+                    {point.order}
+                  </span>
+                  {point.label && (
+                    <span className="text-[8px] font-bold text-muted-foreground max-w-[60px] truncate">
+                      {point.label}
+                    </span>
+                  )}
+                </div>
                 <div 
                   className="absolute inset-0 rounded-full animate-pulse -z-10" 
-                  style={{ backgroundColor: `${displaySettings.magneticPointsColor || '#3b82f6'}0d` }}
+                  style={{ backgroundColor: `${pointColor}0d` }}
                 />
               </div>
             </div>
-          ))}
+          )})}
 
           {/* Render Circle Rearrange Preview */}
           {circlePreview && (
@@ -2928,10 +2974,11 @@ export const Canvas: React.FC = () => {
                     e.stopPropagation();
                     const pCount = players.filter(p => selectedEntityIds.includes(p.id)).length;
                     const mCount = markers.filter(m => selectedEntityIds.includes(m.id)).length;
+                    const mpCount = selectedEntityIds.filter(id => id.startsWith('magnetic-')).length;
 
                     setDeleteConfirm({
                       title: "Supprimer la sélection",
-                      message: `Êtes-vous sûr de vouloir supprimer les ${selectedEntityIds.length} éléments sélectionnés (${pCount} joueurs, ${mCount} tags) ?`,
+                      message: `Êtes-vous sûr de vouloir supprimer les ${selectedEntityIds.length} éléments sélectionnés (${pCount} joueurs, ${mCount} tags, ${mpCount} points aimantés) ?`,
                       onConfirm: () => {
                         selectedEntityIds.forEach(id => {
                           const player = players.find(p => p.id === id);
@@ -2939,6 +2986,9 @@ export const Canvas: React.FC = () => {
                           else {
                             const marker = markers.find(m => m.id === id);
                             if (marker) deleteMarker(id);
+                            else if (id.startsWith('magnetic-')) {
+                              deleteMagneticPoint(id.replace('magnetic-', ''));
+                            }
                           }
                         });
                         clearSelection();

@@ -173,6 +173,10 @@ export interface MagneticPoint {
   x: number;
   y: number;
   order: number;
+  label?: string;
+  color?: string;
+  targetRoleIds?: string[];
+  targetTeamIds?: string[];
 }
 
 export type PlayerShape = 'circle' | 'square' | 'oval' | 'triangle' | 'trapezoid' | 'octagon' | 'star' | 'pentagon' | 'hexagon' | 'diamond' | 'shield' | 'cross' | 'heart' | 'crescent';
@@ -293,6 +297,8 @@ export interface ChecklistItem {
   actionId?: string | null;
   showOnSmartphone?: boolean;
   collapsed?: boolean;
+  parentId?: string | null;
+  notes?: string;
 }
 
 export interface ChecklistState {
@@ -519,6 +525,11 @@ export interface ActionEffect {
   excludeRoleIds?: string[];
   excludeTagIds?: string[];
   excludeTeamIds?: string[];
+  // Context overrides for triggerAction
+  contextOverride?: {
+    targetPlayerId?: string | null;
+    targetCibleId?: string | null;
+  };
 }
 
 export type ActionConditionType = 'day' | 'night' | 'turn' | 'playerRole' | 'playerTag' | 'playerPastille' | 'playerSelection' | 'playerDistance' | 'playerSelectionTag' | 'playerSelectionPastille' | 'playerSelectionRole' | 'playerDistanceTag' | 'playerDistancePastille' | 'cycleCheck' | 'callOrderRole' | 'playerSelectionTeam' | 'playerDistanceTeam' | 'playerDistanceStatus' | 'playerDistanceSelf' | 'playerDistanceSelected' | 'roleTeamCheck' | 'playerSelectionStatus' | 'playerSelectionRoleAndTeam' | 'roleCount' | 'hasTag' | 'randomChance' | 'isCouple' | 'partnerDead' | 'targetExists' | 'playerAlive' | 'playerDead' | 'isNightPhase' | 'isDayPhase';
@@ -607,6 +618,8 @@ export interface GameState {
   magneticPoints: MagneticPoint[];
   showMagneticPoints: boolean;
   isMagneticEnabled: boolean;
+  magneticSnapToGrid: boolean;
+  magneticGridSize: number;
   tags: TagModel[];
   tagCategories: TagCategory[];
   handouts: Handout[];
