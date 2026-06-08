@@ -1,4 +1,4 @@
-import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play, Magnet, Eye, EyeOff, Maximize2, Minimize2, Copy, LayoutGrid, GripVertical, Grid2X2, Wifi, Users, TriangleAlert } from 'lucide-react';
+import { Settings, ChevronLeft, ChevronRight, Upload, Clock, ChevronDown, Music, Shuffle, Database, X, History, ArrowUpRight, Trash2, Zap, RefreshCw, Download, Trophy, Heart, Book, MessageSquare, Plus, MonitorUp, Edit2, CheckSquare, Volume2, Tag, Play, Magnet, Eye, EyeOff, Maximize2, Minimize2, Copy, LayoutGrid, GripVertical, Grid2X2, Wifi, Users, TriangleAlert, Vote, CreditCard } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import * as icons from 'lucide-react';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -15,6 +15,7 @@ import { TimerDisplay, TimerControls, TimerPresets } from '../timer';
 import { distributeRoles } from '../../lib/distribute-roles';
 import { LifeProgressBar } from '../LifeProgressBar';
 import { useToast } from '../Toast';
+import { renderMarkdown } from '../../lib/utils';
 
 export const RightPanel: React.FC = () => {
   const toast = useToast();
@@ -29,6 +30,8 @@ export const RightPanel: React.FC = () => {
     logs, logsSettings, setLogsSettings, logsFilter, clearLogs, addLog,
     scoreboard, setScoreboard,
     wiki: storeWiki, setWiki,
+    campaignJournal: storeCampaignJournal, updateCampaignJournal,
+    chatMessages,
     customPopups, addCustomPopup, updateCustomPopup, deleteCustomPopup, triggerCustomPopup, setPreviewPopup,
     teams,
     checklist,
@@ -47,6 +50,8 @@ export const RightPanel: React.FC = () => {
   } = useVttStore();
 
   const wiki = storeWiki || initialState.wiki;
+  const campaignJournal = storeCampaignJournal || initialState.campaignJournal;
+  const unreadCount = chatMessages.filter(m => m.unread).length;
 
   const [activeSection, setActiveSection] = useState<string | null>('distribution');
   const [showSupabaseSettings, setShowSupabaseSettings] = useState(false);
@@ -324,19 +329,54 @@ export const RightPanel: React.FC = () => {
           <Settings size={20} />
           <h2 className="text-xl font-bold">Outils</h2>
         </div>
-        <button 
-          onClick={() => setIsSettingsOpen(true)}
-          className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 hover:bg-accent rounded-md border border-border bg-background"
-          title="Paramètres"
-        >
-          <Settings size={14} />
-          Paramètres
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => (window as any).openVoteManager?.(true)}
+            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-md border border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-400 hover:bg-fuchsia-500/20 transition-colors"
+            title="Gérer les Votes en Temps Réel"
+          >
+            <Vote size={14} /> Votes
+          </button>
+          <button
+            onClick={() => (window as any).openChatManager?.(true)}
+            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-md border border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors relative"
+            title="Ouvrir la Messagerie Privée & Chuchotements"
+          >
+            <MessageSquare size={14} /> Messages
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => (window as any).openCardEditor?.(null)}
+            className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors"
+            title="Créateur Visuel de Cartes"
+          >
+            <CreditCard size={14} /> Cartes
+          </button>
+          <button 
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 hover:bg-accent rounded-md border border-border bg-background"
+            title="Paramètres"
+          >
+            <Settings size={14} />
+            Paramètres
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 custom-scrollbar min-h-0">
 
-        {(displaySettings.panels?.panelsOrder || ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system']).map(key => {
+        {(() => {
+          const defaultOrder = ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'campaignJournal', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system'];
+          const savedOrder = displaySettings.panels?.panelsOrder || [];
+          const panelsOrder = savedOrder.length > 0
+            ? [...new Set([...savedOrder, ...defaultOrder.filter(k => !savedOrder.includes(k))])]
+            : defaultOrder;
+          return panelsOrder;
+        })().map(key => {
           if (key === 'distribution') return displaySettings.panels?.distribution !== false && (
             <section key="distribution" className="flex flex-col border border-border rounded-md bg-background">
               <div
@@ -887,6 +927,77 @@ export const RightPanel: React.FC = () => {
                       <Book size={14} /> {wiki.isOpen && wiki.isDetached ? 'Wiki Ouvert' : 'Ouvrir la Fenêtre Wiki'}
                     </button>
                   )}
+                </div>
+              )}
+            </section>
+          );
+
+          if (key === 'campaignJournal') return displaySettings.panels?.campaignJournal !== false && (
+            <section key="campaignJournal" className="flex flex-col border border-border rounded-md bg-background">
+              <div onClick={() => toggleSection('campaignJournal')} className="flex items-center justify-between p-2 bg-muted/50 hover:bg-muted font-semibold text-sm transition-colors cursor-pointer">
+                <div className={`flex items-center gap-2 ${activeSection === 'campaignJournal' ? 'text-amber-500' : ''}`}>
+                  <Book size={16} className="text-amber-500/80" /> Journal de Campagne
+                  {campaignJournal.isOpen && (
+                    <span className="ml-1 w-2 h-2 rounded-full bg-amber-500 animate-pulse inline-block" />
+                  )}
+                </div>
+                {activeSection === 'campaignJournal' ? <ChevronDown size={16} className="text-amber-500" /> : <ChevronRight size={16} />}
+              </div>
+              {activeSection === 'campaignJournal' && (
+                <div className="flex flex-col p-3 border-t border-border gap-3">
+                  {/* Permission */}
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Joueurs :</span>
+                    <select
+                      value={campaignJournal.permission}
+                      onChange={(e) => updateCampaignJournal({ permission: e.target.value as any })}
+                      className="bg-muted border border-border rounded px-2 py-1 text-xs font-bold text-foreground focus:ring-1 focus:ring-ring outline-none cursor-pointer"
+                    >
+                      <option value="hidden">🙈 Masqué</option>
+                      <option value="readonly">👁 Lecture seule</option>
+                      <option value="editable">✏️ Éditable</option>
+                    </select>
+                  </div>
+
+                  {/* Lock status */}
+                  {campaignJournal.permission === 'editable' && campaignJournal.lockHolderId && (
+                    <div className="text-[10px] font-medium bg-red-500/10 text-red-400 px-2 py-1 rounded flex items-center gap-1.5">
+                      🔒 Verrouillé par <span className="font-bold">{campaignJournal.lockHolderName}</span>
+                    </div>
+                  )}
+
+                  {/* Detach toggle */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Mode fenêtre volante</span>
+                    <div className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="journal-detach-toggle"
+                        checked={!!campaignJournal.isDetached}
+                        onChange={() => updateCampaignJournal({ isDetached: !campaignJournal.isDetached })}
+                        className="sr-only peer"
+                      />
+                      <label
+                        htmlFor="journal-detach-toggle"
+                        className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${campaignJournal.isDetached ? 'bg-amber-500' : 'bg-muted'}`}
+                        title="Mode fenêtre volante du Journal"
+                      >
+                        <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${campaignJournal.isDetached ? 'left-6' : 'left-1'}`} />
+                        <span className="sr-only">Mode fenêtre volante du Journal</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => updateCampaignJournal({ isOpen: !campaignJournal.isOpen, isDetached: true, x: Math.max(200, (window.innerWidth - 520) / 2), y: Math.max(80, (window.innerHeight - 570) / 2) })}
+                    className={`w-full text-xs py-2 rounded font-medium transition-colors flex items-center justify-center gap-2 shadow-sm ${
+                      campaignJournal.isOpen
+                        ? 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 border border-amber-500/40'
+                        : 'bg-amber-500 text-white hover:bg-amber-600'
+                    }`}
+                  >
+                    <Book size={14} /> {campaignJournal.isOpen ? 'Journal Ouvert ✓' : 'Ouvrir le Journal'}
+                  </button>
                 </div>
               )}
             </section>

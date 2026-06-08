@@ -1,17 +1,18 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase, uploadFileToStorage } from '../lib/supabase';
 import type { SyncStatePayload } from '../lib/supabase';
-import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock, Gamepad2, Users, Map, Power, Trash2 } from 'lucide-react';
+import { LogOut, UserCircle2, Tag as TagIcon, ShieldAlert, X, MessageSquareWarning, ChevronUp, ChevronDown, Megaphone, Clock, Gamepad2, Users, Map, Power, Trash2, Edit2 } from 'lucide-react';
 import * as icons from 'lucide-react';
 import { useVttStore } from '../store';
 import type { Player, Role, Team, TagModel } from '../types';
+import { renderMarkdown } from '../lib/utils';
 
 export const PlayerView: React.FC = () => {
   const { roomId, playerName } = useParams<{ roomId: string, playerName: string }>();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room' | 'wiki' | 'logs' | 'handouts'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'players' | 'room' | 'wiki' | 'logs' | 'handouts' | 'journal' | 'chat'>('game');
   const [allRoles, setAllRoles] = useState<Role[]>([]);
   const [allTeams, setAllTeams] = useState<Team[]>([]);
   const [roomData, setRoomData] = useState<any>(null);
@@ -44,6 +45,13 @@ export const PlayerView: React.FC = () => {
     return saved ? JSON.parse(saved) : {};
   });
   const [roomLogs, setRoomLogs] = useState<any[]>([]);
+  const chatMessages = useVttStore(state => state.chatMessages);
+  const [chatInput, setChatInput] = useState('');
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [profileEditName, setProfileEditName] = useState('');
+  const [profileEditColor, setProfileEditColor] = useState('#3b82f6');
+  const [profileEditImageUrl, setProfileEditImageUrl] = useState('');
+  const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false);
 
   const activeGroupVote = useVttStore(state => state.activeGroupVote);
   const isGroupVoter = !!(activeGroupVote?.isOpen && (!activeGroupVote.allowedVoterIds?.length || activeGroupVote.allowedVoterIds.includes(localPlayer?.id || '')));
@@ -56,6 +64,30 @@ export const PlayerView: React.FC = () => {
   const [smartphoneCountdown, setSmartphoneCountdown] = useState<any>(null);
   const [timer, setTimer] = useState<any>({ minutes: 5, seconds: 0, isRunning: false });
   const [roleRevealPopups, setRoleRevealPopups] = useState<{ id: string, playerName: string, playerColor: string, roleName: string, roleImageUrl?: string, roleColor?: string }[]>([]);
+  
+  const [campaignJournal, setCampaignJournal] = useState<any>(null);
+  const [isEditingJournal, setIsEditingJournal] = useState(false);
+  const [localJournalContent, setLocalJournalContent] = useState('');
+  const journalTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const debounceTimeoutRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (campaignJournal && !isEditingJournal) {
+      setLocalJournalContent(campaignJournal.publicContent || '');
+    }
+  }, [campaignJournal, isEditingJournal]);
+
+  // Synchronise l'état local d'édition avec le verrou du serveur
+  useEffect(() => {
+    if (campaignJournal && localPlayer) {
+      const isMyLock = campaignJournal.lockHolderId === localPlayer.id;
+      if (isMyLock && !isEditingJournal) {
+        setIsEditingJournal(true);
+      } else if (!isMyLock && isEditingJournal) {
+        setIsEditingJournal(false);
+      }
+    }
+  }, [campaignJournal?.lockHolderId, localPlayer?.id, isEditingJournal]);
   const processedRoleRevealsRef = useRef<Record<string, number>>({});
   const lastForcedTabRef = useRef<string | null>(null);
   const lastVibrationTriggerRef = useRef<number>(0);
@@ -76,6 +108,21 @@ export const PlayerView: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [localPlayer?.activeParticle]);
+
+  // Pre-calculate stable random properties for active particles to keep rendering pure
+  const particles = useMemo(() => {
+    if (!activeParticle) return [];
+    return Array.from({ length: 40 }).map(() => {
+      const left = Math.random() * 100;
+      const delay = Math.random() * 0.5;
+      const duration = 1 + Math.random();
+      const size = activeParticle.type === 'blood' ? (20 + Math.random() * 80) : (5 + Math.random() * 15);
+      const rotate = Math.random() * 360;
+      const spreadX = (Math.random() - 0.5) * 400;
+      const spreadY = (Math.random() - 0.5) * 400;
+      return { left, delay, duration, size, rotate, spreadX, spreadY };
+    });
+  }, [activeParticle?.id, activeParticle?.type]);
 
   // Handle Dice Results
   useEffect(() => {
@@ -268,6 +315,7 @@ export const PlayerView: React.FC = () => {
 
           setRoomData(data.room || null);
           setRoomLogs(data.logs || []);
+          setCampaignJournal(data.campaignJournal || null);
 
           // Push custom popups to the global store so that CustomPopupOverlay can render them
           useVttStore.setState({
@@ -350,6 +398,37 @@ export const PlayerView: React.FC = () => {
         } catch (e) {
           console.error('[VTT] Error processing sync_state:', e);
         }
+      })
+      .on('broadcast', { event: 'journal_update_public' }, ({ payload }) => {
+        setCampaignJournal((prev: any) => ({
+          ...(prev || {}),
+          publicContent: payload.content ?? prev?.publicContent,
+          lockHolderId: payload.lockHolderId ?? prev?.lockHolderId,
+          lockHolderName: payload.lockHolderName ?? prev?.lockHolderName,
+          lockExpiration: payload.lockExpiration ?? prev?.lockExpiration,
+        }));
+      })
+      .on('broadcast', { event: 'journal_acquire_lock' }, ({ payload }) => {
+        setCampaignJournal((prev: any) => ({
+          ...(prev || {}),
+          lockHolderId: payload.playerId,
+          lockHolderName: payload.playerName,
+          lockExpiration: Date.now() + 5 * 60 * 1000,
+        }));
+      })
+      .on('broadcast', { event: 'journal_release_lock' }, ({ payload }) => {
+        setCampaignJournal((prev: any) => {
+          if (prev?.lockHolderId === payload.playerId) {
+            return { ...prev, lockHolderId: null, lockHolderName: null, lockExpiration: null };
+          }
+          return prev;
+        });
+      })
+      .on('broadcast', { event: 'journal_update_permission' }, ({ payload }) => {
+        setCampaignJournal((prev: any) => ({
+          ...(prev || {}),
+          permission: payload.permission,
+        }));
       })
       .on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState();
@@ -478,6 +557,110 @@ export const PlayerView: React.FC = () => {
     showNotePreview: true
   };
 
+  const handleAcquireJournalLock = () => {
+    if (!localPlayer || !channelRef.current) return;
+    channelRef.current.send({
+      type: 'broadcast',
+      event: 'journal_acquire_lock',
+      payload: {
+        playerId: localPlayer.id,
+        playerName: localPlayer.name
+      }
+    });
+  };
+
+  const handleReleaseJournalLock = () => {
+    if (!localPlayer || !channelRef.current) return;
+    channelRef.current.send({
+      type: 'broadcast',
+      event: 'journal_release_lock',
+      payload: {
+        playerId: localPlayer.id
+      }
+    });
+    setIsEditingJournal(false);
+  };
+
+  const handleUpdateJournalContent = (newContent: string) => {
+    setLocalJournalContent(newContent);
+    if (!localPlayer || !channelRef.current) return;
+    
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'journal_update_public',
+        payload: {
+          playerId: localPlayer.id,
+          playerName: localPlayer.name,
+          content: newContent
+        }
+      });
+    }, 300);
+  };
+
+  const insertJournalMarkdown = (format: 'bold' | 'italic' | 'list') => {
+    const textarea = journalTextareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selected = text.substring(start, end);
+    
+    let formatted = '';
+    if (format === 'bold') {
+      formatted = `**${selected || 'texte'}**`;
+    } else if (format === 'italic') {
+      formatted = `*${selected || 'texte'}*`;
+    } else if (format === 'list') {
+      if (selected.includes('\n')) {
+        formatted = selected.split('\n').map(line => line.startsWith('- ') ? line : `- ${line}`).join('\n');
+      } else {
+        formatted = `- ${selected || 'élément'}`;
+      }
+    }
+
+    const newValue = text.substring(0, start) + formatted + text.substring(end);
+    handleUpdateJournalContent(newValue);
+
+    setTimeout(() => {
+      textarea.focus();
+      const offset = format === 'list' ? 2 : (format === 'bold' ? 2 : 1);
+      if (selected) {
+        textarea.setSelectionRange(start, start + formatted.length);
+      } else {
+        const wordLen = format === 'bold' ? 5 : (format === 'italic' ? 5 : 7);
+        textarea.setSelectionRange(start + offset, start + offset + wordLen);
+      }
+    }, 0);
+  };
+
+  const handleSaveProfile = () => {
+    if (!localPlayer || !channelRef.current) return;
+    const updates: any = {};
+    if (profileEditName && profileEditName !== localPlayer.name) {
+      updates.name = profileEditName;
+    }
+    if (profileEditColor && profileEditColor !== localPlayer.color) {
+      updates.color = profileEditColor;
+    }
+    if (profileEditImageUrl !== undefined && profileEditImageUrl !== localPlayer.imageUrl) {
+      updates.imageUrl = profileEditImageUrl;
+    }
+    if (Object.keys(updates).length > 0) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'update_player_profile',
+        payload: { playerId: localPlayer.id, updates }
+      });
+    }
+    setShowProfileEditor(false);
+  };
+
   const filteredPlayers = useMemo(() => {
     let list = [...roomPlayers];
     
@@ -545,13 +728,29 @@ export const PlayerView: React.FC = () => {
             <h2 className="text-xl font-bold tracking-tight text-white truncate max-w-[200px]">{decodeURIComponent(playerName || 'Joueur')}</h2>
           </div>
         </div>
-        <button
-          onClick={() => navigate('/join')}
-          className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-colors"
-          title="Quitter la salle"
-        >
-          <LogOut size={20} />
-        </button>
+        <div className="flex items-center gap-1">
+          {localPlayer && (
+            <button
+              onClick={() => {
+                setProfileEditName(localPlayer.name || '');
+                setProfileEditColor(localPlayer.color || '#3b82f6');
+                setProfileEditImageUrl(localPlayer.imageUrl || '');
+                setShowProfileEditor(true);
+              }}
+              className="p-2 text-zinc-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-full transition-colors"
+              title="Modifier mon profil"
+            >
+              <Edit2 size={18} />
+            </button>
+          )}
+          <button
+            onClick={() => navigate('/join')}
+            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-400/10 rounded-full transition-colors"
+            title="Quitter la salle"
+          >
+            <LogOut size={20} />
+          </button>
+        </div>
       </div>
 
       {!isConnected ? (
@@ -1493,6 +1692,114 @@ export const PlayerView: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'journal' && (
+            <div className="flex-1 flex flex-col gap-4 py-2 pb-10 overflow-hidden h-full">
+              <div className="flex flex-col gap-1 px-1">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-505">Journal de Campagne</h3>
+                <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">Collaboratif & Persistant</p>
+              </div>
+
+              {!campaignJournal || campaignJournal.permission === 'hidden' ? (
+                <div className="flex-1 bg-zinc-900/40 rounded-3xl border border-zinc-800/60 p-6 flex flex-col items-center justify-center text-center">
+                  <icons.BookOpen size={40} className="text-zinc-700 mb-2 animate-pulse" />
+                  <p className="text-sm text-zinc-500 italic">Le journal est actuellement masqué par le Maître du Jeu.</p>
+                </div>
+              ) : (
+                <div className="flex-1 bg-zinc-900/40 rounded-3xl border border-zinc-800/60 overflow-hidden flex flex-col min-h-0">
+                  {/* Status Bar */}
+                  <div className="p-3 bg-zinc-900/60 border-b border-zinc-800/80 flex items-center justify-between gap-2 text-xs">
+                    {campaignJournal.permission === 'editable' ? (
+                      campaignJournal.lockHolderId ? (
+                        campaignJournal.lockHolderId === (localPlayer?.id || '') ? (
+                          <span className="font-semibold text-amber-500 flex items-center gap-1">
+                            <icons.Edit size={14} /> Vous modifiez le journal...
+                          </span>
+                        ) : (
+                          <span className="text-red-400 font-semibold flex items-center gap-1">
+                            <icons.Lock size={14} /> Verrouillé par {campaignJournal.lockHolderName}
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-green-500 font-semibold flex items-center gap-1">
+                          <icons.Unlock size={14} /> Journal disponible pour édition
+                        </span>
+                      )
+                    ) : (
+                      <span className="text-blue-400 font-semibold flex items-center gap-1">
+                        <icons.Eye size={14} /> Lecture Seule
+                      </span>
+                    )}
+
+                    {campaignJournal.permission === 'editable' && (
+                      isEditingJournal ? (
+                        <button
+                          onClick={handleReleaseJournalLock}
+                          className="px-3 py-1 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg transition-colors"
+                        >
+                          Enregistrer
+                        </button>
+                      ) : (
+                        <button
+                          disabled={!!campaignJournal.lockHolderId}
+                          onClick={handleAcquireJournalLock}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 text-white font-bold rounded-lg transition-colors"
+                        >
+                          Modifier
+                        </button>
+                      )
+                    )}
+                  </div>
+
+                  {/* Body Content */}
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                    {isEditingJournal ? (
+                      <div className="flex flex-col gap-2 h-full min-h-[250px]">
+                        {/* Editor Toolbar */}
+                        <div className="flex items-center gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-lg">
+                          <button
+                            onClick={() => insertJournalMarkdown('bold')}
+                            className="p-1.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200"
+                            title="Gras"
+                          >
+                            <icons.Bold size={15} />
+                          </button>
+                          <button
+                            onClick={() => insertJournalMarkdown('italic')}
+                            className="p-1.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200"
+                            title="Italique"
+                          >
+                            <icons.Italic size={15} />
+                          </button>
+                          <button
+                            onClick={() => insertJournalMarkdown('list')}
+                            className="p-1.5 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200"
+                            title="Liste à puces"
+                          >
+                            <icons.List size={15} />
+                          </button>
+                        </div>
+                        <textarea
+                          ref={journalTextareaRef}
+                          value={localJournalContent}
+                          onChange={(e) => handleUpdateJournalContent(e.target.value)}
+                          placeholder="Rédigez le journal de campagne ici... Utilisez le Markdown simple ou les boutons ci-dessus."
+                          className="w-full flex-1 bg-transparent border border-zinc-800 rounded-xl p-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none min-h-[200px]"
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className="prose prose-sm dark:prose-invert max-w-none break-words select-text text-zinc-200 leading-relaxed"
+                        dangerouslySetInnerHTML={{
+                          __html: renderMarkdown(campaignJournal.publicContent) || '<em class="text-zinc-600">Aucune note pour le moment.</em>'
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === 'logs' && (
             <div className="flex-1 flex flex-col gap-4 py-2 pb-10 overflow-hidden h-full">
               <div className="flex flex-col gap-1 px-1">
@@ -1548,6 +1855,40 @@ export const PlayerView: React.FC = () => {
                   <div className="flex-1 flex flex-col items-center justify-center text-zinc-700 italic gap-3 opacity-30">
                     <icons.MessageSquare size={48} strokeWidth={1} />
                     <span className="text-xs uppercase tracking-[0.2em] font-bold">Le journal est vide</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'chat' && (
+            <div className="flex-1 flex flex-col gap-4 py-2 pb-10 overflow-hidden h-full">
+              <div className="flex flex-col gap-1 px-1">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-500">Messagerie</h3>
+                <p className="text-[10px] text-zinc-600 font-medium uppercase tracking-widest">Messages du MJ</p>
+              </div>
+              <div className="flex-1 bg-zinc-900/40 rounded-3xl border border-zinc-800/60 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-3">
+                {chatMessages && chatMessages.length > 0 ? (
+                  chatMessages.slice().reverse().map((msg: any) => (
+                    <div key={msg.id} className="flex gap-2 items-start animate-in fade-in slide-in-from-left-2 duration-300">
+                      <div className="mt-1.5 w-2 h-2 rounded-full shrink-0 bg-blue-500" />
+                      <div className="flex flex-col gap-1 flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
+                            {msg.senderName || 'MJ'}
+                          </span>
+                          <span className="text-[8px] font-medium text-zinc-700">
+                            {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="text-xs text-zinc-300 break-words">{msg.text}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-zinc-700 italic gap-3 opacity-30">
+                    <icons.MessageSquare size={48} strokeWidth={1} />
+                    <span className="text-xs uppercase tracking-[0.2em] font-bold">Aucun message</span>
                   </div>
                 )}
               </div>
@@ -1658,8 +1999,31 @@ export const PlayerView: React.FC = () => {
             <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'logs' ? 'opacity-100' : 'opacity-40'}`}>Journal</span>
           </button>
           )}
+
+          {campaignJournal && campaignJournal.permission !== 'hidden' && (
+          <button
+            onClick={() => setActiveTab('journal')}
+            className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'journal' ? 'text-amber-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <div className={`p-2 rounded-xl transition-colors ${activeTab === 'journal' ? 'bg-amber-500/10' : 'bg-transparent'}`}>
+              <icons.BookOpen size={22} strokeWidth={activeTab === 'journal' ? 2.5 : 2} />
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'journal' ? 'opacity-100' : 'opacity-40'}`}>Campagne</span>
+          </button>
+          )}
+
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`flex flex-col items-center justify-center gap-1.5 flex-1 h-full transition-all duration-300 ${activeTab === 'chat' ? 'text-blue-500 scale-110' : 'text-zinc-600 hover:text-zinc-400'}`}
+          >
+            <div className={`p-2 rounded-xl transition-colors relative ${activeTab === 'chat' ? 'bg-blue-500/10' : 'bg-transparent'}`}>
+              <icons.MessageSquare size={22} strokeWidth={activeTab === 'chat' ? 2.5 : 2} />
+            </div>
+            <span className={`text-[9px] font-black uppercase tracking-[0.15em] transition-opacity ${activeTab === 'chat' ? 'opacity-100' : 'opacity-40'}`}>Messages</span>
+          </button>
         </div>
       )}
+
 
       {/* Decorative background glow */}
       {localRole && !localPlayer?.isDead && activeTab === 'game' && (
@@ -1877,17 +2241,12 @@ export const PlayerView: React.FC = () => {
       {/* Particle Overlay */}
       {activeParticle && (
         <div className="absolute inset-0 z-[300] overflow-hidden pointer-events-none">
-          {Array.from({ length: 40 }).map((_, i) => {
-            const left = Math.random() * 100;
-            const delay = Math.random() * 0.5;
-            const duration = 1 + Math.random();
-            const size = activeParticle.type === 'blood' ? (20 + Math.random() * 80) : (5 + Math.random() * 15);
-            
+          {particles.map((p, i) => {
             let style: React.CSSProperties = {
               position: 'absolute',
-              left: `${left}%`,
-              animationDelay: `${delay}s`,
-              animationDuration: `${duration}s`,
+              left: `${p.left}%`,
+              animationDelay: `${p.delay}s`,
+              animationDuration: `${p.duration}s`,
               animationTimingFunction: 'ease-out',
               animationFillMode: 'forwards'
             };
@@ -1897,35 +2256,35 @@ export const PlayerView: React.FC = () => {
             if (activeParticle.type === 'confetti') {
               const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#a855f7'];
               style.backgroundColor = colors[i % colors.length];
-              style.width = `${size}px`;
-              style.height = `${size}px`;
+              style.width = `${p.size}px`;
+              style.height = `${p.size}px`;
               style.top = '-20px';
-              style.transform = `rotate(${Math.random() * 360}deg)`;
+              style.transform = `rotate(${p.rotate}deg)`;
               className = 'animate-particle-fall';
             } else if (activeParticle.type === 'blood') {
               style.backgroundColor = '#991b1b'; // red-800
-              style.width = `${size}px`;
-              style.height = `${size}px`;
+              style.width = `${p.size}px`;
+              style.height = `${p.size}px`;
               style.borderRadius = '50%';
               style.top = '50%';
               style.left = '50%';
               style.transform = `translate(-50%, -50%) scale(0)`;
               className = 'animate-particle-splatter';
               // add random spread for splatter
-              (style as any)['--spread-x'] = `${(Math.random() - 0.5) * 400}px`;
-              (style as any)['--spread-y'] = `${(Math.random() - 0.5) * 400}px`;
+              (style as any)['--spread-x'] = `${p.spreadX}px`;
+              (style as any)['--spread-y'] = `${p.spreadY}px`;
             } else if (activeParticle.type === 'magic') {
               style.backgroundColor = '#fde047'; // yellow-300
               style.boxShadow = '0 0 10px #fef08a';
-              style.width = `${size / 2}px`;
-              style.height = `${size / 2}px`;
+              style.width = `${p.size / 2}px`;
+              style.height = `${p.size / 2}px`;
               style.borderRadius = '50%';
               style.bottom = '-20px';
               className = 'animate-particle-float';
             } else if (activeParticle.type === 'fire') {
               style.background = 'linear-gradient(to top, #ea580c, #facc15)';
-              style.width = `${size * 1.5}px`;
-              style.height = `${size * 2}px`;
+              style.width = `${p.size * 1.5}px`;
+              style.height = `${p.size * 2}px`;
               style.borderRadius = '50% 50% 20% 20%';
               style.bottom = '-20px';
               style.filter = 'blur(2px)';
@@ -1933,8 +2292,8 @@ export const PlayerView: React.FC = () => {
             } else if (activeParticle.type === 'poison') {
               style.backgroundColor = '#22c55e'; // green-500
               style.boxShadow = 'inset 0 0 5px #14532d';
-              style.width = `${size}px`;
-              style.height = `${size}px`;
+              style.width = `${p.size}px`;
+              style.height = `${p.size}px`;
               style.borderRadius = '50%';
               style.bottom = '-20px';
               className = 'animate-particle-bubble';
@@ -2022,6 +2381,115 @@ export const PlayerView: React.FC = () => {
           </div>
         </div>
       ))}
+
+      {/* Profile Editor Modal */}
+      {showProfileEditor && (
+        <div className="fixed inset-0 bg-black/70 z-[300] flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setShowProfileEditor(false)}>
+          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-zinc-800 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Edit2 size={18} className="text-blue-500" /> Modifier mon profil
+              </h3>
+              <button onClick={() => setShowProfileEditor(false)} className="text-zinc-400 hover:text-white transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">Nom</label>
+                <input
+                  type="text"
+                  value={profileEditName}
+                  onChange={(e) => setProfileEditName(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                  placeholder="Mon nom"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">Couleur</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={profileEditColor}
+                    onChange={(e) => setProfileEditColor(e.target.value)}
+                    className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border-0"
+                  />
+                  <span className="text-xs font-mono text-zinc-500">{profileEditColor}</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5 block">Photo de profil</label>
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    value={profileEditImageUrl}
+                    onChange={(e) => setProfileEditImageUrl(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                    placeholder="URL de l'image ou envoyez ci-dessous"
+                  />
+                  <label className="flex items-center justify-center gap-2 w-full px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/60 hover:border-zinc-500 rounded-lg text-xs font-bold text-zinc-300 cursor-pointer transition-all select-none">
+                    <icons.Upload size={14} className={isUploadingProfileImage ? 'animate-bounce' : ''} />
+                    {isUploadingProfileImage ? 'Téléversement...' : 'Importer une image'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setIsUploadingProfileImage(true);
+                        try {
+                          const url = await uploadFileToStorage(file);
+                          if (url) {
+                            setProfileEditImageUrl(url);
+                          } else {
+                            alert("Échec du téléversement de l'image.");
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          alert("Une erreur est survenue lors de l'envoi.");
+                        } finally {
+                          setIsUploadingProfileImage(false);
+                        }
+                      }}
+                      disabled={isUploadingProfileImage}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+              {localPlayer && (
+                <div className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg">
+                  <div
+                    className="w-10 h-10 rounded-full border border-white/30 overflow-hidden shrink-0 flex items-center justify-center bg-zinc-800"
+                    style={{ backgroundColor: profileEditColor }}
+                  >
+                    {profileEditImageUrl ? (
+                      <img src={profileEditImageUrl} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <icons.UserCircle2 className="w-6 h-6 text-zinc-500" />
+                    )}
+                  </div>
+                  <span className="text-sm font-bold text-white">{profileEditName || 'Joueur'}</span>
+                </div>
+              )}
+            </div>
+            <div className="p-4 bg-zinc-950/50 border-t border-zinc-800 flex gap-2">
+              <button
+                onClick={() => setShowProfileEditor(false)}
+                className="flex-1 py-2.5 rounded-lg font-bold text-sm text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSaveProfile}
+                className="flex-1 py-2.5 rounded-lg font-bold text-sm text-white bg-blue-600 hover:bg-blue-500 transition-colors"
+              >
+                Sauvegarder
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

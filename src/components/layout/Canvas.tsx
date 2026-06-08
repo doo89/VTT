@@ -519,7 +519,6 @@ export const Canvas: React.FC = () => {
   }, [selectionBoxStart, selectionBoxCurrent]);
 
   const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
     const wheelBehavior = displaySettings.wheelBehavior || 'both';
     const zoomSpeed = displaySettings.zoomSpeed ?? 0.001;
     const panSpeed = displaySettings.panSpeed ?? 1;

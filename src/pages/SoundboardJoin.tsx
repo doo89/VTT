@@ -31,6 +31,8 @@ export const SoundboardJoin: React.FC = () => {
     navigate(`/remote/${cleanRoomCode}/${encodeURIComponent(passcode.trim())}`);
   };
 
+  const passcodeRef = React.useRef(`room-code-sb-${Math.random().toString(36).substring(7)}`);
+
   return (
     <div className="h-screen w-screen bg-zinc-950 text-zinc-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl p-6 flex flex-col gap-6">
@@ -53,7 +55,7 @@ export const SoundboardJoin: React.FC = () => {
               placeholder="ABCD"
               maxLength={6}
               id="room-code-vtt-sb-input"
-              name={`room-code-sb-${Math.random().toString(36).substring(7)}`}
+              name={passcodeRef.current}
               autoComplete="off"
               className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-center text-2xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all placeholder:text-zinc-700"
               required

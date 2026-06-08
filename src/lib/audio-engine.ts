@@ -13,6 +13,7 @@ const MAX_CONCURRENT = 4;
 class AudioEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private masterVolumeValue = 1.0;
   private bufferCache = new Map<string, AudioBuffer>();
   private sessions = new Map<number, PlaybackSession>();
   private playbackOrder: number[] = [];
@@ -22,10 +23,34 @@ class AudioEngine {
   private playingStateCb: ((index: number, playing: boolean) => void) | null = null;
   private animFrameId: number | null = null;
 
+  constructor() {
+    if (typeof window !== 'undefined') {
+      const resumeContext = () => {
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().then(() => {
+            console.log('[AudioEngine] Context resumed via user gesture');
+            cleanup();
+          }).catch(console.error);
+        } else if (this.ctx && this.ctx.state === 'running') {
+          cleanup();
+        }
+      };
+      const cleanup = () => {
+        window.removeEventListener('click', resumeContext);
+        window.removeEventListener('keydown', resumeContext);
+        window.removeEventListener('pointerdown', resumeContext);
+      };
+      window.addEventListener('click', resumeContext, { passive: true });
+      window.addEventListener('keydown', resumeContext, { passive: true });
+      window.addEventListener('pointerdown', resumeContext, { passive: true });
+    }
+  }
+
   private getCtx(): AudioContext {
     if (!this.ctx) {
       this.ctx = new AudioContext();
       this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.value = this.masterVolumeValue;
       this.masterGain.connect(this.ctx.destination);
     }
     return this.ctx;
@@ -42,7 +67,10 @@ class AudioEngine {
   }
 
   setMasterVolume(v: number): void {
-    this.getMasterGain().gain.value = v;
+    this.masterVolumeValue = v;
+    if (this.masterGain) {
+      this.masterGain.gain.value = v;
+    }
     this.sessions.forEach((s, idx) => {
       const trackVol = this.trackVolumes.get(idx) ?? 1;
       s.gain.gain.value = trackVol * v;
@@ -50,7 +78,7 @@ class AudioEngine {
   }
 
   getMasterVolume(): number {
-    return this.getMasterGain().gain.value;
+    return this.masterVolumeValue;
   }
 
   async loadBuffer(audioUrl: string): Promise<AudioBuffer> {

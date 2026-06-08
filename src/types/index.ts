@@ -79,6 +79,26 @@ export interface Role {
   maxCount?: number;
   isFiller?: boolean;
   isMinMandatory?: boolean;
+  cardStyle?: CardStyle;
+}
+
+export interface CardStyle {
+  backgroundType: 'color' | 'gradient' | 'image';
+  backgroundColor: string;
+  backgroundGradient: string;
+  backgroundImageUrl?: string;
+  backgroundImagePosition?: string;
+  borderStyle: 'none' | 'thin' | 'double' | 'gothic' | 'neon' | 'fantasy';
+  borderColor: string;
+  fontFamily: string;
+  textColor: string;
+  titleColor?: string;
+  descriptionColor?: string;
+  teamColor?: string;
+  layout: 'image-top' | 'image-center' | 'image-background' | 'split';
+  imageZoom?: number;
+  imageOffset?: { x: number; y: number };
+  badgePosition?: 'top-left' | 'top-right' | 'hidden';
 }
 
 export interface TagCategory {
@@ -407,6 +427,8 @@ export type ActionEffectType =
   | 'assignTeamToRole'
   | 'showTimerOnSmartphone'
   | 'hideTimerOnSmartphone'
+  | 'showDiceOnSmartphone'
+  | 'hideDiceOnSmartphone'
   | 'wait'
   | 'togglePhaseTimer'
   | 'setPhaseDuration'
@@ -598,13 +620,28 @@ export interface GroupVote {
   isOpen: boolean;
 }
 
+export interface CampaignJournal {
+  isOpen: boolean;
+  isDetached: boolean;
+  x: number;
+  y: number;
+  publicContent: string;
+  privateContent: string;
+  permission: 'hidden' | 'readonly' | 'editable';
+  lockHolderId: string | null;
+  lockHolderName: string | null;
+  lockExpiration: number | null;
+}
+
 export interface GameState {
+  campaignJournal: CampaignJournal;
   coordinatePicker: {
     isActive: boolean;
     onPick?: (x: number, y: number) => void;
   } | null;
   roomName: string;
   roomCode: string | null;
+  chatMessages: ChatMessage[];
   isRoomPublic: boolean;
   joinRequests: string[];
   onlinePlayerIds: EntityId[];
@@ -769,6 +806,7 @@ export interface GameState {
       logs?: boolean;
       system?: boolean;
       wiki?: boolean;
+      campaignJournal?: boolean;
       popupCreator?: boolean;
       actionCreator?: boolean;
       checklist?: boolean;
@@ -795,6 +833,7 @@ export interface GameState {
       showNotePreview: boolean;
     };
     showTimerOnSmartphone?: boolean;
+    showDiceOnSmartphone?: boolean;
     timerEndSoundUrl?: string | null;
     wikiTitle?: string;
     wikiLightMode?: boolean;
@@ -891,4 +930,15 @@ export interface GameState {
     tagDistributorShowCount?: boolean;
     tagDistributorAutoDetach?: boolean;
   };
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  recipientId: string;
+  recipientType: 'player' | 'group' | 'gm';
+  text: string;
+  timestamp: number;
+  unread?: boolean;
 }

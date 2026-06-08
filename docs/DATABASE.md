@@ -77,6 +77,7 @@ CREATE TABLE roles (
   icon_url TEXT,
   color_hex TEXT DEFAULT '#ffffff',
   is_custom BOOLEAN DEFAULT false,
+  card_style JSONB DEFAULT '{}'::jsonb,
   created_by UUID REFERENCES auth.users(id),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -90,6 +91,7 @@ CREATE TABLE roles (
 - `icon_url` : URL de l'icône du rôle
 - `color_hex` : Couleur associée
 - `is_custom` : Rôle personnalisé par un utilisateur
+- `card_style` : Style WYSIWYG de la carte de rôle (couleur, bordure, gradient, polices...)
 
 ### `tags`
 

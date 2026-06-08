@@ -60,6 +60,7 @@ export type SyncStatePayload = {
   wiki: any;
   room: any;
   logs?: any[];
+  campaignJournal?: any;
 };
 
 export type JoinRequestPayload = {

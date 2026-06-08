@@ -9,11 +9,15 @@ import { DetachedSoundboard } from '../components/DetachedSoundboard';
 import { ScoreboardWindow } from '../components/ScoreboardWindow';
 import { WikiWindow } from '../components/WikiWindow';
 import { ChecklistWindow } from '../components/ChecklistWindow';
+import { CampaignJournalWindow } from '../components/CampaignJournalWindow';
 import { TagDistributorWindow } from '../components/TagDistributorWindow';
 import { ActionCreatorWindow } from '../components/ActionCreatorWindow';
 import { ActionConditionWindow } from '../components/ActionConditionWindow';
 import { ActionEffectWindow } from '../components/ActionEffectWindow';
 import { RoleSelectorWindow } from '../components/RoleSelectorWindow';
+import { CardEditorWindow } from '../components/CardEditorWindow';
+import { VoteManagerWindow } from '../components/VoteManagerWindow';
+import { ChatManagerWindow } from '../components/ChatManagerWindow';
 import { useVttStore, selectPlayers, selectSelectedEntityIds } from '../store';
 import { setupHostRealtimeSubscription, cleanupHostRealtime } from '../lib/realtime-host';
 import { X, MessageSquareWarning, Keyboard } from 'lucide-react';
@@ -28,6 +32,39 @@ export const GmView: React.FC = () => {
   const selectedEntityIds = useVttStore(selectSelectedEntityIds);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const toast = useToast();
+
+  const [cardEditorRoleId, setCardEditorRoleId] = useState<string | null | undefined>(undefined);
+
+  React.useEffect(() => {
+    (window as any).openCardEditor = (roleId?: string | null) => {
+      setCardEditorRoleId(roleId === undefined ? null : roleId);
+    };
+    return () => {
+      delete (window as any).openCardEditor;
+    };
+  }, []);
+
+  const [isVoteManagerOpen, setIsVoteManagerOpen] = useState(false);
+
+  React.useEffect(() => {
+    (window as any).openVoteManager = (open: boolean = true) => {
+      setIsVoteManagerOpen(open);
+    };
+    return () => {
+      delete (window as any).openVoteManager;
+    };
+  }, []);
+
+  const [isChatManagerOpen, setIsChatManagerOpen] = useState(false);
+
+  React.useEffect(() => {
+    (window as any).openChatManager = (open: boolean = true) => {
+      setIsChatManagerOpen(open);
+    };
+    return () => {
+      delete (window as any).openChatManager;
+    };
+  }, []);
 
   React.useEffect(() => {
     const unsubscribe = setupHostRealtimeSubscription();
@@ -353,11 +390,28 @@ export const GmView: React.FC = () => {
       <ScoreboardWindow />
       <WikiWindow />
       <ChecklistWindow />
+      <CampaignJournalWindow />
       <TagDistributorWindow />
       <ActionCreatorWindow />
       <ActionConditionWindow />
       <ActionEffectWindow />
       <RoleSelectorWindow />
+      {cardEditorRoleId !== undefined && (
+        <CardEditorWindow
+          roleId={cardEditorRoleId}
+          onClose={() => setCardEditorRoleId(undefined)}
+        />
+      )}
+      {isVoteManagerOpen && (
+        <VoteManagerWindow
+          onClose={() => setIsVoteManagerOpen(false)}
+        />
+      )}
+      {isChatManagerOpen && (
+        <ChatManagerWindow
+          onClose={() => setIsChatManagerOpen(false)}
+        />
+      )}
 
       {/* Smartphone Action Popup */}
       {smartphoneActionMessage && (

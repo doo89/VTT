@@ -1,4 +1,4 @@
-import { Plus, Trash2, Edit2, ChevronDown, ChevronRight, icons, ChevronsUpDown, ChevronsDownUp, Copy, GripVertical, AlertTriangle, Search, X, ArrowUpDown, ArrowDownAZ, List, LayoutList, Download, Upload, Package, BarChart3, Users, FolderPlus, CheckSquare, Square, Filter, Link2, History, Save, FolderOpen, Clock } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronDown, ChevronRight, icons, ChevronsUpDown, ChevronsDownUp, Copy, GripVertical, AlertTriangle, Search, X, ArrowUpDown, ArrowDownAZ, List, LayoutList, Download, Upload, Package, BarChart3, Users, FolderPlus, CheckSquare, Square, Filter, Link2, History, Save, FolderOpen, Clock, CreditCard } from 'lucide-react';
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useVttStore } from '../../../store';
 import { ColorPicker } from '../../ColorPicker';
@@ -88,6 +88,7 @@ function DraggableRoleItem({ role, usageCount, isSelected, viewMode, onToggleSel
         </div>
         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
           <button onClick={(e) => { e.stopPropagation(); onDuplicate(role); }} className="p-0.5 text-muted-foreground hover:text-foreground" aria-label="Dupliquer"><Copy size={10} /></button>
+          <button onClick={(e) => { e.stopPropagation(); (window as any).openCardEditor?.(role.id); }} className="p-0.5 text-amber-500 hover:text-amber-400" aria-label="Éditeur de carte"><CreditCard size={10} /></button>
           <button onClick={(e) => { e.stopPropagation(); onEdit(role.id); }} className="p-0.5 text-muted-foreground hover:text-foreground" aria-label="Modifier"><Edit2 size={10} /></button>
           <button onClick={(e) => { e.stopPropagation(); onDelete(role.id, role.name); }} className="p-0.5 text-muted-foreground hover:text-destructive" aria-label="Supprimer"><Trash2 size={10} /></button>
         </div>
@@ -113,6 +114,7 @@ function DraggableRoleItem({ role, usageCount, isSelected, viewMode, onToggleSel
       </div>
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={(e) => { e.stopPropagation(); onDuplicate(role); }} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md" title="Dupliquer"><Copy size={14} /></button>
+        <button onClick={(e) => { e.stopPropagation(); (window as any).openCardEditor?.(role.id); }} className="p-1.5 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 rounded-md" title="Éditeur de carte"><CreditCard size={14} /></button>
         <button onClick={(e) => { e.stopPropagation(); onEdit(role.id); }} className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-md" title="Modifier"><Edit2 size={14} /></button>
         <button onClick={(e) => { e.stopPropagation(); onDelete(role.id, role.name); }} className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md" title="Supprimer"><Trash2 size={14} /></button>
       </div>
@@ -595,6 +597,13 @@ export const RolesTab: React.FC = () => {
           <Plus size={16} /> Ajouter Rôle
         </button>
       </div>
+
+      <button
+        onClick={() => (window as any).openCardEditor?.(null)}
+        className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-neutral-950 py-2 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-amber-500/10"
+      >
+        <CreditCard size={16} /> Créateur Visuel de Cartes
+      </button>
     </div>
   );
 

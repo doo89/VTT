@@ -450,3 +450,14 @@ export const handleShowTimerOnSmartphone: EffectHandler = (effect, context, stat
 export const handleHideTimerOnSmartphone: EffectHandler = (effect, context, state) => {
   state.displaySettings = { ...state.displaySettings, showTimerOnSmartphone: false };
 };
+
+/**
+ * Show/hide manual dice roller on smartphone effect
+ */
+export const handleShowDiceOnSmartphone: EffectHandler = (effect, context, state) => {
+  state.displaySettings = { ...state.displaySettings, showDiceOnSmartphone: true };
+};
+
+export const handleHideDiceOnSmartphone: EffectHandler = (effect, context, state) => {
+  state.displaySettings = { ...state.displaySettings, showDiceOnSmartphone: false };
+};

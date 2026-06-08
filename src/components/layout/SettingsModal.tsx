@@ -1766,11 +1766,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         <label className="flex items-center gap-2 text-xs cursor-pointer p-1.5 bg-muted/5 rounded hover:bg-muted/20 transition-colors">
                           <input
                             type="checkbox"
-                            checked={displaySettings.showTimerOnSmartphone ?? true}
+                            checked={displaySettings.showTimerOnSmartphone ?? false}
                             onChange={(e) => updateDisplaySettings({ showTimerOnSmartphone: e.target.checked })}
                             className="rounded border-border"
                           />
                           Chronomètre
+                        </label>
+
+                        <label className="flex items-center gap-2 text-xs cursor-pointer p-1.5 bg-muted/5 rounded hover:bg-muted/20 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={displaySettings.showDiceOnSmartphone ?? false}
+                            onChange={(e) => updateDisplaySettings({ showDiceOnSmartphone: e.target.checked })}
+                            className="rounded border-border"
+                          />
+                          Lanceur de dés manuel
                         </label>
 
                         {expandedSmartphone.game && (
@@ -2398,7 +2408,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                             <label className="flex items-center gap-2 text-xs cursor-pointer p-1.5 mt-2 bg-muted/5 rounded hover:bg-muted/20 transition-colors w-fit">
                               <input
                                 type="checkbox"
-                                checked={displaySettings.showTimerOnSmartphone ?? true}
+                                checked={displaySettings.showTimerOnSmartphone ?? false}
                                 onChange={(e) => updateDisplaySettings({ showTimerOnSmartphone: e.target.checked })}
                                 className="rounded border-border"
                               />

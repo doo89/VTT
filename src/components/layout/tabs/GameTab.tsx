@@ -1,4 +1,4 @@
-import { Moon, Sun, FastForward, RotateCcw, GripVertical, Focus, ArrowLeft, ArrowRight, Search, X, CheckCircle2, Circle, History, ChevronUp, ChevronDown, Trash2, Copy, ClipboardCheck, StickyNote, Clock, RotateCw } from 'lucide-react';
+import { Moon, Sun, FastForward, RotateCcw, GripVertical, Focus, ArrowLeft, ArrowRight, Search, X, CheckCircle2, Circle, History, ChevronUp, ChevronDown, Trash2, Copy, ClipboardCheck, StickyNote, Clock, RotateCw, Vote, MessageSquare } from 'lucide-react';
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { useVttStore } from '../../../store';
 import type { Player, Marker, TagInstance } from '../../../types';
@@ -72,6 +72,8 @@ export const GameTab: React.FC = () => {
   const { 
     isNight, cycleNumber, cycleMode, nextCycle, resetCycle, roles, timer, setTimer, displaySettings
   } = useVttStore();
+  const chatMessages = useVttStore(state => state.chatMessages);
+  const unreadCount = useMemo(() => chatMessages.filter(m => m.unread).length, [chatMessages]);
 
   const [sectionOrder, setSectionOrder] = useState([
     'phase',
@@ -422,6 +424,29 @@ export const GameTab: React.FC = () => {
         aria-label="Passer à la phase suivante"
       >
         <FastForward size={16} /> Passer à la phase suivante
+      </button>
+
+      <button
+        onClick={() => (window as any).openVoteManager?.(true)}
+        className="flex items-center gap-2 px-4 py-2 bg-fuchsia-600/10 hover:bg-fuchsia-600/20 text-fuchsia-400 border border-fuchsia-500/30 rounded-md text-sm transition-colors w-full justify-center"
+        title="Gestion des Votes de groupe en temps réel"
+        aria-label="Ouvrir le gestionnaire de vote"
+      >
+        <Vote size={16} /> Gérer les Votes en Temps Réel
+      </button>
+
+      <button
+        onClick={() => (window as any).openChatManager?.(true)}
+        className="relative flex items-center gap-2 px-4 py-2 bg-indigo-600/10 hover:bg-indigo-650/20 text-indigo-400 border border-indigo-500/30 rounded-md text-sm transition-colors w-full justify-center"
+        title="Ouvrir la Messagerie Privée & Chuchotements"
+        aria-label="Ouvrir la messagerie"
+      >
+        <MessageSquare size={16} /> Messagerie Privée
+        {unreadCount > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-neutral-900 animate-pulse">
+            {unreadCount}
+          </span>
+        )}
       </button>
 
       {calledEntities.length > 0 && (

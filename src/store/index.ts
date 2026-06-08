@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, HandoutCategory, PlayerTemplate, LogEvent, CustomPopup, GroupVote, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState, ActionEffect, ActionEffectCreatorState, PlayerShape, RoleSelectorState } from '../types';
+import type { GameState, EntityId, Player, Role, TagModel, TagCategory, Marker, Team, Handout, HandoutCategory, PlayerTemplate, LogEvent, CustomPopup, GroupVote, ChecklistItem, Action, ActionCreatorState, ActionCondition, ActionConditionCreatorState, ActionEffect, ActionEffectCreatorState, PlayerShape, RoleSelectorState, ChatMessage } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { executeAction as executeActionEngine } from '../lib/action-engine';
 import { storeAudio, deleteAudio, makeIdbKey } from '../lib/audio-storage';
@@ -27,6 +27,9 @@ export interface VttStore extends GameState {
   setChecklistState: (checklistUpdate: Partial<GameState['checklistState']>) => void;
   setTagDistributorState: (distributorUpdate: Partial<GameState['tagDistributorState']>) => void;
   setRoleSelectorState: (roleSelectorUpdate: Partial<RoleSelectorState>) => void;
+  updateCampaignJournal: (updates: Partial<GameState['campaignJournal']>) => void;
+  acquireJournalLock: (playerId: string, playerName: string) => boolean;
+  releaseJournalLock: (playerId: string) => void;
   playerTemplates: PlayerTemplate[];
 
   // Selection & Interaction
@@ -179,6 +182,11 @@ export interface VttStore extends GameState {
   addLog: (message: string, type: LogEvent['type'], metadata?: LogEvent['metadata']) => void;
   clearLogs: () => void;
 
+  // Chat
+  addChatMessage: (msg: ChatMessage) => void;
+  clearChatMessages: () => void;
+  markChatMessagesAsRead: (senderOrGroupId: string) => void;
+
   // Checklist
   setChecklist: (checklist: ChecklistItem[] | ((prev: ChecklistItem[]) => ChecklistItem[])) => void;
 
@@ -215,9 +223,22 @@ export interface VttStore extends GameState {
 }
 
 export const initialState = {
+  campaignJournal: {
+    isOpen: false,
+    isDetached: false,
+    x: 400,
+    y: 200,
+    publicContent: '',
+    privateContent: '',
+    permission: 'readonly' as const,
+    lockHolderId: null,
+    lockHolderName: null,
+    lockExpiration: null,
+  },
   coordinatePicker: null,
   roomName: 'Ma Salle',
   roomCode: null,
+  chatMessages: [],
   isRoomPublic: true,
   joinRequests: [],
   onlinePlayerIds: [],
@@ -439,7 +460,7 @@ export const initialState = {
       checklist: true,
       tagDistributor: true,
       magneticPoints: true,
-      panelsOrder: ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system'],
+      panelsOrder: ['distribution', 'chrono', 'soundboard', 'scoreboard', 'logs', 'tagDistributor', 'wiki', 'campaignJournal', 'popupCreator', 'actionCreator', 'checklist', 'magneticPoints', 'system'],
     },
     includeRoomCodeInLinks: false,
     recordLogs: false,
@@ -459,7 +480,8 @@ export const initialState = {
       allowNotesForDeadPlayers: true,
       showNotePreview: true,
     },
-    showTimerOnSmartphone: true,
+    showTimerOnSmartphone: false,
+    showDiceOnSmartphone: false,
     timerEndSoundUrl: null,
     wikiTitle: 'Régles du jeu',
     wikiLightMode: true,
@@ -581,6 +603,49 @@ export const useVttStore = create<VttStore>()(
     temporal(
       (set, get) => ({
         ...initialState,
+
+  updateCampaignJournal: (updates) => set((state) => ({
+    campaignJournal: {
+      ...state.campaignJournal,
+      ...updates
+    }
+  })),
+  acquireJournalLock: (playerId, playerName) => {
+    const state = get();
+    const journal = state.campaignJournal;
+    const now = Date.now();
+    const isLockAvailable = 
+      journal.lockHolderId === null || 
+      journal.lockHolderId === playerId || 
+      (journal.lockExpiration !== null && now > journal.lockExpiration);
+
+    if (isLockAvailable) {
+      set({
+        campaignJournal: {
+          ...journal,
+          lockHolderId: playerId,
+          lockHolderName: playerName,
+          lockExpiration: now + 5 * 60 * 1000 // 5 minutes lock
+        }
+      });
+      return true;
+    }
+    return false;
+  },
+  releaseJournalLock: (playerId) => {
+    const state = get();
+    const journal = state.campaignJournal;
+    if (journal.lockHolderId === playerId) {
+      set({
+        campaignJournal: {
+          ...journal,
+          lockHolderId: null,
+          lockHolderName: null,
+          lockExpiration: null
+        }
+      });
+    }
+  },
 
     // Selection & Interaction
   setSelectedEntityIds: (ids) => set({ selectedEntityIds: ids }),
@@ -1002,6 +1067,18 @@ export const useVttStore = create<VttStore>()(
           }
           return { logs: [] };
         }),
+        addChatMessage: (msg) => set((state) => {
+          if (state.chatMessages.some(m => m.id === msg.id)) return state;
+          return { chatMessages: [...state.chatMessages, msg] };
+        }),
+        clearChatMessages: () => set({ chatMessages: [] }),
+        markChatMessagesAsRead: (senderOrGroupId) => set((state) => ({
+          chatMessages: state.chatMessages.map(m => 
+            (m.senderId === senderOrGroupId || m.recipientId === senderOrGroupId) && m.unread
+              ? { ...m, unread: false }
+              : m
+          )
+        })),
 
         // Checklist
         setChecklist: (checklistPayload) => set((state) => ({

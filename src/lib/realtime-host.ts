@@ -85,6 +85,13 @@ const buildFullStatePayload = () => {
     smartphoneCountdown: state.smartphoneCountdown,
     timer: state.timer,
     actions: state.actions.map(a => ({ id: a.id, name: a.name, enabled: a.enabled })),
+    campaignJournal: {
+      publicContent: state.campaignJournal?.publicContent ?? '',
+      permission: state.campaignJournal?.permission ?? 'readonly',
+      lockHolderId: state.campaignJournal?.lockHolderId ?? null,
+      lockHolderName: state.campaignJournal?.lockHolderName ?? null,
+      lockExpiration: state.campaignJournal?.lockExpiration ?? null,
+    },
     logs: (state.logs || []).slice(-100),
   };
 };
@@ -522,6 +529,22 @@ export const initHostRealtime = (roomCode: string) => {
 
       }
     })
+    .on('broadcast', { event: 'private_chat_message' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      state.addChatMessage({
+        ...payload,
+        unread: true
+      });
+    })
+    .on('broadcast', { event: 'update_player_profile' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      const player = state.players.find(p => p.id === payload.playerId);
+      if (player) {
+        state.updatePlayer(payload.playerId, payload.updates);
+        state.addLog(`Profil de ${player.name} mis à jour par le joueur.`, 'system');
+        forceBroadcastState();
+      }
+    })
     .on('broadcast', { event: 'poll_response' }, ({ payload }) => {
       const state = useVttStore.getState();
       const player = state.players.find(p => p.id === payload.playerId);
@@ -662,6 +685,39 @@ export const initHostRealtime = (roomCode: string) => {
           state.updatePlayer(payload.playerId, { privateNotes: payload.notes });
           state.addLog(`Note privée mise à jour pour ${player.name}`, 'note');
         }
+      }
+    })
+    .on('broadcast', { event: 'journal_acquire_lock' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      if (state.campaignJournal.permission !== 'editable') return;
+      const success = state.acquireJournalLock(payload.playerId, payload.playerName);
+      if (success) {
+        forceBroadcastState();
+      }
+    })
+    .on('broadcast', { event: 'journal_release_lock' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      state.releaseJournalLock(payload.playerId);
+      forceBroadcastState();
+    })
+    .on('broadcast', { event: 'journal_update_public' }, ({ payload }) => {
+      const state = useVttStore.getState();
+      if (state.campaignJournal.permission !== 'editable') return;
+      
+      const now = Date.now();
+      const isLockAvailable = 
+        state.campaignJournal.lockHolderId === null || 
+        state.campaignJournal.lockHolderId === payload.playerId || 
+        (state.campaignJournal.lockExpiration !== null && now > state.campaignJournal.lockExpiration);
+        
+      if (isLockAvailable) {
+        state.updateCampaignJournal({
+          publicContent: payload.content,
+          lockHolderId: payload.playerId,
+          lockHolderName: payload.playerName,
+          lockExpiration: now + 5 * 60 * 1000
+        });
+        forceBroadcastState();
       }
     })
     .on('presence', { event: 'sync' }, () => {

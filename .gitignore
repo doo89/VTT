@@ -1,2 +1,7 @@
-(docs/API.md) is just a documentation file, no need to add to .gitignore
 node_modules
+dist/
+.env
+.env.*
+.opencode/
+scratch/
+opencode.json

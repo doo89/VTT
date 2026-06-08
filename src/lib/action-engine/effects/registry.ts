@@ -39,6 +39,8 @@ import {
   handleHideRoleColor,
   handleShowTimerOnSmartphone,
   handleHideTimerOnSmartphone,
+  handleShowDiceOnSmartphone,
+  handleHideDiceOnSmartphone,
 } from './player-effects';
 
 // Tag effects
@@ -156,6 +158,8 @@ export const effectRegistry: Record<string, EffectHandler> = {
   hideRoleColor: handleHideRoleColor,
   showTimerOnSmartphone: handleShowTimerOnSmartphone,
   hideTimerOnSmartphone: handleHideTimerOnSmartphone,
+  showDiceOnSmartphone: handleShowDiceOnSmartphone,
+  hideDiceOnSmartphone: handleHideDiceOnSmartphone,
   incrementCallOrder: handleIncrementCallOrder,
   decrementCallOrder: handleDecrementCallOrder,
   resetCallOrder: handleResetCallOrder,

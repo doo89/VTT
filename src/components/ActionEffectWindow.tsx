@@ -94,6 +94,8 @@ const ACTION_OPTIONS: ActionOption[] = ([
   { value: 'deleteAllPlayerTags', label: 'Supprimer tous les tags des joueurs', category: 'attributes' },
   { value: 'showTimerOnSmartphone', label: 'Afficher le chronomètre (Smartphone)', category: 'remote' },
   { value: 'hideTimerOnSmartphone', label: 'Masquer le chronomètre (Smartphone)', category: 'remote' },
+  { value: 'showDiceOnSmartphone', label: 'Afficher le lanceur de dés (Smartphone)', category: 'remote' },
+  { value: 'hideDiceOnSmartphone', label: 'Masquer le lanceur de dés (Smartphone)', category: 'remote' },
   { value: 'forceSmartphoneTab', label: "Forcer la navigation vers l'onglet X (Smartphone)", category: 'remote' },
   { value: 'vibrateSmartphone', label: "Faire vibrer le Smartphone ($Joueur)", category: 'remote' },
   { value: 'lockSmartphone', label: "Verrouiller le Smartphone ($Joueur)", category: 'remote' },
