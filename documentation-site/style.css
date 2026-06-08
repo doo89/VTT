@@ -60,8 +60,8 @@ body {
 
 /* App Layout */
 .app-container {
-  display: flex;
   min-height: 100vh;
+  position: relative;
 }
 
 /* Sidebar Navigation */
@@ -180,7 +180,7 @@ body {
 .sidebar-footer {
   margin-top: auto;
   padding-top: 1.5rem;
-  border-t: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color);
   font-size: 0.7rem;
   color: var(--text-muted);
   text-align: center;
@@ -190,9 +190,7 @@ body {
 /* Main Content Area */
 .main-content {
   margin-left: 280px;
-  flex: 1;
   padding: 3rem 4rem;
-  min-width: 0;
 }
 
 /* Tab Sections */
